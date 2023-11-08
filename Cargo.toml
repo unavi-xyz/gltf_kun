@@ -1,0 +1,25 @@
+[workspace]
+resolver = "2"
+members = [
+  "cli",
+  "core"
+]
+
+[workspace.package]
+version = "0.0.0"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/unavi-xyz/gltf_kun"
+edition = "2021"
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+lto = true
+
+[profile.wasm-release]
+inherits = "release"
+opt-level = 'z'

@@ -1,0 +1,9 @@
+[package]
+name = "gltf_kun_cli"
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+edition.workspace = true
+
+[dependencies]
+gltf_kun = { path = "../core" }
