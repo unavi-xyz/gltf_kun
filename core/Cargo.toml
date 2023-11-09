@@ -1,6 +1,6 @@
 [package]
 name = "gltf_kun"
-description="Extensible library for building glTF toolchains."
+description="An extensible library for building glTF toolchains."
 version.workspace = true
 license.workspace = true
 repository.workspace = true
