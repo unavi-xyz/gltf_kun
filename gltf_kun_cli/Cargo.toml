@@ -7,4 +7,4 @@ edition.workspace = true
 
 [dependencies]
 clap = { version = "4.4.7", features = ["derive"] }
-gltf_kun = { path = "../core" }
+gltf_kun = { path = "../gltf_kun" }

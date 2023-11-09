@@ -1,0 +1,25 @@
+[package]
+name = "gltf_kun"
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+edition.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+gltf = { version = "1.3.0", features = [
+  "default",
+  "extras",
+  "KHR_lights_punctual",
+  "KHR_materials_pbrSpecularGlossiness",
+  "KHR_materials_unlit",
+  "KHR_texture_transform",
+  "KHR_materials_transmission",
+  "KHR_materials_ior",
+  "KHR_materials_variants",
+  "KHR_materials_volume",
+  "KHR_materials_specular",
+  "KHR_materials_emissive_strength",
+] }

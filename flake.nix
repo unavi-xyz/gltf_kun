@@ -36,11 +36,6 @@
         ];
 
         native_build_inputs = with pkgs; [
-          # Leptos
-          binaryen
-          cargo-leptos
-          openssl
-
           # Rust
           cargo-auditable
           pkg-config
@@ -54,7 +49,13 @@
         packages = code // {
           all = pkgs.symlinkJoin {
             name = "all";
-            paths = with code; [ cli core wasm ];
+            paths = with code; [
+              bevy_gltf_kun
+              bevy_gltf_kun_wasm
+              gltf_kun_cli
+              gltf_kun
+              gltf_kun_wasm
+            ];
           };
 
           default = packages.all;
