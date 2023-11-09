@@ -1,10 +1,10 @@
 [package]
 name = "bevy_gltf_kun"
 description = "Bevy glTF plugin using gltf_kun."
-version = "0.0.0"
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/unavi-xyz/gltf_kun"
-edition = "2021"
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+edition.workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
