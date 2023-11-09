@@ -1863,6 +1863,7 @@ name = "gltf_kun"
 version = "0.0.0"
 dependencies = [
  "gltf",
+ "petgraph",
 ]
 
 [[package]]
