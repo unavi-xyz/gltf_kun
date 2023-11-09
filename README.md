@@ -5,4 +5,4 @@
 ![Crates.io](https://img.shields.io/crates/l/gltf_kun)
 [![Documentation](https://docs.rs/gltf_kun/badge.svg)](https://docs.rs/bevy_gltf_export)
 
-An extensible library for building glTF toolchains.
+An extensible library for building [glTF](https://github.com/KhronosGroup/glTF) toolchains.
