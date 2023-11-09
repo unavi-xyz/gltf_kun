@@ -1,13 +1,13 @@
 use bevy::prelude::*;
 
-mod exporter;
+// mod exporter;
 
 pub struct GltfExportPlugin;
 
 impl Plugin for GltfExportPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<ExportScene>()
-            .add_systems(PreUpdate, exporter::export_gltf);
+        // app.add_event::<ExportScene>()
+        //     .add_systems(PreUpdate, exporter::export_gltf);
     }
 }
 
