@@ -1,3 +1,1 @@
-pub fn hello() {
-    println!("Hello, world!");
-}
+pub use gltf::*;
