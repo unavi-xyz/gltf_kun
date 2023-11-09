@@ -11,7 +11,7 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 bevy = "0.12.0"
-gltf_kun = { path = "../gltf_kun" }
+gltf_kun = { path = "../core" }
 
 [profile.dev]
 opt-level = 1
