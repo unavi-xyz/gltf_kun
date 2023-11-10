@@ -1,6 +1,7 @@
 [package]
 name = "bevy_gltf_kun"
 description = "Bevy glTF plugin using gltf_kun."
+keywords = ["bevy", "glTF"]
 version.workspace = true
 license.workspace = true
 repository.workspace = true
