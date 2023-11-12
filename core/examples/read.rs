@@ -7,6 +7,6 @@ fn main() {
     let gltf = gltf_kun::import(&path).unwrap();
 
     gltf.nodes().iter().for_each(|node| {
-        println!("{:#?}", node.data());
+        // println!("{:#?}", node.data());
     });
 }

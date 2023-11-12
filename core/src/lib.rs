@@ -1,94 +1,58 @@
-use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
+mod children;
 mod graph;
+pub mod node;
+pub mod scene;
 
 use graph::*;
-use petgraph::graph::NodeIndex;
-use petgraph::visit::EdgeRef;
+use node::Node;
+use scene::Scene;
 
-pub struct Node {
-    graph: Arc<GltfGraph>,
-    index: NodeIndex,
-}
-
-impl Node {
-    pub fn data(&self) -> &NodeData {
-        match &self.graph[self.index] {
-            GraphNode::Node(node) => node,
-            _ => panic!("Node is not a NodeData"),
-        }
-    }
-
-    pub fn children(&self) -> Vec<Node> {
-        self.graph
-            .edges(self.index)
-            .filter_map(|edge| {
-                let index = match edge.weight() {
-                    GraphEdge::Child => edge.target(),
-                    _ => return None,
-                };
-
-                Some(Node {
-                    graph: self.graph.clone(),
-                    index,
-                })
-            })
-            .collect()
-    }
-}
-
+#[derive(Default)]
 pub struct Gltf {
-    graph: Arc<GltfGraph>,
+    graph: Arc<Mutex<GltfGraph>>,
 }
 
 impl Gltf {
     /// Create a new Gltf from json
     pub fn from_json(json: &gltf::json::Root) -> Self {
-        let mut graph = GltfGraph::new();
-        let mut nodes = HashMap::new();
+        let gltf = Gltf::default();
 
-        json.nodes.iter().enumerate().for_each(|(i, node)| {
-            let graph_node = graph.add_node(GraphNode::Node(NodeData {
-                name: node.name.clone(),
-                translation: node.translation.unwrap_or([0.0, 0.0, 0.0]),
-                rotation: node.rotation.unwrap_or_default().0,
-                scale: node.scale.unwrap_or([1.0, 1.0, 1.0]),
-            }));
-
-            nodes.insert(i, graph_node);
-        });
-
-        json.nodes.iter().enumerate().for_each(|(i, node)| {
-            let graph_node = nodes.get(&i).unwrap();
-
-            if let Some(children) = &node.children {
-                children.iter().for_each(|child| {
-                    let child_graph_node = nodes.get(&child.value()).unwrap();
-
-                    graph.add_edge(*graph_node, *child_graph_node, GraphEdge::Child);
-                    graph.add_edge(*child_graph_node, *graph_node, GraphEdge::Parent);
-                });
-            }
-        });
-
-        Gltf {
-            graph: Arc::new(graph),
-        }
+        gltf
     }
 
     /// Get all glTF nodes
     pub fn nodes(&self) -> Vec<Node> {
-        self.graph
+        let graph = self.graph.lock().unwrap();
+
+        graph
             .node_indices()
-            .filter_map(|index| match self.graph[index] {
-                GraphNode::Node(_) => Some(Node {
-                    graph: self.graph.clone(),
-                    index,
-                }),
+            .filter_map(|index| match graph[index] {
+                GraphData::Node(_) => Some(Node::new(self.graph.clone(), index)),
                 _ => None,
             })
             .collect()
+    }
+
+    pub fn create_scene(&mut self) -> Scene {
+        let index = self
+            .graph
+            .lock()
+            .unwrap()
+            .add_node(GraphData::Scene(SceneData::default()));
+
+        Scene::new(self.graph.clone(), index)
+    }
+
+    pub fn create_node(&mut self) -> Node {
+        let index = self
+            .graph
+            .lock()
+            .unwrap()
+            .add_node(GraphData::Node(NodeData::default()));
+
+        Node::new(self.graph.clone(), index)
     }
 }
 

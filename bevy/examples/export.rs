@@ -50,7 +50,7 @@ fn setup(
         .set_parent(scene);
 
     event_writer.send(bevy_gltf_kun::ExportScene {
-        scene,
+        scenes: vec![scene],
         format: bevy_gltf_kun::ExportFormat::default(),
     });
 }
