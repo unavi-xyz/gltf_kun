@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 mod children;
-mod graph;
+pub mod graph;
 pub mod node;
 pub mod scene;
 

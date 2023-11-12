@@ -4,7 +4,7 @@ use std::sync::{Arc, Mutex};
 use petgraph::visit::EdgeRef;
 
 use crate::{
-    graph::{GltfGraph, GraphEdge},
+    graph::{GltfGraph, GraphEdge, NodeCover},
     node::Node,
 };
 

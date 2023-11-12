@@ -1,5 +1,10 @@
 use bevy::prelude::*;
 
+use self::utils::bevy_name_to_string;
+use gltf_kun::graph::NodeName;
+
+mod utils;
+
 pub fn export_gltf(
     mut events: EventReader<super::ExportScene>,
     meshes: Res<Assets<Mesh>>,
@@ -20,6 +25,7 @@ pub fn export_gltf(
             };
 
             let mut scene = gltf.create_scene();
+            scene.set_name(bevy_name_to_string(name));
 
             let children = match children {
                 Some(children) => children.to_vec(),
@@ -35,8 +41,10 @@ pub fn export_gltf(
                     }
                 };
 
-                // let mut node = gltf.create_node();
-                // scene.add_node(&mut node);
+                let mut node = gltf.create_node();
+                scene.add_node(&mut node);
+
+                node.set_name(bevy_name_to_string(name));
             })
         }
     }

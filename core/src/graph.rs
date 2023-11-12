@@ -77,6 +77,12 @@ impl GraphNode {
 
 pub trait NodeCover {
     type Data;
+    fn new(graph: Arc<Mutex<GltfGraph>>, index: NodeIndex) -> Self;
     fn data(&self) -> Self::Data;
     fn set_data(&mut self, data: Self::Data);
+}
+
+pub trait NodeName: NodeCover {
+    fn name(&self) -> Option<String>;
+    fn set_name(&mut self, name: Option<String>);
 }

@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::{
     children::{add_child, children},
-    graph::{GltfGraph, GraphData, GraphNode, NodeCover, SceneData},
+    graph::{GltfGraph, GraphData, GraphNode, NodeCover, NodeName, SceneData},
     node::Node,
 };
 
@@ -12,22 +12,6 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn new(graph: Arc<Mutex<GltfGraph>>, index: NodeIndex) -> Self {
-        Self {
-            node: GraphNode::new(graph, index),
-        }
-    }
-
-    pub fn name(&self) -> Option<String> {
-        self.data().name
-    }
-
-    pub fn set_name(&mut self, name: &str) {
-        let mut data = self.data();
-        data.name = Some(name.to_string());
-        self.set_data(data);
-    }
-
     pub fn nodes(&self) -> Vec<Node> {
         children(&self.node.graph, self.node.index)
     }
@@ -40,6 +24,12 @@ impl Scene {
 impl NodeCover for Scene {
     type Data = SceneData;
 
+    fn new(graph: Arc<Mutex<GltfGraph>>, index: NodeIndex) -> Self {
+        Self {
+            node: GraphNode::new(graph, index),
+        }
+    }
+
     fn data(&self) -> Self::Data {
         match self.node.data() {
             GraphData::Scene(data) => data,
@@ -49,5 +39,17 @@ impl NodeCover for Scene {
 
     fn set_data(&mut self, data: Self::Data) {
         self.node.set_data(GraphData::Scene(data));
+    }
+}
+
+impl NodeName for Scene {
+    fn name(&self) -> Option<String> {
+        self.data().name
+    }
+
+    fn set_name(&mut self, name: Option<String>) {
+        let mut data = self.data();
+        data.name = name;
+        self.set_data(data);
     }
 }

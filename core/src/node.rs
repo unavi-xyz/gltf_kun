@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::{
     children::{add_child, children},
-    graph::{GltfGraph, GraphData, GraphEdge, GraphNode, NodeCover, NodeData},
+    graph::{GltfGraph, GraphData, GraphEdge, GraphNode, NodeCover, NodeData, NodeName},
     scene::Scene,
 };
 use petgraph::visit::EdgeRef;
@@ -29,22 +29,6 @@ pub struct Node {
 }
 
 impl Node {
-    pub fn new(graph: Arc<Mutex<GltfGraph>>, index: NodeIndex) -> Self {
-        Self {
-            node: GraphNode::new(graph, index),
-        }
-    }
-
-    pub fn name(&self) -> Option<String> {
-        self.data().name
-    }
-
-    pub fn set_name(&mut self, name: &str) {
-        let mut data = self.data();
-        data.name = Some(name.to_string());
-        self.set_data(data);
-    }
-
     fn find_parent_edge(graph: &GltfGraph, index: NodeIndex) -> Option<EdgeReference<GraphEdge>> {
         graph
             .edges_directed(index, petgraph::Direction::Incoming)
@@ -87,6 +71,12 @@ impl Node {
 impl NodeCover for Node {
     type Data = NodeData;
 
+    fn new(graph: Arc<Mutex<GltfGraph>>, index: NodeIndex) -> Self {
+        Self {
+            node: GraphNode::new(graph, index),
+        }
+    }
+
     fn data(&self) -> Self::Data {
         match self.node.data() {
             GraphData::Node(data) => data,
@@ -96,5 +86,17 @@ impl NodeCover for Node {
 
     fn set_data(&mut self, data: Self::Data) {
         self.node.set_data(GraphData::Node(data));
+    }
+}
+
+impl NodeName for Node {
+    fn name(&self) -> Option<String> {
+        self.data().name
+    }
+
+    fn set_name(&mut self, name: Option<String>) {
+        let mut data = self.data();
+        data.name = name;
+        self.set_data(data);
     }
 }
