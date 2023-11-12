@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::{
     children::{add_child, children},
-    graph::{GltfGraph, GraphData, GraphNode, NodeCover, NodeName, SceneData},
+    graph::{GltfGraph, GraphData, GraphNode, NodeCover, SceneData},
     node::Node,
 };
 
@@ -39,17 +39,5 @@ impl NodeCover for Scene {
 
     fn set_data(&mut self, data: Self::Data) {
         self.node.set_data(GraphData::Scene(data));
-    }
-}
-
-impl NodeName for Scene {
-    fn name(&self) -> Option<String> {
-        self.data().name
-    }
-
-    fn set_name(&mut self, name: Option<String>) {
-        let mut data = self.data();
-        data.name = name;
-        self.set_data(data);
     }
 }

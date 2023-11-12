@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
-use self::utils::bevy_name_to_string;
-use gltf_kun::graph::NodeName;
+use self::utils::name_to_string;
+use gltf_kun::{graph::NodeCover, node::Node};
 
 mod utils;
 
@@ -25,7 +25,10 @@ pub fn export_gltf(
             };
 
             let mut scene = gltf.create_scene();
-            scene.set_name(bevy_name_to_string(name));
+
+            let mut data = scene.data();
+            data.name = name_to_string(name);
+            scene.set_data(data);
 
             let children = match children {
                 Some(children) => children.to_vec(),
@@ -33,19 +36,41 @@ pub fn export_gltf(
             };
 
             children.iter().for_each(|entity| {
-                let (transform, name, children) = match nodes_query.get(*entity) {
-                    Ok(node) => node,
-                    Err(_) => {
-                        error!("Node not found");
-                        return;
-                    }
-                };
-
-                let mut node = gltf.create_node();
+                let mut node = export_node(entity, &mut gltf, &nodes_query);
                 scene.add_node(&mut node);
-
-                node.set_name(bevy_name_to_string(name));
             })
         }
     }
+}
+
+fn export_node(
+    entity: &Entity,
+    gltf: &mut gltf_kun::Gltf,
+    nodes_query: &Query<(&Transform, Option<&Name>, Option<&Children>)>,
+) -> Node {
+    let (transform, name, children) = match nodes_query.get(*entity) {
+        Ok(node) => node,
+        Err(_) => panic!("Node not found"),
+    };
+
+    let mut node = gltf.create_node();
+
+    let mut data = node.data();
+    data.name = name_to_string(name);
+    data.translation = transform.translation.into();
+    data.rotation = transform.rotation.into();
+    data.scale = transform.scale.into();
+    node.set_data(data);
+
+    let children = match children {
+        Some(children) => children.to_vec(),
+        None => Vec::new(),
+    };
+
+    children
+        .iter()
+        .map(|ent| export_node(ent, gltf, nodes_query))
+        .for_each(|mut child| node.add_child(&mut child));
+
+    node
 }

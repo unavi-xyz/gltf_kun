@@ -81,8 +81,3 @@ pub trait NodeCover {
     fn data(&self) -> Self::Data;
     fn set_data(&mut self, data: Self::Data);
 }
-
-pub trait NodeName: NodeCover {
-    fn name(&self) -> Option<String>;
-    fn set_name(&mut self, name: Option<String>);
-}

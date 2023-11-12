@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 
 use crate::{
     children::{add_child, children},
-    graph::{GltfGraph, GraphData, GraphEdge, GraphNode, NodeCover, NodeData, NodeName},
+    graph::{GltfGraph, GraphData, GraphEdge, GraphNode, NodeCover, NodeData},
     scene::Scene,
 };
 use petgraph::visit::EdgeRef;
@@ -86,17 +86,5 @@ impl NodeCover for Node {
 
     fn set_data(&mut self, data: Self::Data) {
         self.node.set_data(GraphData::Node(data));
-    }
-}
-
-impl NodeName for Node {
-    fn name(&self) -> Option<String> {
-        self.data().name
-    }
-
-    fn set_name(&mut self, name: Option<String>) {
-        let mut data = self.data();
-        data.name = name;
-        self.set_data(data);
     }
 }
