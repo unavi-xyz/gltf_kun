@@ -20,7 +20,7 @@ impl Attribute {
     }
 
     pub fn set_accessor(&mut self, accessor: Option<Accessor>) {
-        let graph = self.node.graph.borrow();
+        let mut graph = self.node.graph.borrow_mut();
 
         // Remove existing accessor
         match find_accessor_edge(&graph, self.node.index) {
@@ -30,11 +30,7 @@ impl Attribute {
 
         // Add new accessor
         if let Some(accessor) = accessor {
-            self.node.graph.borrow_mut().add_edge(
-                self.node.index,
-                accessor.node.index,
-                GraphEdge::Accessor,
-            );
+            graph.add_edge(self.node.index, accessor.node.index, GraphEdge::Accessor);
         }
     }
 }

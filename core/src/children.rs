@@ -23,7 +23,8 @@ pub fn children(graph: &Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Vec<Node> {
         .collect()
 }
 
-pub fn add_child(graph: &mut GltfGraph, parent: NodeIndex, child: &mut Node) {
+pub fn add_child(graph: &Rc<RefCell<GltfGraph>>, parent: NodeIndex, child: &mut Node) {
     child.remove_parent();
+    let mut graph = graph.borrow_mut();
     graph.add_edge(parent, child.node.index, GraphEdge::Child);
 }

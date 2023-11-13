@@ -47,7 +47,7 @@ impl Primitive {
     }
 
     pub fn set_indices(&mut self, indices: Option<Accessor>) {
-        let graph = self.node.graph.borrow();
+        let mut graph = self.node.graph.borrow_mut();
 
         // Remove existing indices
         match find_indices_edge(&graph, self.node.index) {
@@ -57,11 +57,7 @@ impl Primitive {
 
         // Add new indices
         if let Some(indices) = indices {
-            self.node.graph.borrow_mut().add_edge(
-                self.node.index,
-                indices.node.index,
-                GraphEdge::Indices,
-            );
+            graph.add_edge(self.node.index, indices.node.index, GraphEdge::Indices);
         }
     }
 }

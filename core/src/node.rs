@@ -63,7 +63,7 @@ impl Node {
     }
 
     pub fn add_child(&mut self, child: &mut Node) {
-        add_child(&mut self.node.graph.borrow_mut(), self.node.index, child);
+        add_child(&self.node.graph, self.node.index, child);
     }
 
     pub fn mesh(&self) -> Option<Mesh> {
