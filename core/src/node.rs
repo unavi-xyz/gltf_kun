@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex};
 use crate::{
     children::{add_child, children},
     graph::{GltfGraph, GraphData, GraphEdge, GraphNode, NodeCover, NodeData},
+    mesh::Mesh,
     scene::Scene,
 };
 use petgraph::visit::EdgeRef;
@@ -66,6 +67,33 @@ impl Node {
     pub fn add_child(&mut self, child: &mut Node) {
         add_child(&self.node.graph, self.node.index, child);
     }
+
+    pub fn mesh(&self) -> Option<Mesh> {
+        let graph = self.node.graph.lock().unwrap();
+
+        match find_mesh_edge(&graph, self.node.index) {
+            Some(edge) => Some(Mesh::new(self.node.graph.clone(), edge.target())),
+            None => None,
+        }
+    }
+
+    pub fn set_mesh(&mut self, mesh: Option<Mesh>) {
+        let mut graph = self.node.graph.lock().unwrap();
+
+        // Remove existing mesh
+        match find_mesh_edge(&graph, self.node.index) {
+            Some(edge) => {
+                let mut graph = self.node.graph.lock().unwrap();
+                graph.remove_edge(edge.id())
+            }
+            None => None,
+        };
+
+        // Add new mesh
+        if let Some(mesh) = mesh {
+            graph.add_edge(self.node.index, mesh.node.index, GraphEdge::Mesh);
+        }
+    }
 }
 
 impl NodeCover for Node {
@@ -87,4 +115,13 @@ impl NodeCover for Node {
     fn set_data(&mut self, data: Self::Data) {
         self.node.set_data(GraphData::Node(data));
     }
+}
+
+fn find_mesh_edge(graph: &GltfGraph, index: NodeIndex) -> Option<EdgeReference<GraphEdge>> {
+    graph
+        .edges_directed(index, petgraph::Direction::Outgoing)
+        .find_map(|edge| match edge.weight() {
+            GraphEdge::Mesh => Some(edge),
+            _ => return None,
+        })
 }

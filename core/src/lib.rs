@@ -1,11 +1,17 @@
 use std::sync::{Arc, Mutex};
 
+pub mod accessor;
+pub mod attribute;
 mod children;
 pub mod graph;
+pub mod mesh;
 pub mod node;
+pub mod primitive;
 pub mod scene;
 
-use graph::*;
+use accessor::Accessor;
+use graph::{AccessorData, GltfGraph, GraphData, MeshData, NodeCover, NodeData, SceneData};
+use mesh::Mesh;
 use node::Node;
 use scene::Scene;
 
@@ -16,13 +22,12 @@ pub struct Gltf {
 
 impl Gltf {
     /// Create a new Gltf from json
-    pub fn from_json(json: &gltf::json::Root) -> Self {
+    pub fn from_json(_json: &gltf::json::Root) -> Self {
         let gltf = Gltf::default();
 
         gltf
     }
 
-    /// Get all glTF nodes
     pub fn nodes(&self) -> Vec<Node> {
         let graph = self.graph.lock().unwrap();
 
@@ -33,6 +38,16 @@ impl Gltf {
                 _ => None,
             })
             .collect()
+    }
+
+    pub fn create_accessor(&mut self) -> Accessor {
+        let index = self
+            .graph
+            .lock()
+            .unwrap()
+            .add_node(GraphData::Accessor(AccessorData::default()));
+
+        Accessor::new(self.graph.clone(), index)
     }
 
     pub fn create_scene(&mut self) -> Scene {
@@ -53,6 +68,16 @@ impl Gltf {
             .add_node(GraphData::Node(NodeData::default()));
 
         Node::new(self.graph.clone(), index)
+    }
+
+    pub fn create_mesh(&mut self) -> Mesh {
+        let index = self
+            .graph
+            .lock()
+            .unwrap()
+            .add_node(GraphData::Mesh(MeshData::default()));
+
+        Mesh::new(self.graph.clone(), index)
     }
 }
 

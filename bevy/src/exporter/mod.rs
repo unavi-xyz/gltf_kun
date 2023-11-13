@@ -1,7 +1,12 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, render::mesh::VertexAttributeValues};
 
 use self::utils::name_to_string;
-use gltf_kun::{graph::NodeCover, node::Node};
+use gltf_kun::{
+    accessor::Accessor,
+    graph::{AccessorType, AttributeSemantic, ComponentType, NodeCover, PrimitiveMode},
+    node::Node,
+    Gltf,
+};
 
 mod utils;
 
@@ -36,7 +41,7 @@ pub fn export_gltf(
             };
 
             children.iter().for_each(|entity| {
-                let mut node = export_node(entity, &mut gltf, &nodes_query);
+                let mut node = export_node(entity, &mut gltf, &nodes_query, &meshes_query, &meshes);
                 scene.add_node(&mut node);
             })
         }
@@ -47,6 +52,8 @@ fn export_node(
     entity: &Entity,
     gltf: &mut gltf_kun::Gltf,
     nodes_query: &Query<(&Transform, Option<&Name>, Option<&Children>)>,
+    meshes_query: &Query<(&Handle<Mesh>, Option<&Name>)>,
+    meshes: &Assets<Mesh>,
 ) -> Node {
     let (transform, name, children) = match nodes_query.get(*entity) {
         Ok(node) => node,
@@ -54,6 +61,114 @@ fn export_node(
     };
 
     let mut node = gltf.create_node();
+
+    let mesh = match meshes_query.get(*entity) {
+        Ok((handle, mesh_name)) => {
+            let mut mesh = gltf.create_mesh();
+
+            let mut data = mesh.data();
+            data.name = name_to_string(mesh_name);
+            mesh.set_data(data);
+
+            let mut primitive = mesh.create_primitive();
+
+            let mut data = primitive.data();
+            data.mode = PrimitiveMode::Triangles;
+            primitive.set_data(data);
+
+            let asset = meshes.get(handle).unwrap();
+
+            if let Some(attr) = asset.attribute(bevy::render::mesh::Mesh::ATTRIBUTE_POSITION) {
+                let accessor = attribute_to_accessor(attr, gltf);
+
+                if let Ok(accessor) = accessor {
+                    let mut attribute = primitive.create_attribute(AttributeSemantic::Position);
+                    attribute.set_accessor(Some(accessor));
+                }
+            }
+
+            if let Some(attr) = asset.attribute(bevy::render::mesh::Mesh::ATTRIBUTE_NORMAL) {
+                let accessor = attribute_to_accessor(attr, gltf);
+
+                if let Ok(accessor) = accessor {
+                    let mut attribute = primitive.create_attribute(AttributeSemantic::Normal);
+                    attribute.set_accessor(Some(accessor));
+                }
+            }
+
+            if let Some(attr) = asset.attribute(bevy::render::mesh::Mesh::ATTRIBUTE_TANGENT) {
+                let accessor = attribute_to_accessor(attr, gltf);
+
+                if let Ok(accessor) = accessor {
+                    let mut attribute = primitive.create_attribute(AttributeSemantic::Tangent);
+                    attribute.set_accessor(Some(accessor));
+                }
+            }
+
+            if let Some(attr) = asset.attribute(bevy::render::mesh::Mesh::ATTRIBUTE_UV_0) {
+                let accessor = attribute_to_accessor(attr, gltf);
+
+                if let Ok(accessor) = accessor {
+                    let mut attribute = primitive.create_attribute(AttributeSemantic::TexCoord(0));
+                    attribute.set_accessor(Some(accessor));
+                }
+            }
+
+            if let Some(attr) = asset.attribute(bevy::render::mesh::Mesh::ATTRIBUTE_UV_1) {
+                let accessor = attribute_to_accessor(attr, gltf);
+
+                if let Ok(accessor) = accessor {
+                    let mut attribute = primitive.create_attribute(AttributeSemantic::TexCoord(1));
+                    attribute.set_accessor(Some(accessor));
+                }
+            }
+
+            if let Some(attr) = asset.attribute(bevy::render::mesh::Mesh::ATTRIBUTE_COLOR) {
+                let accessor = attribute_to_accessor(attr, gltf);
+
+                if let Ok(accessor) = accessor {
+                    let mut attribute = primitive.create_attribute(AttributeSemantic::Color(0));
+                    attribute.set_accessor(Some(accessor));
+                }
+            }
+
+            if let Some(attr) = asset.attribute(bevy::render::mesh::Mesh::ATTRIBUTE_JOINT_INDEX) {
+                let accessor = attribute_to_accessor(attr, gltf);
+
+                if let Ok(accessor) = accessor {
+                    let mut attribute = primitive.create_attribute(AttributeSemantic::Joints(0));
+                    attribute.set_accessor(Some(accessor));
+                }
+            }
+
+            if let Some(attr) = asset.attribute(bevy::render::mesh::Mesh::ATTRIBUTE_JOINT_WEIGHT) {
+                let accessor = attribute_to_accessor(attr, gltf);
+
+                if let Ok(accessor) = accessor {
+                    let mut attribute = primitive.create_attribute(AttributeSemantic::Weights(0));
+                    attribute.set_accessor(Some(accessor));
+                }
+            }
+
+            if let Some(indices) = asset.indices() {
+                let mut accessor = gltf.create_accessor();
+                let mut data = accessor.data();
+
+                data.component_type = ComponentType::UnsignedShort;
+                data.accessor_type = AccessorType::Scalar;
+                data.count = indices.len();
+
+                accessor.set_data(data);
+
+                primitive.set_indices(Some(accessor));
+            }
+
+            Some(mesh)
+        }
+        Err(_) => None,
+    };
+
+    node.set_mesh(mesh);
 
     let mut data = node.data();
     data.name = name_to_string(name);
@@ -69,8 +184,108 @@ fn export_node(
 
     children
         .iter()
-        .map(|ent| export_node(ent, gltf, nodes_query))
+        .map(|ent| export_node(ent, gltf, nodes_query, meshes_query, meshes))
         .for_each(|mut child| node.add_child(&mut child));
 
     node
+}
+
+fn attribute_to_accessor(values: &VertexAttributeValues, gltf: &mut Gltf) -> Result<Accessor, ()> {
+    let mut accessor = gltf.create_accessor();
+    let mut data = accessor.data();
+
+    match values {
+        VertexAttributeValues::Float32(values) => {
+            data.component_type = ComponentType::Float;
+            data.accessor_type = AccessorType::Scalar;
+            data.count = values.len();
+        }
+        VertexAttributeValues::Float32x2(values) => {
+            data.component_type = ComponentType::Float;
+            data.accessor_type = AccessorType::Vec2;
+            data.count = values.len();
+        }
+        VertexAttributeValues::Float32x3(values) => {
+            data.component_type = ComponentType::Float;
+            data.accessor_type = AccessorType::Vec3;
+            data.count = values.len();
+        }
+        VertexAttributeValues::Float32x4(values) => {
+            data.component_type = ComponentType::Float;
+            data.accessor_type = AccessorType::Vec4;
+            data.count = values.len();
+        }
+        VertexAttributeValues::Uint32(values) => {
+            data.component_type = ComponentType::UnsignedInt;
+            data.accessor_type = AccessorType::Scalar;
+            data.count = values.len();
+        }
+        VertexAttributeValues::Uint32x2(values) => {
+            data.component_type = ComponentType::UnsignedInt;
+            data.accessor_type = AccessorType::Vec2;
+            data.count = values.len();
+        }
+        VertexAttributeValues::Uint32x3(values) => {
+            data.component_type = ComponentType::UnsignedInt;
+            data.accessor_type = AccessorType::Vec3;
+            data.count = values.len();
+        }
+        VertexAttributeValues::Uint32x4(values) => {
+            data.component_type = ComponentType::UnsignedInt;
+            data.accessor_type = AccessorType::Vec4;
+            data.count = values.len();
+        }
+        VertexAttributeValues::Uint16x2(values) => {
+            data.component_type = ComponentType::UnsignedShort;
+            data.accessor_type = AccessorType::Vec2;
+            data.count = values.len();
+        }
+        VertexAttributeValues::Uint16x4(values) => {
+            data.component_type = ComponentType::UnsignedShort;
+            data.accessor_type = AccessorType::Vec4;
+            data.count = values.len();
+        }
+        VertexAttributeValues::Uint8x2(values) => {
+            data.component_type = ComponentType::UnsignedByte;
+            data.accessor_type = AccessorType::Vec2;
+            data.count = values.len();
+        }
+        VertexAttributeValues::Uint8x4(values) => {
+            data.component_type = ComponentType::UnsignedByte;
+            data.accessor_type = AccessorType::Vec4;
+            data.count = values.len();
+        }
+        VertexAttributeValues::Unorm16x4(values) => {
+            data.component_type = ComponentType::UnsignedShort;
+            data.accessor_type = AccessorType::Vec4;
+            data.count = values.len();
+            data.normalized = true;
+        }
+        VertexAttributeValues::Unorm16x2(values) => {
+            data.component_type = ComponentType::UnsignedShort;
+            data.accessor_type = AccessorType::Vec2;
+            data.count = values.len();
+            data.normalized = true;
+        }
+        VertexAttributeValues::Unorm8x4(values) => {
+            data.component_type = ComponentType::UnsignedByte;
+            data.accessor_type = AccessorType::Vec4;
+            data.count = values.len();
+            data.normalized = true;
+        }
+        VertexAttributeValues::Unorm8x2(values) => {
+            data.component_type = ComponentType::UnsignedByte;
+            data.accessor_type = AccessorType::Vec2;
+            data.count = values.len();
+            data.normalized = true;
+        }
+        _ => {
+            error!("Unsupported vertex attribute type");
+            return Err(());
+        }
+    }
+
+    accessor.set_data(data);
+
+    Ok(accessor)
 }
