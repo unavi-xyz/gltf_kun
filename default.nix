@@ -1,18 +1,10 @@
 { lib, pkgs, system, build_inputs, native_build_inputs, makeRustPlatform }:
 let
-  wasmTarget = "wasm32-unknown-unknown";
-
   rustBin = pkgs.rust-bin.stable.latest.default;
-  rustBinWasm = rustBin.override { targets = [ wasmTarget ]; };
 
   rustPlatform = makeRustPlatform {
     cargo = rustBin;
     rustc = rustBin;
-  };
-
-  rustPlatformWasm = makeRustPlatform {
-    cargo = rustBinWasm;
-    rustc = rustBinWasm;
   };
 
   common = {
@@ -29,29 +21,7 @@ let
 in {
   bevy_gltf_kun =
     rustPlatform.buildRustPackage (common // { pname = "bevy_gltf_kun"; });
-  bevy_gltf_kun_wasm = rustPlatformWasm.buildRustPackage (common // {
-    pname = "bevy_gltf_kun";
-    buildPhase = ''
-      cargo build --target ${wasmTarget} --profile wasm-release
-    '';
-    installPhase = ''
-      mkdir -p $out/lib
-      cp target/${wasmTarget}/wasm-release/*.wasm $out/lib/
-    '';
-  });
-
   gltf_kun_cli =
     rustPlatform.buildRustPackage (common // { pname = "gltf_kun_cli"; });
-
   gltf_kun = rustPlatform.buildRustPackage (common // { pname = "gltf_kun"; });
-  gltf_kun_wasm = rustPlatformWasm.buildRustPackage (common // {
-    pname = "gltf_kun";
-    buildPhase = ''
-      cargo build --target ${wasmTarget} --profile wasm-release
-    '';
-    installPhase = ''
-      mkdir -p $out/lib
-      cp target/${wasmTarget}/wasm-release/*.wasm $out/lib/
-    '';
-  });
 }
