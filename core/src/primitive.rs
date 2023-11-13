@@ -40,7 +40,8 @@ impl Primitive {
     }
 
     pub fn indices(&self) -> Option<Accessor> {
-        find_indices_edge(&self.node.graph.borrow(), self.node.index).map(|edge| Accessor::new(self.node.graph.clone(), edge.target()))
+        find_indices_edge(&self.node.graph.borrow(), self.node.index)
+            .map(|edge| Accessor::new(self.node.graph.clone(), edge.target()))
     }
 
     pub fn set_indices(&mut self, indices: Option<Accessor>) {

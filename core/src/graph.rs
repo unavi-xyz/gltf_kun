@@ -77,8 +77,7 @@ pub struct PrimitiveData {
     pub mode: PrimitiveMode,
 }
 
-#[derive(Debug, Clone)]
-#[derive(Default)]
+#[derive(Debug, Clone, Default)]
 pub enum PrimitiveMode {
     Points,
     Lines,
@@ -89,8 +88,6 @@ pub enum PrimitiveMode {
     TriangleStrip,
     TriangleFan,
 }
-
-
 
 #[derive(Debug, Clone)]
 pub struct AttributeData {

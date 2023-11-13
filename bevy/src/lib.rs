@@ -18,8 +18,6 @@ pub enum ExportFormat {
     Binary,
 }
 
-
-
 #[derive(Event)]
 pub struct ExportScene {
     pub scenes: Vec<Entity>,

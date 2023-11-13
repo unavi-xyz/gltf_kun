@@ -23,8 +23,6 @@ pub struct Gltf {
 impl Gltf {
     /// Create a new Gltf from json
     pub fn from_json(_json: &gltf::json::Root) -> Self {
-        
-
         Gltf::default()
     }
 

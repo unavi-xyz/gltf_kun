@@ -67,7 +67,8 @@ impl Node {
     }
 
     pub fn mesh(&self) -> Option<Mesh> {
-        find_mesh_edge(&self.node.graph.borrow(), self.node.index).map(|edge| Mesh::new(self.node.graph.clone(), edge.target()))
+        find_mesh_edge(&self.node.graph.borrow(), self.node.index)
+            .map(|edge| Mesh::new(self.node.graph.clone(), edge.target()))
     }
 
     pub fn set_mesh(&mut self, mesh: Option<Mesh>) {
