@@ -13,10 +13,7 @@ pub struct Attribute {
 
 impl Attribute {
     pub fn accessor(&self) -> Option<Accessor> {
-        match find_accessor_edge(&self.node.graph.borrow(), self.node.index) {
-            Some(edge) => Some(Accessor::new(self.node.graph.clone(), edge.target())),
-            None => None,
-        }
+        find_accessor_edge(&self.node.graph.borrow(), self.node.index).map(|edge| Accessor::new(self.node.graph.clone(), edge.target()))
     }
 
     pub fn set_accessor(&mut self, accessor: Option<Accessor>) {

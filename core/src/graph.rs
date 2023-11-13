@@ -78,21 +78,19 @@ pub struct PrimitiveData {
 }
 
 #[derive(Debug, Clone)]
+#[derive(Default)]
 pub enum PrimitiveMode {
     Points,
     Lines,
     LineLoop,
     LineStrip,
+    #[default]
     Triangles,
     TriangleStrip,
     TriangleFan,
 }
 
-impl Default for PrimitiveMode {
-    fn default() -> Self {
-        PrimitiveMode::Triangles
-    }
-}
+
 
 #[derive(Debug, Clone)]
 pub struct AttributeData {

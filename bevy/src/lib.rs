@@ -11,16 +11,14 @@ impl Plugin for GltfExportPlugin {
     }
 }
 
+#[derive(Default)]
 pub enum ExportFormat {
+    #[default]
     Standard,
     Binary,
 }
 
-impl Default for ExportFormat {
-    fn default() -> Self {
-        ExportFormat::Standard
-    }
-}
+
 
 #[derive(Event)]
 pub struct ExportScene {

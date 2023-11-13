@@ -6,7 +6,7 @@ fn main() {
     let path = format!("{}/{}/{}", CARGO_MANIFEST_DIR, ASSETS_DIR, MODEL);
     let gltf = gltf_kun::import(&path).unwrap();
 
-    gltf.nodes().iter().for_each(|node| {
+    gltf.nodes().iter().for_each(|_node| {
         // println!("{:#?}", node.data());
     });
 }

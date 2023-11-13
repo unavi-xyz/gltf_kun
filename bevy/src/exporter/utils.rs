@@ -1,8 +1,5 @@
 use bevy::prelude::Name;
 
 pub fn name_to_string(name: Option<&Name>) -> Option<String> {
-    match name {
-        Some(name) => Some(name.to_string()),
-        None => None,
-    }
+    name.map(|name| name.to_string())
 }

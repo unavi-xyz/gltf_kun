@@ -35,7 +35,7 @@ impl Node {
             .edges_directed(index, petgraph::Direction::Incoming)
             .find_map(|edge| match edge.weight() {
                 GraphEdge::Child => Some(edge),
-                _ => return None,
+                _ => None,
             })
     }
 
@@ -67,10 +67,7 @@ impl Node {
     }
 
     pub fn mesh(&self) -> Option<Mesh> {
-        match find_mesh_edge(&self.node.graph.borrow(), self.node.index) {
-            Some(edge) => Some(Mesh::new(self.node.graph.clone(), edge.target())),
-            None => None,
-        }
+        find_mesh_edge(&self.node.graph.borrow(), self.node.index).map(|edge| Mesh::new(self.node.graph.clone(), edge.target()))
     }
 
     pub fn set_mesh(&mut self, mesh: Option<Mesh>) {
@@ -117,6 +114,6 @@ fn find_mesh_edge(graph: &GltfGraph, index: NodeIndex) -> Option<EdgeReference<G
         .edges_directed(index, petgraph::Direction::Outgoing)
         .find_map(|edge| match edge.weight() {
             GraphEdge::Mesh => Some(edge),
-            _ => return None,
+            _ => None,
         })
 }

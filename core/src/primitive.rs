@@ -40,10 +40,7 @@ impl Primitive {
     }
 
     pub fn indices(&self) -> Option<Accessor> {
-        match find_indices_edge(&self.node.graph.borrow(), self.node.index) {
-            Some(edge) => Some(Accessor::new(self.node.graph.clone(), edge.target())),
-            None => None,
-        }
+        find_indices_edge(&self.node.graph.borrow(), self.node.index).map(|edge| Accessor::new(self.node.graph.clone(), edge.target()))
     }
 
     pub fn set_indices(&mut self, indices: Option<Accessor>) {
@@ -88,6 +85,6 @@ fn find_indices_edge(graph: &GltfGraph, index: NodeIndex) -> Option<EdgeReferenc
         .edges_directed(index, petgraph::Direction::Outgoing)
         .find_map(|edge| match edge.weight() {
             GraphEdge::Indices => Some(edge),
-            _ => return None,
+            _ => None,
         })
 }
