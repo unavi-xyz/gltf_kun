@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     accessor::Accessor,
@@ -19,8 +19,7 @@ impl Primitive {
     pub fn attributes(&self) -> Vec<Attribute> {
         self.node
             .graph
-            .lock()
-            .unwrap()
+            .borrow()
             .edges_directed(self.node.index, petgraph::Direction::Outgoing)
             .filter_map(|edge| match edge.weight() {
                 GraphEdge::Attribute => Some(edge.target()),
@@ -31,7 +30,7 @@ impl Primitive {
     }
 
     pub fn create_attribute(&mut self, semantic: AttributeSemantic) -> Attribute {
-        let mut graph = self.node.graph.lock().unwrap();
+        let mut graph = self.node.graph.borrow_mut();
         let index = graph.add_node(GraphData::Attribute(AttributeData { semantic }));
 
         let attribute = Attribute::new(self.node.graph.clone(), index);
@@ -41,28 +40,28 @@ impl Primitive {
     }
 
     pub fn indices(&self) -> Option<Accessor> {
-        let graph = self.node.graph.lock().unwrap();
-        match find_indices_edge(&graph, self.node.index) {
+        match find_indices_edge(&self.node.graph.borrow(), self.node.index) {
             Some(edge) => Some(Accessor::new(self.node.graph.clone(), edge.target())),
             None => None,
         }
     }
 
     pub fn set_indices(&mut self, indices: Option<Accessor>) {
-        let mut graph = self.node.graph.lock().unwrap();
+        let graph = self.node.graph.borrow();
 
         // Remove existing indices
         match find_indices_edge(&graph, self.node.index) {
-            Some(edge) => {
-                let mut graph = self.node.graph.lock().unwrap();
-                graph.remove_edge(edge.id())
-            }
+            Some(edge) => self.node.graph.borrow_mut().remove_edge(edge.id()),
             None => None,
         };
 
         // Add new indices
         if let Some(indices) = indices {
-            graph.add_edge(self.node.index, indices.node.index, GraphEdge::Indices);
+            self.node.graph.borrow_mut().add_edge(
+                self.node.index,
+                indices.node.index,
+                GraphEdge::Indices,
+            );
         }
     }
 }
@@ -70,7 +69,7 @@ impl Primitive {
 impl NodeCover for Primitive {
     type Data = PrimitiveData;
 
-    fn new(graph: Arc<Mutex<GltfGraph>>, index: NodeIndex) -> Self {
+    fn new(graph: Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Self {
         Self {
             node: GraphNode::new(graph, index),
         }

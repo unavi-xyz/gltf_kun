@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     accessor::Accessor,
@@ -13,28 +13,28 @@ pub struct Attribute {
 
 impl Attribute {
     pub fn accessor(&self) -> Option<Accessor> {
-        let graph = self.node.graph.lock().unwrap();
-        match find_accessor_edge(&graph, self.node.index) {
+        match find_accessor_edge(&self.node.graph.borrow(), self.node.index) {
             Some(edge) => Some(Accessor::new(self.node.graph.clone(), edge.target())),
             None => None,
         }
     }
 
     pub fn set_accessor(&mut self, accessor: Option<Accessor>) {
-        let mut graph = self.node.graph.lock().unwrap();
+        let graph = self.node.graph.borrow();
 
         // Remove existing accessor
         match find_accessor_edge(&graph, self.node.index) {
-            Some(edge) => {
-                let mut graph = self.node.graph.lock().unwrap();
-                graph.remove_edge(edge.id())
-            }
+            Some(edge) => self.node.graph.borrow_mut().remove_edge(edge.id()),
             None => None,
         };
 
         // Add new accessor
         if let Some(accessor) = accessor {
-            graph.add_edge(self.node.index, accessor.node.index, GraphEdge::Accessor);
+            self.node.graph.borrow_mut().add_edge(
+                self.node.index,
+                accessor.node.index,
+                GraphEdge::Accessor,
+            );
         }
     }
 }
@@ -42,7 +42,7 @@ impl Attribute {
 impl NodeCover for Attribute {
     type Data = AttributeData;
 
-    fn new(graph: Arc<Mutex<GltfGraph>>, index: NodeIndex) -> Self {
+    fn new(graph: Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Self {
         Self {
             node: GraphNode::new(graph, index),
         }
@@ -51,7 +51,7 @@ impl NodeCover for Attribute {
     fn data(&self) -> Self::Data {
         match self.node.data() {
             GraphData::Attribute(data) => data,
-            _ => panic!("data is not a attribute"),
+            _ => panic!("data is not an attribute"),
         }
     }
 

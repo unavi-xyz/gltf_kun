@@ -1,5 +1,6 @@
+use std::{cell::RefCell, rc::Rc};
+
 use petgraph::graph::{EdgeReference, NodeIndex};
-use std::sync::{Arc, Mutex};
 
 use crate::{
     children::{add_child, children},
@@ -15,9 +16,8 @@ pub enum NodeParent {
 }
 
 impl NodeParent {
-    fn from_index(graph: Arc<Mutex<GltfGraph>>, index: NodeIndex) -> Option<Self> {
-        let graph_lock = graph.lock().unwrap();
-        match graph_lock[index] {
+    fn from_index(graph: &Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Option<Self> {
+        match graph.borrow()[index] {
             GraphData::Scene(_) => Some(NodeParent::Scene(Scene::new(graph.clone(), index))),
             GraphData::Node(_) => Some(NodeParent::Node(Node::new(graph.clone(), index))),
             _ => None,
@@ -40,23 +40,21 @@ impl Node {
     }
 
     pub fn parent(&self) -> Option<NodeParent> {
-        let graph = self.node.graph.lock().unwrap();
-
+        let graph = self.node.graph.borrow();
         let edge = match Self::find_parent_edge(&graph, self.node.index) {
             Some(edge) => edge,
             None => return None,
         };
 
-        NodeParent::from_index(self.node.graph.clone(), edge.source())
+        NodeParent::from_index(&self.node.graph, edge.source())
     }
 
     pub fn remove_parent(&mut self) {
-        let graph = self.node.graph.lock().unwrap();
+        let graph = self.node.graph.borrow();
         let edge = Self::find_parent_edge(&graph, self.node.index);
 
         if let Some(edge) = edge {
-            let mut graph = self.node.graph.lock().unwrap();
-            graph.remove_edge(edge.id());
+            self.node.graph.borrow_mut().remove_edge(edge.id());
         }
     }
 
@@ -65,33 +63,30 @@ impl Node {
     }
 
     pub fn add_child(&mut self, child: &mut Node) {
-        add_child(&self.node.graph, self.node.index, child);
+        add_child(&mut self.node.graph.borrow_mut(), self.node.index, child);
     }
 
     pub fn mesh(&self) -> Option<Mesh> {
-        let graph = self.node.graph.lock().unwrap();
-
-        match find_mesh_edge(&graph, self.node.index) {
+        match find_mesh_edge(&self.node.graph.borrow(), self.node.index) {
             Some(edge) => Some(Mesh::new(self.node.graph.clone(), edge.target())),
             None => None,
         }
     }
 
     pub fn set_mesh(&mut self, mesh: Option<Mesh>) {
-        let mut graph = self.node.graph.lock().unwrap();
-
         // Remove existing mesh
-        match find_mesh_edge(&graph, self.node.index) {
-            Some(edge) => {
-                let mut graph = self.node.graph.lock().unwrap();
-                graph.remove_edge(edge.id())
-            }
+        match find_mesh_edge(&self.node.graph.borrow(), self.node.index) {
+            Some(edge) => self.node.graph.borrow_mut().remove_edge(edge.id()),
             None => None,
         };
 
         // Add new mesh
         if let Some(mesh) = mesh {
-            graph.add_edge(self.node.index, mesh.node.index, GraphEdge::Mesh);
+            self.node.graph.borrow_mut().add_edge(
+                self.node.index,
+                mesh.node.index,
+                GraphEdge::Mesh,
+            );
         }
     }
 }
@@ -99,7 +94,7 @@ impl Node {
 impl NodeCover for Node {
     type Data = NodeData;
 
-    fn new(graph: Arc<Mutex<GltfGraph>>, index: NodeIndex) -> Self {
+    fn new(graph: Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Self {
         Self {
             node: GraphNode::new(graph, index),
         }

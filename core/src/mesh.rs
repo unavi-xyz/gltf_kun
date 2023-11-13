@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::{cell::RefCell, rc::Rc};
 
 use crate::{
     graph::{GltfGraph, GraphData, GraphEdge, GraphNode, MeshData, NodeCover, PrimitiveData},
@@ -15,8 +15,7 @@ impl Mesh {
     pub fn primitives(&self) -> Vec<Primitive> {
         self.node
             .graph
-            .lock()
-            .unwrap()
+            .borrow()
             .edges_directed(self.node.index, petgraph::Direction::Outgoing)
             .filter_map(|edge| match edge.weight() {
                 GraphEdge::Primitive => Some(edge.target()),
@@ -27,7 +26,7 @@ impl Mesh {
     }
 
     pub fn create_primitive(&mut self) -> Primitive {
-        let mut graph = self.node.graph.lock().unwrap();
+        let mut graph = self.node.graph.borrow_mut();
         let index = graph.add_node(GraphData::Primitive(PrimitiveData::default()));
         let primitive = Primitive::new(self.node.graph.clone(), index);
         graph.add_edge(self.node.index, index, GraphEdge::Primitive);
@@ -38,7 +37,7 @@ impl Mesh {
 impl NodeCover for Mesh {
     type Data = MeshData;
 
-    fn new(graph: Arc<Mutex<GltfGraph>>, index: NodeIndex) -> Self {
+    fn new(graph: Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Self {
         Self {
             node: GraphNode::new(graph, index),
         }

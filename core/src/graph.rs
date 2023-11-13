@@ -1,5 +1,5 @@
 use petgraph::graph::NodeIndex;
-use std::sync::{Arc, Mutex};
+use std::{cell::RefCell, rc::Rc};
 
 #[derive(Default, Debug, Clone)]
 pub enum AccessorType {
@@ -140,29 +140,27 @@ pub enum GraphData {
 pub type GltfGraph = petgraph::graph::DiGraph<GraphData, GraphEdge>;
 
 pub struct GraphNode {
-    pub(crate) graph: Arc<Mutex<GltfGraph>>,
+    pub(crate) graph: Rc<RefCell<GltfGraph>>,
     pub(crate) index: NodeIndex,
 }
 
 impl GraphNode {
-    pub fn new(graph: Arc<Mutex<GltfGraph>>, index: NodeIndex) -> Self {
+    pub fn new(graph: Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Self {
         GraphNode { graph, index }
     }
 
     pub fn data(&self) -> GraphData {
-        let graph = self.graph.lock().unwrap();
-        graph[self.index].clone()
+        self.graph.borrow()[self.index].clone()
     }
 
     pub fn set_data(&mut self, data: GraphData) {
-        let mut graph = self.graph.lock().unwrap();
-        graph[self.index] = data;
+        self.graph.borrow_mut()[self.index] = data;
     }
 }
 
 pub trait NodeCover {
     type Data;
-    fn new(graph: Arc<Mutex<GltfGraph>>, index: NodeIndex) -> Self;
+    fn new(graph: Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Self;
     fn data(&self) -> Self::Data;
     fn set_data(&mut self, data: Self::Data);
 }

@@ -1,4 +1,4 @@
-use std::sync::{Arc, Mutex};
+use std::{cell::RefCell, rc::Rc};
 
 use crate::graph::{AccessorData, GltfGraph, GraphData, GraphNode, NodeCover};
 use petgraph::graph::NodeIndex;
@@ -12,7 +12,7 @@ impl Accessor {}
 impl NodeCover for Accessor {
     type Data = AccessorData;
 
-    fn new(graph: Arc<Mutex<GltfGraph>>, index: NodeIndex) -> Self {
+    fn new(graph: Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Self {
         Self {
             node: GraphNode::new(graph, index),
         }
@@ -21,7 +21,7 @@ impl NodeCover for Accessor {
     fn data(&self) -> Self::Data {
         match self.node.data() {
             GraphData::Accessor(data) => data,
-            _ => panic!("data is not a attribute"),
+            _ => panic!("data is not an accessor"),
         }
     }
 

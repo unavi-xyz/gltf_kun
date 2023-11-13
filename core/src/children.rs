@@ -1,5 +1,5 @@
 use petgraph::graph::NodeIndex;
-use std::sync::{Arc, Mutex};
+use std::{cell::RefCell, rc::Rc};
 
 use petgraph::visit::EdgeRef;
 
@@ -8,10 +8,9 @@ use crate::{
     node::Node,
 };
 
-pub fn children(graph: &Arc<Mutex<GltfGraph>>, index: NodeIndex) -> Vec<Node> {
+pub fn children(graph: &Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Vec<Node> {
     graph
-        .lock()
-        .unwrap()
+        .borrow()
         .edges(index)
         .filter_map(|edge| {
             let index = match edge.weight() {
@@ -24,10 +23,7 @@ pub fn children(graph: &Arc<Mutex<GltfGraph>>, index: NodeIndex) -> Vec<Node> {
         .collect()
 }
 
-pub fn add_child(graph: &Arc<Mutex<GltfGraph>>, parent: NodeIndex, child: &mut Node) {
+pub fn add_child(graph: &mut GltfGraph, parent: NodeIndex, child: &mut Node) {
     child.remove_parent();
-    graph
-        .lock()
-        .unwrap()
-        .add_edge(parent, child.node.index, GraphEdge::Child);
+    graph.add_edge(parent, child.node.index, GraphEdge::Child);
 }
