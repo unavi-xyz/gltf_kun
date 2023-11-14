@@ -646,7 +646,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_gltf_kun"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "bevy",
  "gltf",
@@ -1861,7 +1861,7 @@ dependencies = [
 
 [[package]]
 name = "gltf_kun"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "gltf",
  "petgraph",
@@ -1869,7 +1869,7 @@ dependencies = [
 
 [[package]]
 name = "gltf_kun_cli"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "clap",
  "gltf_kun",

@@ -8,4 +8,4 @@ edition.workspace = true
 
 [dependencies]
 clap = { version = "4.4.7", features = ["derive"] }
-gltf_kun = { version = "0.0.1", path = "../core" }
+gltf_kun = { version = "0.0.2", path = "../core" }
