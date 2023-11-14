@@ -4,12 +4,24 @@ use crate::{graph::AccessorArray, Gltf};
 
 use gltf::json::{self, scene::UnitQuaternion, validation::Checked};
 
-pub fn gltf_to_json(gltf: &Gltf) -> json::Root {
-    let mut root = gltf::json::Root::default();
+pub fn gltf_to_json(gltf: &Gltf) -> (json::Root, Vec<u8>) {
+    let mut root = json::Root::default();
+
+    root.asset.generator = Some("gltf_kun".to_string());
 
     // Maps of node index -> json index
     let mut accessors = HashMap::new();
     let mut meshes = HashMap::new();
+
+    let mut buffer = json::Buffer {
+        uri: None,
+        name: None,
+        extras: None,
+        extensions: None,
+        byte_length: 0,
+    };
+
+    let mut buffer_bytes = Vec::new();
 
     root.accessors = gltf
         .accessors()
@@ -17,6 +29,22 @@ pub fn gltf_to_json(gltf: &Gltf) -> json::Root {
         .enumerate()
         .map(|(i, a)| {
             accessors.insert(a.node.index.index(), i as u32);
+
+            let byte_length = a.byte_length() as u32;
+
+            root.buffer_views.push(json::buffer::View {
+                buffer: json::Index::new(0),
+                byte_offset: Some(buffer.byte_length),
+                byte_length,
+                byte_stride: None,
+                target: None,
+                name: None,
+                extras: None,
+                extensions: None,
+            });
+
+            buffer.byte_length += byte_length;
+            buffer_bytes.extend_from_slice(a.data().array.bytes().as_ref());
 
             let data = a.data();
 
@@ -48,7 +76,7 @@ pub fn gltf_to_json(gltf: &Gltf) -> json::Root {
                 component_type: Checked::Valid(json::accessor::GenericComponentType(
                     a.component_type(),
                 )),
-                buffer_view: None,
+                buffer_view: Some(json::Index::new(root.buffer_views.len() as u32 - 1)),
                 byte_offset: None,
                 sparse: None,
                 extras: None,
@@ -141,5 +169,7 @@ pub fn gltf_to_json(gltf: &Gltf) -> json::Root {
         })
         .collect();
 
-    root
+    root.buffers = vec![buffer];
+
+    (root, buffer_bytes)
 }

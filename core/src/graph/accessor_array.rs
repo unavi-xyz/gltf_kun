@@ -49,6 +49,42 @@ pub enum AccessorArray {
 }
 
 impl AccessorArray {
+    pub fn bytes(&self) -> Box<[u8]> {
+        match self {
+            AccessorArray::I8(array) => array
+                .iter()
+                .map(|x| x.to_ne_bytes())
+                .flatten()
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            AccessorArray::U8(array) => array.clone(),
+            AccessorArray::I16(array) => array
+                .iter()
+                .map(|x| x.to_ne_bytes())
+                .flatten()
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            AccessorArray::U16(array) => array
+                .iter()
+                .map(|x| x.to_ne_bytes())
+                .flatten()
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            AccessorArray::U32(array) => array
+                .iter()
+                .map(|x| x.to_ne_bytes())
+                .flatten()
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+            AccessorArray::F32(array) => array
+                .iter()
+                .map(|x| x.to_ne_bytes())
+                .flatten()
+                .collect::<Vec<_>>()
+                .into_boxed_slice(),
+        }
+    }
+
     pub fn len(&self) -> usize {
         match self {
             AccessorArray::I8(array) => array.len(),

@@ -46,7 +46,9 @@ pub fn export_gltf(
             })
         }
 
-        info!("Exporting gltf file");
+        let (json, bytes) = gltf.to_json();
+
+        println!("EXPORTED: {:#?}", json);
     }
 }
 

@@ -26,6 +26,11 @@ impl Accessor {
         self.node.set_data(GraphData::Accessor(data));
     }
 
+    /// The number of bytes required to store this accessor's data.
+    pub fn byte_length(&self) -> usize {
+        self.data().array.len() * self.component_size()
+    }
+
     /// The datatype of components in this accessor.
     pub fn component_type(&self) -> ComponentType {
         match self.data().array {
@@ -35,6 +40,18 @@ impl Accessor {
             AccessorArray::U16(_) => ComponentType::U16,
             AccessorArray::U32(_) => ComponentType::U32,
             AccessorArray::F32(_) => ComponentType::F32,
+        }
+    }
+
+    /// The number of bytes per component in this accessor.
+    pub fn component_size(&self) -> usize {
+        match self.component_type() {
+            ComponentType::I8 => 1,
+            ComponentType::U8 => 1,
+            ComponentType::I16 => 2,
+            ComponentType::U16 => 2,
+            ComponentType::U32 => 4,
+            ComponentType::F32 => 4,
         }
     }
 

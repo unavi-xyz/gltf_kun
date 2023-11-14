@@ -22,7 +22,7 @@ impl Gltf {
         from_json::gltf_from_json(json)
     }
 
-    pub fn to_json(&self) -> gltf::json::Root {
+    pub fn to_json(&self) -> (gltf::json::Root, Vec<u8>) {
         to_json::gltf_to_json(self)
     }
 
