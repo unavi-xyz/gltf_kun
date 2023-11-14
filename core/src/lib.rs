@@ -11,21 +11,21 @@
 //!
 //! // Create a node
 //! let mut node = gltf.create_node();
-//! node.set_name("My Node");
-//! node.set_translation(1.0, 2.0, 3.0);
+//! node.set_name(Some("My Node".to_string()));
+//! node.set_translation([1.0, 2.0, 3.0]);
 //!
 //! // Create a scene and add the node to it
 //! let mut scene = gltf.create_scene();
-//! scene.add_node(&node);
+//! scene.add_node(&mut node);
 //!
 //! // Iterate over all nodes in the scene
 //! scene.nodes().iter().for_each(|n| {
-//!     println!("Node: {}", n.name());
+//!     println!("Node: {}", n.name().unwrap());
 //! });
 //!
 //! // Export to binary glb
-//! let bytes = gltf.to_glb().to_vec();
-//! std::fs::write("model.glb", bytes).unwrap();
+//! let bytes = gltf.to_glb().to_vec().unwrap();
+//! // std::fs::write("model.glb", bytes).unwrap();
 //! ```
 
 mod from_json;
