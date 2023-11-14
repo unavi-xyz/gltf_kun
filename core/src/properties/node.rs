@@ -51,10 +51,7 @@ impl Node {
     fn find_parent_edge(graph: &GltfGraph, index: NodeIndex) -> Option<EdgeReference<GraphEdge>> {
         graph
             .edges_directed(index, petgraph::Direction::Incoming)
-            .find_map(|edge| match edge.weight() {
-                GraphEdge::Child => Some(edge),
-                _ => None,
-            })
+            .find(|edge| matches!(edge.weight(), GraphEdge::Child))
     }
 
     pub fn parent(&self) -> Option<NodeParent> {
@@ -110,8 +107,5 @@ impl Node {
 fn find_mesh_edge(graph: &GltfGraph, index: NodeIndex) -> Option<EdgeReference<GraphEdge>> {
     graph
         .edges_directed(index, petgraph::Direction::Outgoing)
-        .find_map(|edge| match edge.weight() {
-            GraphEdge::Mesh => Some(edge),
-            _ => None,
-        })
+        .find(|edge| matches!(edge.weight(), GraphEdge::Mesh))
 }
