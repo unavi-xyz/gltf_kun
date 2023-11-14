@@ -649,6 +649,7 @@ name = "bevy_gltf_kun"
 version = "0.0.1"
 dependencies = [
  "bevy",
+ "gltf",
  "gltf_kun",
 ]
 

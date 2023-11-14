@@ -143,6 +143,24 @@ pub fn gltf_to_json(gltf: &Gltf) -> (json::Root, Vec<u8>) {
                 None => None,
             };
 
+            let translation = if n.translation() == [0.0, 0.0, 0.0] {
+                None
+            } else {
+                Some(n.translation())
+            };
+
+            let rotation = if n.rotation() == [0.0, 0.0, 0.0, 1.0] {
+                None
+            } else {
+                Some(UnitQuaternion(n.rotation()))
+            };
+
+            let scale = if n.scale() == [1.0, 1.0, 1.0] {
+                None
+            } else {
+                Some(n.scale())
+            };
+
             json::Node {
                 name: n.name(),
                 camera: None,
@@ -151,9 +169,9 @@ pub fn gltf_to_json(gltf: &Gltf) -> (json::Root, Vec<u8>) {
                 mesh,
                 skin: None,
                 weights: None,
-                translation: Some(n.translation()),
-                rotation: Some(UnitQuaternion(n.rotation())),
-                scale: Some(n.scale()),
+                translation,
+                rotation,
+                scale,
                 extras: None,
                 extensions: None,
             }

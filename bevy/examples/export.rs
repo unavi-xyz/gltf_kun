@@ -1,9 +1,11 @@
 use bevy::prelude::*;
+use bevy_gltf_kun::ExportResult;
 
 fn main() {
     App::new()
         .add_plugins((DefaultPlugins, bevy_gltf_kun::GltfExportPlugin))
         .add_systems(Startup, setup)
+        .add_systems(Update, read_result)
         .run();
 }
 
@@ -51,6 +53,42 @@ fn setup(
 
     event_writer.send(bevy_gltf_kun::ExportScene {
         scenes: vec![scene],
-        format: bevy_gltf_kun::ExportFormat::default(),
+        format: bevy_gltf_kun::ExportFormat::Standard,
     });
+}
+
+fn read_result(mut results: EventReader<ExportResult>) {
+    for event in results.read() {
+        match event {
+            ExportResult::Standard { root, binary } => {
+                let string_pretty = gltf::json::serialize::to_string_pretty(&root).unwrap();
+                info!("root: {}", string_pretty);
+
+                let string = gltf::json::serialize::to_string(&root).unwrap();
+                let size = string.len() + binary.len();
+                info!("export size: {}", format_byte_size(size));
+            }
+            ExportResult::Binary(bytes) => {
+                info!("exported size: {}", format_byte_size(bytes.len()));
+            }
+        }
+    }
+}
+
+fn format_byte_size(size: usize) -> String {
+    let mut size = size as f32;
+    let mut unit = "B";
+    if size > 1024.0 {
+        size /= 1024.0;
+        unit = "KB";
+    }
+    if size > 1024.0 {
+        size /= 1024.0;
+        unit = "MB";
+    }
+    if size > 1024.0 {
+        size /= 1024.0;
+        unit = "GB";
+    }
+    format!("{:.2}{}", size, unit)
 }

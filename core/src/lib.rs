@@ -27,7 +27,7 @@ impl Gltf {
     }
 
     pub fn to_glb(&self) -> gltf::Glb {
-        let (json, bytes) = self.to_json();
+        let (json, binary) = self.to_json();
 
         let json_string = gltf::json::serialize::to_string(&json).expect("Serialization error");
         let mut json_offset = json_string.len() as u32;
@@ -37,9 +37,9 @@ impl Gltf {
             header: gltf::binary::Header {
                 magic: *b"glTF",
                 version: 2,
-                length: json_offset + bytes.len() as u32,
+                length: json_offset + binary.len() as u32,
             },
-            bin: Some(Cow::Owned(to_padded_byte_vector(bytes))),
+            bin: Some(Cow::Owned(to_padded_byte_vector(binary))),
             json: Cow::Owned(json_string.into_bytes()),
         }
     }

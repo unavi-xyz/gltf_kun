@@ -1,5 +1,7 @@
 use bevy::{prelude::*, render::mesh::VertexAttributeValues};
 
+use crate::{ExportFormat, ExportResult};
+
 use self::utils::name_to_string;
 use gltf_kun::{
     accessor::Accessor,
@@ -11,13 +13,14 @@ use gltf_kun::{
 mod utils;
 
 pub fn export_gltf(
-    mut events: EventReader<super::ExportScene>,
+    mut exports: EventReader<super::ExportScene>,
+    mut results: EventWriter<ExportResult>,
     meshes: Res<Assets<Mesh>>,
     scenes: Query<(Option<&Name>, Option<&Children>), With<Handle<Scene>>>,
-    nodes_query: Query<(&Transform, Option<&Name>, Option<&Children>)>,
+    nodes_query: Query<(&Transform, Option<&Name>, Option<&Children>), Without<Handle<Scene>>>,
     meshes_query: Query<(&Handle<Mesh>, Option<&Name>)>,
 ) {
-    for event in events.read() {
+    for event in exports.read() {
         let mut gltf = gltf_kun::Gltf::default();
 
         for scene in &event.scenes {
@@ -43,15 +46,30 @@ pub fn export_gltf(
             })
         }
 
-        let (json, _) = gltf.to_json();
-        println!("EXPORTED: {:#?}", json);
+        match event.format {
+            ExportFormat::Standard => {
+                let (root, binary) = gltf.to_json();
+                results.send(ExportResult::Standard { root, binary });
+            }
+            ExportFormat::Binary => {
+                let glb = gltf.to_glb();
+                let bytes = match glb.to_vec() {
+                    Ok(v) => v,
+                    Err(_) => {
+                        error!("Failed to export GLB");
+                        continue;
+                    }
+                };
+                results.send(ExportResult::Binary(bytes));
+            }
+        };
     }
 }
 
 fn export_node(
     entity: &Entity,
     gltf: &mut gltf_kun::Gltf,
-    nodes_query: &Query<(&Transform, Option<&Name>, Option<&Children>)>,
+    nodes_query: &Query<(&Transform, Option<&Name>, Option<&Children>), Without<Handle<Scene>>>,
     meshes_query: &Query<(&Handle<Mesh>, Option<&Name>)>,
     meshes: &Assets<Mesh>,
 ) -> Node {
@@ -61,6 +79,11 @@ fn export_node(
     };
 
     let mut node = gltf.create_node();
+
+    node.set_name(name_to_string(name));
+    node.set_translation(transform.translation.into());
+    node.set_rotation(transform.rotation.into());
+    node.set_scale(transform.scale.into());
 
     let mesh = match meshes_query.get(*entity) {
         Ok((handle, mesh_name)) => {
@@ -158,10 +181,6 @@ fn export_node(
     };
 
     node.set_mesh(mesh);
-    node.set_name(name_to_string(name));
-    node.set_translation(transform.translation.into());
-    node.set_rotation(transform.rotation.into());
-    node.set_scale(transform.scale.into());
 
     let children = match children {
         Some(children) => children.to_vec(),
@@ -249,7 +268,7 @@ fn attribute_to_accessor(values: &VertexAttributeValues, gltf: &mut Gltf) -> Res
             accessor.set_normalized(true);
         }
         _ => {
-            error!("Unsupported vertex attribute type");
+            warn!("Unsupported vertex attribute type");
             return Err(());
         }
     }
