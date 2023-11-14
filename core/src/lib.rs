@@ -1,21 +1,16 @@
-pub mod accessor;
-pub mod attribute;
-mod children;
 mod from_json;
 pub mod graph;
-pub mod mesh;
-pub mod node;
-pub mod primitive;
-pub mod scene;
+mod properties;
 mod to_json;
 
-use std::{cell::RefCell, rc::Rc};
+pub use properties::*;
 
 use accessor::Accessor;
 use graph::{AccessorData, GltfGraph, GraphData, MeshData, NodeCover, NodeData, SceneData};
 use mesh::Mesh;
 use node::Node;
 use scene::Scene;
+use std::{cell::RefCell, rc::Rc};
 
 #[derive(Default)]
 pub struct Gltf {

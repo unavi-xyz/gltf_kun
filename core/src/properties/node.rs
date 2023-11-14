@@ -2,13 +2,14 @@ use std::{cell::RefCell, rc::Rc};
 
 use petgraph::graph::{EdgeReference, NodeIndex};
 
-use crate::{
-    children::{add_child, children},
-    graph::{GltfGraph, GraphData, GraphEdge, GraphNode, NodeCover, NodeData},
+use crate::graph::{GltfGraph, GraphData, GraphEdge, GraphNode, NodeCover, NodeData};
+use petgraph::visit::EdgeRef;
+
+use super::{
     mesh::Mesh,
     scene::Scene,
+    util::{add_child, children},
 };
-use petgraph::visit::EdgeRef;
 
 pub enum NodeParent {
     Scene(Scene),

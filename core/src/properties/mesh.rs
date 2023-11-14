@@ -1,8 +1,8 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{
-    graph::{GltfGraph, GraphData, GraphEdge, GraphNode, MeshData, NodeCover, PrimitiveData},
-    primitive::Primitive,
+use super::primitive::Primitive;
+use crate::graph::{
+    GltfGraph, GraphData, GraphEdge, GraphNode, MeshData, NodeCover, PrimitiveData,
 };
 use petgraph::graph::NodeIndex;
 use petgraph::visit::EdgeRef;

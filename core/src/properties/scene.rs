@@ -1,10 +1,11 @@
 use petgraph::graph::NodeIndex;
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{
-    children::{add_child, children},
-    graph::{GltfGraph, GraphData, GraphNode, NodeCover, SceneData},
+use crate::graph::{GltfGraph, GraphData, GraphNode, NodeCover, SceneData};
+
+use super::{
     node::Node,
+    util::{add_child, children},
 };
 
 pub struct Scene {

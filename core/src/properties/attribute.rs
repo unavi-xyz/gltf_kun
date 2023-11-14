@@ -1,11 +1,10 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{
-    accessor::Accessor,
-    graph::{AttributeData, GltfGraph, GraphData, GraphEdge, GraphNode, NodeCover},
-};
+use crate::graph::{AttributeData, GltfGraph, GraphData, GraphEdge, GraphNode, NodeCover};
 use petgraph::graph::{EdgeReference, NodeIndex};
 use petgraph::visit::EdgeRef;
+
+use super::accessor::Accessor;
 
 pub struct Attribute {
     pub(crate) node: GraphNode,

@@ -1,13 +1,13 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{
-    accessor::Accessor,
-    attribute::Attribute,
-    graph::{
-        AttributeData, AttributeSemantic, GltfGraph, GraphData, GraphEdge, GraphNode, NodeCover,
-        PrimitiveData,
-    },
+use crate::graph::{
+    AttributeData, AttributeSemantic, GltfGraph, GraphData, GraphEdge, GraphNode, NodeCover,
+    PrimitiveData,
 };
+
+use super::accessor::Accessor;
+use super::attribute::Attribute;
+
 use petgraph::graph::{EdgeReference, NodeIndex};
 use petgraph::visit::EdgeRef;
 

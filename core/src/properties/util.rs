@@ -3,10 +3,9 @@ use std::{cell::RefCell, rc::Rc};
 
 use petgraph::visit::EdgeRef;
 
-use crate::{
-    graph::{GltfGraph, GraphEdge, NodeCover},
-    node::Node,
-};
+use crate::graph::{GltfGraph, GraphEdge, NodeCover};
+
+use super::node::Node;
 
 pub fn children(graph: &Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Vec<Node> {
     graph
