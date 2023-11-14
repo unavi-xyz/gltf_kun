@@ -1,3 +1,33 @@
+//! An extensible library for building [glTF](https://github.com/KhronosGroup/glTF) toolchains.
+//! Builds upon the [`gltf`](https://github.com/gltf-rs/gltf) and [`petgraph`](https://github.com/petgraph/petgraph) crates to create a traversable graph of the glTF document.
+//!
+//! # Basic Usage
+//!
+//! ```
+//! use gltf_kun::Gltf;
+//!
+//! // Create a glTF document
+//! let mut gltf = Gltf::default();
+//!
+//! // Create a node
+//! let mut node = gltf.create_node();
+//! node.set_name("My Node");
+//! node.set_translation(1.0, 2.0, 3.0);
+//!
+//! // Create a scene and add the node to it
+//! let mut scene = gltf.create_scene();
+//! scene.add_node(&node);
+//!
+//! // Iterate over all nodes in the scene
+//! scene.nodes().iter().for_each(|n| {
+//!     println!("Node: {}", n.name());
+//! });
+//!
+//! // Export to binary glb
+//! let bytes = gltf.to_glb().to_vec();
+//! std::fs::write("model.glb", bytes).unwrap();
+//! ```
+
 mod from_json;
 pub mod graph;
 mod properties;
