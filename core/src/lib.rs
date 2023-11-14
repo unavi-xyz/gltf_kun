@@ -10,7 +10,7 @@ use graph::{AccessorData, GltfGraph, GraphData, MeshData, NodeData, SceneData};
 use mesh::Mesh;
 use node::Node;
 use scene::Scene;
-use std::{cell::RefCell, rc::Rc};
+use std::{borrow::Cow, cell::RefCell, rc::Rc};
 
 #[derive(Default)]
 pub struct Gltf {
@@ -24,6 +24,24 @@ impl Gltf {
 
     pub fn to_json(&self) -> (gltf::json::Root, Vec<u8>) {
         to_json::gltf_to_json(self)
+    }
+
+    pub fn to_glb(&self) -> gltf::Glb {
+        let (json, bytes) = self.to_json();
+
+        let json_string = gltf::json::serialize::to_string(&json).expect("Serialization error");
+        let mut json_offset = json_string.len() as u32;
+        align_to_multiple_of_four(&mut json_offset);
+
+        gltf::binary::Glb {
+            header: gltf::binary::Header {
+                magic: *b"glTF",
+                version: 2,
+                length: json_offset + bytes.len() as u32,
+            },
+            bin: Some(Cow::Owned(to_padded_byte_vector(bytes))),
+            json: Cow::Owned(json_string.into_bytes()),
+        }
     }
 
     pub fn nodes(&self) -> Vec<Node> {
@@ -100,4 +118,20 @@ impl Gltf {
 pub fn import(path: &str) -> Result<Gltf, gltf::Error> {
     let (doc, _, _) = gltf::import(path)?;
     Ok(Gltf::from_json(&doc.into_json()))
+}
+
+fn align_to_multiple_of_four(n: &mut u32) {
+    *n = (*n + 3) & !3;
+}
+
+fn to_padded_byte_vector<T>(vec: Vec<T>) -> Vec<u8> {
+    let byte_length = vec.len() * std::mem::size_of::<T>();
+    let byte_capacity = vec.capacity() * std::mem::size_of::<T>();
+    let alloc = vec.into_boxed_slice();
+    let ptr = Box::<[T]>::into_raw(alloc) as *mut u8;
+    let mut new_vec = unsafe { Vec::from_raw_parts(ptr, byte_length, byte_capacity) };
+    while new_vec.len() % 4 != 0 {
+        new_vec.push(0); // pad to multiple of four bytes
+    }
+    new_vec
 }
