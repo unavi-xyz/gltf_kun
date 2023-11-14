@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::graph::{AttributeData, GltfGraph, GraphData, GraphEdge, GraphNode};
+use crate::graph::{AttributeData, AttributeSemantic, GltfGraph, GraphData, GraphEdge, GraphNode};
 use petgraph::graph::{EdgeReference, NodeIndex};
 use petgraph::visit::EdgeRef;
 
@@ -17,15 +17,25 @@ impl Attribute {
         }
     }
 
-    pub fn data(&self) -> AttributeData {
+    fn data(&self) -> AttributeData {
         match self.node.data() {
             GraphData::Attribute(data) => data,
             _ => panic!("data is not an attribute"),
         }
     }
 
-    pub fn set_data(&mut self, data: AttributeData) {
+    fn set_data(&mut self, data: AttributeData) {
         self.node.set_data(GraphData::Attribute(data));
+    }
+
+    pub fn semantic(&self) -> AttributeSemantic {
+        self.data().semantic
+    }
+
+    pub fn set_semantic(&mut self, semantic: AttributeSemantic) {
+        let mut data = self.data();
+        data.semantic = semantic;
+        self.set_data(data);
     }
 
     pub fn accessor(&self) -> Option<Accessor> {

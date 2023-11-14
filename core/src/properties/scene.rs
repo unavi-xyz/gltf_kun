@@ -19,15 +19,25 @@ impl Scene {
         }
     }
 
-    pub fn data(&self) -> SceneData {
+    fn data(&self) -> SceneData {
         match self.node.data() {
             GraphData::Scene(data) => data,
             _ => panic!("data is not a scene"),
         }
     }
 
-    pub fn set_data(&mut self, data: SceneData) {
+    fn set_data(&mut self, data: SceneData) {
         self.node.set_data(GraphData::Scene(data));
+    }
+
+    pub fn name(&self) -> Option<String> {
+        self.data().name
+    }
+
+    pub fn set_name(&mut self, name: Option<String>) {
+        let mut data = self.data();
+        data.name = name;
+        self.set_data(data);
     }
 
     pub fn nodes(&self) -> Vec<Node> {

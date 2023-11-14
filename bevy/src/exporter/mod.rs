@@ -30,10 +30,7 @@ pub fn export_gltf(
             };
 
             let mut scene = gltf.create_scene();
-
-            let mut data = scene.data();
-            data.name = name_to_string(name);
-            scene.set_data(data);
+            scene.set_name(name_to_string(name));
 
             let children = match children {
                 Some(children) => children.to_vec(),
@@ -68,16 +65,10 @@ fn export_node(
     let mesh = match meshes_query.get(*entity) {
         Ok((handle, mesh_name)) => {
             let mut mesh = gltf.create_mesh();
-
-            let mut data = mesh.data();
-            data.name = name_to_string(mesh_name);
-            mesh.set_data(data);
+            mesh.set_name(name_to_string(mesh_name));
 
             let mut primitive = mesh.create_primitive();
-
-            let mut data = primitive.data();
-            data.mode = PrimitiveMode::Triangles;
-            primitive.set_data(data);
+            primitive.set_mode(PrimitiveMode::Triangles);
 
             let asset = meshes.get(handle).unwrap();
 
@@ -155,12 +146,8 @@ fn export_node(
 
             if let Some(indices) = asset.indices() {
                 let mut accessor = gltf.create_accessor();
-                let mut data = accessor.data();
-
-                data.array = indices.iter().collect::<Vec<_>>().into();
-                data.element_type = ElementType::Scalar;
-
-                accessor.set_data(data);
+                accessor.set_array(indices.iter().collect::<Vec<_>>().into());
+                accessor.set_element_type(ElementType::Scalar);
 
                 primitive.set_indices(Some(accessor));
             }
@@ -171,13 +158,10 @@ fn export_node(
     };
 
     node.set_mesh(mesh);
-
-    let mut data = node.data();
-    data.name = name_to_string(name);
-    data.translation = transform.translation.into();
-    data.rotation = transform.rotation.into();
-    data.scale = transform.scale.into();
-    node.set_data(data);
+    node.set_name(name_to_string(name));
+    node.set_translation(transform.translation.into());
+    node.set_rotation(transform.rotation.into());
+    node.set_scale(transform.scale.into());
 
     let children = match children {
         Some(children) => children.to_vec(),
@@ -194,84 +178,81 @@ fn export_node(
 
 fn attribute_to_accessor(values: &VertexAttributeValues, gltf: &mut Gltf) -> Result<Accessor, ()> {
     let mut accessor = gltf.create_accessor();
-    let mut data = accessor.data();
 
     match values {
         VertexAttributeValues::Float32(values) => {
-            data.array = values.clone().into();
-            data.element_type = ElementType::Scalar;
+            accessor.set_array(values.clone().into());
+            accessor.set_element_type(ElementType::Scalar);
         }
         VertexAttributeValues::Float32x2(values) => {
-            data.array = values.clone().into();
-            data.element_type = ElementType::Vec2;
+            accessor.set_array(values.clone().into());
+            accessor.set_element_type(ElementType::Vec2);
         }
         VertexAttributeValues::Float32x3(values) => {
-            data.array = values.clone().into();
-            data.element_type = ElementType::Vec3;
+            accessor.set_array(values.clone().into());
+            accessor.set_element_type(ElementType::Vec3);
         }
         VertexAttributeValues::Float32x4(values) => {
-            data.array = values.clone().into();
-            data.element_type = ElementType::Vec4;
+            accessor.set_array(values.clone().into());
+            accessor.set_element_type(ElementType::Vec4);
         }
         VertexAttributeValues::Uint32(values) => {
-            data.array = values.clone().into();
-            data.element_type = ElementType::Scalar;
+            accessor.set_array(values.clone().into());
+            accessor.set_element_type(ElementType::Scalar);
         }
         VertexAttributeValues::Uint32x2(values) => {
-            data.array = values.clone().into();
-            data.element_type = ElementType::Vec2;
+            accessor.set_array(values.clone().into());
+            accessor.set_element_type(ElementType::Vec2);
         }
         VertexAttributeValues::Uint32x3(values) => {
-            data.array = values.clone().into();
-            data.element_type = ElementType::Vec3;
+            accessor.set_array(values.clone().into());
+            accessor.set_element_type(ElementType::Vec3)
         }
         VertexAttributeValues::Uint32x4(values) => {
-            data.array = values.clone().into();
-            data.element_type = ElementType::Vec4;
+            accessor.set_array(values.clone().into());
+            accessor.set_element_type(ElementType::Vec4);
         }
         VertexAttributeValues::Uint16x2(values) => {
-            data.array = values.clone().into();
-            data.element_type = ElementType::Vec2;
+            accessor.set_array(values.clone().into());
+            accessor.set_element_type(ElementType::Vec2);
         }
         VertexAttributeValues::Uint16x4(values) => {
-            data.array = values.clone().into();
-            data.element_type = ElementType::Vec4;
+            accessor.set_array(values.clone().into());
+            accessor.set_element_type(ElementType::Vec4);
         }
         VertexAttributeValues::Uint8x2(values) => {
-            data.array = values.clone().into();
-            data.element_type = ElementType::Vec2;
+            accessor.set_array(values.clone().into());
+            accessor.set_element_type(ElementType::Vec2);
         }
         VertexAttributeValues::Uint8x4(values) => {
-            data.array = values.clone().into();
-            data.element_type = ElementType::Vec4;
+            accessor.set_array(values.clone().into());
+            accessor.set_element_type(ElementType::Vec4);
         }
         VertexAttributeValues::Unorm16x4(values) => {
-            data.array = values.clone().into();
-            data.element_type = ElementType::Vec4;
-            data.normalized = true;
+            accessor.set_array(values.clone().into());
+            accessor.set_element_type(ElementType::Vec4);
+            accessor.set_normalized(true);
         }
         VertexAttributeValues::Unorm16x2(values) => {
-            data.array = values.clone().into();
-            data.element_type = ElementType::Vec2;
-            data.normalized = true;
+            accessor.set_array(values.clone().into());
+            accessor.set_element_type(ElementType::Vec2);
+            accessor.set_normalized(true);
         }
         VertexAttributeValues::Unorm8x4(values) => {
-            data.array = values.clone().into();
-            data.element_type = ElementType::Vec4;
-            data.normalized = true;
+            accessor.set_array(values.clone().into());
+            accessor.set_element_type(ElementType::Vec4);
+            accessor.set_normalized(true);
         }
         VertexAttributeValues::Unorm8x2(values) => {
-            data.array = values.clone().into();
-            data.element_type = ElementType::Vec2;
-            data.normalized = true;
+            accessor.set_array(values.clone().into());
+            accessor.set_element_type(ElementType::Vec2);
+            accessor.set_normalized(true);
         }
         _ => {
             error!("Unsupported vertex attribute type");
             return Err(());
         }
     }
-
-    accessor.set_data(data);
 
     Ok(accessor)
 }

@@ -2,6 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use crate::graph::{
     AttributeData, AttributeSemantic, GltfGraph, GraphData, GraphEdge, GraphNode, PrimitiveData,
+    PrimitiveMode,
 };
 
 use super::accessor::Accessor;
@@ -21,15 +22,25 @@ impl Primitive {
         }
     }
 
-    pub fn data(&self) -> PrimitiveData {
+    fn data(&self) -> PrimitiveData {
         match self.node.data() {
             GraphData::Primitive(data) => data,
             _ => panic!("data is not a primitive"),
         }
     }
 
-    pub fn set_data(&mut self, data: PrimitiveData) {
+    fn set_data(&mut self, data: PrimitiveData) {
         self.node.set_data(GraphData::Primitive(data));
+    }
+
+    pub fn mode(&self) -> PrimitiveMode {
+        self.data().mode
+    }
+
+    pub fn set_mode(&mut self, mode: PrimitiveMode) {
+        let mut data = self.data();
+        data.mode = mode;
+        self.set_data(data);
     }
 
     pub fn attributes(&self) -> Vec<Attribute> {

@@ -16,15 +16,25 @@ impl Mesh {
         }
     }
 
-    pub fn data(&self) -> MeshData {
+    fn data(&self) -> MeshData {
         match self.node.data() {
             GraphData::Mesh(data) => data,
             _ => panic!("data is not a mesh"),
         }
     }
 
-    pub fn set_data(&mut self, data: MeshData) {
+    fn set_data(&mut self, data: MeshData) {
         self.node.set_data(GraphData::Mesh(data));
+    }
+
+    pub fn name(&self) -> Option<String> {
+        self.data().name
+    }
+
+    pub fn set_name(&mut self, name: Option<String>) {
+        let mut data = self.data();
+        data.name = name;
+        self.set_data(data);
     }
 
     pub fn primitives(&self) -> Vec<Primitive> {

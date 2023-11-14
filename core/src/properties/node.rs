@@ -37,14 +37,14 @@ impl Node {
         }
     }
 
-    pub fn data(&self) -> NodeData {
+    fn data(&self) -> NodeData {
         match self.node.data() {
             GraphData::Node(data) => data,
             _ => panic!("data is not a node"),
         }
     }
 
-    pub fn set_data(&mut self, data: NodeData) {
+    fn set_data(&mut self, data: NodeData) {
         self.node.set_data(GraphData::Node(data));
     }
 
@@ -52,6 +52,46 @@ impl Node {
         graph
             .edges_directed(index, petgraph::Direction::Incoming)
             .find(|edge| matches!(edge.weight(), GraphEdge::Child))
+    }
+
+    pub fn name(&self) -> Option<String> {
+        self.data().name
+    }
+
+    pub fn set_name(&mut self, name: Option<String>) {
+        let mut data = self.data();
+        data.name = name;
+        self.set_data(data);
+    }
+
+    pub fn translation(&self) -> [f32; 3] {
+        self.data().translation
+    }
+
+    pub fn set_translation(&mut self, translation: [f32; 3]) {
+        let mut data = self.data();
+        data.translation = translation;
+        self.set_data(data);
+    }
+
+    pub fn rotation(&self) -> [f32; 4] {
+        self.data().rotation
+    }
+
+    pub fn set_rotation(&mut self, rotation: [f32; 4]) {
+        let mut data = self.data();
+        data.rotation = rotation;
+        self.set_data(data);
+    }
+
+    pub fn scale(&self) -> [f32; 3] {
+        self.data().scale
+    }
+
+    pub fn set_scale(&mut self, scale: [f32; 3]) {
+        let mut data = self.data();
+        data.scale = scale;
+        self.set_data(data);
     }
 
     pub fn parent(&self) -> Option<NodeParent> {

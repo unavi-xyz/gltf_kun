@@ -1,7 +1,7 @@
 pub use gltf::json::accessor::ComponentType;
 use std::{cell::RefCell, rc::Rc};
 
-use crate::graph::{AccessorArray, AccessorData, GltfGraph, GraphData, GraphNode};
+use crate::graph::{AccessorArray, AccessorData, ElementType, GltfGraph, GraphData, GraphNode};
 use petgraph::graph::NodeIndex;
 
 pub struct Accessor {
@@ -15,15 +15,55 @@ impl Accessor {
         }
     }
 
-    pub fn data(&self) -> AccessorData {
+    fn data(&self) -> AccessorData {
         match self.node.data() {
             GraphData::Accessor(data) => data,
             _ => panic!("data is not an accessor"),
         }
     }
 
-    pub fn set_data(&mut self, data: AccessorData) {
+    fn set_data(&mut self, data: AccessorData) {
         self.node.set_data(GraphData::Accessor(data));
+    }
+
+    pub fn name(&self) -> Option<String> {
+        self.data().name
+    }
+
+    pub fn set_name(&mut self, name: Option<String>) {
+        let mut data = self.data();
+        data.name = name;
+        self.set_data(data);
+    }
+
+    pub fn array(&self) -> AccessorArray {
+        self.data().array
+    }
+
+    pub fn set_array(&mut self, array: AccessorArray) {
+        let mut data = self.data();
+        data.array = array;
+        self.set_data(data);
+    }
+
+    pub fn element_type(&self) -> ElementType {
+        self.data().element_type
+    }
+
+    pub fn set_element_type(&mut self, element_type: ElementType) {
+        let mut data = self.data();
+        data.element_type = element_type;
+        self.set_data(data);
+    }
+
+    pub fn normalized(&self) -> bool {
+        self.data().normalized
+    }
+
+    pub fn set_normalized(&mut self, normalized: bool) {
+        let mut data = self.data();
+        data.normalized = normalized;
+        self.set_data(data);
     }
 
     /// The number of bytes required to store this accessor's data.

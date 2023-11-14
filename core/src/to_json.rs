@@ -44,9 +44,7 @@ pub fn gltf_to_json(gltf: &Gltf) -> (json::Root, Vec<u8>) {
             });
 
             buffer.byte_length += byte_length;
-            buffer_bytes.extend_from_slice(a.data().array.bytes().as_ref());
-
-            let data = a.data();
+            buffer_bytes.extend_from_slice(a.array().bytes().as_ref());
 
             let max = match a.max() {
                 AccessorArray::I8(max) => Some(max.iter().copied().collect()),
@@ -67,12 +65,12 @@ pub fn gltf_to_json(gltf: &Gltf) -> (json::Root, Vec<u8>) {
             };
 
             json::Accessor {
-                name: data.name,
+                name: a.name(),
                 count: a.count() as u32,
                 max,
                 min,
-                type_: Checked::Valid(data.element_type.into()),
-                normalized: data.normalized,
+                type_: Checked::Valid(a.element_type().into()),
+                normalized: a.normalized(),
                 component_type: Checked::Valid(json::accessor::GenericComponentType(
                     a.component_type(),
                 )),
@@ -92,10 +90,8 @@ pub fn gltf_to_json(gltf: &Gltf) -> (json::Root, Vec<u8>) {
         .map(|(i, m)| {
             meshes.insert(m.node.index.index(), i as u32);
 
-            let data = m.data();
-
             json::Mesh {
-                name: data.name,
+                name: m.name(),
                 extras: None,
                 extensions: None,
                 weights: None,
@@ -103,28 +99,25 @@ pub fn gltf_to_json(gltf: &Gltf) -> (json::Root, Vec<u8>) {
                     .primitives()
                     .iter()
                     .map(|p| {
-                        let data = p.data();
                         let mut attributes = BTreeMap::new();
 
                         p.attributes().iter().for_each(|attr| {
                             if let Some(accessor) = attr.accessor() {
-                                let data = attr.data();
                                 let index = accessors[&accessor.node.index.index()];
                                 attributes.insert(
-                                    Checked::Valid(data.semantic.into()),
+                                    Checked::Valid(attr.semantic().into()),
                                     json::Index::new(index),
                                 );
                             }
                         });
 
                         let indices = p.indices().map(|i| {
-                            let _data = i.data();
                             let index = accessors[&i.node.index.index()];
                             json::Index::new(index)
                         });
 
                         json::mesh::Primitive {
-                            mode: Checked::Valid(data.mode.into()),
+                            mode: Checked::Valid(p.mode().into()),
                             attributes,
                             indices,
                             targets: None,
@@ -142,8 +135,6 @@ pub fn gltf_to_json(gltf: &Gltf) -> (json::Root, Vec<u8>) {
         .nodes()
         .iter()
         .map(|n| {
-            let data = n.data();
-
             let mesh = match n.mesh() {
                 Some(mesh) => {
                     let index = meshes[&mesh.node.index.index()];
@@ -153,16 +144,16 @@ pub fn gltf_to_json(gltf: &Gltf) -> (json::Root, Vec<u8>) {
             };
 
             json::Node {
-                name: data.name,
+                name: n.name(),
                 camera: None,
                 children: None,
                 matrix: None,
                 mesh,
                 skin: None,
                 weights: None,
-                translation: Some(data.translation),
-                rotation: Some(UnitQuaternion(data.rotation)),
-                scale: Some(data.scale),
+                translation: Some(n.translation()),
+                rotation: Some(UnitQuaternion(n.rotation())),
+                scale: Some(n.scale()),
                 extras: None,
                 extensions: None,
             }
