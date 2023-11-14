@@ -3,7 +3,7 @@ use bevy::{prelude::*, render::mesh::VertexAttributeValues};
 use self::utils::name_to_string;
 use gltf_kun::{
     accessor::Accessor,
-    graph::{AccessorType, AttributeSemantic, ComponentType, NodeCover, PrimitiveMode},
+    graph::{AccessorType, AttributeSemantic, NodeCover, PrimitiveMode},
     node::Node,
     Gltf,
 };
@@ -154,9 +154,8 @@ fn export_node(
                 let mut accessor = gltf.create_accessor();
                 let mut data = accessor.data();
 
-                data.component_type = ComponentType::UnsignedShort;
+                data.array = indices.iter().collect::<Vec<_>>().into();
                 data.accessor_type = AccessorType::Scalar;
-                data.count = indices.len();
 
                 accessor.set_data(data);
 
@@ -196,87 +195,71 @@ fn attribute_to_accessor(values: &VertexAttributeValues, gltf: &mut Gltf) -> Res
 
     match values {
         VertexAttributeValues::Float32(values) => {
-            data.component_type = ComponentType::Float;
+            data.array = values.clone().into();
             data.accessor_type = AccessorType::Scalar;
-            data.count = values.len();
         }
         VertexAttributeValues::Float32x2(values) => {
-            data.component_type = ComponentType::Float;
+            data.array = values.clone().into();
             data.accessor_type = AccessorType::Vec2;
-            data.count = values.len();
         }
         VertexAttributeValues::Float32x3(values) => {
-            data.component_type = ComponentType::Float;
+            data.array = values.clone().into();
             data.accessor_type = AccessorType::Vec3;
-            data.count = values.len();
         }
         VertexAttributeValues::Float32x4(values) => {
-            data.component_type = ComponentType::Float;
+            data.array = values.clone().into();
             data.accessor_type = AccessorType::Vec4;
-            data.count = values.len();
         }
         VertexAttributeValues::Uint32(values) => {
-            data.component_type = ComponentType::UnsignedInt;
+            data.array = values.clone().into();
             data.accessor_type = AccessorType::Scalar;
-            data.count = values.len();
         }
         VertexAttributeValues::Uint32x2(values) => {
-            data.component_type = ComponentType::UnsignedInt;
+            data.array = values.clone().into();
             data.accessor_type = AccessorType::Vec2;
-            data.count = values.len();
         }
         VertexAttributeValues::Uint32x3(values) => {
-            data.component_type = ComponentType::UnsignedInt;
+            data.array = values.clone().into();
             data.accessor_type = AccessorType::Vec3;
-            data.count = values.len();
         }
         VertexAttributeValues::Uint32x4(values) => {
-            data.component_type = ComponentType::UnsignedInt;
+            data.array = values.clone().into();
             data.accessor_type = AccessorType::Vec4;
-            data.count = values.len();
         }
         VertexAttributeValues::Uint16x2(values) => {
-            data.component_type = ComponentType::UnsignedShort;
+            data.array = values.clone().into();
             data.accessor_type = AccessorType::Vec2;
-            data.count = values.len();
         }
         VertexAttributeValues::Uint16x4(values) => {
-            data.component_type = ComponentType::UnsignedShort;
+            data.array = values.clone().into();
             data.accessor_type = AccessorType::Vec4;
-            data.count = values.len();
         }
         VertexAttributeValues::Uint8x2(values) => {
-            data.component_type = ComponentType::UnsignedByte;
+            data.array = values.clone().into();
             data.accessor_type = AccessorType::Vec2;
-            data.count = values.len();
         }
         VertexAttributeValues::Uint8x4(values) => {
-            data.component_type = ComponentType::UnsignedByte;
+            data.array = values.clone().into();
             data.accessor_type = AccessorType::Vec4;
-            data.count = values.len();
         }
         VertexAttributeValues::Unorm16x4(values) => {
-            data.component_type = ComponentType::UnsignedShort;
+            data.array = values.clone().into();
             data.accessor_type = AccessorType::Vec4;
-            data.count = values.len();
             data.normalized = true;
         }
         VertexAttributeValues::Unorm16x2(values) => {
-            data.component_type = ComponentType::UnsignedShort;
+            data.array = values.clone().into();
             data.accessor_type = AccessorType::Vec2;
-            data.count = values.len();
             data.normalized = true;
         }
         VertexAttributeValues::Unorm8x4(values) => {
-            data.component_type = ComponentType::UnsignedByte;
+            data.array = values.clone().into();
             data.accessor_type = AccessorType::Vec4;
-            data.count = values.len();
             data.normalized = true;
         }
         VertexAttributeValues::Unorm8x2(values) => {
-            data.component_type = ComponentType::UnsignedByte;
+            data.array = values.clone().into();
             data.accessor_type = AccessorType::Vec2;
-            data.count = values.len();
             data.normalized = true;
         }
         _ => {

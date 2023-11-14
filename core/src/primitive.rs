@@ -84,8 +84,5 @@ impl NodeCover for Primitive {
 fn find_indices_edge(graph: &GltfGraph, index: NodeIndex) -> Option<EdgeReference<GraphEdge>> {
     graph
         .edges_directed(index, petgraph::Direction::Outgoing)
-        .find_map(|edge| match edge.weight() {
-            GraphEdge::Indices => Some(edge),
-            _ => None,
-        })
+        .find(|edge| matches!(edge.weight(), GraphEdge::Indices))
 }

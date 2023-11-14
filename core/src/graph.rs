@@ -13,24 +13,117 @@ pub enum AccessorType {
     Mat4,
 }
 
-#[derive(Default, Debug, Clone)]
-pub enum ComponentType {
-    Byte = 5120,
-    UnsignedByte = 5121,
-    Short = 5122,
-    UnsignedShort = 5123,
-    UnsignedInt = 5125,
-    #[default]
-    Float = 5126,
+#[derive(Debug, Clone)]
+pub enum AccessorArray {
+    Byte(Box<[i8]>),
+    UnsignedByte(Box<[u8]>),
+    Short(Box<[i16]>),
+    UnsignedShort(Box<[u16]>),
+    UnsignedInt(Box<[u32]>),
+    Float(Box<[f32]>),
 }
 
-#[derive(Default, Debug, Clone)]
+impl Default for AccessorArray {
+    fn default() -> Self {
+        AccessorArray::Float(Box::new([]))
+    }
+}
+
+impl From<Vec<usize>> for AccessorArray {
+    fn from(vec: Vec<usize>) -> Self {
+        let vec = vec.iter().map(|&x| x as u32).collect::<Vec<_>>();
+        AccessorArray::UnsignedInt(vec.into_boxed_slice())
+    }
+}
+
+impl From<Vec<[u8; 2]>> for AccessorArray {
+    fn from(vec: Vec<[u8; 2]>) -> Self {
+        let vec = vec.iter().flatten().copied().collect::<Vec<_>>();
+        AccessorArray::UnsignedByte(vec.into_boxed_slice())
+    }
+}
+
+impl From<Vec<[u8; 4]>> for AccessorArray {
+    fn from(vec: Vec<[u8; 4]>) -> Self {
+        let vec = vec.iter().flatten().copied().collect::<Vec<_>>();
+        AccessorArray::UnsignedByte(vec.into_boxed_slice())
+    }
+}
+
+impl From<Vec<[u16; 2]>> for AccessorArray {
+    fn from(vec: Vec<[u16; 2]>) -> Self {
+        let vec = vec.iter().flatten().copied().collect::<Vec<_>>();
+        AccessorArray::UnsignedShort(vec.into_boxed_slice())
+    }
+}
+
+impl From<Vec<[u16; 4]>> for AccessorArray {
+    fn from(vec: Vec<[u16; 4]>) -> Self {
+        let vec = vec.iter().flatten().copied().collect::<Vec<_>>();
+        AccessorArray::UnsignedShort(vec.into_boxed_slice())
+    }
+}
+
+impl From<Vec<u32>> for AccessorArray {
+    fn from(vec: Vec<u32>) -> Self {
+        AccessorArray::UnsignedInt(vec.into_boxed_slice())
+    }
+}
+
+impl From<Vec<[u32; 2]>> for AccessorArray {
+    fn from(vec: Vec<[u32; 2]>) -> Self {
+        let vec = vec.iter().flatten().copied().collect::<Vec<_>>();
+        AccessorArray::UnsignedInt(vec.into_boxed_slice())
+    }
+}
+
+impl From<Vec<[u32; 3]>> for AccessorArray {
+    fn from(vec: Vec<[u32; 3]>) -> Self {
+        let vec = vec.iter().flatten().copied().collect::<Vec<_>>();
+        AccessorArray::UnsignedInt(vec.into_boxed_slice())
+    }
+}
+
+impl From<Vec<[u32; 4]>> for AccessorArray {
+    fn from(vec: Vec<[u32; 4]>) -> Self {
+        let vec = vec.iter().flatten().copied().collect::<Vec<_>>();
+        AccessorArray::UnsignedInt(vec.into_boxed_slice())
+    }
+}
+
+impl From<Vec<f32>> for AccessorArray {
+    fn from(vec: Vec<f32>) -> Self {
+        AccessorArray::Float(vec.into_boxed_slice())
+    }
+}
+
+impl From<Vec<[f32; 2]>> for AccessorArray {
+    fn from(vec: Vec<[f32; 2]>) -> Self {
+        let vec = vec.iter().flatten().copied().collect::<Vec<_>>();
+        AccessorArray::Float(vec.into_boxed_slice())
+    }
+}
+
+impl From<Vec<[f32; 3]>> for AccessorArray {
+    fn from(vec: Vec<[f32; 3]>) -> Self {
+        let vec = vec.iter().flatten().copied().collect::<Vec<_>>();
+        AccessorArray::Float(vec.into_boxed_slice())
+    }
+}
+
+impl From<Vec<[f32; 4]>> for AccessorArray {
+    fn from(vec: Vec<[f32; 4]>) -> Self {
+        let vec = vec.iter().flatten().copied().collect::<Vec<_>>();
+        AccessorArray::Float(vec.into_boxed_slice())
+    }
+}
+
+#[derive(Debug, Default, Clone)]
 pub struct AccessorData {
     pub name: Option<String>,
     pub accessor_type: AccessorType,
-    pub component_type: ComponentType,
-    pub count: usize,
     pub normalized: bool,
+    pub array: AccessorArray,
 }
 
 #[derive(Debug, Clone)]
