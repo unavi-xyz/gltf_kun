@@ -1,6 +1,6 @@
 use std::{cell::RefCell, rc::Rc};
 
-use crate::graph::{AttributeData, GltfGraph, GraphData, GraphEdge, GraphNode, NodeCover};
+use crate::graph::{AttributeData, GltfGraph, GraphData, GraphEdge, GraphNode};
 use petgraph::graph::{EdgeReference, NodeIndex};
 use petgraph::visit::EdgeRef;
 
@@ -11,6 +11,23 @@ pub struct Attribute {
 }
 
 impl Attribute {
+    pub fn new(graph: Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Self {
+        Self {
+            node: GraphNode::new(graph, index),
+        }
+    }
+
+    pub fn data(&self) -> AttributeData {
+        match self.node.data() {
+            GraphData::Attribute(data) => data,
+            _ => panic!("data is not an attribute"),
+        }
+    }
+
+    pub fn set_data(&mut self, data: AttributeData) {
+        self.node.set_data(GraphData::Attribute(data));
+    }
+
     pub fn accessor(&self) -> Option<Accessor> {
         find_accessor_edge(&self.node.graph.borrow(), self.node.index)
             .map(|edge| Accessor::new(self.node.graph.clone(), edge.target()))
@@ -29,27 +46,6 @@ impl Attribute {
         if let Some(accessor) = accessor {
             graph.add_edge(self.node.index, accessor.node.index, GraphEdge::Accessor);
         }
-    }
-}
-
-impl NodeCover for Attribute {
-    type Data = AttributeData;
-
-    fn new(graph: Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Self {
-        Self {
-            node: GraphNode::new(graph, index),
-        }
-    }
-
-    fn data(&self) -> Self::Data {
-        match self.node.data() {
-            GraphData::Attribute(data) => data,
-            _ => panic!("data is not an attribute"),
-        }
-    }
-
-    fn set_data(&mut self, data: Self::Data) {
-        self.node.set_data(GraphData::Attribute(data));
     }
 }
 

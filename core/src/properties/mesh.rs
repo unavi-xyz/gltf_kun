@@ -1,9 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use super::primitive::Primitive;
-use crate::graph::{
-    GltfGraph, GraphData, GraphEdge, GraphNode, MeshData, NodeCover, PrimitiveData,
-};
+use crate::graph::{GltfGraph, GraphData, GraphEdge, GraphNode, MeshData, PrimitiveData};
 use petgraph::graph::NodeIndex;
 use petgraph::visit::EdgeRef;
 
@@ -12,6 +10,23 @@ pub struct Mesh {
 }
 
 impl Mesh {
+    pub fn new(graph: Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Self {
+        Self {
+            node: GraphNode::new(graph, index),
+        }
+    }
+
+    pub fn data(&self) -> MeshData {
+        match self.node.data() {
+            GraphData::Mesh(data) => data,
+            _ => panic!("data is not a mesh"),
+        }
+    }
+
+    pub fn set_data(&mut self, data: MeshData) {
+        self.node.set_data(GraphData::Mesh(data));
+    }
+
     pub fn primitives(&self) -> Vec<Primitive> {
         self.node
             .graph
@@ -31,26 +46,5 @@ impl Mesh {
         let primitive = Primitive::new(self.node.graph.clone(), index);
         graph.add_edge(self.node.index, index, GraphEdge::Primitive);
         primitive
-    }
-}
-
-impl NodeCover for Mesh {
-    type Data = MeshData;
-
-    fn new(graph: Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Self {
-        Self {
-            node: GraphNode::new(graph, index),
-        }
-    }
-
-    fn data(&self) -> Self::Data {
-        match self.node.data() {
-            GraphData::Mesh(data) => data,
-            _ => panic!("data is not a mesh"),
-        }
-    }
-
-    fn set_data(&mut self, data: Self::Data) {
-        self.node.set_data(GraphData::Mesh(data));
     }
 }

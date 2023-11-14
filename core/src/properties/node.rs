@@ -2,7 +2,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use petgraph::graph::{EdgeReference, NodeIndex};
 
-use crate::graph::{GltfGraph, GraphData, GraphEdge, GraphNode, NodeCover, NodeData};
+use crate::graph::{GltfGraph, GraphData, GraphEdge, GraphNode, NodeData};
 use petgraph::visit::EdgeRef;
 
 use super::{
@@ -31,6 +31,23 @@ pub struct Node {
 }
 
 impl Node {
+    pub fn new(graph: Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Self {
+        Self {
+            node: GraphNode::new(graph, index),
+        }
+    }
+
+    pub fn data(&self) -> NodeData {
+        match self.node.data() {
+            GraphData::Node(data) => data,
+            _ => panic!("data is not a node"),
+        }
+    }
+
+    pub fn set_data(&mut self, data: NodeData) {
+        self.node.set_data(GraphData::Node(data));
+    }
+
     fn find_parent_edge(graph: &GltfGraph, index: NodeIndex) -> Option<EdgeReference<GraphEdge>> {
         graph
             .edges_directed(index, petgraph::Direction::Incoming)
@@ -87,27 +104,6 @@ impl Node {
                 GraphEdge::Mesh,
             );
         }
-    }
-}
-
-impl NodeCover for Node {
-    type Data = NodeData;
-
-    fn new(graph: Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Self {
-        Self {
-            node: GraphNode::new(graph, index),
-        }
-    }
-
-    fn data(&self) -> Self::Data {
-        match self.node.data() {
-            GraphData::Node(data) => data,
-            _ => panic!("data is not a node"),
-        }
-    }
-
-    fn set_data(&mut self, data: Self::Data) {
-        self.node.set_data(GraphData::Node(data));
     }
 }
 

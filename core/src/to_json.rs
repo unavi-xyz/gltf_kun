@@ -1,9 +1,6 @@
 use std::collections::{BTreeMap, HashMap};
 
-use crate::{
-    graph::{AccessorArray, NodeCover},
-    Gltf,
-};
+use crate::{graph::AccessorArray, Gltf};
 
 use gltf::json::{self, scene::UnitQuaternion, validation::Checked};
 

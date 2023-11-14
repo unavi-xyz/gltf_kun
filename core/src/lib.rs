@@ -6,7 +6,7 @@ mod to_json;
 pub use properties::*;
 
 use accessor::Accessor;
-use graph::{AccessorData, GltfGraph, GraphData, MeshData, NodeCover, NodeData, SceneData};
+use graph::{AccessorData, GltfGraph, GraphData, MeshData, NodeData, SceneData};
 use mesh::Mesh;
 use node::Node;
 use scene::Scene;

@@ -159,10 +159,3 @@ impl GraphNode {
         self.graph.borrow_mut()[self.index] = data;
     }
 }
-
-pub trait NodeCover {
-    type Data;
-    fn new(graph: Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Self;
-    fn data(&self) -> Self::Data;
-    fn set_data(&mut self, data: Self::Data);
-}

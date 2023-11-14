@@ -3,7 +3,7 @@ use bevy::{prelude::*, render::mesh::VertexAttributeValues};
 use self::utils::name_to_string;
 use gltf_kun::{
     accessor::Accessor,
-    graph::{AttributeSemantic, ElementType, NodeCover, PrimitiveMode},
+    graph::{AttributeSemantic, ElementType, PrimitiveMode},
     node::Node,
     Gltf,
 };

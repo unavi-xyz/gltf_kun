@@ -3,7 +3,7 @@ use std::{cell::RefCell, rc::Rc};
 
 use petgraph::visit::EdgeRef;
 
-use crate::graph::{GltfGraph, GraphEdge, NodeCover};
+use crate::graph::{GltfGraph, GraphEdge};
 
 use super::node::Node;
 

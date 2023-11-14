@@ -1,8 +1,7 @@
 use std::{cell::RefCell, rc::Rc};
 
 use crate::graph::{
-    AttributeData, AttributeSemantic, GltfGraph, GraphData, GraphEdge, GraphNode, NodeCover,
-    PrimitiveData,
+    AttributeData, AttributeSemantic, GltfGraph, GraphData, GraphEdge, GraphNode, PrimitiveData,
 };
 
 use super::accessor::Accessor;
@@ -16,6 +15,23 @@ pub struct Primitive {
 }
 
 impl Primitive {
+    pub fn new(graph: Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Self {
+        Self {
+            node: GraphNode::new(graph, index),
+        }
+    }
+
+    pub fn data(&self) -> PrimitiveData {
+        match self.node.data() {
+            GraphData::Primitive(data) => data,
+            _ => panic!("data is not a primitive"),
+        }
+    }
+
+    pub fn set_data(&mut self, data: PrimitiveData) {
+        self.node.set_data(GraphData::Primitive(data));
+    }
+
     pub fn attributes(&self) -> Vec<Attribute> {
         self.node
             .graph
@@ -57,27 +73,6 @@ impl Primitive {
         if let Some(indices) = indices {
             graph.add_edge(self.node.index, indices.node.index, GraphEdge::Indices);
         }
-    }
-}
-
-impl NodeCover for Primitive {
-    type Data = PrimitiveData;
-
-    fn new(graph: Rc<RefCell<GltfGraph>>, index: NodeIndex) -> Self {
-        Self {
-            node: GraphNode::new(graph, index),
-        }
-    }
-
-    fn data(&self) -> Self::Data {
-        match self.node.data() {
-            GraphData::Primitive(data) => data,
-            _ => panic!("data is not a primitive"),
-        }
-    }
-
-    fn set_data(&mut self, data: Self::Data) {
-        self.node.set_data(GraphData::Primitive(data));
     }
 }
 
