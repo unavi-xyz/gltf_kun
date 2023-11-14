@@ -1,11 +1,13 @@
 pub mod accessor;
 pub mod attribute;
 mod children;
+mod from_json;
 pub mod graph;
 pub mod mesh;
 pub mod node;
 pub mod primitive;
 pub mod scene;
+mod to_json;
 
 use std::{cell::RefCell, rc::Rc};
 
@@ -21,9 +23,12 @@ pub struct Gltf {
 }
 
 impl Gltf {
-    /// Create a new Gltf from json
-    pub fn from_json(_json: &gltf::json::Root) -> Self {
-        Gltf::default()
+    pub fn from_json(json: &gltf::json::Root) -> Self {
+        from_json::gltf_from_json(json)
+    }
+
+    pub fn to_json(&self) -> gltf::json::Root {
+        to_json::gltf_to_json(self)
     }
 
     pub fn nodes(&self) -> Vec<Node> {
@@ -32,6 +37,28 @@ impl Gltf {
             .node_indices()
             .filter_map(|index| match self.graph.borrow()[index] {
                 GraphData::Node(_) => Some(Node::new(self.graph.clone(), index)),
+                _ => None,
+            })
+            .collect()
+    }
+
+    pub fn meshes(&self) -> Vec<Mesh> {
+        self.graph
+            .borrow()
+            .node_indices()
+            .filter_map(|index| match self.graph.borrow()[index] {
+                GraphData::Mesh(_) => Some(Mesh::new(self.graph.clone(), index)),
+                _ => None,
+            })
+            .collect()
+    }
+
+    pub fn accessors(&self) -> Vec<Accessor> {
+        self.graph
+            .borrow()
+            .node_indices()
+            .filter_map(|index| match self.graph.borrow()[index] {
+                GraphData::Accessor(_) => Some(Accessor::new(self.graph.clone(), index)),
                 _ => None,
             })
             .collect()

@@ -3,7 +3,7 @@ use bevy::{prelude::*, render::mesh::VertexAttributeValues};
 use self::utils::name_to_string;
 use gltf_kun::{
     accessor::Accessor,
-    graph::{AccessorType, AttributeSemantic, NodeCover, PrimitiveMode},
+    graph::{AttributeSemantic, ElementType, NodeCover, PrimitiveMode},
     node::Node,
     Gltf,
 };
@@ -45,6 +45,8 @@ pub fn export_gltf(
                 scene.add_node(&mut node);
             })
         }
+
+        info!("Exporting gltf file");
     }
 }
 
@@ -155,7 +157,7 @@ fn export_node(
                 let mut data = accessor.data();
 
                 data.array = indices.iter().collect::<Vec<_>>().into();
-                data.accessor_type = AccessorType::Scalar;
+                data.element_type = ElementType::Scalar;
 
                 accessor.set_data(data);
 
@@ -196,70 +198,70 @@ fn attribute_to_accessor(values: &VertexAttributeValues, gltf: &mut Gltf) -> Res
     match values {
         VertexAttributeValues::Float32(values) => {
             data.array = values.clone().into();
-            data.accessor_type = AccessorType::Scalar;
+            data.element_type = ElementType::Scalar;
         }
         VertexAttributeValues::Float32x2(values) => {
             data.array = values.clone().into();
-            data.accessor_type = AccessorType::Vec2;
+            data.element_type = ElementType::Vec2;
         }
         VertexAttributeValues::Float32x3(values) => {
             data.array = values.clone().into();
-            data.accessor_type = AccessorType::Vec3;
+            data.element_type = ElementType::Vec3;
         }
         VertexAttributeValues::Float32x4(values) => {
             data.array = values.clone().into();
-            data.accessor_type = AccessorType::Vec4;
+            data.element_type = ElementType::Vec4;
         }
         VertexAttributeValues::Uint32(values) => {
             data.array = values.clone().into();
-            data.accessor_type = AccessorType::Scalar;
+            data.element_type = ElementType::Scalar;
         }
         VertexAttributeValues::Uint32x2(values) => {
             data.array = values.clone().into();
-            data.accessor_type = AccessorType::Vec2;
+            data.element_type = ElementType::Vec2;
         }
         VertexAttributeValues::Uint32x3(values) => {
             data.array = values.clone().into();
-            data.accessor_type = AccessorType::Vec3;
+            data.element_type = ElementType::Vec3;
         }
         VertexAttributeValues::Uint32x4(values) => {
             data.array = values.clone().into();
-            data.accessor_type = AccessorType::Vec4;
+            data.element_type = ElementType::Vec4;
         }
         VertexAttributeValues::Uint16x2(values) => {
             data.array = values.clone().into();
-            data.accessor_type = AccessorType::Vec2;
+            data.element_type = ElementType::Vec2;
         }
         VertexAttributeValues::Uint16x4(values) => {
             data.array = values.clone().into();
-            data.accessor_type = AccessorType::Vec4;
+            data.element_type = ElementType::Vec4;
         }
         VertexAttributeValues::Uint8x2(values) => {
             data.array = values.clone().into();
-            data.accessor_type = AccessorType::Vec2;
+            data.element_type = ElementType::Vec2;
         }
         VertexAttributeValues::Uint8x4(values) => {
             data.array = values.clone().into();
-            data.accessor_type = AccessorType::Vec4;
+            data.element_type = ElementType::Vec4;
         }
         VertexAttributeValues::Unorm16x4(values) => {
             data.array = values.clone().into();
-            data.accessor_type = AccessorType::Vec4;
+            data.element_type = ElementType::Vec4;
             data.normalized = true;
         }
         VertexAttributeValues::Unorm16x2(values) => {
             data.array = values.clone().into();
-            data.accessor_type = AccessorType::Vec2;
+            data.element_type = ElementType::Vec2;
             data.normalized = true;
         }
         VertexAttributeValues::Unorm8x4(values) => {
             data.array = values.clone().into();
-            data.accessor_type = AccessorType::Vec4;
+            data.element_type = ElementType::Vec4;
             data.normalized = true;
         }
         VertexAttributeValues::Unorm8x2(values) => {
             data.array = values.clone().into();
-            data.accessor_type = AccessorType::Vec2;
+            data.element_type = ElementType::Vec2;
             data.normalized = true;
         }
         _ => {
