@@ -53,33 +53,28 @@ impl AccessorArray {
         match self {
             AccessorArray::I8(array) => array
                 .iter()
-                .map(|x| x.to_ne_bytes())
-                .flatten()
+                .flat_map(|x| x.to_ne_bytes())
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             AccessorArray::U8(array) => array.clone(),
             AccessorArray::I16(array) => array
                 .iter()
-                .map(|x| x.to_ne_bytes())
-                .flatten()
+                .flat_map(|x| x.to_ne_bytes())
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             AccessorArray::U16(array) => array
                 .iter()
-                .map(|x| x.to_ne_bytes())
-                .flatten()
+                .flat_map(|x| x.to_ne_bytes())
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             AccessorArray::U32(array) => array
                 .iter()
-                .map(|x| x.to_ne_bytes())
-                .flatten()
+                .flat_map(|x| x.to_ne_bytes())
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
             AccessorArray::F32(array) => array
                 .iter()
-                .map(|x| x.to_ne_bytes())
-                .flatten()
+                .flat_map(|x| x.to_ne_bytes())
                 .collect::<Vec<_>>()
                 .into_boxed_slice(),
         }
