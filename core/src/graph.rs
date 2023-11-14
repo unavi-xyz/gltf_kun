@@ -27,9 +27,9 @@ impl ElementType {
     }
 }
 
-impl Into<gltf::json::accessor::Type> for ElementType {
-    fn into(self) -> gltf::json::accessor::Type {
-        match self {
+impl From<ElementType> for gltf::json::accessor::Type {
+    fn from(val: ElementType) -> Self {
+        match val {
             ElementType::Scalar => gltf::json::accessor::Type::Scalar,
             ElementType::Vec2 => gltf::json::accessor::Type::Vec2,
             ElementType::Vec3 => gltf::json::accessor::Type::Vec3,
@@ -247,9 +247,9 @@ pub enum PrimitiveMode {
     TriangleFan,
 }
 
-impl Into<gltf::json::mesh::Mode> for PrimitiveMode {
-    fn into(self) -> gltf::json::mesh::Mode {
-        match self {
+impl From<PrimitiveMode> for gltf::json::mesh::Mode {
+    fn from(val: PrimitiveMode) -> Self {
+        match val {
             PrimitiveMode::Points => gltf::json::mesh::Mode::Points,
             PrimitiveMode::Lines => gltf::json::mesh::Mode::Lines,
             PrimitiveMode::LineLoop => gltf::json::mesh::Mode::LineLoop,
@@ -277,9 +277,9 @@ pub enum AttributeSemantic {
     Weights(u32),
 }
 
-impl Into<gltf::Semantic> for AttributeSemantic {
-    fn into(self) -> gltf::Semantic {
-        match self {
+impl From<AttributeSemantic> for gltf::Semantic {
+    fn from(val: AttributeSemantic) -> Self {
+        match val {
             AttributeSemantic::Position => gltf::Semantic::Positions,
             AttributeSemantic::Normal => gltf::Semantic::Normals,
             AttributeSemantic::Tangent => gltf::Semantic::Tangents,

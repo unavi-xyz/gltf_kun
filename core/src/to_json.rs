@@ -24,21 +24,21 @@ pub fn gltf_to_json(gltf: &Gltf) -> json::Root {
             let data = a.data();
 
             let max = match a.max() {
-                AccessorArray::I8(max) => Some(max.iter().map(|x| *x).collect()),
-                AccessorArray::U8(max) => Some(max.iter().map(|x| *x).collect()),
-                AccessorArray::I16(max) => Some(max.iter().map(|x| *x).collect()),
-                AccessorArray::U16(max) => Some(max.iter().map(|x| *x).collect()),
-                AccessorArray::U32(max) => Some(max.iter().map(|x| *x).collect()),
-                AccessorArray::F32(max) => Some(max.iter().map(|x| *x).collect()),
+                AccessorArray::I8(max) => Some(max.iter().copied().collect()),
+                AccessorArray::U8(max) => Some(max.iter().copied().collect()),
+                AccessorArray::I16(max) => Some(max.iter().copied().collect()),
+                AccessorArray::U16(max) => Some(max.iter().copied().collect()),
+                AccessorArray::U32(max) => Some(max.iter().copied().collect()),
+                AccessorArray::F32(max) => Some(max.iter().copied().collect()),
             };
 
             let min = match a.min() {
-                AccessorArray::I8(min) => Some(min.iter().map(|x| *x).collect()),
-                AccessorArray::U8(min) => Some(min.iter().map(|x| *x).collect()),
-                AccessorArray::I16(min) => Some(min.iter().map(|x| *x).collect()),
-                AccessorArray::U16(min) => Some(min.iter().map(|x| *x).collect()),
-                AccessorArray::U32(min) => Some(min.iter().map(|x| *x).collect()),
-                AccessorArray::F32(min) => Some(min.iter().map(|x| *x).collect()),
+                AccessorArray::I8(min) => Some(min.iter().copied().collect()),
+                AccessorArray::U8(min) => Some(min.iter().copied().collect()),
+                AccessorArray::I16(min) => Some(min.iter().copied().collect()),
+                AccessorArray::U16(min) => Some(min.iter().copied().collect()),
+                AccessorArray::U32(min) => Some(min.iter().copied().collect()),
+                AccessorArray::F32(min) => Some(min.iter().copied().collect()),
             };
 
             json::Accessor {
@@ -93,7 +93,7 @@ pub fn gltf_to_json(gltf: &Gltf) -> json::Root {
                         });
 
                         let indices = p.indices().map(|i| {
-                            let data = i.data();
+                            let _data = i.data();
                             let index = accessors[&i.node.index.index()];
                             json::Index::new(index)
                         });
@@ -136,7 +136,7 @@ pub fn gltf_to_json(gltf: &Gltf) -> json::Root {
                 skin: None,
                 weights: None,
                 translation: Some(data.translation),
-                rotation: Some(UnitQuaternion { 0: data.rotation }),
+                rotation: Some(UnitQuaternion(data.rotation)),
                 scale: Some(data.scale),
                 extras: None,
                 extensions: None,
