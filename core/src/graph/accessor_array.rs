@@ -24,9 +24,9 @@ impl ElementType {
     }
 }
 
-impl Into<gltf::json::accessor::Type> for ElementType {
-    fn into(self) -> gltf::json::accessor::Type {
-        match self {
+impl From<ElementType> for gltf::json::accessor::Type {
+    fn from(val: ElementType) -> Self {
+        match val {
             ElementType::Scalar => gltf::json::accessor::Type::Scalar,
             ElementType::Vec2 => gltf::json::accessor::Type::Vec2,
             ElementType::Vec3 => gltf::json::accessor::Type::Vec3,

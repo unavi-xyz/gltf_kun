@@ -68,9 +68,9 @@ pub enum PrimitiveMode {
     TriangleFan,
 }
 
-impl Into<gltf::json::mesh::Mode> for PrimitiveMode {
-    fn into(self) -> gltf::json::mesh::Mode {
-        match self {
+impl From<PrimitiveMode> for gltf::json::mesh::Mode {
+    fn from(val: PrimitiveMode) -> Self {
+        match val {
             PrimitiveMode::Points => gltf::json::mesh::Mode::Points,
             PrimitiveMode::Lines => gltf::json::mesh::Mode::Lines,
             PrimitiveMode::LineLoop => gltf::json::mesh::Mode::LineLoop,
@@ -98,9 +98,9 @@ pub enum AttributeSemantic {
     Weights(u32),
 }
 
-impl Into<gltf::Semantic> for AttributeSemantic {
-    fn into(self) -> gltf::Semantic {
-        match self {
+impl From<AttributeSemantic> for gltf::Semantic {
+    fn from(val: AttributeSemantic) -> Self {
+        match val {
             AttributeSemantic::Position => gltf::Semantic::Positions,
             AttributeSemantic::Normal => gltf::Semantic::Normals,
             AttributeSemantic::Tangent => gltf::Semantic::Tangents,
