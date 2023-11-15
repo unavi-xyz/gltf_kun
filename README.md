@@ -6,5 +6,4 @@
 [![Documentation](https://docs.rs/gltf_kun/badge.svg)](https://docs.rs/gltf_kun)
 
 An extensible library for building [glTF](https://github.com/KhronosGroup/glTF) toolchains.
-
-Builds upon the [`gltf`](https://github.com/gltf-rs/gltf) and [`petgraph`](https://github.com/petgraph/petgraph) crates to create a traversable graph of the glTF document.
+Builds upon the [gltf](https://crates.io/crates/gltf) and [petgraph](https://crates.io/crates/petgraph) crates to create a traversable graph of the glTF document.
