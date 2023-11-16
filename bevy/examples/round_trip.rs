@@ -11,7 +11,7 @@ fn main() {
             bevy_gltf_kun::GltfExportPlugin,
         ))
         .add_systems(Startup, setup)
-        .add_systems(Update, read_result)
+        .add_systems(Update, (export_scene, read_result))
         .run();
 }
 
@@ -19,7 +19,6 @@ fn setup(
     mut commands: Commands,
     mut materials: ResMut<Assets<StandardMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut event_writer: EventWriter<bevy_gltf_kun::ExportScene>,
 ) {
     commands.spawn(Camera3dBundle {
         transform: Transform::from_xyz(-2.0, 2.0, 8.0).looking_at(Vec3::ZERO, Vec3::Y),
@@ -56,11 +55,31 @@ fn setup(
             ..default()
         })
         .set_parent(scene);
+}
 
-    event_writer.send(bevy_gltf_kun::ExportScene {
-        scenes: vec![scene],
-        format: bevy_gltf_kun::ExportFormat::Binary,
-    });
+/// Send an export event after a delay
+fn export_scene(
+    mut event_writer: EventWriter<bevy_gltf_kun::ExportScene>,
+    scenes: Query<Entity, With<Handle<Scene>>>,
+    time: Res<Time>,
+    mut exported: Local<bool>,
+) {
+    if *exported {
+        return;
+    }
+
+    if time.elapsed_seconds() < 3.0 {
+        return;
+    }
+
+    for scene in scenes.iter() {
+        event_writer.send(bevy_gltf_kun::ExportScene {
+            scenes: vec![scene],
+            format: bevy_gltf_kun::ExportFormat::Binary,
+        });
+    }
+
+    *exported = true;
 }
 
 const MODEL_PATH: &str = "temp/round_trip.glb";
