@@ -1,5 +1,5 @@
 pub use gltf::json::accessor::ComponentType;
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
 use crate::graph::{AccessorArray, AccessorData, ElementType, GltfGraph, GraphData, GraphNode};
 use petgraph::graph::NodeIndex;
@@ -142,7 +142,11 @@ where
 {
     array
         .chunks(element_size)
-        .fold(Vec::with_capacity(element_size), |max: Vec<T>, chunk| {
+        .fold(Vec::new(), |max: Vec<T>, chunk| {
+            if max.is_empty() {
+                return chunk.to_vec();
+            }
+
             max.iter()
                 .zip(chunk.iter())
                 .map(|(a, b)| if a > b { *a } else { *b })
@@ -156,7 +160,11 @@ where
 {
     array
         .chunks(element_size)
-        .fold(Vec::with_capacity(element_size), |min: Vec<T>, chunk| {
+        .fold(Vec::new(), |min: Vec<T>, chunk| {
+            if min.is_empty() {
+                return chunk.to_vec();
+            }
+
             min.iter()
                 .zip(chunk.iter())
                 .map(|(a, b)| if a < b { *a } else { *b })
