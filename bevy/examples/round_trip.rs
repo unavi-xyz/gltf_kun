@@ -63,7 +63,7 @@ fn setup(
     });
 }
 
-const MODEL_PATH: &str = "model.glb";
+const MODEL_PATH: &str = "temp/model.glb";
 
 fn read_result(
     asset_server: Res<AssetServer>,
