@@ -25,12 +25,12 @@ fn setup(
         ..default()
     });
 
-    commands.spawn(DirectionalLightBundle {
-        directional_light: DirectionalLight {
-            shadows_enabled: true,
-            illuminance: 10_000.0,
+    commands.spawn(PointLightBundle {
+        point_light: PointLight {
+            color: Color::rgb(1.0, 0.5, 0.5),
             ..default()
         },
+        transform: Transform::from_xyz(3.0, 8.0, -4.0),
         ..default()
     });
 
@@ -42,7 +42,7 @@ fn setup(
                 size: 5.0,
                 ..default()
             })),
-            material: materials.add(StandardMaterial::from(Color::rgb(0.5, 1.0, 0.5))),
+            material: materials.add(StandardMaterial::from(Color::rgb(0.7, 0.6, 1.0))),
             ..default()
         })
         .set_parent(scene);
