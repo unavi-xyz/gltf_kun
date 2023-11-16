@@ -9,7 +9,7 @@ use super::{
 };
 
 pub struct Scene {
-    node: GraphNode,
+    pub(crate) node: GraphNode,
 }
 
 impl Scene {

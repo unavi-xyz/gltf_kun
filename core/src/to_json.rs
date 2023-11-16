@@ -12,6 +12,8 @@ pub fn gltf_to_json(gltf: &Gltf) -> (json::Root, Vec<u8>) {
     // Maps of node index -> json index
     let mut accessors = HashMap::new();
     let mut meshes = HashMap::new();
+    let mut nodes = HashMap::new();
+    let mut scenes = HashMap::new();
 
     let mut buffer = json::Buffer {
         uri: None,
@@ -134,7 +136,10 @@ pub fn gltf_to_json(gltf: &Gltf) -> (json::Root, Vec<u8>) {
     root.nodes = gltf
         .nodes()
         .iter()
-        .map(|n| {
+        .enumerate()
+        .map(|(i, n)| {
+            nodes.insert(n.node.index.index(), i as u32);
+
             let mesh = match n.mesh() {
                 Some(mesh) => {
                     let index = meshes[&mesh.node.index.index()];
@@ -174,6 +179,29 @@ pub fn gltf_to_json(gltf: &Gltf) -> (json::Root, Vec<u8>) {
                 scale,
                 extras: None,
                 extensions: None,
+            }
+        })
+        .collect();
+
+    root.scenes = gltf
+        .scenes()
+        .iter()
+        .enumerate()
+        .map(|(i, s)| {
+            scenes.insert(s.node.index.index(), i as u32);
+
+            json::Scene {
+                name: s.name(),
+                extras: None,
+                extensions: None,
+                nodes: s
+                    .nodes()
+                    .iter()
+                    .map(|n| {
+                        let index = nodes[&n.node.index.index()];
+                        json::Index::new(index)
+                    })
+                    .collect(),
             }
         })
         .collect();

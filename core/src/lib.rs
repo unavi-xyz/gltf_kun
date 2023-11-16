@@ -74,6 +74,17 @@ impl Gltf {
         }
     }
 
+    pub fn scenes(&self) -> Vec<Scene> {
+        self.graph
+            .borrow()
+            .node_indices()
+            .filter_map(|index| match self.graph.borrow()[index] {
+                GraphData::Scene(_) => Some(Scene::new(self.graph.clone(), index)),
+                _ => None,
+            })
+            .collect()
+    }
+
     pub fn nodes(&self) -> Vec<Node> {
         self.graph
             .borrow()
