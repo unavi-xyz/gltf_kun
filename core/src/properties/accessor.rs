@@ -1,5 +1,5 @@
 pub use gltf::json::accessor::ComponentType;
-use std::{cell::RefCell, fmt::Debug, rc::Rc};
+use std::{cell::RefCell, rc::Rc};
 
 use crate::graph::{AccessorArray, AccessorData, ElementType, GltfGraph, GraphData, GraphNode};
 use petgraph::graph::NodeIndex;
