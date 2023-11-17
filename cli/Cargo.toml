@@ -1,6 +1,7 @@
 [package]
 name = "gltf_kun_cli"
 description = "gltf_kun cli tool"
+keywords = ["cli", "gltf"]
 version.workspace = true
 license.workspace = true
 repository.workspace = true
@@ -8,4 +9,4 @@ edition.workspace = true
 
 [dependencies]
 clap = { version = "4.4.7", features = ["derive"] }
-gltf_kun = { version = "0.0.2", path = "../core" }
+gltf_kun = { version = "0.0.3", path = "../core" }
