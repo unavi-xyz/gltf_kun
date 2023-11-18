@@ -12,5 +12,5 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 bevy = "0.12.0"
-gltf_kun = { version = "0.0.3", path = "../core" }
+gltf_kun = { version = "0.0.3", path = "../gltf_kun" }
 gltf = { version = "1.3.0", features = [ "extras", "names" ] }
