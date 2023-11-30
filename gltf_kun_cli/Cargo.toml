@@ -1,6 +1,6 @@
 [package]
 name = "gltf_kun_cli"
-description = "gltf_kun cli tool"
+description = "gltf_kun cli tool."
 keywords = ["cli", "gltf"]
 version.workspace = true
 license.workspace = true
