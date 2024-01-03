@@ -22,6 +22,4 @@ in {
   bevy_gltf_kun =
     rustPlatform.buildRustPackage (common // { pname = "bevy_gltf_kun"; });
   gltf_kun = rustPlatform.buildRustPackage (common // { pname = "gltf_kun"; });
-  gltf_kun_cli =
-    rustPlatform.buildRustPackage (common // { pname = "gltf_kun_cli"; });
 }

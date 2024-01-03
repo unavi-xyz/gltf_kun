@@ -23,21 +23,15 @@
           alsa-lib
           udev
           vulkan-loader
-
           libxkbcommon
           wayland
-
           xorg.libX11
           xorg.libXcursor
           xorg.libXi
           xorg.libXrandr
         ]);
 
-        native_build_inputs = with pkgs; [
-          # Rust
-          cargo-auditable
-          pkg-config
-        ];
+        native_build_inputs = with pkgs; [ cargo-auditable pkg-config ];
 
         code = pkgs.callPackage ./. {
           inherit pkgs system build_inputs native_build_inputs;
@@ -46,7 +40,7 @@
         packages = code // {
           all = pkgs.symlinkJoin {
             name = "all";
-            paths = with code; [ bevy_gltf_kun gltf_kun_cli gltf_kun ];
+            paths = with code; [ bevy_gltf_kun gltf_kun ];
           };
 
           default = packages.all;
@@ -56,12 +50,7 @@
 
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs;
-            [
-              # Rust
-              cargo-watch
-              rust-analyzer
-              rustBin
-            ] ++ build_inputs;
+            [ cargo-watch rust-analyzer rustBin ] ++ build_inputs;
           nativeBuildInputs = native_build_inputs;
 
           LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath build_inputs;

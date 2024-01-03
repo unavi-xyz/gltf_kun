@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["bevy_gltf_kun", "gltf_kun", "gltf_kun_cli"]
+members = ["bevy_gltf_kun", "gltf_kun"]
 
 [workspace.package]
 version = "0.0.3"
