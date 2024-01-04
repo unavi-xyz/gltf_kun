@@ -5,7 +5,7 @@ use petgraph::stable_graph::NodeIndex;
 
 use crate::{
     extension::ExtensionProperty,
-    graph::{GltfGraph, GraphNode, Property},
+    graph::{GltfGraph, Property, Weight},
 };
 
 #[derive(Debug)]
@@ -55,18 +55,25 @@ impl Node {
     pub fn new(graph: Rc<RefCell<GltfGraph>>) -> Self {
         let index = graph
             .borrow_mut()
-            .add_node(GraphNode::Node(RawNode::default()));
+            .add_node(Weight::Node(RawNode::default()));
 
         Self { graph, index }
     }
 
+    /// Get a reference to the raw node from the graph.
     fn raw(graph: &GltfGraph, index: NodeIndex) -> &RawNode {
-        let GraphNode::Node(node) = graph.node_weight(index).expect("Weight not found");
-        node
+        match graph.node_weight(index).expect("Weight not found") {
+            Weight::Node(node) => node,
+            _ => panic!("Incorrect weight type"),
+        }
     }
+
+    /// Get a mutable reference to the raw node from the graph.
     fn raw_mut(graph: &mut GltfGraph, index: NodeIndex) -> &mut RawNode {
-        let GraphNode::Node(node) = graph.node_weight_mut(index).expect("Weight not found");
-        node
+        match graph.node_weight_mut(index).expect("Weight not found") {
+            Weight::Node(node) => node,
+            _ => panic!("Incorrect weight type"),
+        }
     }
 
     pub fn translation(&self) -> Vec3 {

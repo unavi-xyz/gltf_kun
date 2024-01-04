@@ -4,16 +4,17 @@ pub mod gltf;
 pub mod glxf;
 
 #[derive(Debug)]
-pub enum GraphNode {
+pub enum Weight {
     Node(gltf::node::RawNode),
+    Mesh(gltf::mesh::RawMesh),
 }
 
 #[derive(Debug)]
-pub enum GraphEdge {
+pub enum Edge {
     Child,
 }
 
-pub type GltfGraph = DiGraph<GraphNode, GraphEdge>;
+pub type GltfGraph = DiGraph<Weight, Edge>;
 
 pub trait Property {
     fn name(&self) -> Option<String>;
