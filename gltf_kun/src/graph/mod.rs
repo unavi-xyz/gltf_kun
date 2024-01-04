@@ -1,17 +1,28 @@
 use petgraph::graph::DiGraph;
 
-use crate::extension::Extension;
+pub mod gltf;
+pub mod glxf;
 
-pub type GltfNode = ();
-pub type GltfEdge = ();
-pub type GltfGraph = DiGraph<GltfNode, GltfEdge>;
+#[derive(Debug)]
+pub enum GraphNode {
+    Node(gltf::node::RawNode),
+}
+
+#[derive(Debug)]
+pub enum GraphEdge {
+    Child,
+}
+
+pub type GltfGraph = DiGraph<GraphNode, GraphEdge>;
 
 pub trait Property {
-    fn name(&self) -> &str;
-    fn extensions(&self) -> &[impl Extension];
-    fn extras(&self) -> &serde_json::Value;
+    fn name(&self) -> Option<String>;
+    fn set_name(&mut self, name: Option<String>);
 
-    fn set_name(&mut self, name: String);
-    fn set_extensions(&mut self, extensions: Vec<impl Extension>);
-    fn set_extras(&mut self, extras: serde_json::Value);
+    // fn extras(&self) -> &Option<serde_json::Value>;
+    // fn set_extras(&mut self, extras: Option<serde_json::Value>);
+
+    // fn extensions(&self) -> &Vec<Box<dyn ExtensionProperty>>;
+    // fn set_extensions(&mut self, extensions: Vec<Box<dyn ExtensionProperty>>);
+    // fn add_extension(&mut self, extension: Box<dyn ExtensionProperty>);
 }
