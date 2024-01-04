@@ -1,4 +1,4 @@
 #[derive(Debug)]
-pub struct RawMesh;
+pub struct MeshWeight;
 
 pub struct Mesh;

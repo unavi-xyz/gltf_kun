@@ -9,7 +9,7 @@ use crate::{
 };
 
 #[derive(Debug)]
-pub struct RawNode {
+pub struct NodeWeight {
     pub name: Option<String>,
     pub extras: Option<serde_json::Value>,
     pub extensions: Vec<Box<dyn ExtensionProperty>>,
@@ -21,7 +21,7 @@ pub struct RawNode {
     pub children: Vec<NodeIndex>,
 }
 
-impl Default for RawNode {
+impl Default for NodeWeight {
     fn default() -> Self {
         Self {
             name: None,
@@ -55,21 +55,18 @@ impl Node {
     pub fn new(graph: Rc<RefCell<GltfGraph>>) -> Self {
         let index = graph
             .borrow_mut()
-            .add_node(Weight::Node(RawNode::default()));
+            .add_node(Weight::Node(NodeWeight::default()));
 
         Self { graph, index }
     }
 
-    /// Get a reference to the raw node from the graph.
-    fn raw(graph: &GltfGraph, index: NodeIndex) -> &RawNode {
+    fn weight(graph: &GltfGraph, index: NodeIndex) -> &NodeWeight {
         match graph.node_weight(index).expect("Weight not found") {
             Weight::Node(node) => node,
             _ => panic!("Incorrect weight type"),
         }
     }
-
-    /// Get a mutable reference to the raw node from the graph.
-    fn raw_mut(graph: &mut GltfGraph, index: NodeIndex) -> &mut RawNode {
+    fn weight_mut(graph: &mut GltfGraph, index: NodeIndex) -> &mut NodeWeight {
         match graph.node_weight_mut(index).expect("Weight not found") {
             Weight::Node(node) => node,
             _ => panic!("Incorrect weight type"),
@@ -77,29 +74,29 @@ impl Node {
     }
 
     pub fn translation(&self) -> Vec3 {
-        Self::raw(&self.graph.borrow(), self.index).translation
+        Self::weight(&self.graph.borrow(), self.index).translation
     }
     pub fn set_translation(&mut self, translation: Vec3) {
-        Self::raw_mut(&mut self.graph.borrow_mut(), self.index).translation = translation;
+        Self::weight_mut(&mut self.graph.borrow_mut(), self.index).translation = translation;
     }
 
     pub fn rotation(&self) -> Vec3 {
-        Self::raw(&self.graph.borrow(), self.index).rotation
+        Self::weight(&self.graph.borrow(), self.index).rotation
     }
     pub fn set_rotation(&mut self, rotation: Vec3) {
-        Self::raw_mut(&mut self.graph.borrow_mut(), self.index).rotation = rotation;
+        Self::weight_mut(&mut self.graph.borrow_mut(), self.index).rotation = rotation;
     }
 
     pub fn scale(&self) -> Vec3 {
-        Self::raw(&self.graph.borrow(), self.index).scale
+        Self::weight(&self.graph.borrow(), self.index).scale
     }
     pub fn set_scale(&mut self, scale: Vec3) {
-        Self::raw_mut(&mut self.graph.borrow_mut(), self.index).scale = scale;
+        Self::weight_mut(&mut self.graph.borrow_mut(), self.index).scale = scale;
     }
 
     pub fn children(&self) -> Vec<Node> {
         let graph = self.graph.borrow();
-        let node = Self::raw(&graph, self.index);
+        let node = Self::weight(&graph, self.index);
 
         node.children
             .iter()
@@ -111,13 +108,13 @@ impl Node {
     }
     pub fn set_children(&mut self, children: Vec<Node>) {
         let mut graph = self.graph.borrow_mut();
-        let node = Self::raw_mut(&mut graph, self.index);
+        let node = Self::weight_mut(&mut graph, self.index);
 
         node.children = children.iter().map(|node| node.index).collect();
     }
     pub fn add_child(&mut self, child: Node) {
         let mut graph = self.graph.borrow_mut();
-        let node = Self::raw_mut(&mut graph, self.index);
+        let node = Self::weight_mut(&mut graph, self.index);
 
         node.children.push(child.index);
     }
@@ -125,10 +122,10 @@ impl Node {
 
 impl Property for Node {
     fn name(&self) -> Option<String> {
-        Self::raw(&self.graph.borrow(), self.index).name.clone()
+        Self::weight(&self.graph.borrow(), self.index).name.clone()
     }
     fn set_name(&mut self, name: Option<String>) {
-        Self::raw_mut(&mut self.graph.borrow_mut(), self.index).name = name;
+        Self::weight_mut(&mut self.graph.borrow_mut(), self.index).name = name;
     }
 }
 

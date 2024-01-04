@@ -5,8 +5,8 @@ pub mod glxf;
 
 #[derive(Debug)]
 pub enum Weight {
-    Node(gltf::node::RawNode),
-    Mesh(gltf::mesh::RawMesh),
+    Node(gltf::node::NodeWeight),
+    Mesh(gltf::mesh::MeshWeight),
 }
 
 #[derive(Debug)]
