@@ -17,8 +17,8 @@ pub enum Edge {
 pub type GltfGraph = DiGraph<Weight, Edge>;
 
 pub trait Property {
-    fn name(&self) -> Option<String>;
-    fn set_name(&mut self, name: Option<String>);
+    fn name<'a>(&'a self, graph: &'a GltfGraph) -> Option<&'a str>;
+    fn set_name(&mut self, graph: &mut GltfGraph, name: Option<String>);
 
     // fn extras(&self) -> &Option<serde_json::Value>;
     // fn set_extras(&mut self, extras: Option<serde_json::Value>);
