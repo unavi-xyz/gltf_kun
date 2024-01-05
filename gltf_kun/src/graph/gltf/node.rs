@@ -42,13 +42,13 @@ impl Node {
 
     pub fn get<'a>(&'a self, graph: &'a GltfGraph) -> &'a NodeWeight {
         match graph.node_weight(self.0).expect("Weight not found") {
-            Weight::Node(node) => node,
+            Weight::Node(weight) => weight,
             _ => panic!("Incorrect weight type"),
         }
     }
     pub fn get_mut<'a>(&'a mut self, graph: &'a mut GltfGraph) -> &'a mut NodeWeight {
         match graph.node_weight_mut(self.0).expect("Weight not found") {
-            Weight::Node(node) => node,
+            Weight::Node(weight) => weight,
             _ => panic!("Incorrect weight type"),
         }
     }
@@ -65,11 +65,9 @@ impl Node {
             })
             .collect()
     }
-
     pub fn add_child(&mut self, graph: &mut GltfGraph, child: &Node) {
         graph.add_edge(self.0, child.0, Edge::Child);
     }
-
     pub fn remove_child(&mut self, graph: &mut GltfGraph, child: &Node) {
         let edge = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
@@ -78,7 +76,6 @@ impl Node {
 
         graph.remove_edge(edge.id());
     }
-
     pub fn parent(&self, graph: &GltfGraph) -> Option<Node> {
         graph
             .edges_directed(self.0, petgraph::Direction::Incoming)
