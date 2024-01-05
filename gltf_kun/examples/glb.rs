@@ -14,7 +14,7 @@ fn main() {
     let doc = format.import().expect("Failed to import glTF");
 
     doc.nodes().iter().for_each(|node| {
-        println!("Node: {:?}", node.get(&doc.0).name);
+        println!("Node: {:?}", node);
     });
 
     let exported = GlbFormat::export(doc).expect("Failed to export glTF");

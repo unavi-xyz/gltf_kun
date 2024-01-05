@@ -48,10 +48,10 @@ impl Scene {
             })
             .collect()
     }
-    pub fn add_child(&mut self, graph: &mut GltfGraph, child: &Node) {
+    pub fn add_child(&self, graph: &mut GltfGraph, child: &Node) {
         graph.add_edge(self.0, child.0, Edge::Child);
     }
-    pub fn remove_child(&mut self, graph: &mut GltfGraph, child: &Node) {
+    pub fn remove_child(&self, graph: &mut GltfGraph, child: &Node) {
         let edge = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .find(|edge| edge.target() == child.0)
