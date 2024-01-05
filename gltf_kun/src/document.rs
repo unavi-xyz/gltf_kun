@@ -1,6 +1,5 @@
 use crate::graph::{
-    gltf::{accessor::Accessor, mesh::Mesh, node::Node, primitive::Primitive},
-    GltfGraph, Weight,
+    accessor::Accessor, mesh::Mesh, node::Node, primitive::Primitive, GltfGraph, Weight,
 };
 
 pub struct Document(pub GltfGraph);

@@ -64,7 +64,7 @@ impl Scene {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::graph::gltf::node::{Node, Parent};
+    use crate::graph::node::{Node, Parent};
 
     #[test]
     fn test_node() {

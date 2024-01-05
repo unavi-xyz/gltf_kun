@@ -1,4 +1,4 @@
-use gltf_json::mesh::{Mode, Semantic};
+use gltf::json::mesh::{Mode, Semantic};
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 
 use crate::{

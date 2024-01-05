@@ -1784,7 +1784,6 @@ dependencies = [
  "anyhow",
  "glam 0.25.0",
  "gltf",
- "gltf-json",
  "petgraph",
  "serde_json",
 ]

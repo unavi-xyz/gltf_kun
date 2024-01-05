@@ -1,4 +1,4 @@
-use gltf_json::accessor::Type;
+use gltf::json::accessor::Type;
 use petgraph::stable_graph::NodeIndex;
 
 use crate::{

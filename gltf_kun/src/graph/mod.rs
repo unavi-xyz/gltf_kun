@@ -1,16 +1,19 @@
-use gltf_json::mesh::Semantic;
+use gltf::json::mesh::Semantic;
 use petgraph::graph::DiGraph;
 
-pub mod gltf;
-pub mod glxf;
+pub mod accessor;
+pub mod mesh;
+pub mod node;
+pub mod primitive;
+pub mod scene;
 
 #[derive(Debug)]
 pub enum Weight {
-    Accessor(gltf::accessor::AccessorWeight),
-    Mesh(gltf::mesh::MeshWeight),
-    Node(gltf::node::NodeWeight),
-    Scene(gltf::scene::SceneWeight),
-    Primitive(gltf::primitive::PrimitiveWeight),
+    Accessor(accessor::AccessorWeight),
+    Mesh(mesh::MeshWeight),
+    Node(node::NodeWeight),
+    Scene(scene::SceneWeight),
+    Primitive(primitive::PrimitiveWeight),
 }
 
 #[derive(Debug)]
