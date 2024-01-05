@@ -10,8 +10,7 @@ use super::accessor::Accessor;
 
 #[derive(Debug)]
 pub struct PrimitiveWeight {
-    pub name: Option<String>,
-    pub extras: Option<gltf::json::Extras>,
+    pub extras: gltf::json::Extras,
     pub extensions: Vec<Box<dyn ExtensionProperty>>,
 
     pub mode: Mode,
@@ -20,7 +19,6 @@ pub struct PrimitiveWeight {
 impl Default for PrimitiveWeight {
     fn default() -> Self {
         Self {
-            name: None,
             extras: None,
             extensions: Vec::new(),
 
@@ -131,9 +129,6 @@ mod tests {
     fn test_primitive() {
         let mut graph = GltfGraph::new();
         let mut primitive = Primitive::new(&mut graph);
-
-        primitive.get_mut(&mut graph).name = Some("Test".to_string());
-        assert_eq!(primitive.get(&graph).name, Some("Test".to_string()));
 
         primitive.get_mut(&mut graph).mode = Mode::Lines;
         assert_eq!(primitive.get(&graph).mode, Mode::Lines);

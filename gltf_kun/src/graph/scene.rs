@@ -10,7 +10,7 @@ use super::node::Node;
 #[derive(Debug, Default)]
 pub struct SceneWeight {
     pub name: Option<String>,
-    pub extras: Option<gltf::json::Extras>,
+    pub extras: gltf::json::Extras,
     pub extensions: Vec<Box<dyn ExtensionProperty>>,
 }
 

@@ -1,15 +1,17 @@
 use gltf::json::accessor::Type;
-use petgraph::stable_graph::NodeIndex;
+use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 
 use crate::{
     extension::ExtensionProperty,
     graph::{GltfGraph, Weight},
 };
 
+use super::{buffer_view::BufferView, Edge};
+
 #[derive(Debug)]
 pub struct AccessorWeight {
     pub name: Option<String>,
-    pub extras: Option<gltf::json::Extras>,
+    pub extras: gltf::json::Extras,
     pub extensions: Vec<Box<dyn ExtensionProperty>>,
 
     pub element_type: Type,
@@ -62,6 +64,27 @@ impl Accessor {
             _ => panic!("Incorrect weight type"),
         }
     }
+
+    pub fn buffer_view(&self, graph: &GltfGraph) -> Option<BufferView> {
+        graph
+            .edges_directed(self.0, petgraph::Direction::Outgoing)
+            .find(|edge| matches!(edge.weight(), Edge::BufferView))
+            .map(|edge| BufferView(edge.target()))
+    }
+    pub fn set_buffer_view(&self, graph: &mut GltfGraph, buffer_view: Option<BufferView>) {
+        let edge = graph
+            .edges_directed(self.0, petgraph::Direction::Outgoing)
+            .find(|edge| matches!(edge.weight(), Edge::BufferView))
+            .map(|edge| edge.id());
+
+        if let Some(edge) = edge {
+            graph.remove_edge(edge);
+        }
+
+        if let Some(buffer_view) = buffer_view {
+            graph.add_edge(self.0, buffer_view.0, Edge::BufferView);
+        }
+    }
 }
 
 #[cfg(test)]
@@ -87,5 +110,9 @@ mod tests {
             accessor.get(&graph).array,
             AccessorArray::I8(vec![1, 2, 3, 4])
         );
+
+        let buffer_view = BufferView::new(&mut graph);
+        accessor.set_buffer_view(&mut graph, Some(buffer_view.clone()));
+        assert_eq!(accessor.buffer_view(&graph), Some(buffer_view));
     }
 }
