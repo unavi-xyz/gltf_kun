@@ -12,18 +12,7 @@ pub enum Weight {
 #[derive(Debug)]
 pub enum Edge {
     Child,
+    Mesh,
 }
 
 pub type GltfGraph = DiGraph<Weight, Edge>;
-
-pub trait Property {
-    fn name<'a>(&'a self, graph: &'a GltfGraph) -> Option<&'a str>;
-    fn set_name(&mut self, graph: &mut GltfGraph, name: Option<String>);
-
-    // fn extras(&self) -> &Option<serde_json::Value>;
-    // fn set_extras(&mut self, extras: Option<serde_json::Value>);
-
-    // fn extensions(&self) -> &Vec<Box<dyn ExtensionProperty>>;
-    // fn set_extensions(&mut self, extensions: Vec<Box<dyn ExtensionProperty>>);
-    // fn add_extension(&mut self, extension: Box<dyn ExtensionProperty>);
-}

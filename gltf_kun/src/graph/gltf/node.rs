@@ -1,9 +1,9 @@
 use glam::Vec3;
-use petgraph::stable_graph::NodeIndex;
+use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 
 use crate::{
     extension::ExtensionProperty,
-    graph::{GltfGraph, Property, Weight},
+    graph::{Edge, GltfGraph, Weight},
 };
 
 #[derive(Debug)]
@@ -15,8 +15,6 @@ pub struct NodeWeight {
     pub translation: Vec3,
     pub rotation: Vec3,
     pub scale: Vec3,
-
-    pub children_ids: Vec<NodeIndex>,
 }
 
 impl Default for NodeWeight {
@@ -29,15 +27,7 @@ impl Default for NodeWeight {
             translation: Vec3::ZERO,
             rotation: Vec3::ZERO,
             scale: Vec3::ONE,
-
-            children_ids: Vec::new(),
         }
-    }
-}
-
-impl NodeWeight {
-    pub fn children(&self) -> Vec<Node> {
-        self.children_ids.iter().map(|index| Node(*index)).collect()
     }
 }
 
@@ -62,14 +52,47 @@ impl Node {
             _ => panic!("Incorrect weight type"),
         }
     }
-}
 
-impl Property for Node {
-    fn name<'a>(&'a self, graph: &'a GltfGraph) -> Option<&'a str> {
-        self.get(graph).name.as_deref()
+    pub fn children(&self, graph: &GltfGraph) -> Vec<Node> {
+        graph
+            .neighbors_directed(self.0, petgraph::Direction::Outgoing)
+            .filter_map(|other| {
+                graph.edges_connecting(self.0, other).find_map(|edge| {
+                    if let Edge::Child = edge.weight() {
+                        Some(Node(other))
+                    } else {
+                        None
+                    }
+                })
+            })
+            .collect()
     }
-    fn set_name(&mut self, graph: &mut GltfGraph, name: Option<String>) {
-        self.get_mut(graph).name = name;
+
+    pub fn add_child(&mut self, graph: &mut GltfGraph, child: &Node) {
+        graph.add_edge(self.0, child.0, Edge::Child);
+    }
+
+    pub fn remove_child(&mut self, graph: &mut GltfGraph, child: &Node) {
+        let edge = graph
+            .edges_connecting(self.0, child.0)
+            .find(|edge| matches!(edge.weight(), Edge::Child))
+            .expect("Child not found");
+
+        graph.remove_edge(edge.id());
+    }
+
+    pub fn parent(&self, graph: &GltfGraph) -> Option<Node> {
+        graph
+            .neighbors_directed(self.0, petgraph::Direction::Incoming)
+            .find_map(|other| {
+                graph.edges_connecting(other, self.0).find_map(|edge| {
+                    if let Edge::Child = edge.weight() {
+                        Some(Node(other))
+                    } else {
+                        None
+                    }
+                })
+            })
     }
 }
 
@@ -82,8 +105,8 @@ mod tests {
         let mut graph = GltfGraph::default();
         let mut node = Node::new(&mut graph);
 
-        node.set_name(&mut graph, Some("test".to_string()));
-        assert_eq!(node.name(&graph), Some("test"));
+        node.get_mut(&mut graph).name = Some("Test".to_string());
+        assert_eq!(node.get(&graph).name, Some("Test".to_string()));
 
         node.get_mut(&mut graph).translation = [1.0, 2.0, 3.0].into();
         assert_eq!(node.get(&graph).translation, [1.0, 2.0, 3.0].into());
@@ -95,10 +118,17 @@ mod tests {
         assert_eq!(node.get(&graph).scale, [1.0, 2.0, 3.0].into());
 
         let child = Node::new(&mut graph);
-        node.get_mut(&mut graph).children_ids.push(child.0);
+        node.add_child(&mut graph, &child);
 
-        let children = node.get(&graph).children();
+        let children = node.children(&graph);
         assert_eq!(children.len(), 1);
         assert_eq!(children[0], child);
+        assert_eq!(child.parent(&graph).unwrap(), node);
+        assert_eq!(node.parent(&graph), None);
+        assert_eq!(child.children(&graph).len(), 0);
+
+        node.remove_child(&mut graph, &child);
+        assert_eq!(node.children(&graph).len(), 0);
+        assert_eq!(child.parent(&graph), None);
     }
 }
