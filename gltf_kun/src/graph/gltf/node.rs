@@ -6,6 +6,8 @@ use crate::{
     graph::{Edge, GltfGraph, Weight},
 };
 
+use super::scene::Scene;
+
 #[derive(Debug)]
 pub struct NodeWeight {
     pub name: Option<String>,
@@ -76,17 +78,29 @@ impl Node {
 
         graph.remove_edge(edge.id());
     }
-    pub fn parent(&self, graph: &GltfGraph) -> Option<Node> {
+    pub fn parent(&self, graph: &GltfGraph) -> Option<Parent> {
         graph
             .edges_directed(self.0, petgraph::Direction::Incoming)
             .find_map(|edge| {
                 if let Edge::Child = edge.weight() {
-                    Some(Node(edge.source()))
+                    Some(
+                        match graph.node_weight(edge.source()).expect("Weight not found") {
+                            Weight::Node(_) => Parent::Node(Node(edge.source())),
+                            Weight::Scene(_) => Parent::Scene(Scene(edge.source())),
+                            _ => panic!("Incorrect weight type"),
+                        },
+                    )
                 } else {
                     None
                 }
             })
     }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum Parent {
+    Node(Node),
+    Scene(Scene),
 }
 
 #[cfg(test)]
@@ -116,7 +130,7 @@ mod tests {
         let children = node.children(&graph);
         assert_eq!(children.len(), 1);
         assert_eq!(children[0], child);
-        assert_eq!(child.parent(&graph).unwrap(), node);
+        assert_eq!(child.parent(&graph).unwrap(), Parent::Node(node.clone()));
         assert_eq!(node.parent(&graph), None);
         assert_eq!(child.children(&graph).len(), 0);
 

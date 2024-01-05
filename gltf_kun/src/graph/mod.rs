@@ -9,6 +9,7 @@ pub enum Weight {
     Accessor(gltf::accessor::AccessorWeight),
     Mesh(gltf::mesh::MeshWeight),
     Node(gltf::node::NodeWeight),
+    Scene(gltf::scene::SceneWeight),
     Primitive(gltf::primitive::PrimitiveWeight),
 }
 
