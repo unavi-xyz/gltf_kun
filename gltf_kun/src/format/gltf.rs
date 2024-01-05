@@ -14,6 +14,10 @@ impl IoFormat for GltfFormat {
     fn import(mut self) -> Result<Document> {
         let mut doc = Document::default();
 
+        // TODO: Create accessors
+        // TODO: Create materials
+        // TODO: Create meshes
+
         // Create nodes
         let nodes = self
             .json
@@ -53,21 +57,6 @@ impl IoFormat for GltfFormat {
             });
 
         Ok(doc)
-    }
-
-    fn export(graph: Document) -> Result<Self> {
-        todo!()
-    }
-}
-
-pub struct GlbFormat<'a>(pub gltf::Glb<'a>);
-
-impl<'a> IoFormat for GlbFormat<'a> {
-    fn import(mut self) -> Result<Document> {
-        let json = serde_json::from_slice(&self.0.json)?;
-        let blob = self.0.bin.take().map(|blob| blob.into_owned());
-
-        GltfFormat { json, blob }.import()
     }
 
     fn export(graph: Document) -> Result<Self> {

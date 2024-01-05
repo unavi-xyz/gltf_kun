@@ -1,4 +1,4 @@
-use gltf_kun::format::{gltf::GlbFormat, IoFormat};
+use gltf_kun::format::{glb::GlbFormat, IoFormat};
 
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 const ASSETS_DIR: &str = "../assets";

@@ -2,6 +2,7 @@ use anyhow::Result;
 
 use crate::document::Document;
 
+pub mod glb;
 pub mod gltf;
 
 /// A format for importing and exporting glTF graphs.
