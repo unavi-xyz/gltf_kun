@@ -1,11 +1,13 @@
 use anyhow::Result;
 
-use crate::graph::GltfGraph;
+use crate::document::Document;
 
-pub mod glb;
+pub mod gltf;
 
 /// A format for importing and exporting glTF graphs.
 pub trait IoFormat: Sized {
-    fn to_graph(self) -> Result<GltfGraph>;
-    fn from_graph(graph: GltfGraph) -> Result<Self>;
+    /// Import format -> graph.
+    fn import(self) -> Result<Document>;
+    /// Export graph -> format.
+    fn export(doc: Document) -> Result<Self>;
 }

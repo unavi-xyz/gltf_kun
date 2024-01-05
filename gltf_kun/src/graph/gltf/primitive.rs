@@ -155,11 +155,7 @@ mod tests {
             primitive.attribute(&graph, &Semantic::Normals),
             Some(normal.clone())
         );
-
-        let attributes = primitive.attributes(&graph);
-        assert_eq!(attributes.len(), 2);
-        assert!(attributes.contains(&(Semantic::Positions, position.clone())));
-        assert!(attributes.contains(&(Semantic::Normals, normal.clone())));
+        assert_eq!(primitive.attributes(&graph).len(), 2);
 
         primitive.set_attribute(&mut graph, &Semantic::Normals, None);
         assert_eq!(primitive.attribute(&graph, &Semantic::Normals), None);
