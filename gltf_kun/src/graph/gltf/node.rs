@@ -55,15 +55,13 @@ impl Node {
 
     pub fn children(&self, graph: &GltfGraph) -> Vec<Node> {
         graph
-            .neighbors_directed(self.0, petgraph::Direction::Outgoing)
-            .filter_map(|other| {
-                graph.edges_connecting(self.0, other).find_map(|edge| {
-                    if let Edge::Child = edge.weight() {
-                        Some(Node(other))
-                    } else {
-                        None
-                    }
-                })
+            .edges_directed(self.0, petgraph::Direction::Outgoing)
+            .filter_map(|edge| {
+                if let Edge::Child = edge.weight() {
+                    Some(Node(edge.target()))
+                } else {
+                    None
+                }
             })
             .collect()
     }
@@ -74,8 +72,8 @@ impl Node {
 
     pub fn remove_child(&mut self, graph: &mut GltfGraph, child: &Node) {
         let edge = graph
-            .edges_connecting(self.0, child.0)
-            .find(|edge| matches!(edge.weight(), Edge::Child))
+            .edges_directed(self.0, petgraph::Direction::Outgoing)
+            .find(|edge| edge.target() == child.0)
             .expect("Child not found");
 
         graph.remove_edge(edge.id());
@@ -83,15 +81,13 @@ impl Node {
 
     pub fn parent(&self, graph: &GltfGraph) -> Option<Node> {
         graph
-            .neighbors_directed(self.0, petgraph::Direction::Incoming)
-            .find_map(|other| {
-                graph.edges_connecting(other, self.0).find_map(|edge| {
-                    if let Edge::Child = edge.weight() {
-                        Some(Node(other))
-                    } else {
-                        None
-                    }
-                })
+            .edges_directed(self.0, petgraph::Direction::Incoming)
+            .find_map(|edge| {
+                if let Edge::Child = edge.weight() {
+                    Some(Node(edge.source()))
+                } else {
+                    None
+                }
             })
     }
 }
