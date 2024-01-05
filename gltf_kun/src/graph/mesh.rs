@@ -10,7 +10,7 @@ use super::primitive::Primitive;
 #[derive(Debug, Default)]
 pub struct MeshWeight {
     pub name: Option<String>,
-    pub extras: Option<serde_json::Value>,
+    pub extras: Option<gltf::json::Extras>,
     pub extensions: Vec<Box<dyn ExtensionProperty>>,
 
     pub weights: Vec<f32>,

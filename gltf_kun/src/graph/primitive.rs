@@ -11,7 +11,7 @@ use super::accessor::Accessor;
 #[derive(Debug)]
 pub struct PrimitiveWeight {
     pub name: Option<String>,
-    pub extras: Option<serde_json::Value>,
+    pub extras: Option<gltf::json::Extras>,
     pub extensions: Vec<Box<dyn ExtensionProperty>>,
 
     pub mode: Mode,

@@ -9,7 +9,7 @@ use crate::{
 #[derive(Debug)]
 pub struct AccessorWeight {
     pub name: Option<String>,
-    pub extras: Option<serde_json::Value>,
+    pub extras: Option<gltf::json::Extras>,
     pub extensions: Vec<Box<dyn ExtensionProperty>>,
 
     pub element_type: Type,

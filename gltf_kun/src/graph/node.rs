@@ -1,4 +1,4 @@
-use glam::Vec3;
+use glam::{Quat, Vec3};
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 
 use crate::{
@@ -11,11 +11,11 @@ use super::scene::Scene;
 #[derive(Debug)]
 pub struct NodeWeight {
     pub name: Option<String>,
-    pub extras: Option<serde_json::Value>,
+    pub extras: gltf::json::Extras,
     pub extensions: Vec<Box<dyn ExtensionProperty>>,
 
     pub translation: Vec3,
-    pub rotation: Vec3,
+    pub rotation: Quat,
     pub scale: Vec3,
 }
 
@@ -27,7 +27,7 @@ impl Default for NodeWeight {
             extensions: Vec::new(),
 
             translation: Vec3::ZERO,
-            rotation: Vec3::ZERO,
+            rotation: Quat::IDENTITY,
             scale: Vec3::ONE,
         }
     }
@@ -118,8 +118,11 @@ mod tests {
         node.get_mut(&mut graph).translation = [1.0, 2.0, 3.0].into();
         assert_eq!(node.get(&graph).translation, [1.0, 2.0, 3.0].into());
 
-        node.get_mut(&mut graph).rotation = [1.0, 2.0, 3.0].into();
-        assert_eq!(node.get(&graph).rotation, [1.0, 2.0, 3.0].into());
+        node.get_mut(&mut graph).rotation = Quat::from_xyzw(0.5, 0.5, 0.5, 0.5);
+        assert_eq!(
+            node.get(&graph).rotation,
+            Quat::from_xyzw(0.5, 0.5, 0.5, 0.5)
+        );
 
         node.get_mut(&mut graph).scale = [1.0, 2.0, 3.0].into();
         assert_eq!(node.get(&graph).scale, [1.0, 2.0, 3.0].into());

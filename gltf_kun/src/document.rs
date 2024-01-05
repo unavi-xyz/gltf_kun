@@ -2,6 +2,7 @@ use crate::graph::{
     accessor::Accessor, mesh::Mesh, node::Node, primitive::Primitive, GltfGraph, Weight,
 };
 
+#[derive(Default)]
 pub struct Document(pub GltfGraph);
 
 impl Document {
