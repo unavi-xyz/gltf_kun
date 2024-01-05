@@ -1,3 +1,4 @@
+use gltf_json::mesh::Semantic;
 use petgraph::graph::DiGraph;
 
 pub mod gltf;
@@ -5,6 +6,7 @@ pub mod glxf;
 
 #[derive(Debug)]
 pub enum Weight {
+    Accessor(gltf::accessor::AccessorWeight),
     Mesh(gltf::mesh::MeshWeight),
     Node(gltf::node::NodeWeight),
     Primitive(gltf::primitive::PrimitiveWeight),
@@ -12,7 +14,7 @@ pub enum Weight {
 
 #[derive(Debug)]
 pub enum Edge {
-    Attributes,
+    Attribute(Semantic),
     Child,
     Indices,
     Material,

@@ -1,4 +1,4 @@
-use gltf_kun::format::glb::GlbFormat;
+use gltf_kun::format::{glb::GlbFormat, IoFormat};
 
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 const ASSETS_DIR: &str = "../assets";
@@ -10,4 +10,7 @@ fn main() {
 
     let bytes = std::fs::read(path).expect("Failed to read file");
     let glb = GlbFormat(bytes);
+
+    let graph = glb.to_graph();
+    println!("{:#?}", graph);
 }
