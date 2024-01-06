@@ -289,6 +289,7 @@ impl ExportFormat for GltfFormat {
         let mut buffer_idxs = BTreeMap::<NodeIndex, u32>::new();
         let mut buffer_view_idxs = BTreeMap::<NodeIndex, u32>::new();
         let mut accessor_idxs = BTreeMap::<NodeIndex, u32>::new();
+        let mut mesh_idxs = BTreeMap::<NodeIndex, u32>::new();
 
         // Create buffers
         json.buffers = doc
@@ -315,7 +316,10 @@ impl ExportFormat for GltfFormat {
         json.buffer_views = doc
             .buffer_views()
             .iter_mut()
-            .filter_map(|view| {
+            .enumerate()
+            .filter_map(|(i, view)| {
+                buffer_view_idxs.insert(view.0, i as u32);
+
                 let buffer_idx = match view
                     .buffer(&doc.0)
                     .and_then(|buffer| buffer_idxs.get(&buffer.0))
@@ -329,7 +333,7 @@ impl ExportFormat for GltfFormat {
 
                 let weight = view.get_mut(&mut doc.0);
 
-                let view = gltf::json::buffer::View {
+                Some(gltf::json::buffer::View {
                     name: weight.name.take(),
                     extras: weight.extras.take(),
                     extensions: None,
@@ -352,9 +356,7 @@ impl ExportFormat for GltfFormat {
                             }
                         })
                         .map(Checked::Valid),
-                };
-
-                Some(view)
+                })
             })
             .collect::<Vec<_>>();
 
@@ -362,10 +364,13 @@ impl ExportFormat for GltfFormat {
         json.accessors = doc
             .accessors()
             .iter_mut()
-            .filter_map(|accessor| {
-                let buffer_view_idx = match accessor
+            .enumerate()
+            .filter_map(|(i, a)| {
+                accessor_idxs.insert(a.0, i as u32);
+
+                let buffer_view_idx = match a
                     .buffer_view(&doc.0)
-                    .and_then(|buffer_view| buffer_idxs.get(&buffer_view.0))
+                    .and_then(|buffer_view| buffer_view_idxs.get(&buffer_view.0))
                 {
                     Some(idx) => idx,
                     None => {
@@ -374,13 +379,13 @@ impl ExportFormat for GltfFormat {
                     }
                 };
 
-                let count = accessor.count(&doc.0)? as u64;
-                let max = accessor.max(&doc.0).map(|v| v.into());
-                let min = accessor.min(&doc.0).map(|v| v.into());
+                let count = a.count(&doc.0)? as u64;
+                let max = a.max(&doc.0).map(|v| v.into());
+                let min = a.min(&doc.0).map(|v| v.into());
 
-                let weight = accessor.get_mut(&mut doc.0);
+                let weight = a.get_mut(&mut doc.0);
 
-                let accessor = gltf::json::accessor::Accessor {
+                Some(gltf::json::accessor::Accessor {
                     name: weight.name.take(),
                     extras: weight.extras.take(),
                     extensions: None,
@@ -394,15 +399,65 @@ impl ExportFormat for GltfFormat {
                     normalized: weight.normalized,
                     sparse: None,
                     type_: Checked::Valid(weight.element_type),
-                };
-
-                Some(accessor)
+                })
             })
             .collect::<Vec<_>>();
 
         // TODO: Create materials
 
-        // TODO: Create meshes
+        // Create meshes
+        json.meshes = doc
+            .meshes()
+            .iter_mut()
+            .enumerate()
+            .map(|(i, mesh)| {
+                mesh_idxs.insert(mesh.0, i as u32);
+
+                let primitives = mesh
+                    .primitives(&doc.0)
+                    .iter()
+                    .map(|p| {
+                        let weight = p.get(&doc.0);
+
+                        let indices = p
+                            .indices(&doc.0)
+                            .and_then(|indices| accessor_idxs.get(&indices.0))
+                            .map(|idx| Index::new(*idx));
+
+                        let attributes = p
+                            .attributes(&doc.0)
+                            .iter()
+                            .filter_map(|(k, v)| {
+                                accessor_idxs
+                                    .get(&v.0)
+                                    .map(|idx| (Checked::Valid(k.clone()), Index::new(*idx)))
+                            })
+                            .collect::<BTreeMap<_, _>>();
+
+                        gltf::json::mesh::Primitive {
+                            attributes,
+                            indices,
+                            material: None,
+                            mode: Checked::Valid(weight.mode),
+                            targets: None,
+                            extensions: None,
+                            extras: None,
+                        }
+                    })
+                    .collect::<Vec<_>>();
+
+                let weight = mesh.get_mut(&mut doc.0);
+
+                gltf::json::mesh::Mesh {
+                    name: weight.name.take(),
+                    extras: weight.extras.take(),
+                    extensions: None,
+
+                    weights: Some(weight.weights.clone()),
+                    primitives,
+                }
+            })
+            .collect::<Vec<_>>();
 
         // TODO: Create nodes
 
