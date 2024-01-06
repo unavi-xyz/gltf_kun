@@ -46,7 +46,7 @@ impl From<Target> for usize {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct BufferView(pub NodeIndex);
 
 impl BufferView {
@@ -118,7 +118,7 @@ mod tests {
         );
 
         let buffer = Buffer::new(&mut graph);
-        buffer_view.set_buffer(&mut graph, Some(buffer.clone()));
+        buffer_view.set_buffer(&mut graph, Some(buffer));
         assert_eq!(buffer_view.buffer(&graph), Some(buffer));
     }
 }

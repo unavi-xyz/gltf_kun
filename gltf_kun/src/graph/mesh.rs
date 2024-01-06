@@ -16,7 +16,7 @@ pub struct MeshWeight {
     pub weights: Vec<f32>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Mesh(pub NodeIndex);
 
 impl Mesh {
@@ -81,7 +81,7 @@ mod tests {
         let primitive = Primitive::new(&mut graph);
 
         mesh.add_primitive(&mut graph, &primitive);
-        assert_eq!(mesh.primitives(&graph), vec![primitive.clone()]);
+        assert_eq!(mesh.primitives(&graph), vec![primitive]);
 
         mesh.remove_primitive(&mut graph, &primitive);
         assert_eq!(mesh.primitives(&graph), vec![]);

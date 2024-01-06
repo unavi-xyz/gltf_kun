@@ -33,7 +33,7 @@ impl Default for NodeWeight {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Node(pub NodeIndex);
 
 impl Node {
@@ -133,7 +133,7 @@ mod tests {
         let children = node.children(&graph);
         assert_eq!(children.len(), 1);
         assert_eq!(children[0], child);
-        assert_eq!(child.parent(&graph).unwrap(), Parent::Node(node.clone()));
+        assert_eq!(child.parent(&graph).unwrap(), Parent::Node(node));
         assert_eq!(node.parent(&graph), None);
         assert_eq!(child.children(&graph).len(), 0);
 

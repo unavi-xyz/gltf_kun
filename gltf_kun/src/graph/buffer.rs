@@ -17,7 +17,7 @@ pub struct BufferWeight {
     pub blob: Vec<u8>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Buffer(pub NodeIndex);
 
 impl Buffer {

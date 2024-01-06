@@ -14,7 +14,7 @@ pub struct SceneWeight {
     pub extensions: Vec<Box<dyn ExtensionProperty>>,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Scene(pub NodeIndex);
 
 impl Scene {
@@ -80,7 +80,7 @@ mod tests {
         let children = scene.children(&graph);
         assert_eq!(children.len(), 1);
         assert_eq!(children[0], child);
-        assert_eq!(child.parent(&graph), Some(Parent::Scene(scene.clone())));
+        assert_eq!(child.parent(&graph), Some(Parent::Scene(scene)));
         assert_eq!(child.children(&graph).len(), 0);
 
         scene.remove_child(&mut graph, &child);

@@ -27,7 +27,7 @@ impl Default for PrimitiveWeight {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Primitive(pub NodeIndex);
 
 impl Primitive {
@@ -135,20 +135,20 @@ mod tests {
 
         let indices = Accessor::new(&mut graph);
         primitive.set_indices(&mut graph, Some(&indices));
-        assert_eq!(primitive.indices(&graph), Some(indices.clone()));
+        assert_eq!(primitive.indices(&graph), Some(indices));
 
         let position = Accessor::new(&mut graph);
         primitive.set_attribute(&mut graph, &Semantic::Positions, Some(&position));
         assert_eq!(
             primitive.attribute(&graph, &Semantic::Positions),
-            Some(position.clone())
+            Some(position)
         );
 
         let normal = Accessor::new(&mut graph);
         primitive.set_attribute(&mut graph, &Semantic::Normals, Some(&normal));
         assert_eq!(
             primitive.attribute(&graph, &Semantic::Normals),
-            Some(normal.clone())
+            Some(normal)
         );
         assert_eq!(primitive.attributes(&graph).len(), 2);
 

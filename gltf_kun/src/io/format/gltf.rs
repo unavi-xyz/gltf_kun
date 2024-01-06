@@ -1,7 +1,7 @@
 use anyhow::Result;
 use glam::Quat;
 use gltf::json::{accessor::ComponentType, validation::Checked};
-use tracing::warn;
+use tracing::{info, warn};
 
 use crate::{
     document::Document,
@@ -62,6 +62,8 @@ impl ImportFormat for GltfFormat {
                 weight.uri = b.uri.take();
 
                 if let Some(uri) = weight.uri.as_ref() {
+                    info!("Resolving URI: {}", uri);
+
                     if let Some(resolver) = self.resolver.as_ref() {
                         if let Ok(blob) = resolver.resolve(uri) {
                             weight.blob = blob;
@@ -78,7 +80,7 @@ impl ImportFormat for GltfFormat {
             .collect::<Vec<_>>();
 
         // Create buffer views
-        let views = self
+        let _views = self
             .json
             .buffer_views
             .iter_mut()
@@ -103,14 +105,16 @@ impl ImportFormat for GltfFormat {
                     Checked::Invalid => None,
                 });
 
-                if let Some(buffer) = buffers.get(v.buffer.value()) {}
+                if let Some(buffer) = buffers.get(v.buffer.value()) {
+                    view.set_buffer(&mut doc.0, Some(*buffer));
+                }
 
                 view
             })
             .collect::<Vec<_>>();
 
         // Create accessors
-        let accessors = self
+        let _accessors = self
             .json
             .accessors
             .iter_mut()
@@ -122,7 +126,7 @@ impl ImportFormat for GltfFormat {
                 weight.extras = a.extras.take();
                 weight.normalized = a.normalized;
 
-                let component_type = match a.component_type {
+                let _component_type = match a.component_type {
                     Checked::Valid(component_type) => component_type.0,
                     Checked::Invalid => ComponentType::F32,
                 };
@@ -138,7 +142,7 @@ impl ImportFormat for GltfFormat {
         // TODO: Create materials
 
         // Create meshes
-        let meshes = self
+        let _meshes = self
             .json
             .meshes
             .iter_mut()
@@ -159,7 +163,7 @@ impl ImportFormat for GltfFormat {
                         Checked::Invalid => gltf::mesh::Mode::Triangles,
                     };
 
-                    if let Some(accessor) = p.indices {}
+                    if let Some(_accessor) = p.indices {}
 
                     mesh.add_primitive(&mut doc.0, &primitive);
                 })

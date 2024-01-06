@@ -43,7 +43,7 @@ impl Default for AccessorWeight {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Accessor(pub NodeIndex);
 
 impl Accessor {
@@ -112,7 +112,7 @@ mod tests {
         );
 
         let buffer_view = BufferView::new(&mut graph);
-        accessor.set_buffer_view(&mut graph, Some(buffer_view.clone()));
+        accessor.set_buffer_view(&mut graph, Some(buffer_view));
         assert_eq!(accessor.buffer_view(&graph), Some(buffer_view));
     }
 }
