@@ -261,6 +261,13 @@ impl ImportFormat for GltfFormat {
             })
             .collect::<Vec<_>>();
 
+        // Default scene
+        if let Some(index) = self.json.scene {
+            if let Some(scene) = scenes.get(index.value()) {
+                doc.set_default_scene(Some(scene));
+            }
+        }
+
         // TODO: Create animations
 
         Ok(doc)

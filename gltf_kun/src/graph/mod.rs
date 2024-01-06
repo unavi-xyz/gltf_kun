@@ -14,10 +14,11 @@ pub enum Weight {
     Accessor(accessor::AccessorWeight),
     Buffer(buffer::BufferWeight),
     BufferView(buffer_view::BufferViewWeight),
+    DefaultScene,
     Mesh(mesh::MeshWeight),
     Node(node::NodeWeight),
-    Scene(scene::SceneWeight),
     Primitive(primitive::PrimitiveWeight),
+    Scene(scene::SceneWeight),
 }
 
 #[derive(Debug)]
@@ -30,6 +31,7 @@ pub enum Edge {
     Material,
     Mesh,
     Primitive,
+    Scene,
 }
 
 pub type GltfGraph = DiGraph<Weight, Edge>;
