@@ -7,22 +7,13 @@ license.workspace = true
 repository.workspace = true
 edition.workspace = true
 
-[lib]
-crate-type = ["cdylib", "rlib"]
-
 [dependencies]
-gltf = { version = "1.3.0", features = [
-  "default",
-  "extras",
-  "KHR_lights_punctual",
-  "KHR_materials_pbrSpecularGlossiness",
-  "KHR_materials_unlit",
-  "KHR_texture_transform",
-  "KHR_materials_transmission",
-  "KHR_materials_ior",
-  "KHR_materials_variants",
-  "KHR_materials_volume",
-  "KHR_materials_specular",
-  "KHR_materials_emissive_strength",
-] }
+anyhow = "1.0.79"
+glam = "0.25.0"
+gltf = { version = "1.4.0", features = ["extensions", "extras"] }
 petgraph = "0.6.4"
+serde_json = "1.0.110"
+tracing = "0.1.40"
+
+[dev-dependencies]
+tracing-test = "0.2.4"
