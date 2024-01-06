@@ -5,6 +5,7 @@ use glam::Quat;
 use gltf::json::{
     accessor::{ComponentType, GenericComponentType},
     buffer::Stride,
+    scene::UnitQuaternion,
     validation::Checked,
     Index,
 };
@@ -290,6 +291,8 @@ impl ExportFormat for GltfFormat {
         let mut buffer_view_idxs = BTreeMap::<NodeIndex, u32>::new();
         let mut accessor_idxs = BTreeMap::<NodeIndex, u32>::new();
         let mut mesh_idxs = BTreeMap::<NodeIndex, u32>::new();
+        let mut node_idxs = BTreeMap::<NodeIndex, u32>::new();
+        let mut scene_idxs = BTreeMap::<NodeIndex, u32>::new();
 
         // Create buffers
         json.buffers = doc
@@ -453,19 +456,105 @@ impl ExportFormat for GltfFormat {
                     extras: weight.extras.take(),
                     extensions: None,
 
-                    weights: Some(weight.weights.clone()),
+                    weights: if weight.weights.is_empty() {
+                        None
+                    } else {
+                        Some(weight.weights.clone())
+                    },
                     primitives,
                 }
             })
             .collect::<Vec<_>>();
 
-        // TODO: Create nodes
+        // Create nodes
+        json.nodes = doc
+            .nodes()
+            .iter_mut()
+            .enumerate()
+            .map(|(i, node)| {
+                node_idxs.insert(node.0, i as u32);
+
+                let mesh = node
+                    .mesh(&doc.0)
+                    .and_then(|mesh| mesh_idxs.get(&mesh.0))
+                    .map(|idx| Index::new(*idx));
+
+                let children = node
+                    .children(&doc.0)
+                    .iter()
+                    .filter_map(|child| node_idxs.get(&child.0))
+                    .map(|idx| Index::new(*idx))
+                    .collect::<Vec<_>>();
+
+                let weight = node.get_mut(&mut doc.0);
+
+                gltf::json::scene::Node {
+                    name: weight.name.take(),
+                    extras: weight.extras.take(),
+                    extensions: None,
+
+                    camera: None,
+                    children: if children.is_empty() {
+                        None
+                    } else {
+                        Some(children)
+                    },
+                    skin: None,
+                    matrix: None,
+                    mesh,
+                    rotation: if weight.rotation == Quat::IDENTITY {
+                        None
+                    } else {
+                        Some(UnitQuaternion(weight.rotation.into()))
+                    },
+                    scale: if weight.scale == glam::Vec3::ONE {
+                        None
+                    } else {
+                        Some(weight.scale.into())
+                    },
+                    translation: if weight.translation == glam::Vec3::ZERO {
+                        None
+                    } else {
+                        Some(weight.translation.into())
+                    },
+                    weights: None,
+                }
+            })
+            .collect::<Vec<_>>();
 
         // TODO: Create skins
 
-        // TODO: Create scenes
+        // Create scenes
+        json.scenes = doc
+            .scenes()
+            .iter_mut()
+            .enumerate()
+            .map(|(i, scene)| {
+                scene_idxs.insert(scene.0, i as u32);
 
-        // TODO: Default scene
+                let nodes = scene
+                    .nodes(&doc.0)
+                    .iter()
+                    .filter_map(|node| node_idxs.get(&node.0))
+                    .map(|idx| Index::new(*idx))
+                    .collect::<Vec<_>>();
+
+                let weight = scene.get_mut(&mut doc.0);
+
+                gltf::json::scene::Scene {
+                    name: weight.name.take(),
+                    extras: weight.extras.take(),
+                    extensions: None,
+
+                    nodes,
+                }
+            })
+            .collect::<Vec<_>>();
+
+        // Default scene
+        if let Some(scene) = doc.default_scene() {
+            json.scene = scene_idxs.get(&scene.0).map(|idx| Index::new(*idx));
+        }
 
         // TODO: Create animations
 
