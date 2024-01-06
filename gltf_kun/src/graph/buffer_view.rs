@@ -88,6 +88,16 @@ impl BufferView {
             graph.add_edge(self.0, buffer.0, Edge::Buffer);
         }
     }
+
+    /// Returns the slice of the buffer that this view represents.
+    pub fn slice<'a>(&'a self, graph: &'a GltfGraph, buffer: &'a Buffer) -> Option<&'a [u8]> {
+        let buffer = buffer.get(graph);
+
+        let start = self.get(graph).byte_offset as usize;
+        let end = start + self.get(graph).byte_length as usize;
+
+        Some(&buffer.blob[start..end])
+    }
 }
 
 #[cfg(test)]

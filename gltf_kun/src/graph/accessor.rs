@@ -1,4 +1,4 @@
-use gltf::json::accessor::Type;
+use gltf::{accessor::DataType, json::accessor::Type};
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 
 use crate::{
@@ -14,19 +14,10 @@ pub struct AccessorWeight {
     pub extras: gltf::json::Extras,
     pub extensions: Vec<Box<dyn ExtensionProperty>>,
 
+    pub byte_offset: u64,
+    pub component_type: DataType,
     pub element_type: Type,
     pub normalized: bool,
-    pub array: AccessorArray,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum AccessorArray {
-    I8(Vec<i8>),
-    U8(Vec<u8>),
-    I16(Vec<i16>),
-    U16(Vec<u16>),
-    U32(Vec<u32>),
-    F32(Vec<f32>),
 }
 
 impl Default for AccessorWeight {
@@ -36,9 +27,10 @@ impl Default for AccessorWeight {
             extras: None,
             extensions: Vec::new(),
 
+            byte_offset: 0,
+            component_type: DataType::F32,
             element_type: Type::Scalar,
             normalized: false,
-            array: AccessorArray::F32(Vec::new()),
         }
     }
 }
@@ -85,6 +77,77 @@ impl Accessor {
             graph.add_edge(self.0, buffer_view.0, Edge::BufferView);
         }
     }
+
+    pub fn element_size(&self) -> usize {
+        match self.get(&GltfGraph::new()).element_type {
+            Type::Scalar => 1,
+            Type::Vec2 => 2,
+            Type::Vec3 => 3,
+            Type::Vec4 => 4,
+            Type::Mat2 => 4,
+            Type::Mat3 => 9,
+            Type::Mat4 => 16,
+        }
+    }
+
+    pub fn count(&self, graph: &GltfGraph) -> Option<usize> {
+        let buffer_view = self.buffer_view(graph)?;
+        let byte_length = buffer_view.get(graph).byte_length;
+        let element_size = self.element_size();
+        Some(byte_length as usize / element_size)
+    }
+
+    pub fn max(&self, graph: &GltfGraph) -> Option<Vec<f32>> {
+        let buffer_view = self.buffer_view(graph)?;
+        let buffer = buffer_view.buffer(graph)?;
+        let slice = buffer_view.slice(graph, &buffer)?;
+
+        let count = self.count(graph)?;
+        let element_size = self.element_size();
+
+        let mut max = vec![f32::MIN; element_size];
+
+        for i in 0..count {
+            let start = i * element_size;
+            let end = start + element_size;
+
+            let slice = &slice[start..end];
+            let slice = slice.chunks_exact(4);
+
+            for (i, value) in slice.enumerate() {
+                let value = f32::from_le_bytes(value.try_into().unwrap());
+                max[i] = max[i].max(value);
+            }
+        }
+
+        Some(max)
+    }
+
+    pub fn min(&self, graph: &GltfGraph) -> Option<Vec<f32>> {
+        let buffer_view = self.buffer_view(graph)?;
+        let buffer = buffer_view.buffer(graph)?;
+        let slice = buffer_view.slice(graph, &buffer)?;
+
+        let count = self.count(graph)?;
+        let element_size = self.element_size();
+
+        let mut min = vec![f32::MAX; element_size];
+
+        for i in 0..count {
+            let start = i * element_size;
+            let end = start + element_size;
+
+            let slice = &slice[start..end];
+            let slice = slice.chunks_exact(4);
+
+            for (i, value) in slice.enumerate() {
+                let value = f32::from_le_bytes(value.try_into().unwrap());
+                min[i] = min[i].min(value);
+            }
+        }
+
+        Some(min)
+    }
 }
 
 #[cfg(test)]
@@ -99,17 +162,11 @@ mod tests {
         accessor.get_mut(&mut graph).name = Some("Test".to_string());
         assert_eq!(accessor.get(&graph).name, Some("Test".to_string()));
 
-        accessor.get_mut(&mut graph).normalized = true;
-        assert!(accessor.get(&graph).normalized);
-
         accessor.get_mut(&mut graph).element_type = Type::Vec3;
         assert_eq!(accessor.get(&graph).element_type, Type::Vec3);
 
-        accessor.get_mut(&mut graph).array = AccessorArray::I8(vec![1, 2, 3, 4]);
-        assert_eq!(
-            accessor.get(&graph).array,
-            AccessorArray::I8(vec![1, 2, 3, 4])
-        );
+        accessor.get_mut(&mut graph).normalized = true;
+        assert!(accessor.get(&graph).normalized);
 
         let buffer_view = BufferView::new(&mut graph);
         accessor.set_buffer_view(&mut graph, Some(&buffer_view));

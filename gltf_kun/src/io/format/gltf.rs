@@ -2,7 +2,12 @@ use std::collections::BTreeMap;
 
 use anyhow::Result;
 use glam::Quat;
-use gltf::json::{accessor::ComponentType, buffer::Stride, validation::Checked, Index};
+use gltf::json::{
+    accessor::{ComponentType, GenericComponentType},
+    buffer::Stride,
+    validation::Checked,
+    Index,
+};
 use petgraph::stable_graph::NodeIndex;
 use tracing::{info, warn};
 
@@ -282,6 +287,8 @@ impl ExportFormat for GltfFormat {
         let mut json = gltf::json::root::Root::default();
 
         let mut buffer_idxs = BTreeMap::<NodeIndex, u32>::new();
+        let mut buffer_view_idxs = BTreeMap::<NodeIndex, u32>::new();
+        let mut accessor_idxs = BTreeMap::<NodeIndex, u32>::new();
 
         // Create buffers
         json.buffers = doc
@@ -351,7 +358,47 @@ impl ExportFormat for GltfFormat {
             })
             .collect::<Vec<_>>();
 
-        // TODO: Create accessors
+        // Create accessors
+        json.accessors = doc
+            .accessors()
+            .iter_mut()
+            .filter_map(|accessor| {
+                let buffer_view_idx = match accessor
+                    .buffer_view(&doc.0)
+                    .and_then(|buffer_view| buffer_idxs.get(&buffer_view.0))
+                {
+                    Some(idx) => idx,
+                    None => {
+                        warn!("Accessor has no buffer view");
+                        return None;
+                    }
+                };
+
+                let count = accessor.count(&doc.0)? as u64;
+                let max = accessor.max(&doc.0).map(|v| v.into());
+                let min = accessor.min(&doc.0).map(|v| v.into());
+
+                let weight = accessor.get_mut(&mut doc.0);
+
+                let accessor = gltf::json::accessor::Accessor {
+                    name: weight.name.take(),
+                    extras: weight.extras.take(),
+                    extensions: None,
+
+                    buffer_view: Some(Index::new(*buffer_view_idx)),
+                    byte_offset: Some(weight.byte_offset.into()),
+                    component_type: Checked::Valid(GenericComponentType(weight.component_type)),
+                    count: count.into(),
+                    max,
+                    min,
+                    normalized: weight.normalized,
+                    sparse: None,
+                    type_: Checked::Valid(weight.element_type),
+                };
+
+                Some(accessor)
+            })
+            .collect::<Vec<_>>();
 
         // TODO: Create materials
 
