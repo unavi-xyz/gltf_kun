@@ -1,23 +1,19 @@
-use gltf_kun::format::{glb::GlbFormat, IoFormat};
+use gltf_kun::io::format::glb::GlbFormat;
+use tracing::info;
 
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 const ASSETS_DIR: &str = "../assets";
 const MODEL: &str = "BoxTextured.glb";
 
 fn main() {
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::INFO)
+        .init();
+
     let path = format!("{}/{}/{}", CARGO_MANIFEST_DIR, ASSETS_DIR, MODEL);
-    println!("Loading: {}", path);
-
-    let file = std::fs::File::open(path).expect("Failed to open file");
-    let glb = gltf::Glb::from_reader(file).expect("Failed to parse glTF");
-
-    let format = GlbFormat(glb);
-    let doc = format.import().expect("Failed to import glTF");
+    let doc = GlbFormat::import_file(&path).expect("Failed to import glTF");
 
     doc.nodes().iter().for_each(|node| {
-        println!("Node: {:?}", node);
+        info!("Node: {:?}", node);
     });
-
-    let exported = GlbFormat::export(doc).expect("Failed to export glTF");
-    let _ = exported.0.to_vec().expect("Failed to convert to bytes");
 }

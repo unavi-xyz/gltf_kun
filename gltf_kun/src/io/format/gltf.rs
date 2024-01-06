@@ -1,27 +1,48 @@
 use anyhow::Result;
 use glam::Quat;
 use gltf::json::{accessor::ComponentType, validation::Checked};
+use tracing::warn;
 
 use crate::{
     document::Document,
     graph::{
-        accessor::{Accessor, AccessorArray},
+        accessor::Accessor,
         buffer::Buffer,
         buffer_view::{BufferView, Target},
         mesh::Mesh,
         node::Node,
         primitive::Primitive,
     },
+    io::resolver::{file_resolver::FileResolver, Resolver},
 };
 
-use super::IoFormat;
+use super::ImportFormat;
 
 pub struct GltfFormat {
     pub json: gltf::json::Root,
     pub blob: Option<Vec<u8>>,
+    pub resolver: Option<Box<dyn Resolver>>,
 }
 
-impl IoFormat for GltfFormat {
+impl GltfFormat {
+    pub fn import_file(path: &str) -> Result<Document> {
+        let json = serde_json::from_reader(std::fs::File::open(path)?)?;
+
+        let dir = std::path::Path::new(path)
+            .parent()
+            .expect("Failed to get parent directory");
+        let resolver = FileResolver::new(dir);
+
+        GltfFormat {
+            json,
+            blob: None,
+            resolver: Some(Box::new(resolver)),
+        }
+        .import()
+    }
+}
+
+impl ImportFormat for GltfFormat {
     fn import(mut self) -> Result<Document> {
         let mut doc = Document::default();
 
@@ -39,6 +60,18 @@ impl IoFormat for GltfFormat {
 
                 weight.byte_length = b.byte_length.0;
                 weight.uri = b.uri.take();
+
+                if let Some(uri) = weight.uri.as_ref() {
+                    if let Some(resolver) = self.resolver.as_ref() {
+                        if let Ok(blob) = resolver.resolve(uri) {
+                            weight.blob = blob;
+                        } else {
+                            warn!("Failed to resolve URI: {}", uri);
+                        }
+                    } else {
+                        warn!("No URI resolver provided");
+                    }
+                }
 
                 buffer
             })
@@ -178,9 +211,5 @@ impl IoFormat for GltfFormat {
         // TODO: Create animations
 
         Ok(doc)
-    }
-
-    fn export(graph: Document) -> Result<Self> {
-        todo!()
     }
 }

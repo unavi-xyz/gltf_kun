@@ -5,10 +5,12 @@ use crate::document::Document;
 pub mod glb;
 pub mod gltf;
 
-/// A format for importing and exporting glTF graphs.
-pub trait IoFormat: Sized {
-    /// Import format -> graph.
+/// Import format -> graph.
+pub trait ImportFormat: Sized {
     fn import(self) -> Result<Document>;
-    /// Export graph -> format.
+}
+
+/// Export graph -> format.
+pub trait ExportFormat: Sized {
     fn export(doc: Document) -> Result<Self>;
 }
