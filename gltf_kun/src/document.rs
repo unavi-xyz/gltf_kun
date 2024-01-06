@@ -1,6 +1,6 @@
 use crate::graph::{
-    accessor::Accessor, mesh::Mesh, node::Node, primitive::Primitive, scene::Scene, Edge,
-    GltfGraph, Weight,
+    accessor::Accessor, buffer::Buffer, buffer_view::BufferView, mesh::Mesh, node::Node,
+    primitive::Primitive, scene::Scene, Edge, GltfGraph, Weight,
 };
 
 #[derive(Default)]
@@ -41,6 +41,22 @@ impl Document {
             .node_indices()
             .filter(|weight| matches!(self.0[*weight], Weight::Accessor(_)))
             .map(Accessor)
+            .collect()
+    }
+
+    pub fn buffers(&self) -> Vec<Buffer> {
+        self.0
+            .node_indices()
+            .filter(|weight| matches!(self.0[*weight], Weight::Buffer(_)))
+            .map(Buffer)
+            .collect()
+    }
+
+    pub fn buffer_views(&self) -> Vec<BufferView> {
+        self.0
+            .node_indices()
+            .filter(|weight| matches!(self.0[*weight], Weight::BufferView(_)))
+            .map(BufferView)
             .collect()
     }
 
