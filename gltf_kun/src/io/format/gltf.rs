@@ -1,6 +1,9 @@
+use std::collections::BTreeMap;
+
 use anyhow::Result;
 use glam::Quat;
-use gltf::json::{accessor::ComponentType, validation::Checked};
+use gltf::json::{accessor::ComponentType, buffer::Stride, validation::Checked, Index};
+use petgraph::stable_graph::NodeIndex;
 use tracing::{info, warn};
 
 use crate::{
@@ -17,7 +20,7 @@ use crate::{
     io::resolver::{file_resolver::FileResolver, Resolver},
 };
 
-use super::ImportFormat;
+use super::{ExportFormat, ImportFormat};
 
 pub struct GltfFormat {
     pub json: gltf::json::Root,
@@ -271,5 +274,103 @@ impl ImportFormat for GltfFormat {
         // TODO: Create animations
 
         Ok(doc)
+    }
+}
+
+impl ExportFormat for GltfFormat {
+    fn export(mut doc: Document) -> Result<GltfFormat> {
+        let mut json = gltf::json::root::Root::default();
+
+        let mut buffer_idxs = BTreeMap::<NodeIndex, u32>::new();
+
+        // Create buffers
+        json.buffers = doc
+            .buffers()
+            .iter_mut()
+            .enumerate()
+            .map(|(i, buffer)| {
+                buffer_idxs.insert(buffer.0, i as u32);
+
+                let weight = buffer.get_mut(&mut doc.0);
+
+                gltf::json::buffer::Buffer {
+                    name: weight.name.take(),
+                    extras: weight.extras.take(),
+                    extensions: None,
+
+                    byte_length: weight.byte_length.into(),
+                    uri: weight.uri.take(),
+                }
+            })
+            .collect::<Vec<_>>();
+
+        // Create buffer views
+        json.buffer_views = doc
+            .buffer_views()
+            .iter_mut()
+            .filter_map(|view| {
+                let buffer_idx = match view
+                    .buffer(&doc.0)
+                    .and_then(|buffer| buffer_idxs.get(&buffer.0))
+                {
+                    Some(idx) => idx,
+                    None => {
+                        warn!("Buffer view has no buffer");
+                        return None;
+                    }
+                };
+
+                let weight = view.get_mut(&mut doc.0);
+
+                let view = gltf::json::buffer::View {
+                    name: weight.name.take(),
+                    extras: weight.extras.take(),
+                    extensions: None,
+
+                    buffer: Index::new(*buffer_idx),
+                    byte_length: weight.byte_length.into(),
+                    byte_offset: Some(weight.byte_offset.into()),
+                    byte_stride: weight.byte_stride.map(Stride),
+                    target: weight
+                        .target
+                        .take()
+                        .map(|t| match t {
+                            Target::ArrayBuffer => gltf::json::buffer::Target::ArrayBuffer,
+                            Target::ElementArrayBuffer => {
+                                gltf::json::buffer::Target::ElementArrayBuffer
+                            }
+                            Target::Unknown(value) => {
+                                warn!("Unknown buffer view target: {}", value);
+                                gltf::json::buffer::Target::ArrayBuffer
+                            }
+                        })
+                        .map(Checked::Valid),
+                };
+
+                Some(view)
+            })
+            .collect::<Vec<_>>();
+
+        // TODO: Create accessors
+
+        // TODO: Create materials
+
+        // TODO: Create meshes
+
+        // TODO: Create nodes
+
+        // TODO: Create skins
+
+        // TODO: Create scenes
+
+        // TODO: Default scene
+
+        // TODO: Create animations
+
+        Ok(GltfFormat {
+            json,
+            blob: None,
+            resolver: None,
+        })
     }
 }

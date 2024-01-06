@@ -1,4 +1,4 @@
-use gltf_kun::io::format::gltf::GltfFormat;
+use gltf_kun::io::format::{gltf::GltfFormat, ExportFormat};
 use tracing::info;
 
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
@@ -16,4 +16,6 @@ fn main() {
     doc.nodes().iter().for_each(|node| {
         info!("Node: {:?}", node);
     });
+
+    let _out = GltfFormat::export(doc).expect("Failed to export glTF");
 }
