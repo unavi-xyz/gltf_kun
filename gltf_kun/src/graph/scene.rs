@@ -36,7 +36,7 @@ impl Scene {
         }
     }
 
-    pub fn children(&self, graph: &GltfGraph) -> Vec<Node> {
+    pub fn nodes(&self, graph: &GltfGraph) -> Vec<Node> {
         graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .filter_map(|edge| {
@@ -48,13 +48,13 @@ impl Scene {
             })
             .collect()
     }
-    pub fn add_child(&self, graph: &mut GltfGraph, child: &Node) {
-        graph.add_edge(self.0, child.0, Edge::Child);
+    pub fn add_node(&self, graph: &mut GltfGraph, node: &Node) {
+        graph.add_edge(self.0, node.0, Edge::Child);
     }
-    pub fn remove_child(&self, graph: &mut GltfGraph, child: &Node) {
+    pub fn remove_node(&self, graph: &mut GltfGraph, node: &Node) {
         let edge = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| edge.target() == child.0)
+            .find(|edge| edge.target() == node.0)
             .expect("Child not found");
 
         graph.remove_edge(edge.id());
@@ -74,17 +74,16 @@ mod tests {
         scene.get_mut(&mut graph).name = Some("Test".to_string());
         assert_eq!(scene.get(&graph).name, Some("Test".to_string()));
 
-        let child = Node::new(&mut graph);
-        scene.add_child(&mut graph, &child);
+        let node = Node::new(&mut graph);
+        scene.add_node(&mut graph, &node);
 
-        let children = scene.children(&graph);
-        assert_eq!(children.len(), 1);
-        assert_eq!(children[0], child);
-        assert_eq!(child.parent(&graph), Some(Parent::Scene(scene)));
-        assert_eq!(child.children(&graph).len(), 0);
+        let nodes = scene.nodes(&graph);
+        assert_eq!(nodes.len(), 1);
+        assert_eq!(nodes[0], node);
+        assert_eq!(node.parent(&graph), Some(Parent::Scene(scene)));
 
-        scene.remove_child(&mut graph, &child);
-        assert_eq!(scene.children(&graph).len(), 0);
-        assert_eq!(child.parent(&graph), None);
+        scene.remove_node(&mut graph, &node);
+        assert_eq!(scene.nodes(&graph).len(), 0);
+        assert_eq!(node.parent(&graph), None);
     }
 }

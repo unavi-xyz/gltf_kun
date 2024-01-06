@@ -12,6 +12,7 @@ use crate::{
         mesh::Mesh,
         node::Node,
         primitive::Primitive,
+        scene::Scene,
     },
     io::resolver::{file_resolver::FileResolver, Resolver},
 };
@@ -238,7 +239,27 @@ impl ImportFormat for GltfFormat {
 
         // TODO: Create skins
 
-        // TODO: Create scenes
+        // Create scenes
+        let scenes = self
+            .json
+            .scenes
+            .iter_mut()
+            .map(|s| {
+                let mut scene = Scene::new(&mut doc.0);
+                let weight = scene.get_mut(&mut doc.0);
+
+                weight.name = s.name.take();
+                weight.extras = s.extras.take();
+
+                s.nodes.iter().for_each(|idx| {
+                    if let Some(node) = nodes.get(idx.value()) {
+                        scene.add_node(&mut doc.0, node);
+                    }
+                });
+
+                scene
+            })
+            .collect::<Vec<_>>();
 
         // TODO: Create animations
 
