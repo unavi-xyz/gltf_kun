@@ -1,21 +1,13 @@
 use gltf_kun::io::format::{gltf::GltfFormat, ExportFormat};
-use tracing::info;
+use tracing_test::traced_test;
 
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 const ASSETS_DIR: &str = "../assets";
 const MODEL: &str = "TriangleWithoutIndices/TriangleWithoutIndices.gltf";
 
+#[traced_test]
 fn main() {
-    tracing_subscriber::fmt()
-        .with_max_level(tracing::Level::INFO)
-        .init();
-
     let path = format!("{}/{}/{}", CARGO_MANIFEST_DIR, ASSETS_DIR, MODEL);
     let doc = GltfFormat::import_file(&path).expect("Failed to import glTF");
-
-    doc.nodes().iter().for_each(|node| {
-        info!("Node: {:?}", node);
-    });
-
     let _out = GltfFormat::export(doc).expect("Failed to export glTF");
 }
