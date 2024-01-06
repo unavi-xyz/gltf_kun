@@ -6,7 +6,7 @@ use crate::{
     graph::{Edge, GltfGraph, Weight},
 };
 
-use super::scene::Scene;
+use super::{mesh::Mesh, scene::Scene};
 
 #[derive(Debug)]
 pub struct NodeWeight {
@@ -94,6 +94,27 @@ impl Node {
                     None
                 }
             })
+    }
+
+    pub fn mesh(&self, graph: &GltfGraph) -> Option<Mesh> {
+        graph
+            .edges_directed(self.0, petgraph::Direction::Outgoing)
+            .find(|edge| matches!(edge.weight(), Edge::Mesh))
+            .map(|edge| Mesh(edge.target()))
+    }
+    pub fn set_mesh(&self, graph: &mut GltfGraph, mesh: Option<&Mesh>) {
+        let edge = graph
+            .edges_directed(self.0, petgraph::Direction::Outgoing)
+            .find(|edge| matches!(edge.weight(), Edge::Mesh))
+            .map(|edge| edge.id());
+
+        if let Some(edge) = edge {
+            graph.remove_edge(edge);
+        }
+
+        if let Some(mesh) = mesh {
+            graph.add_edge(self.0, mesh.0, Edge::Mesh);
+        }
     }
 }
 

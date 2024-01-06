@@ -71,7 +71,7 @@ impl Accessor {
             .find(|edge| matches!(edge.weight(), Edge::BufferView))
             .map(|edge| BufferView(edge.target()))
     }
-    pub fn set_buffer_view(&self, graph: &mut GltfGraph, buffer_view: Option<BufferView>) {
+    pub fn set_buffer_view(&self, graph: &mut GltfGraph, buffer_view: Option<&BufferView>) {
         let edge = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .find(|edge| matches!(edge.weight(), Edge::BufferView))
@@ -112,7 +112,7 @@ mod tests {
         );
 
         let buffer_view = BufferView::new(&mut graph);
-        accessor.set_buffer_view(&mut graph, Some(buffer_view));
+        accessor.set_buffer_view(&mut graph, Some(&buffer_view));
         assert_eq!(accessor.buffer_view(&graph), Some(buffer_view));
     }
 }

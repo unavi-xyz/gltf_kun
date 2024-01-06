@@ -80,7 +80,7 @@ impl ImportFormat for GltfFormat {
             .collect::<Vec<_>>();
 
         // Create buffer views
-        let _views = self
+        let buffer_views = self
             .json
             .buffer_views
             .iter_mut()
@@ -106,7 +106,7 @@ impl ImportFormat for GltfFormat {
                 });
 
                 if let Some(buffer) = buffers.get(v.buffer.value()) {
-                    view.set_buffer(&mut doc.0, Some(*buffer));
+                    view.set_buffer(&mut doc.0, Some(buffer));
                 }
 
                 view
@@ -114,7 +114,7 @@ impl ImportFormat for GltfFormat {
             .collect::<Vec<_>>();
 
         // Create accessors
-        let _accessors = self
+        let accessors = self
             .json
             .accessors
             .iter_mut()
@@ -131,9 +131,11 @@ impl ImportFormat for GltfFormat {
                     Checked::Invalid => ComponentType::F32,
                 };
 
-                // let array = match component_type {
-                //     ComponentType::I8 => AccessorArray::I8(vec),
-                // };
+                if let Some(index) = a.buffer_view {
+                    if let Some(buffer_view) = buffer_views.get(index.value()) {
+                        accessor.set_buffer_view(&mut doc.0, Some(buffer_view));
+                    }
+                }
 
                 accessor
             })
@@ -142,7 +144,7 @@ impl ImportFormat for GltfFormat {
         // TODO: Create materials
 
         // Create meshes
-        let _meshes = self
+        let meshes = self
             .json
             .meshes
             .iter_mut()
@@ -163,10 +165,30 @@ impl ImportFormat for GltfFormat {
                         Checked::Invalid => gltf::mesh::Mode::Triangles,
                     };
 
-                    if let Some(_accessor) = p.indices {}
+                    if let Some(index) = p.indices {
+                        if let Some(accessor) = accessors.get(index.value()) {
+                            primitive.set_indices(&mut doc.0, Some(accessor));
+                        }
+                    }
+
+                    p.attributes.iter().for_each(|(k, v)| {
+                        if let Some(accessor) = accessors.get(v.value()) {
+                            let semantic = match k {
+                                Checked::Valid(semantic) => semantic,
+                                Checked::Invalid => {
+                                    warn!("Invalid attribute semantic: {:?}", k);
+                                    return;
+                                }
+                            };
+
+                            primitive.set_attribute(&mut doc.0, semantic, Some(accessor));
+                        }
+                    });
 
                     mesh.add_primitive(&mut doc.0, &primitive);
-                })
+                });
+
+                mesh
             })
             .collect::<Vec<_>>();
 
@@ -188,6 +210,12 @@ impl ImportFormat for GltfFormat {
                     .map(|r| Quat::from_slice(&r.0))
                     .unwrap_or(Quat::IDENTITY);
                 weight.scale = n.scale.map(|s| s.into()).unwrap_or(glam::Vec3::ONE);
+
+                if let Some(index) = n.mesh {
+                    if let Some(mesh) = meshes.get(index.value()) {
+                        node.set_mesh(&mut doc.0, Some(mesh));
+                    }
+                }
 
                 node
             })

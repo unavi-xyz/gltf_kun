@@ -61,13 +61,17 @@ impl Primitive {
             })
     }
     pub fn set_indices(&mut self, graph: &mut GltfGraph, indices: Option<&Accessor>) {
-        if let Some(indices) = indices {
-            graph.add_edge(self.0, indices.0, Edge::Indices);
-        } else if let Some(edge) = graph
+        let edge = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .find(|edge| matches!(edge.weight(), Edge::Indices))
-        {
-            graph.remove_edge(edge.id());
+            .map(|edge| edge.id());
+
+        if let Some(edge) = edge {
+            graph.remove_edge(edge);
+        }
+
+        if let Some(indices) = indices {
+            graph.add_edge(self.0, indices.0, Edge::Indices);
         }
     }
 
