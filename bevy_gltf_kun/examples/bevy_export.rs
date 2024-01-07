@@ -63,7 +63,7 @@ fn export_scene(
 
 fn read_export_result(mut reader: EventReader<ExportResult>) {
     for result in reader.read() {
-        if let Ok(glb) = &result.result {
+        if let Ok(_glb) = &result.result {
             info!("Exported glTF!");
         }
     }
