@@ -1,6 +1,6 @@
 use anyhow::Result;
 use bevy::prelude::*;
-use gltf_kun::io::format::{glb::GlbFormat, gltf::GltfFormat, ExportFormat};
+use gltf_kun::document::Document;
 
 pub mod format;
 
@@ -8,21 +8,17 @@ pub struct GltfKunPlugin;
 
 impl Plugin for GltfKunPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<Export<GltfFormat>>()
-            .add_event::<ExportResult<GltfFormat>>()
-            .add_event::<Export<GlbFormat>>()
-            .add_event::<ExportResult<GlbFormat>>();
+        app.add_event::<Export>().add_event::<ExportResult>();
     }
 }
 
 #[derive(Event)]
-pub struct Export<T: ExportFormat> {
-    pub scenes: Vec<Scene>,
-    pub default_scene: Option<Scene>,
-    pub format: T,
+pub struct Export {
+    pub scenes: Vec<Entity>,
+    pub default_scene: Option<Entity>,
 }
 
 #[derive(Event)]
-pub struct ExportResult<T: ExportFormat> {
-    pub result: Result<T>,
+pub struct ExportResult {
+    pub result: Result<Box<Document>>,
 }

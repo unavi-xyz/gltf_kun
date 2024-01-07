@@ -1,5 +1,7 @@
+// Export a bevy scene to glTF
+
 use bevy::prelude::*;
-use bevy_gltf_kun::GltfKunPlugin;
+use bevy_gltf_kun::{Export, ExportResult, GltfKunPlugin};
 
 fn main() {
     App::new()
@@ -11,8 +13,12 @@ fn main() {
             GltfKunPlugin,
         ))
         .add_systems(Startup, setup)
+        .add_systems(Update, (export_scene, read_export_result))
         .run();
 }
+
+#[derive(Component)]
+pub struct SceneMarker;
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera3dBundle {
@@ -25,8 +31,40 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         ..default()
     });
 
-    commands.spawn(SceneBundle {
-        scene: asset_server.load("BoxTextured.glb#Scene0"),
-        ..default()
-    });
+    commands.spawn((
+        SceneMarker,
+        SceneBundle {
+            scene: asset_server.load("BoxTextured.glb#Scene0"),
+            ..default()
+        },
+    ));
+}
+
+fn export_scene(
+    scenes: Query<Entity, With<SceneMarker>>,
+    mut writer: EventWriter<Export>,
+    mut exported: Local<bool>,
+) {
+    if *exported {
+        return;
+    }
+
+    for scene in scenes.iter() {
+        info!("Exporting scene...");
+
+        writer.send(Export {
+            scenes: vec![scene],
+            default_scene: Some(scene),
+        });
+
+        *exported = true;
+    }
+}
+
+fn read_export_result(mut reader: EventReader<ExportResult>) {
+    for result in reader.read() {
+        if let Ok(glb) = &result.result {
+            info!("Exported glTF!");
+        }
+    }
 }

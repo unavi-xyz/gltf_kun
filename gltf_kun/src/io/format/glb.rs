@@ -6,6 +6,7 @@ use crate::document::Document;
 
 use super::{gltf::GltfFormat, ExportFormat, ImportFormat};
 
+#[derive(Default)]
 pub struct GlbFormat(pub Vec<u8>);
 
 impl GlbFormat {
