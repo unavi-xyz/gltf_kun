@@ -4,7 +4,7 @@ use gltf_kun::{document::Document, io::format::ExportFormat};
 pub struct BevyFormat;
 
 impl ExportFormat for BevyFormat {
-    fn export(doc: Document) -> Result<Box<Self>> {
+    fn export(_doc: Document) -> Result<Box<Self>> {
         todo!()
     }
 }
