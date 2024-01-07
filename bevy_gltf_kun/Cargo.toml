@@ -8,5 +8,6 @@ repository.workspace = true
 edition.workspace = true
 
 [dependencies]
+anyhow = "1.0.79"
 bevy = "0.12.1"
 gltf_kun = { version = "0.0.3", path = "../gltf_kun" }

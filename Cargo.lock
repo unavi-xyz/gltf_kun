@@ -606,6 +606,7 @@ dependencies = [
 name = "bevy_gltf_kun"
 version = "0.0.3"
 dependencies = [
+ "anyhow",
  "bevy",
  "gltf_kun",
 ]

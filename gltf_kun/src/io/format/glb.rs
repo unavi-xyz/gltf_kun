@@ -36,7 +36,7 @@ impl ImportFormat for GlbFormat {
 }
 
 impl ExportFormat for GlbFormat {
-    fn export(doc: Document) -> Result<Self> {
+    fn export(doc: Document) -> Result<Box<Self>> {
         let gltf = GltfFormat::export(doc)?;
 
         let json_bin = serde_json::to_vec(&gltf.json)?;
@@ -53,6 +53,6 @@ impl ExportFormat for GlbFormat {
 
         let bytes = glb.to_vec()?;
 
-        Ok(GlbFormat(bytes))
+        Ok(Box::new(GlbFormat(bytes)))
     }
 }

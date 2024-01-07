@@ -31,7 +31,7 @@ use super::{ExportFormat, ImportFormat};
 pub struct GltfFormat {
     pub json: gltf::json::Root,
     pub blob: Option<Vec<u8>>,
-    pub resolver: Option<Box<dyn Resolver>>,
+    pub resolver: Option<Box<dyn Resolver + Send + Sync>>,
 }
 
 impl GltfFormat {
@@ -284,7 +284,7 @@ impl ImportFormat for GltfFormat {
 }
 
 impl ExportFormat for GltfFormat {
-    fn export(mut doc: Document) -> Result<GltfFormat> {
+    fn export(mut doc: Document) -> Result<Box<GltfFormat>> {
         let mut json = gltf::json::root::Root::default();
 
         let mut buffer_idxs = BTreeMap::<NodeIndex, u32>::new();
@@ -558,10 +558,10 @@ impl ExportFormat for GltfFormat {
 
         // TODO: Create animations
 
-        Ok(GltfFormat {
+        Ok(Box::new(GltfFormat {
             json,
             blob: None,
             resolver: None,
-        })
+        }))
     }
 }
