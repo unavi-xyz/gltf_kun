@@ -1,12 +1,9 @@
 use gltf::{accessor::DataType, json::accessor::Type};
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 
-use crate::{
-    extension::ExtensionProperty,
-    graph::{GltfGraph, Weight},
-};
+use crate::extension::ExtensionProperty;
 
-use super::{buffer_view::BufferView, Edge};
+use super::{buffer_view::BufferView, Edge, GltfGraph, Weight};
 
 #[derive(Debug)]
 pub struct AccessorWeight {

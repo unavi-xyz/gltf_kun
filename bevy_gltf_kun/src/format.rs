@@ -1,10 +1,10 @@
 use anyhow::Result;
-use gltf_kun::{document::Document, io::format::ImportFormat};
+use gltf_kun::{document::gltf::GltfDocument, io::format::ImportFormat};
 
 pub struct BevyFormat;
 
-impl ImportFormat for BevyFormat {
-    fn import(self) -> Result<Document> {
+impl ImportFormat<GltfDocument> for BevyFormat {
+    fn import(self) -> Result<GltfDocument> {
         todo!()
     }
 }

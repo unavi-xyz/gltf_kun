@@ -1,11 +1,8 @@
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 
-use crate::{
-    extension::ExtensionProperty,
-    graph::{Edge, GltfGraph, Weight},
-};
+use crate::extension::ExtensionProperty;
 
-use super::node::Node;
+use super::{node::Node, Edge, GltfGraph, Weight};
 
 #[derive(Debug, Default)]
 pub struct SceneWeight {
@@ -63,8 +60,9 @@ impl Scene {
 
 #[cfg(test)]
 mod tests {
+    use crate::graph::gltf::node::Parent;
+
     use super::*;
-    use crate::graph::node::{Node, Parent};
 
     #[test]
     fn test_node() {

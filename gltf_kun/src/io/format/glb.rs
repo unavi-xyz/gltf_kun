@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use anyhow::Result;
 
-use crate::document::Document;
+use crate::document::gltf::GltfDocument;
 
 use super::{gltf::GltfFormat, ExportFormat, ImportFormat};
 
@@ -10,18 +10,18 @@ use super::{gltf::GltfFormat, ExportFormat, ImportFormat};
 pub struct GlbFormat(pub Vec<u8>);
 
 impl GlbFormat {
-    pub fn import_slice(bytes: &[u8]) -> Result<Document> {
+    pub fn import_slice(bytes: &[u8]) -> Result<GltfDocument> {
         GlbFormat(bytes.to_vec()).import()
     }
 
-    pub fn import_file(path: &str) -> Result<Document> {
+    pub fn import_file(path: &str) -> Result<GltfDocument> {
         let bytes = std::fs::read(path)?;
         GlbFormat::import_slice(&bytes)
     }
 }
 
-impl ImportFormat for GlbFormat {
-    fn import(self) -> Result<Document> {
+impl ImportFormat<GltfDocument> for GlbFormat {
+    fn import(self) -> Result<GltfDocument> {
         let mut glb = gltf::Glb::from_slice(&self.0)?;
 
         let json = serde_json::from_slice(&glb.json)?;
@@ -36,8 +36,8 @@ impl ImportFormat for GlbFormat {
     }
 }
 
-impl ExportFormat for GlbFormat {
-    fn export(doc: Document) -> Result<Box<Self>> {
+impl ExportFormat<GltfDocument> for GlbFormat {
+    fn export(doc: GltfDocument) -> Result<Box<Self>> {
         let gltf = GltfFormat::export(doc)?;
 
         let json_bin = serde_json::to_vec(&gltf.json)?;

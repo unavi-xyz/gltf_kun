@@ -1,11 +1,8 @@
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 
-use crate::{
-    extension::ExtensionProperty,
-    graph::{Edge, GltfGraph, Weight},
-};
+use crate::extension::ExtensionProperty;
 
-use super::primitive::Primitive;
+use super::{primitive::Primitive, Edge, GltfGraph, Weight};
 
 #[derive(Debug, Default)]
 pub struct MeshWeight {

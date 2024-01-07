@@ -13,8 +13,8 @@ use petgraph::stable_graph::NodeIndex;
 use tracing::{info, warn};
 
 use crate::{
-    document::Document,
-    graph::{
+    document::gltf::GltfDocument,
+    graph::gltf::{
         accessor::Accessor,
         buffer::Buffer,
         buffer_view::{BufferView, Target},
@@ -35,7 +35,7 @@ pub struct GltfFormat {
 }
 
 impl GltfFormat {
-    pub fn import_file(path: &str) -> Result<Document> {
+    pub fn import_file(path: &str) -> Result<GltfDocument> {
         let json = serde_json::from_reader(std::fs::File::open(path)?)?;
 
         let dir = std::path::Path::new(path)
@@ -52,9 +52,9 @@ impl GltfFormat {
     }
 }
 
-impl ImportFormat for GltfFormat {
-    fn import(mut self) -> Result<Document> {
-        let mut doc = Document::default();
+impl ImportFormat<GltfDocument> for GltfFormat {
+    fn import(mut self) -> Result<GltfDocument> {
+        let mut doc = GltfDocument::default();
 
         // Create buffers
         let buffers = self
@@ -283,8 +283,8 @@ impl ImportFormat for GltfFormat {
     }
 }
 
-impl ExportFormat for GltfFormat {
-    fn export(mut doc: Document) -> Result<Box<GltfFormat>> {
+impl ExportFormat<GltfDocument> for GltfFormat {
+    fn export(mut doc: GltfDocument) -> Result<Box<GltfFormat>> {
         let mut json = gltf::json::root::Root::default();
 
         let mut buffer_idxs = BTreeMap::<NodeIndex, u32>::new();

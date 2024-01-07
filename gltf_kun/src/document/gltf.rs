@@ -1,12 +1,12 @@
-use crate::graph::{
+use crate::graph::gltf::{
     accessor::Accessor, buffer::Buffer, buffer_view::BufferView, mesh::Mesh, node::Node,
     primitive::Primitive, scene::Scene, Edge, GltfGraph, Weight,
 };
 
 #[derive(Default)]
-pub struct Document(pub GltfGraph);
+pub struct GltfDocument(pub GltfGraph);
 
-impl Document {
+impl GltfDocument {
     pub fn default_scene(&self) -> Option<Scene> {
         self.0
             .node_indices()
@@ -96,12 +96,12 @@ impl Document {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::graph::node::Node;
+    use crate::graph::gltf::node::Node;
 
     #[test]
     fn test_node() {
         let graph = GltfGraph::default();
-        let mut doc = Document(graph);
+        let mut doc = GltfDocument(graph);
 
         let scene = Scene::new(&mut doc.0);
 

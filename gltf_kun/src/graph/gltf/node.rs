@@ -1,12 +1,9 @@
 use glam::{Quat, Vec3};
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 
-use crate::{
-    extension::ExtensionProperty,
-    graph::{Edge, GltfGraph, Weight},
-};
+use crate::extension::ExtensionProperty;
 
-use super::{mesh::Mesh, scene::Scene};
+use super::{mesh::Mesh, scene::Scene, Edge, GltfGraph, Weight};
 
 #[derive(Debug)]
 pub struct NodeWeight {

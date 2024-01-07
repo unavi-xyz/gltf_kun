@@ -1,9 +1,8 @@
 use petgraph::stable_graph::NodeIndex;
 
-use crate::{
-    extension::ExtensionProperty,
-    graph::{GltfGraph, Weight},
-};
+use crate::extension::ExtensionProperty;
+
+use super::{GltfGraph, Weight};
 
 #[derive(Debug, Default)]
 pub struct BufferWeight {

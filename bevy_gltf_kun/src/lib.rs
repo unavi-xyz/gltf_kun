@@ -1,6 +1,6 @@
 use anyhow::Result;
 use bevy::prelude::*;
-use gltf_kun::document::Document;
+use gltf_kun::document::gltf::GltfDocument;
 
 pub mod format;
 
@@ -20,5 +20,5 @@ pub struct Export {
 
 #[derive(Event)]
 pub struct ExportResult {
-    pub result: Result<Box<Document>>,
+    pub result: Result<Box<GltfDocument>>,
 }
