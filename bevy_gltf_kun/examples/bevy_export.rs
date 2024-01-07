@@ -1,5 +1,3 @@
-// Export a bevy scene to glTF
-
 use bevy::prelude::*;
 use bevy_gltf_kun::{Export, ExportResult, GltfKunPlugin};
 
@@ -17,9 +15,6 @@ fn main() {
         .run();
 }
 
-#[derive(Component)]
-pub struct SceneMarker;
-
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera3dBundle {
         transform: Transform::from_xyz(1.0, 2.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
@@ -31,17 +26,14 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         ..default()
     });
 
-    commands.spawn((
-        SceneMarker,
-        SceneBundle {
-            scene: asset_server.load("BoxTextured.glb#Scene0"),
-            ..default()
-        },
-    ));
+    commands.spawn(SceneBundle {
+        scene: asset_server.load("BoxTextured.glb#Scene0"),
+        ..default()
+    });
 }
 
 fn export_scene(
-    scenes: Query<Entity, With<SceneMarker>>,
+    scenes: Query<Entity, With<Handle<Scene>>>,
     mut writer: EventWriter<Export>,
     mut exported: Local<bool>,
 ) {
@@ -63,8 +55,8 @@ fn export_scene(
 
 fn read_export_result(mut reader: EventReader<ExportResult>) {
     for result in reader.read() {
-        if let Ok(_glb) = &result.result {
-            info!("Exported glTF!");
+        if let Ok(doc) = &result.result {
+            info!("Exported document!");
         }
     }
 }

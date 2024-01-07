@@ -2,13 +2,15 @@ use anyhow::Result;
 use bevy::prelude::*;
 use gltf_kun::document::gltf::GltfDocument;
 
-pub mod format;
+pub mod export;
 
 pub struct GltfKunPlugin;
 
 impl Plugin for GltfKunPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<Export>().add_event::<ExportResult>();
+        app.add_event::<Export>()
+            .add_event::<ExportResult>()
+            .add_systems(Update, export::export_gltf);
     }
 }
 
@@ -22,3 +24,5 @@ pub struct Export {
 pub struct ExportResult {
     pub result: Result<Box<GltfDocument>>,
 }
+
+pub struct BevyFormat;
