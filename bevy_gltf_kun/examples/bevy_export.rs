@@ -1,5 +1,8 @@
 use bevy::prelude::*;
-use bevy_gltf_kun::{Export, ExportResult, GltfKunPlugin};
+use bevy_gltf_kun::{
+    export::{Export, ExportResult},
+    GltfKunPlugin,
+};
 use gltf_kun::document::GltfDocument;
 
 fn main() {
