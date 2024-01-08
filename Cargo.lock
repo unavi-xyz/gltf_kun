@@ -608,6 +608,7 @@ version = "0.0.3"
 dependencies = [
  "anyhow",
  "bevy",
+ "glam 0.25.0",
  "gltf_kun",
 ]
 
