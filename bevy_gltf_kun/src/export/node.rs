@@ -4,23 +4,28 @@ use anyhow::Result;
 use bevy::prelude::*;
 use gltf_kun::graph::gltf::node;
 
-use super::{scene::SceneNodes, CachedNode, ExportContext};
+use super::{CachedNode, ExportContext};
 
 pub fn export_nodes(
-    In((mut context, scene_nodes)): In<(ExportContext, SceneNodes)>,
+    In(mut context): In<ExportContext>,
     nodes: Query<(&Transform, Option<&Name>, Option<&Children>)>,
 ) -> ExportContext {
-    scene_nodes.iter().for_each(|(scene, children)| {
-        children
+    context.doc.scenes().iter().for_each(|scene| {
+        let entity = context
+            .scenes
             .iter()
-            .for_each(|child| match export_node(&mut context, &nodes, *child) {
-                Ok(node) => {
-                    scene.add_node(&mut context.doc.0, &node);
-                }
-                Err(_) => {
-                    warn!("Node not found: {:?}", child);
-                }
-            })
+            .find(|cached| cached.scene == *scene)
+            .unwrap()
+            .entity;
+
+        match export_node(&mut context, &nodes, entity) {
+            Ok(node) => {
+                scene.add_node(&mut context.doc.0, &node);
+            }
+            Err(_) => {
+                warn!("Node not found: {:?}", entity);
+            }
+        }
     });
 
     context

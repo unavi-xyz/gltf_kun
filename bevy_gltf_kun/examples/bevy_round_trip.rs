@@ -75,10 +75,11 @@ fn read_export_result(
             let glb = GlbFormat::export(doc).expect("Failed export to GLB");
             info!("Got exported GLB! Size: {}", format_byte_length(&glb.0));
 
-            let path = std::path::Path::new("assets/temp");
+            let dir = std::path::Path::new("assets/temp");
+            std::fs::create_dir_all(dir).expect("Failed to create temp directory");
+            let path = dir.join("round_trip.glb");
             info!("Writing GLB to {:?}", path);
-            std::fs::create_dir_all(path).expect("Failed to create temp directory");
-            std::fs::write(path.join("round_trip.glb"), glb.0).expect("Failed to write GLB");
+            std::fs::write(path, glb.0).expect("Failed to write GLB");
 
             // Now clear the scene and load the exported GLB.
             for scene in scenes.iter() {

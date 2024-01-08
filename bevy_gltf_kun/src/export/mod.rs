@@ -42,19 +42,21 @@ pub enum ExportState {
 }
 
 pub struct ExportContext {
-    pub event: Export<GltfDocument>,
     pub doc: GltfDocument,
+    pub event: Export<GltfDocument>,
     pub meshes: Vec<CachedMesh>,
     pub nodes: Vec<CachedNode>,
+    pub scenes: Vec<CachedScene>,
 }
 
 impl ExportContext {
     pub fn new(event: Export<GltfDocument>) -> Self {
         Self {
-            event,
             doc: GltfDocument::default(),
+            event,
             meshes: Vec::new(),
             nodes: Vec::new(),
+            scenes: Vec::new(),
         }
     }
 }
@@ -67,6 +69,11 @@ pub struct CachedMesh {
 
 pub struct CachedNode {
     pub node: gltf::node::Node,
+    pub entity: Entity,
+}
+
+pub struct CachedScene {
+    pub scene: gltf::scene::Scene,
     pub entity: Entity,
 }
 
