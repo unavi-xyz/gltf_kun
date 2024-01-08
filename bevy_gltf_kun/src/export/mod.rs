@@ -1,13 +1,10 @@
 use std::marker::PhantomData;
 
 use anyhow::Result;
-use bevy::{
-    ecs::system::{RunSystemOnce, SystemId},
-    prelude::*,
-};
+use bevy::{ecs::system::RunSystemOnce, prelude::*};
 use gltf_kun::{document::GltfDocument, graph::gltf};
 
-// pub mod mesh;
+pub mod mesh;
 pub mod node;
 pub mod scene;
 
@@ -47,6 +44,7 @@ pub struct ExportContext {
     pub event: Export<GltfDocument>,
     pub doc: GltfDocument,
     pub meshes: Vec<CachedMesh>,
+    pub nodes: Vec<CachedNode>,
 }
 
 impl ExportContext {
@@ -55,6 +53,7 @@ impl ExportContext {
             event,
             doc: GltfDocument::default(),
             meshes: Vec::new(),
+            nodes: Vec::new(),
         }
     }
 }
@@ -65,8 +64,10 @@ pub struct CachedMesh {
     pub bevy_meshes: Vec<Handle<Mesh>>,
 }
 
-#[derive(Component)]
-pub struct Callback(SystemId);
+pub struct CachedNode {
+    pub node: gltf::node::Node,
+    pub entity: Entity,
+}
 
 pub fn read_event(
     mut events: ResMut<Events<Export<GltfDocument>>>,
@@ -80,6 +81,6 @@ pub fn export_gltf(In(event): In<Option<Export<GltfDocument>>>, world: &mut Worl
         None => return,
     };
 
-    let system = scene::export_scenes.pipe(node::export_nodes);
+    let system = scene::export_scenes.pipe(node::export_nodes.pipe(mesh::export_meshes));
     world.run_system_once_with(ExportContext::new(event), system);
 }
