@@ -1,6 +1,9 @@
 use anyhow::Result;
-use bevy::prelude::*;
-use gltf_kun::graph::gltf::{accessor, mesh, node, primitive};
+use bevy::{prelude::*, render::render_resource::PrimitiveTopology};
+use gltf_kun::graph::gltf::{
+    accessor, mesh, node,
+    primitive::{self, Semantic},
+};
 
 use super::{vertex_to_accessor::vertex_to_accessor, CachedMesh, ExportContext};
 
@@ -9,9 +12,6 @@ pub fn export_meshes(
     mesh_assets: Res<Assets<Mesh>>,
     meshes: Query<(&Handle<Mesh>, Option<&Name>)>,
 ) {
-    // Bevy meshes roughly correspond to glTF primitives,
-    // so we need to find valid Bevy meshes to add as
-    // primitives to our glTF mesh.
     context.doc.scenes().iter().for_each(|scene| {
         scene.nodes(&context.doc.0).iter().for_each(|node| {
             export_node_mesh(&mut context, &mesh_assets, &meshes, *node);
@@ -33,6 +33,9 @@ fn export_node_mesh(
 
     let entity = cached.entity;
 
+    // Bevy meshes roughly correspond to glTF primitives,
+    // so we need to find valid Bevy meshes to add as
+    // primitives to our glTF mesh.
     let mut primitive_ents = Vec::new();
 
     if meshes.contains(entity) {
@@ -134,11 +137,52 @@ fn export_node_mesh(
 }
 
 fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> Result<primitive::Primitive> {
-    let primitive = primitive::Primitive::new(&mut context.doc.0);
+    let mut primitive = primitive::Primitive::new(&mut context.doc.0);
+    let weight = primitive.get_mut(&mut context.doc.0);
 
-    mesh.attributes().for_each(|(_id, values)| {
+    weight.mode = match mesh.primitive_topology() {
+        PrimitiveTopology::LineList => primitive::Mode::Lines,
+        PrimitiveTopology::LineStrip => primitive::Mode::LineStrip,
+        PrimitiveTopology::PointList => primitive::Mode::Points,
+        PrimitiveTopology::TriangleList => primitive::Mode::Triangles,
+        PrimitiveTopology::TriangleStrip => primitive::Mode::TriangleStrip,
+    };
+
+    mesh.attributes().for_each(|(id, values)| {
         let array = vertex_to_accessor(values);
-        let _accessor = accessor::Accessor::from_array(&mut context.doc.0, array, None);
+        let accessor = accessor::Accessor::from_array(&mut context.doc.0, array, None);
+
+        if id == Mesh::ATTRIBUTE_POSITION.id {
+            primitive.set_attribute(&mut context.doc.0, &Semantic::Positions, Some(&accessor));
+        }
+
+        if id == Mesh::ATTRIBUTE_NORMAL.id {
+            primitive.set_attribute(&mut context.doc.0, &Semantic::Normals, Some(&accessor));
+        }
+
+        if id == Mesh::ATTRIBUTE_UV_0.id {
+            primitive.set_attribute(&mut context.doc.0, &Semantic::TexCoords(0), Some(&accessor));
+        }
+
+        if id == Mesh::ATTRIBUTE_UV_1.id {
+            primitive.set_attribute(&mut context.doc.0, &Semantic::TexCoords(1), Some(&accessor));
+        }
+
+        if id == Mesh::ATTRIBUTE_COLOR.id {
+            primitive.set_attribute(&mut context.doc.0, &Semantic::Colors(0), Some(&accessor));
+        }
+
+        if id == Mesh::ATTRIBUTE_TANGENT.id {
+            primitive.set_attribute(&mut context.doc.0, &Semantic::Tangents, Some(&accessor));
+        }
+
+        if id == Mesh::ATTRIBUTE_JOINT_INDEX.id {
+            primitive.set_attribute(&mut context.doc.0, &Semantic::Joints(0), Some(&accessor));
+        }
+
+        if id == Mesh::ATTRIBUTE_JOINT_WEIGHT.id {
+            primitive.set_attribute(&mut context.doc.0, &Semantic::Weights(0), Some(&accessor));
+        }
     });
 
     Ok(primitive)

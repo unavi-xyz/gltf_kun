@@ -1,9 +1,10 @@
-use gltf::json::mesh::{Mode, Semantic};
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 
 use crate::extension::ExtensionProperty;
 
 use super::{accessor::Accessor, Edge, GltfGraph, Weight};
+
+pub use gltf::json::mesh::{Mode, Semantic};
 
 #[derive(Debug)]
 pub struct PrimitiveWeight {
