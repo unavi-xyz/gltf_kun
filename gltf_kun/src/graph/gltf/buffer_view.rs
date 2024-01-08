@@ -90,8 +90,8 @@ impl BufferView {
     pub fn slice<'a>(&'a self, graph: &'a GltfGraph, buffer: &'a Buffer) -> Option<&'a [u8]> {
         let buffer = buffer.get(graph);
 
-        let start = self.get(graph).byte_offset as usize;
-        let end = start + self.get(graph).byte_length as usize;
+        let start = self.get(graph).byte_offset;
+        let end = start + self.get(graph).byte_length;
 
         Some(&buffer.blob[start..end])
     }

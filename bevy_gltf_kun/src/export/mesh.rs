@@ -136,9 +136,9 @@ fn export_node_mesh(
 fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> Result<primitive::Primitive> {
     let primitive = primitive::Primitive::new(&mut context.doc.0);
 
-    mesh.attributes().for_each(|(id, values)| {
+    mesh.attributes().for_each(|(_id, values)| {
         let array = vertex_to_accessor(values);
-        let accessor = accessor::Accessor::from_array(&mut context.doc.0, array, None);
+        let _accessor = accessor::Accessor::from_array(&mut context.doc.0, array, None);
     });
 
     Ok(primitive)
