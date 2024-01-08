@@ -1,3 +1,6 @@
+// Round-trip example of loading a glTF into Bevy, exporting it, and loading it again.
+// This is useful for ensuring that both the importer and exporter are working correctly.
+
 use bevy::prelude::*;
 use bevy_gltf_kun::{
     export::{Export, ExportResult},
@@ -61,11 +64,32 @@ fn export_scene(
     }
 }
 
-fn read_export_result(mut events: ResMut<Events<ExportResult<GltfDocument>>>) {
+fn read_export_result(
+    mut commands: Commands,
+    mut events: ResMut<Events<ExportResult<GltfDocument>>>,
+    scenes: Query<Entity, With<Handle<Scene>>>,
+    asset_server: Res<AssetServer>,
+) {
     for event in events.drain() {
         if let Ok(doc) = event.result {
             let glb = GlbFormat::export(doc).expect("Failed export to GLB");
             info!("Got exported GLB! Size: {}", format_byte_length(&glb.0));
+
+            let path = std::path::Path::new("assets/temp");
+            info!("Writing GLB to {:?}", path);
+            std::fs::create_dir_all(path).expect("Failed to create temp directory");
+            std::fs::write(path.join("round_trip.glb"), glb.0).expect("Failed to write GLB");
+
+            // Now clear the scene and load the exported GLB.
+            for scene in scenes.iter() {
+                commands.entity(scene).despawn_recursive();
+            }
+
+            info!("Loading exported GLB...");
+            commands.spawn(SceneBundle {
+                scene: asset_server.load("temp/round_trip.glb#Scene0"),
+                ..default()
+            });
         }
     }
 }
