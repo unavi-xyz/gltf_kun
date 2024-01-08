@@ -1,7 +1,7 @@
 use anyhow::Result;
 use bevy::prelude::*;
 use gltf_kun::{
-    document::gltf::GltfDocument,
+    document::GltfDocument,
     graph::gltf::{buffer, buffer_view, mesh, node, primitive, scene, GltfGraph},
 };
 

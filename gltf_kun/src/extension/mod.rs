@@ -1,3 +1,7 @@
+//! glTF extensions.
+//!
+//! Each extension IO is implemented for a specfic [format](crate::io::format).
+
 use std::fmt::Debug;
 
 pub trait Extension {

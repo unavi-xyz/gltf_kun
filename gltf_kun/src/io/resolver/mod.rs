@@ -1,3 +1,5 @@
+//! Provides a way to resolve URIs to buffers during import.
+
 use anyhow::Result;
 
 pub mod file_resolver;

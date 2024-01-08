@@ -1,6 +1,6 @@
 use anyhow::Result;
 use bevy::prelude::*;
-use gltf_kun::document::gltf::GltfDocument;
+use gltf_kun::document::GltfDocument;
 
 pub mod export;
 

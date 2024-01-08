@@ -2,7 +2,7 @@ use std::borrow::Cow;
 
 use anyhow::Result;
 
-use crate::document::gltf::GltfDocument;
+use crate::document::GltfDocument;
 
 use super::{gltf::GltfFormat, ExportFormat, ImportFormat};
 

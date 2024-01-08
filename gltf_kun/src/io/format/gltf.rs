@@ -13,7 +13,7 @@ use petgraph::stable_graph::NodeIndex;
 use tracing::{info, warn};
 
 use crate::{
-    document::gltf::GltfDocument,
+    document::GltfDocument,
     graph::gltf::{
         accessor::Accessor,
         buffer::Buffer,
