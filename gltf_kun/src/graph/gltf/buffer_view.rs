@@ -43,7 +43,7 @@ impl From<Target> for usize {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct BufferView(pub NodeIndex);
 
 impl BufferView {

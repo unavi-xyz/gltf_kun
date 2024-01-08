@@ -32,7 +32,7 @@ impl Default for AccessorWeight {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Accessor(pub NodeIndex);
 
 impl Accessor {
@@ -94,7 +94,7 @@ impl Accessor {
         Some(byte_length as usize / element_size)
     }
 
-    pub fn max(&self, graph: &GltfGraph) -> Option<Vec<f32>> {
+    pub fn calc_max(&self, graph: &GltfGraph) -> Option<Vec<f32>> {
         let buffer_view = self.buffer_view(graph)?;
         let buffer = buffer_view.buffer(graph)?;
         let slice = buffer_view.slice(graph, &buffer)?;
@@ -120,7 +120,7 @@ impl Accessor {
         Some(max)
     }
 
-    pub fn min(&self, graph: &GltfGraph) -> Option<Vec<f32>> {
+    pub fn calc_min(&self, graph: &GltfGraph) -> Option<Vec<f32>> {
         let buffer_view = self.buffer_view(graph)?;
         let buffer = buffer_view.buffer(graph)?;
         let slice = buffer_view.slice(graph, &buffer)?;

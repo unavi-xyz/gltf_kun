@@ -383,8 +383,8 @@ impl ExportFormat<GltfDocument> for GltfFormat {
                 };
 
                 let count = a.count(&doc.0)? as u64;
-                let max = a.max(&doc.0).map(|v| v.into());
-                let min = a.min(&doc.0).map(|v| v.into());
+                let max = a.calc_max(&doc.0).map(|v| v.into());
+                let min = a.calc_min(&doc.0).map(|v| v.into());
 
                 let weight = a.get_mut(&mut doc.0);
 

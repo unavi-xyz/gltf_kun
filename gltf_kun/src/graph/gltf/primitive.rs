@@ -24,7 +24,7 @@ impl Default for PrimitiveWeight {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Primitive(pub NodeIndex);
 
 impl Primitive {

@@ -11,7 +11,7 @@ pub struct SceneWeight {
     pub extensions: Vec<Box<dyn ExtensionProperty>>,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Scene(pub NodeIndex);
 
 impl Scene {

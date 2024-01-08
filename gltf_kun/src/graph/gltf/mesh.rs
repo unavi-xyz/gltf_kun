@@ -13,7 +13,7 @@ pub struct MeshWeight {
     pub weights: Vec<f32>,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Mesh(pub NodeIndex);
 
 impl Mesh {

@@ -30,7 +30,7 @@ impl Default for NodeWeight {
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Node(pub NodeIndex);
 
 impl Node {
