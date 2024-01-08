@@ -2,7 +2,7 @@ use anyhow::Result;
 use bevy::prelude::*;
 use gltf_kun::{
     document::GltfDocument,
-    graph::gltf::{buffer, buffer_view, mesh, node, primitive, scene, GltfGraph},
+    graph::gltf::{node, scene, GltfGraph},
 };
 
 use crate::{Export, ExportResult};
@@ -11,7 +11,7 @@ pub fn export_gltf(
     mut events: ResMut<Events<Export<GltfDocument>>>,
     mut writer: EventWriter<ExportResult<GltfDocument>>,
     scenes: Query<Option<&Children>, With<Handle<Scene>>>,
-    meshes: Query<(Entity, &Handle<Mesh>)>,
+    _meshes: Query<(Entity, &Handle<Mesh>)>,
     nodes: Query<(&Transform, Option<&Children>)>,
     names: Query<&Name>,
 ) {

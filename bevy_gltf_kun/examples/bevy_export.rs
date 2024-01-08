@@ -57,7 +57,7 @@ fn export_scene(
 
 fn read_export_result(mut reader: EventReader<ExportResult<GltfDocument>>) {
     for result in reader.read() {
-        if let Ok(doc) = &result.result {
+        if let Ok(_doc) = &result.result {
             info!("Exported document!");
         }
     }
