@@ -11,12 +11,14 @@ pub fn export_meshes(
     In(mut context): In<ExportContext>,
     mesh_assets: Res<Assets<Mesh>>,
     meshes: Query<(&Handle<Mesh>, Option<&Name>)>,
-) {
+) -> ExportContext {
     context.doc.scenes().iter().for_each(|scene| {
         scene.nodes(&context.doc.0).iter().for_each(|node| {
             export_node_mesh(&mut context, &mesh_assets, &meshes, *node);
         })
-    })
+    });
+
+    context
 }
 
 fn export_node_mesh(

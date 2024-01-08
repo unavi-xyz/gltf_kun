@@ -3,7 +3,10 @@ use bevy_gltf_kun::{
     export::{Export, ExportResult},
     GltfKunPlugin,
 };
-use gltf_kun::document::GltfDocument;
+use gltf_kun::{
+    document::GltfDocument,
+    io::format::{glb::GlbFormat, ExportFormat},
+};
 
 fn main() {
     App::new()
@@ -58,10 +61,30 @@ fn export_scene(
     }
 }
 
-fn read_export_result(mut reader: EventReader<ExportResult<GltfDocument>>) {
-    for result in reader.read() {
-        if let Ok(_doc) = &result.result {
-            info!("Exported document!");
+fn read_export_result(mut events: ResMut<Events<ExportResult<GltfDocument>>>) {
+    for event in events.drain() {
+        if let Ok(doc) = event.result {
+            let glb = GlbFormat::export(doc).expect("Failed export to GLB");
+            info!("Got exported GLB! Size: {}", format_byte_length(&glb.0));
         }
     }
+}
+
+fn format_byte_length(bytes: &[u8]) -> String {
+    let len = bytes.len() as f32;
+    let mut unit = "B";
+
+    if len > 1024.0 {
+        unit = "KB";
+    }
+
+    if len > 1024.0 * 1024.0 {
+        unit = "MB";
+    }
+
+    if len > 1024.0 * 1024.0 * 1024.0 {
+        unit = "GB";
+    }
+
+    format!("{:.2} {}", len, unit)
 }
