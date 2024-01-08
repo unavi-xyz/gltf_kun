@@ -43,7 +43,6 @@ impl GltfDocument {
             .map(Accessor)
             .collect()
     }
-
     pub fn buffers(&self) -> Vec<Buffer> {
         self.0
             .node_indices()
@@ -51,7 +50,6 @@ impl GltfDocument {
             .map(Buffer)
             .collect()
     }
-
     pub fn buffer_views(&self) -> Vec<BufferView> {
         self.0
             .node_indices()
@@ -59,7 +57,6 @@ impl GltfDocument {
             .map(BufferView)
             .collect()
     }
-
     pub fn meshes(&self) -> Vec<Mesh> {
         self.0
             .node_indices()
@@ -67,7 +64,6 @@ impl GltfDocument {
             .map(Mesh)
             .collect()
     }
-
     pub fn nodes(&self) -> Vec<Node> {
         self.0
             .node_indices()
@@ -75,7 +71,6 @@ impl GltfDocument {
             .map(Node)
             .collect()
     }
-
     pub fn primitives(&self) -> Vec<Primitive> {
         self.0
             .node_indices()
@@ -83,7 +78,6 @@ impl GltfDocument {
             .map(Primitive)
             .collect()
     }
-
     pub fn scenes(&self) -> Vec<Scene> {
         self.0
             .node_indices()
@@ -91,32 +85,78 @@ impl GltfDocument {
             .map(Scene)
             .collect()
     }
+
+    pub fn create_accessor(&mut self) -> Accessor {
+        Accessor(self.0.add_node(Weight::Accessor(Default::default())))
+    }
+    pub fn create_buffer(&mut self) -> Buffer {
+        Buffer(self.0.add_node(Weight::Buffer(Default::default())))
+    }
+    pub fn create_buffer_view(&mut self) -> BufferView {
+        BufferView(self.0.add_node(Weight::BufferView(Default::default())))
+    }
+    pub fn create_mesh(&mut self) -> Mesh {
+        Mesh(self.0.add_node(Weight::Mesh(Default::default())))
+    }
+    pub fn create_node(&mut self) -> Node {
+        Node(self.0.add_node(Weight::Node(Default::default())))
+    }
+    pub fn create_primitive(&mut self) -> Primitive {
+        Primitive(self.0.add_node(Weight::Primitive(Default::default())))
+    }
+    pub fn create_scene(&mut self) -> Scene {
+        Scene(self.0.add_node(Weight::Scene(Default::default())))
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::graph::gltf::node::Node;
 
     #[test]
-    fn test_node() {
+    fn test_create() {
         let graph = GltfGraph::default();
         let mut doc = GltfDocument(graph);
 
-        let scene = Scene::new(&mut doc.0);
+        let accessor = doc.create_accessor();
+        assert_eq!(doc.accessors().len(), 1);
+        assert_eq!(doc.accessors()[0], accessor);
 
-        let scenes = doc.scenes();
-        assert_eq!(scenes.len(), 1);
-        assert_eq!(scenes[0], scene);
+        let buffer = doc.create_buffer();
+        assert_eq!(doc.buffers().len(), 1);
+        assert_eq!(doc.buffers()[0], buffer);
 
+        let buffer_view = doc.create_buffer_view();
+        assert_eq!(doc.buffer_views().len(), 1);
+        assert_eq!(doc.buffer_views()[0], buffer_view);
+
+        let mesh = doc.create_mesh();
+        assert_eq!(doc.meshes().len(), 1);
+        assert_eq!(doc.meshes()[0], mesh);
+
+        let node = doc.create_node();
+        assert_eq!(doc.nodes().len(), 1);
+        assert_eq!(doc.nodes()[0], node);
+
+        let primitive = doc.create_primitive();
+        assert_eq!(doc.primitives().len(), 1);
+        assert_eq!(doc.primitives()[0], primitive);
+
+        let scene = doc.create_scene();
+        assert_eq!(doc.scenes().len(), 1);
+        assert_eq!(doc.scenes()[0], scene);
+    }
+
+    #[test]
+    fn test_default_scene() {
+        let graph = GltfGraph::default();
+        let mut doc = GltfDocument(graph);
+
+        let scene = doc.create_scene();
         doc.set_default_scene(Some(&scene));
         assert_eq!(doc.default_scene(), Some(scene));
 
-        let node = Node::new(&mut doc.0);
-        scene.add_node(&mut doc.0, &node);
-
-        let nodes = doc.nodes();
-        assert_eq!(nodes.len(), 1);
-        assert_eq!(nodes[0], node);
+        doc.set_default_scene(None);
+        assert_eq!(doc.default_scene(), None);
     }
 }
