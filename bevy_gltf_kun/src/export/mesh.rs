@@ -1,8 +1,8 @@
 use anyhow::Result;
 use bevy::prelude::*;
-use gltf_kun::graph::gltf::{mesh, node, primitive};
+use gltf_kun::graph::gltf::{accessor, mesh, node, primitive};
 
-use super::{CachedMesh, ExportContext};
+use super::{vertex_to_accessor::vertex_to_accessor, CachedMesh, ExportContext};
 
 pub fn export_meshes(
     In(mut context): In<ExportContext>,
@@ -134,8 +134,12 @@ fn export_node_mesh(
 }
 
 fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> Result<primitive::Primitive> {
-    let mut primitive = primitive::Primitive::new(&mut context.doc.0);
-    let weight = primitive.get_mut(&mut context.doc.0);
+    let primitive = primitive::Primitive::new(&mut context.doc.0);
+
+    mesh.attributes().for_each(|(id, values)| {
+        let array = vertex_to_accessor(values);
+        let accessor = accessor::Accessor::from_array(&mut context.doc.0, array, None);
+    });
 
     Ok(primitive)
 }

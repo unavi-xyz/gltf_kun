@@ -10,7 +10,7 @@ pub struct BufferWeight {
     pub extras: gltf::json::Extras,
     pub extensions: Vec<Box<dyn ExtensionProperty>>,
 
-    pub byte_length: u64,
+    pub byte_length: usize,
     pub uri: Option<String>,
 
     pub blob: Vec<u8>,

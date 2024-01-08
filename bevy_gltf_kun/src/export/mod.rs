@@ -7,6 +7,7 @@ use gltf_kun::{document::GltfDocument, graph::gltf};
 pub mod mesh;
 pub mod node;
 pub mod scene;
+pub mod vertex_to_accessor;
 
 pub struct GltfExportPlugin;
 

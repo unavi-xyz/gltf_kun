@@ -10,8 +10,8 @@ pub struct BufferViewWeight {
     pub extras: gltf::json::Extras,
     pub extensions: Vec<Box<dyn ExtensionProperty>>,
 
-    pub byte_length: u64,
-    pub byte_offset: u64,
+    pub byte_length: usize,
+    pub byte_offset: usize,
     pub byte_stride: Option<usize>,
     pub target: Option<Target>,
 }

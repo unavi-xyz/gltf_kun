@@ -68,7 +68,7 @@ impl ImportFormat<GltfDocument> for GltfFormat {
                 weight.name = b.name.take();
                 weight.extras = b.extras.take();
 
-                weight.byte_length = b.byte_length.0;
+                weight.byte_length = b.byte_length.0 as usize;
                 weight.uri = b.uri.take();
 
                 if let Some(uri) = weight.uri.as_ref() {
@@ -101,8 +101,8 @@ impl ImportFormat<GltfDocument> for GltfFormat {
                 weight.name = v.name.take();
                 weight.extras = v.extras.take();
 
-                weight.byte_length = v.byte_length.0;
-                weight.byte_offset = v.byte_offset.map(|o| o.0).unwrap_or_default();
+                weight.byte_length = v.byte_length.0 as usize;
+                weight.byte_offset = v.byte_offset.map(|o| o.0).unwrap_or_default() as usize;
                 weight.byte_stride = v.byte_stride.map(|s| s.0);
 
                 weight.target = v.target.and_then(|t| match t {

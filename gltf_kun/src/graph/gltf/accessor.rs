@@ -1,9 +1,10 @@
-use gltf::{accessor::DataType, json::accessor::Type};
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 
 use crate::extension::ExtensionProperty;
 
-use super::{buffer_view::BufferView, Edge, GltfGraph, Weight};
+use super::{buffer::Buffer, buffer_view::BufferView, Edge, GltfGraph, Weight};
+
+pub use gltf::{accessor::DataType, json::accessor::Type};
 
 #[derive(Debug)]
 pub struct AccessorWeight {
@@ -32,6 +33,13 @@ impl Default for AccessorWeight {
     }
 }
 
+pub struct AccessorArray {
+    pub vec: Vec<u8>,
+    pub data_type: DataType,
+    pub element_type: Type,
+    pub normalized: bool,
+}
+
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Accessor(pub NodeIndex);
 
@@ -39,6 +47,34 @@ impl Accessor {
     pub fn new(graph: &mut GltfGraph) -> Self {
         let index = graph.add_node(Weight::Accessor(AccessorWeight::default()));
         Self(index)
+    }
+
+    /// Creates a new [Accessor], [BufferView], and possibly [Buffer](super::buffer::Buffer) from the given array.
+    pub fn from_array(graph: &mut GltfGraph, array: AccessorArray, buffer: Option<Buffer>) -> Self {
+        let mut buffer = buffer.unwrap_or_else(|| Buffer::new(graph));
+
+        let mut buffer_view = BufferView::new(graph);
+        buffer_view.set_buffer(graph, Some(&buffer));
+
+        let mut accessor = Self::new(graph);
+        accessor.set_buffer_view(graph, Some(&buffer_view));
+
+        let accessor_weight = accessor.get_mut(graph);
+        accessor_weight.element_type = array.element_type;
+
+        let buffer_weight = buffer.get_mut(graph);
+        let prev_buffer_length = buffer_weight.byte_length;
+
+        let byte_length = accessor.element_size() * array.vec.len();
+        buffer_weight.byte_length += byte_length;
+        buffer_weight.blob.extend(array.vec);
+
+        let buffer_view_weight = buffer_view.get_mut(graph);
+        buffer_view_weight.byte_length = byte_length;
+        buffer_view_weight.byte_stride = Some(accessor.element_size());
+        buffer_view_weight.byte_offset = prev_buffer_length;
+
+        accessor
     }
 
     pub fn get<'a>(&'a self, graph: &'a GltfGraph) -> &'a AccessorWeight {
@@ -91,7 +127,7 @@ impl Accessor {
         let buffer_view = self.buffer_view(graph)?;
         let byte_length = buffer_view.get(graph).byte_length;
         let element_size = self.element_size();
-        Some(byte_length as usize / element_size)
+        Some(byte_length / element_size)
     }
 
     pub fn calc_max(&self, graph: &GltfGraph) -> Option<Vec<f32>> {
