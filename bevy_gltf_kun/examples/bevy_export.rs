@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy_gltf_kun::{Export, ExportResult, GltfKunPlugin};
+use gltf_kun::document::gltf::GltfDocument;
 
 fn main() {
     App::new()
@@ -34,7 +35,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 fn export_scene(
     scenes: Query<Entity, With<Handle<Scene>>>,
-    mut writer: EventWriter<Export>,
+    mut writer: EventWriter<Export<GltfDocument>>,
     mut exported: Local<bool>,
 ) {
     if *exported {
@@ -47,13 +48,14 @@ fn export_scene(
         writer.send(Export {
             scenes: vec![scene],
             default_scene: Some(scene),
+            ..default()
         });
 
         *exported = true;
     }
 }
 
-fn read_export_result(mut reader: EventReader<ExportResult>) {
+fn read_export_result(mut reader: EventReader<ExportResult<GltfDocument>>) {
     for result in reader.read() {
         if let Ok(doc) = &result.result {
             info!("Exported document!");
