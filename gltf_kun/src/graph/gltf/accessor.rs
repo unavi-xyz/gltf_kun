@@ -67,7 +67,11 @@ impl Accessor {
 
         let byte_length = accessor.element_size() * array.vec.len();
         buffer_weight.byte_length += byte_length;
-        buffer_weight.blob.extend(array.vec);
+
+        match buffer_weight.blob {
+            Some(ref mut blob) => blob.extend(array.vec),
+            None => buffer_weight.blob = Some(array.vec),
+        }
 
         let buffer_view_weight = buffer_view.get_mut(graph);
         buffer_view_weight.byte_length = byte_length;

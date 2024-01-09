@@ -13,7 +13,7 @@ pub struct BufferWeight {
     pub byte_length: usize,
     pub uri: Option<String>,
 
-    pub blob: Vec<u8>,
+    pub blob: Option<Vec<u8>>,
 }
 
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -57,7 +57,7 @@ mod tests {
         buffer.get_mut(&mut graph).uri = Some("Test".to_string());
         assert_eq!(buffer.get(&graph).uri, Some("Test".to_string()));
 
-        buffer.get_mut(&mut graph).blob = vec![0, 1, 2, 3];
-        assert_eq!(buffer.get(&graph).blob, vec![0, 1, 2, 3]);
+        buffer.get_mut(&mut graph).blob = Some(vec![0, 1, 2, 3]);
+        assert_eq!(buffer.get(&graph).blob, Some(vec![0, 1, 2, 3]));
     }
 }

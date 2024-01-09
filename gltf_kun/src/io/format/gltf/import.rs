@@ -43,7 +43,7 @@ impl ImportFormat<GltfDocument> for GltfFormat {
 
                     if let Some(resolver) = self.resolver.as_ref() {
                         if let Ok(blob) = resolver.resolve(uri) {
-                            weight.blob = blob;
+                            weight.blob = Some(blob);
                         } else {
                             warn!("Failed to resolve URI: {}", uri);
                         }

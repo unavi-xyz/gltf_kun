@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use anyhow::Result;
 
 use crate::{
@@ -12,7 +14,7 @@ pub mod import;
 
 pub struct GltfFormat {
     pub json: gltf::json::Root,
-    pub blob: Option<Vec<u8>>,
+    pub resources: HashMap<String, Vec<u8>>,
     pub resolver: Option<Box<dyn Resolver>>,
 }
 
@@ -27,8 +29,8 @@ impl GltfFormat {
 
         GltfFormat {
             json,
-            blob: None,
             resolver: Some(Box::new(resolver)),
+            resources: HashMap::new(),
         }
         .import()
     }

@@ -1,6 +1,6 @@
-use std::borrow::Cow;
+use std::{borrow::Cow, collections::HashMap};
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 
 use crate::document::GltfDocument;
 
@@ -27,10 +27,16 @@ impl ImportFormat<GltfDocument> for GlbFormat {
         let json = serde_json::from_slice(&glb.json)?;
         let blob = glb.bin.take().map(|blob| blob.into_owned());
 
+        let mut resources = HashMap::new();
+
+        if let Some(blob) = blob {
+            resources.insert("bin".to_string(), blob);
+        }
+
         GltfFormat {
             json,
-            blob,
             resolver: None,
+            resources,
         }
         .import()
     }
@@ -38,9 +44,14 @@ impl ImportFormat<GltfDocument> for GlbFormat {
 
 impl ExportFormat<GltfDocument> for GlbFormat {
     fn export(doc: GltfDocument) -> Result<Box<Self>> {
-        let gltf = GltfFormat::export(doc)?;
+        if doc.buffers().len() > 1 {
+            // TODO: Merge multiple buffers into one (maybe using a transform function)
+            return Err(anyhow!("GLB only supports one buffer"));
+        }
 
+        let gltf = GltfFormat::export(doc)?;
         let json_bin = serde_json::to_vec(&gltf.json)?;
+        let resource = gltf.resources.iter().find(|_| true);
 
         let glb = gltf::Glb {
             header: gltf::binary::Header {
@@ -49,7 +60,7 @@ impl ExportFormat<GltfDocument> for GlbFormat {
                 length: 0,
             },
             json: Cow::Owned(json_bin),
-            bin: gltf.blob.map(|blob| blob.into()),
+            bin: resource.map(|(_, blob)| blob.into()),
         };
 
         let bytes = glb.to_vec()?;

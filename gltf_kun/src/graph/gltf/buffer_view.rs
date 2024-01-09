@@ -93,7 +93,10 @@ impl BufferView {
         let start = self.get(graph).byte_offset;
         let end = start + self.get(graph).byte_length;
 
-        Some(&buffer.blob[start..end])
+        match &buffer.blob {
+            Some(blob) => Some(&blob[start..end]),
+            None => None,
+        }
     }
 }
 

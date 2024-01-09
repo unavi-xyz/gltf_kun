@@ -1,4 +1,4 @@
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 use anyhow::Result;
 use glam::Quat;
@@ -16,13 +16,15 @@ use super::GltfFormat;
 impl ExportFormat<GltfDocument> for GltfFormat {
     fn export(mut doc: GltfDocument) -> Result<Box<GltfFormat>> {
         let mut json = gltf::json::root::Root::default();
+        let mut resources = HashMap::new();
 
+        let mut accessor_idxs = BTreeMap::<NodeIndex, u32>::new();
         let mut buffer_idxs = BTreeMap::<NodeIndex, u32>::new();
         let mut buffer_view_idxs = BTreeMap::<NodeIndex, u32>::new();
-        let mut accessor_idxs = BTreeMap::<NodeIndex, u32>::new();
         let mut mesh_idxs = BTreeMap::<NodeIndex, u32>::new();
         let mut node_idxs = BTreeMap::<NodeIndex, u32>::new();
         let mut scene_idxs = BTreeMap::<NodeIndex, u32>::new();
+        let mut uris = BTreeMap::<NodeIndex, String>::new();
 
         // Create buffers
         json.buffers = doc
@@ -33,14 +35,40 @@ impl ExportFormat<GltfDocument> for GltfFormat {
                 buffer_idxs.insert(buffer.0, i as u32);
 
                 let weight = buffer.get_mut(&mut doc.0);
+                let name = weight.name.take();
+                let extras = weight.extras.take();
+                let byte_length = weight.byte_length.into();
+
+                let uri = match weight.uri.take() {
+                    Some(uri) => uri,
+                    None => {
+                        let mut idx = 0;
+                        loop {
+                            let uri = format!("buffer_{}.bin", idx);
+
+                            if !uris.values().any(|v| v == &uri) {
+                                break uri;
+                            }
+
+                            idx += 1;
+                        }
+                    }
+                };
+
+                weight
+                    .blob
+                    .take()
+                    .map(|blob| resources.insert(uri.clone(), blob));
+
+                uris.insert(buffer.0, uri.clone());
 
                 gltf::json::buffer::Buffer {
-                    name: weight.name.take(),
-                    extras: weight.extras.take(),
+                    name,
+                    extras,
                     extensions: None,
 
-                    byte_length: weight.byte_length.into(),
-                    uri: weight.uri.take(),
+                    byte_length,
+                    uri: Some(uri),
                 }
             })
             .collect::<Vec<_>>();
@@ -290,8 +318,8 @@ impl ExportFormat<GltfDocument> for GltfFormat {
 
         Ok(Box::new(GltfFormat {
             json,
-            blob: None,
             resolver: None,
+            resources,
         }))
     }
 }
