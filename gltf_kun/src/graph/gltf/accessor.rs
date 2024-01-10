@@ -133,8 +133,11 @@ impl Accessor {
     pub fn count(&self, graph: &GltfGraph) -> Option<usize> {
         let buffer_view = self.buffer_view(graph)?;
         let byte_length = buffer_view.get(graph).byte_length;
-        let element_size = self.get(graph).element_size();
-        Some(byte_length / element_size)
+
+        let weight = self.get(graph);
+        let element_size = weight.element_size();
+        let component_size = weight.component_type.size();
+        Some(byte_length / (element_size * component_size))
     }
 
     pub fn calc_max(&self, graph: &GltfGraph) -> Option<Vec<f32>> {
@@ -143,23 +146,11 @@ impl Accessor {
         let slice = buffer_view.slice(graph, &buffer)?;
 
         let count = self.count(graph)?;
-        let element_size = self.get(graph).element_size();
 
-        let mut max = vec![f32::MIN; element_size];
+        let weight = self.get(graph);
+        let element_size = weight.element_size();
 
-        for i in 0..count {
-            let start = i * element_size;
-            let end = start + element_size;
-
-            let slice = &slice[start..end];
-            let slice = slice.chunks_exact(4);
-
-            for (i, value) in slice.enumerate() {
-                let value = f32::from_le_bytes(value.try_into().unwrap());
-                max[i] = max[i].max(value);
-            }
-        }
-
+        let max = calc_max(slice, count, element_size, weight.component_type);
         Some(max)
     }
 
@@ -169,24 +160,263 @@ impl Accessor {
         let slice = buffer_view.slice(graph, &buffer)?;
 
         let count = self.count(graph)?;
-        let element_size = self.get(graph).element_size();
 
-        let mut min = vec![f32::MAX; element_size];
+        let weight = self.get(graph);
+        let element_size = weight.element_size();
 
-        for i in 0..count {
-            let start = i * element_size;
-            let end = start + element_size;
-
-            let slice = &slice[start..end];
-            let slice = slice.chunks_exact(4);
-
-            for (i, value) in slice.enumerate() {
-                let value = f32::from_le_bytes(value.try_into().unwrap());
-                min[i] = min[i].min(value);
-            }
-        }
-
+        let min = calc_min(slice, count, element_size, weight.component_type);
         Some(min)
+    }
+}
+
+fn calc_max(slice: &[u8], count: usize, element_size: usize, component_type: DataType) -> Vec<f32> {
+    match component_type {
+        DataType::F32 => {
+            let mut max = vec![f32::MIN; element_size];
+            let component_size = component_type.size();
+
+            for i in 0..count {
+                max.iter_mut().enumerate().for_each(|(j, v)| {
+                    let index = i * element_size + j;
+
+                    let value = f32::from_le_bytes(
+                        slice[index..index + component_size].try_into().unwrap(),
+                    );
+
+                    if value > *v {
+                        *v = value;
+                    }
+                });
+            }
+
+            max
+        }
+        DataType::U32 => {
+            let mut max = vec![u32::MIN; element_size];
+            let component_size = component_type.size();
+
+            for i in 0..count {
+                max.iter_mut().enumerate().for_each(|(j, v)| {
+                    let index = i * element_size + j;
+
+                    let value = u32::from_le_bytes(
+                        slice[index..index + component_size].try_into().unwrap(),
+                    );
+
+                    if value > *v {
+                        *v = value;
+                    }
+                });
+            }
+
+            max.iter().map(|&v| v as f32).collect()
+        }
+        DataType::U16 => {
+            let mut max = vec![u16::MIN; element_size];
+            let component_size = component_type.size();
+
+            for i in 0..count {
+                max.iter_mut().enumerate().for_each(|(j, v)| {
+                    let index = i * element_size + j;
+
+                    let value = u16::from_le_bytes(
+                        slice[index..index + component_size].try_into().unwrap(),
+                    );
+
+                    if value > *v {
+                        *v = value;
+                    }
+                });
+            }
+
+            max.iter().map(|&v| v as f32).collect()
+        }
+        DataType::U8 => {
+            let mut max = vec![u8::MIN; element_size];
+            let component_size = component_type.size();
+
+            for i in 0..count {
+                max.iter_mut().enumerate().for_each(|(j, v)| {
+                    let index = i * element_size + j;
+
+                    let value =
+                        u8::from_le_bytes(slice[index..index + component_size].try_into().unwrap());
+
+                    if value > *v {
+                        *v = value;
+                    }
+                });
+            }
+
+            max.iter().map(|&v| v as f32).collect()
+        }
+        DataType::I16 => {
+            let mut max = vec![i16::MIN; element_size];
+            let component_size = component_type.size();
+
+            for i in 0..count {
+                max.iter_mut().enumerate().for_each(|(j, v)| {
+                    let index = i * element_size + j;
+
+                    let value = i16::from_le_bytes(
+                        slice[index..index + component_size].try_into().unwrap(),
+                    );
+
+                    if value > *v {
+                        *v = value;
+                    }
+                });
+            }
+
+            max.iter().map(|&v| v as f32).collect()
+        }
+        DataType::I8 => {
+            let mut max = vec![i8::MIN; element_size];
+            let component_size = component_type.size();
+
+            for i in 0..count {
+                max.iter_mut().enumerate().for_each(|(j, v)| {
+                    let index = i * element_size + j;
+
+                    let value =
+                        i8::from_le_bytes(slice[index..index + component_size].try_into().unwrap());
+
+                    if value > *v {
+                        *v = value;
+                    }
+                });
+            }
+
+            max.iter().map(|&v| v as f32).collect()
+        }
+    }
+}
+
+pub fn calc_min(
+    slice: &[u8],
+    count: usize,
+    element_size: usize,
+    component_type: DataType,
+) -> Vec<f32> {
+    match component_type {
+        DataType::F32 => {
+            let mut min = vec![f32::MAX; element_size];
+            let component_size = component_type.size();
+
+            for i in 0..count {
+                min.iter_mut().enumerate().for_each(|(j, v)| {
+                    let index = i * element_size + j;
+
+                    let value = f32::from_le_bytes(
+                        slice[index..index + component_size].try_into().unwrap(),
+                    );
+
+                    if value < *v {
+                        *v = value;
+                    }
+                });
+            }
+
+            min
+        }
+        DataType::U32 => {
+            let mut min = vec![u32::MAX; element_size];
+            let component_size = component_type.size();
+
+            for i in 0..count {
+                min.iter_mut().enumerate().for_each(|(j, v)| {
+                    let index = i * element_size + j;
+
+                    let value = u32::from_le_bytes(
+                        slice[index..index + component_size].try_into().unwrap(),
+                    );
+
+                    if value < *v {
+                        *v = value;
+                    }
+                });
+            }
+
+            min.iter().map(|&v| v as f32).collect()
+        }
+        DataType::U16 => {
+            let mut min = vec![u16::MAX; element_size];
+            let component_size = component_type.size();
+
+            for i in 0..count {
+                min.iter_mut().enumerate().for_each(|(j, v)| {
+                    let index = i * element_size + j;
+
+                    let value = u16::from_le_bytes(
+                        slice[index..index + component_size].try_into().unwrap(),
+                    );
+
+                    if value < *v {
+                        *v = value;
+                    }
+                });
+            }
+
+            min.iter().map(|&v| v as f32).collect()
+        }
+        DataType::U8 => {
+            let mut min = vec![u8::MAX; element_size];
+            let component_size = std::mem::size_of::<u8>();
+
+            for i in 0..count {
+                min.iter_mut().enumerate().for_each(|(j, v)| {
+                    let index = i * element_size + j;
+
+                    let value =
+                        u8::from_le_bytes(slice[index..index + component_size].try_into().unwrap());
+
+                    if value < *v {
+                        *v = value;
+                    }
+                });
+            }
+
+            min.iter().map(|&v| v as f32).collect()
+        }
+        DataType::I16 => {
+            let mut min = vec![i16::MAX; element_size];
+            let component_size = std::mem::size_of::<u8>();
+
+            for i in 0..count {
+                min.iter_mut().enumerate().for_each(|(j, v)| {
+                    let index = i * element_size + j;
+
+                    let value = i16::from_le_bytes(
+                        slice[index..index + component_size].try_into().unwrap(),
+                    );
+
+                    if value < *v {
+                        *v = value;
+                    }
+                });
+            }
+
+            min.iter().map(|&v| v as f32).collect()
+        }
+        DataType::I8 => {
+            let mut min = vec![i8::MAX; element_size];
+            let component_size = std::mem::size_of::<u8>();
+
+            for i in 0..count {
+                min.iter_mut().enumerate().for_each(|(j, v)| {
+                    let index = i * element_size + j;
+
+                    let value =
+                        i8::from_le_bytes(slice[index..index + component_size].try_into().unwrap());
+
+                    if value < *v {
+                        *v = value;
+                    }
+                });
+            }
+
+            min.iter().map(|&v| v as f32).collect()
+        }
     }
 }
 
