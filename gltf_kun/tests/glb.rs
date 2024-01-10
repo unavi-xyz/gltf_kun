@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use gltf_kun::io::format::{glb::GlbFormat, ExportFormat};
 use tracing_test::traced_test;
 
@@ -5,19 +7,29 @@ const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 const ASSETS_DIR: &str = "../assets";
 const MODEL: &str = "BoxTextured.glb";
 
+#[test]
 #[traced_test]
 fn main() {
-    let path = format!("{}/{}/{}", CARGO_MANIFEST_DIR, ASSETS_DIR, MODEL);
+    let assets = Path::new(CARGO_MANIFEST_DIR).join(ASSETS_DIR);
+    let path = assets.join(MODEL);
+
+    // Import / export
     let doc = GlbFormat::import_file(&path).expect("Failed to import glTF");
     let out = GlbFormat::export(doc).expect("Failed to export glTF");
+    let out_bytes = out.0.clone();
 
-    let (doc, _, _) = gltf::import_slice(&out.0).expect("Failed to import exported glb");
+    // Write to file
+    let path = assets.join("temp/glb/model.glb");
+    std::fs::create_dir_all(path.parent().unwrap()).expect("Failed to create directory");
+    std::fs::write(&path, out.0).expect("Failed to write glb to file");
 
-    assert!(doc.accessors().len() > 0);
-    assert!(doc.buffers().len() > 0);
-    assert!(doc.images().len() > 0);
-    assert!(doc.materials().len() > 0);
-    assert!(doc.meshes().len() > 0);
-    assert!(doc.nodes().len() > 0);
-    assert!(doc.scenes().len() > 0);
+    // Validate using gltf-rs
+    gltf::import(&path).expect("Failed to read exported glb");
+
+    // Import written file
+    let doc = GlbFormat::import_file(&path).expect("Failed to import glTF");
+    let out = GlbFormat::export(doc).expect("Failed to export glTF");
+    let out_bytes2 = out.0.clone();
+
+    assert_eq!(out_bytes, out_bytes2);
 }

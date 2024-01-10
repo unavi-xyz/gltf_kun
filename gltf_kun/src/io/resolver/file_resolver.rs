@@ -23,6 +23,7 @@ impl Resolver for FileResolver {
         let mut file = File::open(path)?;
         let mut buf = Vec::new();
         file.read_to_end(&mut buf)?;
+
         Ok(buf)
     }
 }

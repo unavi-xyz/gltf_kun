@@ -18,6 +18,20 @@ pub struct AccessorWeight {
     pub normalized: bool,
 }
 
+impl AccessorWeight {
+    pub fn element_size(&self) -> usize {
+        match self.element_type {
+            Type::Scalar => 1,
+            Type::Vec2 => 2,
+            Type::Vec3 => 3,
+            Type::Vec4 => 4,
+            Type::Mat2 => 4,
+            Type::Mat3 => 9,
+            Type::Mat4 => 16,
+        }
+    }
+}
+
 impl Default for AccessorWeight {
     fn default() -> Self {
         Self {
@@ -61,11 +75,12 @@ impl Accessor {
 
         let accessor_weight = accessor.get_mut(graph);
         accessor_weight.element_type = array.element_type;
+        let element_size = accessor_weight.element_size();
 
         let buffer_weight = buffer.get_mut(graph);
         let prev_buffer_length = buffer_weight.byte_length;
 
-        let byte_length = accessor.element_size() * array.vec.len();
+        let byte_length = element_size * array.vec.len();
         buffer_weight.byte_length += byte_length;
 
         match buffer_weight.blob {
@@ -75,7 +90,7 @@ impl Accessor {
 
         let buffer_view_weight = buffer_view.get_mut(graph);
         buffer_view_weight.byte_length = byte_length;
-        buffer_view_weight.byte_stride = Some(accessor.element_size());
+        buffer_view_weight.byte_stride = Some(element_size);
         buffer_view_weight.byte_offset = prev_buffer_length;
 
         accessor
@@ -115,22 +130,10 @@ impl Accessor {
         }
     }
 
-    pub fn element_size(&self) -> usize {
-        match self.get(&GltfGraph::new()).element_type {
-            Type::Scalar => 1,
-            Type::Vec2 => 2,
-            Type::Vec3 => 3,
-            Type::Vec4 => 4,
-            Type::Mat2 => 4,
-            Type::Mat3 => 9,
-            Type::Mat4 => 16,
-        }
-    }
-
     pub fn count(&self, graph: &GltfGraph) -> Option<usize> {
         let buffer_view = self.buffer_view(graph)?;
         let byte_length = buffer_view.get(graph).byte_length;
-        let element_size = self.element_size();
+        let element_size = self.get(graph).element_size();
         Some(byte_length / element_size)
     }
 
@@ -140,7 +143,7 @@ impl Accessor {
         let slice = buffer_view.slice(graph, &buffer)?;
 
         let count = self.count(graph)?;
-        let element_size = self.element_size();
+        let element_size = self.get(graph).element_size();
 
         let mut max = vec![f32::MIN; element_size];
 
@@ -166,7 +169,7 @@ impl Accessor {
         let slice = buffer_view.slice(graph, &buffer)?;
 
         let count = self.count(graph)?;
-        let element_size = self.element_size();
+        let element_size = self.get(graph).element_size();
 
         let mut min = vec![f32::MAX; element_size];
 

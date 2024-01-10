@@ -1,7 +1,7 @@
 use anyhow::Result;
 use glam::Quat;
 use gltf::json::{accessor::ComponentType, validation::Checked};
-use tracing::{info, warn};
+use tracing::{debug, warn};
 
 use crate::{
     document::GltfDocument,
@@ -39,10 +39,9 @@ impl ImportFormat<GltfDocument> for GltfFormat {
                 weight.uri = b.uri.take();
 
                 if let Some(uri) = weight.uri.as_ref() {
-                    info!("Resolving URI: {}", uri);
-
                     if let Some(resolver) = self.resolver.as_ref() {
                         if let Ok(blob) = resolver.resolve(uri) {
+                            debug!("Resolved buffer: {} ({} bytes)", uri, blob.len());
                             weight.blob = Some(blob);
                         } else {
                             warn!("Failed to resolve URI: {}", uri);
@@ -103,7 +102,7 @@ impl ImportFormat<GltfDocument> for GltfFormat {
                 weight.extras = a.extras.take();
                 weight.normalized = a.normalized;
 
-                let _component_type = match a.component_type {
+                weight.component_type = match a.component_type {
                     Checked::Valid(component_type) => component_type.0,
                     Checked::Invalid => ComponentType::F32,
                 };

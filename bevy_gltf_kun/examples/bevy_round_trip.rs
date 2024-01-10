@@ -8,7 +8,7 @@ use bevy_gltf_kun::{
 };
 use gltf_kun::{
     document::GltfDocument,
-    io::format::{glb::GlbFormat, ExportFormat},
+    io::format::{gltf::GltfFormat, ExportFormat},
 };
 
 fn main() {
@@ -22,6 +22,7 @@ fn main() {
         ))
         .add_systems(Startup, setup)
         .add_systems(Update, (export_scene, read_export_result))
+        .init_resource::<ExportTimer>()
         .run();
 }
 
@@ -42,12 +43,24 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 }
 
+#[derive(Resource)]
+struct ExportTimer(Timer);
+
+impl Default for ExportTimer {
+    fn default() -> Self {
+        Self(Timer::from_seconds(2.0, TimerMode::Once))
+    }
+}
+
 fn export_scene(
     scenes: Query<Entity, With<Handle<Scene>>>,
     mut writer: EventWriter<Export<GltfDocument>>,
-    mut exported: Local<bool>,
+    mut timer: ResMut<ExportTimer>,
+    time: Res<Time>,
 ) {
-    if *exported {
+    timer.0.tick(time.delta());
+
+    if !timer.0.just_finished() {
         return;
     }
 
@@ -59,8 +72,6 @@ fn export_scene(
             default_scene: Some(scene),
             ..default()
         });
-
-        *exported = true;
     }
 }
 
@@ -72,44 +83,20 @@ fn read_export_result(
 ) {
     for event in events.drain() {
         if let Ok(doc) = event.result {
-            let glb = GlbFormat::export(doc).expect("Failed export to GLB");
-            info!("Got exported GLB! Size: {}", format_byte_length(&glb.0));
+            let gltf = GltfFormat::export(doc).expect("Failed export to GLB");
+            let json = serde_json::to_string_pretty(&gltf.json).expect("Failed to serialize JSON");
+            info!("Got exported gltf:\n{}", json);
 
-            let dir = std::path::Path::new("assets/temp");
-            std::fs::create_dir_all(dir).expect("Failed to create temp directory");
-            let path = dir.join("round_trip.glb");
-            info!("Writing GLB to {:?}", path);
-            std::fs::write(path, glb.0).expect("Failed to write GLB");
-
-            // Now clear the scene and load the exported GLB.
-            for scene in scenes.iter() {
-                commands.entity(scene).despawn_recursive();
-            }
-
-            info!("Loading exported GLB...");
-            commands.spawn(SceneBundle {
-                scene: asset_server.load("temp/round_trip.glb#Scene0"),
-                ..default()
-            });
+            // // Now clear the scene and load the exported GLB.
+            // for scene in scenes.iter() {
+            //     commands.entity(scene).despawn_recursive();
+            // }
+            //
+            // info!("Loading exported GLB...");
+            // commands.spawn(SceneBundle {
+            //     scene: asset_server.load(format!("{}#Scene0", path)),
+            //     ..default()
+            // });
         }
     }
-}
-
-fn format_byte_length(bytes: &[u8]) -> String {
-    let len = bytes.len() as f32;
-    let mut unit = "B";
-
-    if len > 1024.0 {
-        unit = "KB";
-    }
-
-    if len > 1024.0 * 1024.0 {
-        unit = "MB";
-    }
-
-    if len > 1024.0 * 1024.0 * 1024.0 {
-        unit = "GB";
-    }
-
-    format!("{:.2} {}", len, unit)
 }

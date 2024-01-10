@@ -1,4 +1,4 @@
-use std::{borrow::Cow, collections::HashMap};
+use std::{borrow::Cow, collections::HashMap, path::Path};
 
 use anyhow::{anyhow, Result};
 
@@ -14,7 +14,7 @@ impl GlbFormat {
         GlbFormat(bytes.to_vec()).import()
     }
 
-    pub fn import_file(path: &str) -> Result<GltfDocument> {
+    pub fn import_file(path: &Path) -> Result<GltfDocument> {
         let bytes = std::fs::read(path)?;
         GlbFormat::import_slice(&bytes)
     }

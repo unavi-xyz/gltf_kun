@@ -610,6 +610,7 @@ dependencies = [
  "bevy",
  "glam 0.25.0",
  "gltf_kun",
+ "serde_json",
 ]
 
 [[package]]

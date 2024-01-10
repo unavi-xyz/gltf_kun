@@ -26,6 +26,17 @@ impl ExportFormat<GltfDocument> for GltfFormat {
         let mut scene_idxs = BTreeMap::<NodeIndex, u32>::new();
         let mut uris = BTreeMap::<NodeIndex, String>::new();
 
+        // Calculate min/max before exporting buffer blobs
+        let mut min_max = doc
+            .accessors()
+            .iter()
+            .map(|a| {
+                let max = a.calc_max(&doc.0).map(|v| v.into());
+                let min = a.calc_min(&doc.0).map(|v| v.into());
+                (min, max)
+            })
+            .collect::<Vec<_>>();
+
         // Create buffers
         json.buffers = doc
             .buffers()
@@ -140,10 +151,9 @@ impl ExportFormat<GltfDocument> for GltfFormat {
                     }
                 };
 
+                let max = min_max[i].1.take();
+                let min = min_max[i].0.take();
                 let count = a.count(&doc.0)? as u64;
-                let max = a.calc_max(&doc.0).map(|v| v.into());
-                let min = a.calc_min(&doc.0).map(|v| v.into());
-
                 let weight = a.get_mut(&mut doc.0);
 
                 Some(gltf::json::accessor::Accessor {
