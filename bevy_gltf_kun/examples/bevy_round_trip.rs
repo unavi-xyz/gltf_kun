@@ -76,10 +76,10 @@ fn export_scene(
 }
 
 fn read_export_result(
-    mut commands: Commands,
+    _commands: Commands,
     mut events: ResMut<Events<ExportResult<GltfDocument>>>,
-    scenes: Query<Entity, With<Handle<Scene>>>,
-    asset_server: Res<AssetServer>,
+    _scenes: Query<Entity, With<Handle<Scene>>>,
+    _asset_server: Res<AssetServer>,
 ) {
     for event in events.drain() {
         if let Ok(doc) = event.result {
