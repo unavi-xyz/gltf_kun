@@ -177,7 +177,7 @@ fn calc_max(slice: &[u8], count: usize, element_size: usize, component_type: Dat
 
             for i in 0..count {
                 max.iter_mut().enumerate().for_each(|(j, v)| {
-                    let index = i * element_size + j;
+                    let index = i * element_size * component_size + j * component_size;
 
                     let value = f32::from_le_bytes(
                         slice[index..index + component_size].try_into().unwrap(),
@@ -197,7 +197,7 @@ fn calc_max(slice: &[u8], count: usize, element_size: usize, component_type: Dat
 
             for i in 0..count {
                 max.iter_mut().enumerate().for_each(|(j, v)| {
-                    let index = i * element_size + j;
+                    let index = i * element_size * component_size + j * component_size;
 
                     let value = u32::from_le_bytes(
                         slice[index..index + component_size].try_into().unwrap(),
@@ -217,7 +217,7 @@ fn calc_max(slice: &[u8], count: usize, element_size: usize, component_type: Dat
 
             for i in 0..count {
                 max.iter_mut().enumerate().for_each(|(j, v)| {
-                    let index = i * element_size + j;
+                    let index = i * element_size * component_size + j * component_size;
 
                     let value = u16::from_le_bytes(
                         slice[index..index + component_size].try_into().unwrap(),
@@ -237,7 +237,7 @@ fn calc_max(slice: &[u8], count: usize, element_size: usize, component_type: Dat
 
             for i in 0..count {
                 max.iter_mut().enumerate().for_each(|(j, v)| {
-                    let index = i * element_size + j;
+                    let index = i * element_size * component_size + j * component_size;
 
                     let value =
                         u8::from_le_bytes(slice[index..index + component_size].try_into().unwrap());
@@ -256,7 +256,7 @@ fn calc_max(slice: &[u8], count: usize, element_size: usize, component_type: Dat
 
             for i in 0..count {
                 max.iter_mut().enumerate().for_each(|(j, v)| {
-                    let index = i * element_size + j;
+                    let index = i * element_size * component_size + j * component_size;
 
                     let value = i16::from_le_bytes(
                         slice[index..index + component_size].try_into().unwrap(),
@@ -276,7 +276,7 @@ fn calc_max(slice: &[u8], count: usize, element_size: usize, component_type: Dat
 
             for i in 0..count {
                 max.iter_mut().enumerate().for_each(|(j, v)| {
-                    let index = i * element_size + j;
+                    let index = i * element_size * component_size + j * component_size;
 
                     let value =
                         i8::from_le_bytes(slice[index..index + component_size].try_into().unwrap());
@@ -305,7 +305,7 @@ pub fn calc_min(
 
             for i in 0..count {
                 min.iter_mut().enumerate().for_each(|(j, v)| {
-                    let index = i * element_size + j;
+                    let index = i * element_size * component_size + j * component_size;
 
                     let value = f32::from_le_bytes(
                         slice[index..index + component_size].try_into().unwrap(),
@@ -325,7 +325,7 @@ pub fn calc_min(
 
             for i in 0..count {
                 min.iter_mut().enumerate().for_each(|(j, v)| {
-                    let index = i * element_size + j;
+                    let index = i * element_size * component_size + j * component_size;
 
                     let value = u32::from_le_bytes(
                         slice[index..index + component_size].try_into().unwrap(),
@@ -345,7 +345,7 @@ pub fn calc_min(
 
             for i in 0..count {
                 min.iter_mut().enumerate().for_each(|(j, v)| {
-                    let index = i * element_size + j;
+                    let index = i * element_size * component_size + j * component_size;
 
                     let value = u16::from_le_bytes(
                         slice[index..index + component_size].try_into().unwrap(),
@@ -365,7 +365,7 @@ pub fn calc_min(
 
             for i in 0..count {
                 min.iter_mut().enumerate().for_each(|(j, v)| {
-                    let index = i * element_size + j;
+                    let index = i * element_size * component_size + j * component_size;
 
                     let value =
                         u8::from_le_bytes(slice[index..index + component_size].try_into().unwrap());
@@ -384,7 +384,7 @@ pub fn calc_min(
 
             for i in 0..count {
                 min.iter_mut().enumerate().for_each(|(j, v)| {
-                    let index = i * element_size + j;
+                    let index = i * element_size * component_size + j * component_size;
 
                     let value = i16::from_le_bytes(
                         slice[index..index + component_size].try_into().unwrap(),
@@ -404,7 +404,7 @@ pub fn calc_min(
 
             for i in 0..count {
                 min.iter_mut().enumerate().for_each(|(j, v)| {
-                    let index = i * element_size + j;
+                    let index = i * element_size * component_size + j * component_size;
 
                     let value =
                         i8::from_le_bytes(slice[index..index + component_size].try_into().unwrap());
@@ -422,9 +422,59 @@ pub fn calc_min(
 
 #[cfg(test)]
 mod tests {
+    use tracing_test::traced_test;
+
     use super::*;
 
     #[test]
+    #[traced_test]
+    fn test_max_min_scalar() {
+        let vec: Vec<f32> = vec![1.0, 2.0, 3.0, 4.0];
+        let slice = vec.iter().flat_map(|v| v.to_le_bytes()).collect::<Vec<_>>();
+
+        let max = calc_max(&slice, vec.len(), 1, DataType::F32);
+        assert_eq!(max, vec![4.0]);
+
+        let min = calc_min(&slice, vec.len(), 1, DataType::F32);
+        assert_eq!(min, vec![1.0]);
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_max_min_vec2() {
+        let vec: Vec<[f32; 2]> = vec![[1.0, 4.0], [2.0, 3.0]];
+        let slice = vec
+            .iter()
+            .flat_map(|v| v.map(|v| v.to_le_bytes()))
+            .flatten()
+            .collect::<Vec<_>>();
+
+        let max = calc_max(&slice, vec.len(), 2, DataType::F32);
+        assert_eq!(max, vec![2.0, 4.0]);
+
+        let min = calc_min(&slice, vec.len(), 2, DataType::F32);
+        assert_eq!(min, vec![1.0, 3.0]);
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_max_min_vec3() {
+        let vec: Vec<[f32; 3]> = vec![[1.0, 4.0, 5.0], [2.0, 3.0, 6.0]];
+        let slice = vec
+            .iter()
+            .flat_map(|v| v.map(|v| v.to_le_bytes()))
+            .flatten()
+            .collect::<Vec<_>>();
+
+        let max = calc_max(&slice, vec.len(), 3, DataType::F32);
+        assert_eq!(max, vec![2.0, 4.0, 6.0]);
+
+        let min = calc_min(&slice, vec.len(), 3, DataType::F32);
+        assert_eq!(min, vec![1.0, 3.0, 5.0]);
+    }
+
+    #[test]
+    #[traced_test]
     fn test_accessor() {
         let mut graph = GltfGraph::new();
         let mut accessor = Accessor::new(&mut graph);
