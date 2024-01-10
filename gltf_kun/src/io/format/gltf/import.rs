@@ -1,7 +1,7 @@
 use anyhow::Result;
 use glam::Quat;
 use gltf::json::{accessor::ComponentType, validation::Checked};
-use tracing::{debug, warn};
+use tracing::{debug, error, warn};
 
 use crate::{
     document::GltfDocument,
@@ -104,7 +104,18 @@ impl ImportFormat<GltfDocument> for GltfFormat {
 
                 weight.component_type = match a.component_type {
                     Checked::Valid(component_type) => component_type.0,
-                    Checked::Invalid => ComponentType::F32,
+                    Checked::Invalid => {
+                        error!("Invalid accessor component type: {:?}", a.component_type);
+                        ComponentType::U8
+                    }
+                };
+
+                weight.element_type = match a.type_ {
+                    Checked::Valid(ty) => ty,
+                    Checked::Invalid => {
+                        error!("Invalid accessor type: {:?}", a.type_);
+                        gltf::json::accessor::Type::Scalar
+                    }
                 };
 
                 if let Some(index) = a.buffer_view {
