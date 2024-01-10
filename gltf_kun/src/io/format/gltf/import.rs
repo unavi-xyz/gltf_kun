@@ -49,6 +49,14 @@ impl ImportFormat<GltfDocument> for GltfFormat {
                     } else {
                         warn!("No URI resolver provided");
                     }
+                } else if self.resources.len() == 1 {
+                    let key = self
+                        .resources
+                        .iter_mut()
+                        .find(|_| true)
+                        .map(|(k, _)| k.clone())
+                        .unwrap();
+                    weight.blob = self.resources.remove(&key);
                 }
 
                 buffer
@@ -101,7 +109,7 @@ impl ImportFormat<GltfDocument> for GltfFormat {
                 weight.name = a.name.take();
                 weight.extras = a.extras.take();
                 weight.normalized = a.normalized;
-
+                weight.byte_offset = a.byte_offset.map(|o| o.0).unwrap_or_default() as usize;
                 weight.component_type = match a.component_type {
                     Checked::Valid(component_type) => component_type.0,
                     Checked::Invalid => {
@@ -109,7 +117,6 @@ impl ImportFormat<GltfDocument> for GltfFormat {
                         ComponentType::U8
                     }
                 };
-
                 weight.element_type = match a.type_ {
                     Checked::Valid(ty) => ty,
                     Checked::Invalid => {

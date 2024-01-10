@@ -12,7 +12,7 @@ pub struct AccessorWeight {
     pub extras: gltf::json::Extras,
     pub extensions: Vec<Box<dyn ExtensionProperty>>,
 
-    pub byte_offset: u64,
+    pub byte_offset: usize,
     pub component_type: DataType,
     pub element_type: Type,
     pub normalized: bool,
