@@ -6,7 +6,7 @@ use tracing_test::traced_test;
 
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 const ASSETS_DIR: &str = "../assets";
-const MODEL: &str = "TriangleWithoutIndices/TriangleWithoutIndices.gltf";
+const MODEL: &str = "BoxTextured/BoxTextured.gltf";
 
 #[test]
 #[traced_test]
