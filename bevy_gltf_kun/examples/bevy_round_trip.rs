@@ -1,6 +1,8 @@
 // Round-trip example of loading a glTF into Bevy, exporting it, and loading it again.
 // This is useful for ensuring that both the importer and exporter are working correctly.
 
+use std::path::Path;
+
 use bevy::prelude::*;
 use bevy_gltf_kun::{
     export::{Export, ExportResult},
@@ -11,11 +13,16 @@ use gltf_kun::{
     io::format::{gltf::GltfFormat, ExportFormat},
 };
 
+const ASSETS_DIR: &str = "../assets";
+const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
+const EXPORTED_MODEL: &str = "temp/bevy_round_trip/model.gltf";
+const MODEL: &str = "BoxTextured.glb";
+
 fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins.set(AssetPlugin {
-                file_path: "../assets".into(),
+                file_path: ASSETS_DIR.to_string(),
                 ..default()
             }),
             GltfKunPlugin,
@@ -38,7 +45,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     });
 
     commands.spawn(SceneBundle {
-        scene: asset_server.load("BoxTextured.glb#Scene0"),
+        scene: asset_server.load(format!("{}#Scene0", MODEL)),
         ..default()
     });
 }
@@ -48,7 +55,7 @@ struct ExportTimer(Timer);
 
 impl Default for ExportTimer {
     fn default() -> Self {
-        Self(Timer::from_seconds(1.0, TimerMode::Once))
+        Self(Timer::from_seconds(2.0, TimerMode::Once))
     }
 }
 
@@ -76,27 +83,36 @@ fn export_scene(
 }
 
 fn read_export_result(
-    _commands: Commands,
+    mut commands: Commands,
     mut events: ResMut<Events<ExportResult<GltfDocument>>>,
-    _scenes: Query<Entity, With<Handle<Scene>>>,
-    _asset_server: Res<AssetServer>,
+    scenes: Query<Entity, With<Handle<Scene>>>,
+    asset_server: Res<AssetServer>,
 ) {
     for event in events.drain() {
         if let Ok(doc) = event.result {
-            let gltf = GltfFormat::export(doc).expect("Failed export to GLB");
-            let json = serde_json::to_string_pretty(&gltf.json).expect("Failed to serialize JSON");
-            info!("Got exported gltf:\n{}", json);
+            let gltf = GltfFormat::export(doc).expect("Failed export glTF");
 
-            // // Now clear the scene and load the exported GLB.
-            // for scene in scenes.iter() {
-            //     commands.entity(scene).despawn_recursive();
-            // }
-            //
-            // info!("Loading exported GLB...");
-            // commands.spawn(SceneBundle {
-            //     scene: asset_server.load(format!("{}#Scene0", path)),
-            //     ..default()
-            // });
+            let json = serde_json::to_string_pretty(&gltf.json).expect("Failed to serialize JSON");
+            info!("Got exported glTF:\n{}", json);
+
+            // Write to file
+            let assets = Path::new(CARGO_MANIFEST_DIR).join(ASSETS_DIR);
+            let path = assets.join(EXPORTED_MODEL);
+            std::fs::create_dir_all(path.parent().unwrap()).expect("Failed to create directory");
+            gltf.write_file(&assets.join(path))
+                .expect("Failed to write glTF to file");
+
+            // Now clear the scene and load the exported GLB.
+            info!("Clearing scene...");
+            for scene in scenes.iter() {
+                commands.entity(scene).despawn_recursive();
+            }
+
+            info!("Loading exported model...");
+            commands.spawn(SceneBundle {
+                scene: asset_server.load(format!("{}#Scene0", EXPORTED_MODEL)),
+                ..default()
+            });
         }
     }
 }

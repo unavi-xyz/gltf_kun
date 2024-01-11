@@ -3,8 +3,8 @@ use std::path::Path;
 use gltf_kun::io::format::{glb::GlbFormat, ExportFormat};
 use tracing_test::traced_test;
 
-const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 const ASSETS_DIR: &str = "../assets";
+const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 const MODEL: &str = "BoxTextured.glb";
 
 #[test]

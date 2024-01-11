@@ -4,8 +4,8 @@ use gltf_kun::io::format::{gltf::GltfFormat, ExportFormat};
 use tracing::debug;
 use tracing_test::traced_test;
 
-const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 const ASSETS_DIR: &str = "../assets";
+const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 const MODEL: &str = "BoxTextured/BoxTextured.gltf";
 
 #[test]
