@@ -40,10 +40,7 @@ fn export_node_mesh(
     // primitives to our glTF mesh.
     let mut primitive_ents = Vec::new();
 
-    info!("meshes len: {}", meshes.iter().count());
-
     if meshes.contains(entity) {
-        info!("meshes contains entity");
         primitive_ents.push(entity);
     }
 
@@ -83,8 +80,6 @@ fn export_node_mesh(
 
         false
     });
-
-    info!("Primitive entities: {:?}", primitive_ents);
 
     if !primitive_ents.is_empty() {
         let bevy_meshes = primitive_ents

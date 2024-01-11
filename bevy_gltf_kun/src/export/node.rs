@@ -27,6 +27,7 @@ pub fn export_nodes(
             .iter()
             .for_each(|entity| match export_node(&mut context, &nodes, *entity) {
                 Ok(node) => {
+                    info!("Adding node to scene: {:?}", node);
                     scene.add_node(&mut context.doc.0, &node);
                 }
                 Err(_) => {
@@ -56,16 +57,11 @@ fn export_node(
     weight.rotation = glam::Quat::from_array(transform.rotation.to_array());
     weight.scale = transform.scale.to_array().into();
 
-    let mut child_ents = BTreeMap::<node::Node, Entity>::new();
-
     if let Some(children) = children {
         children
             .iter()
             .for_each(|child| match export_node(context, nodes, *child) {
-                Ok(node) => {
-                    child_ents.insert(node, *child);
-                    node.add_child(&mut context.doc.0, &node)
-                }
+                Ok(n) => node.add_child(&mut context.doc.0, &n),
                 Err(_) => {
                     warn!("Node not found: {:?}", child);
                 }
