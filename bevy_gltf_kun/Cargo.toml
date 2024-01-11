@@ -13,3 +13,6 @@ bevy = "0.12.1"
 glam.workspace = true
 gltf_kun = { version = "0.0.3", path = "../gltf_kun" }
 serde_json.workspace = true
+
+[dev-dependencies]
+bevy_panorbit_camera = "0.10.0"

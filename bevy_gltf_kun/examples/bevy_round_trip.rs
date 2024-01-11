@@ -8,6 +8,7 @@ use bevy_gltf_kun::{
     export::{Export, ExportResult},
     GltfKunPlugin,
 };
+use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use gltf_kun::{
     document::GltfDocument,
     io::format::{gltf::GltfFormat, ExportFormat},
@@ -20,12 +21,14 @@ const MODEL: &str = "BoxTextured.glb";
 
 fn main() {
     App::new()
+        .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.2)))
         .add_plugins((
             DefaultPlugins.set(AssetPlugin {
                 file_path: ASSETS_DIR.to_string(),
                 ..default()
             }),
             GltfKunPlugin,
+            PanOrbitCameraPlugin,
         ))
         .add_systems(Startup, setup)
         .add_systems(Update, (export_scene, read_export_result))
@@ -34,10 +37,13 @@ fn main() {
 }
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(1.0, 2.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
-        ..default()
-    });
+    commands.spawn((
+        Camera3dBundle {
+            transform: Transform::from_xyz(1.0, 2.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
+            ..default()
+        },
+        PanOrbitCamera::default(),
+    ));
 
     commands.spawn(DirectionalLightBundle {
         transform: Transform::from_xyz(4.0, 7.0, 3.0),
