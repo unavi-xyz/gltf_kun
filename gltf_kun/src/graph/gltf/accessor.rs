@@ -76,6 +76,7 @@ impl Accessor {
 
         let accessor_weight = accessor.get_mut(graph);
         accessor_weight.element_type = array.element_type;
+        accessor_weight.component_type = array.data_type;
 
         let buffer_weight = buffer.get_mut(graph);
         let prev_buffer_length = buffer_weight.byte_length;
@@ -142,6 +143,8 @@ impl Accessor {
         Some(byte_length / (element_size * component_size))
     }
 
+    // TODO: Don't always return f32, use actual array type (u32, i16)
+    // This may require changes with array storage / typing
     pub fn calc_max(&self, graph: &GltfGraph) -> Option<Vec<f32>> {
         let buffer_view = self.buffer_view(graph)?;
         let buffer = buffer_view.buffer(graph)?;
