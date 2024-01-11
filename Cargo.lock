@@ -614,7 +614,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_gltf_kun"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "anyhow",
  "bevy",
@@ -1803,7 +1803,7 @@ dependencies = [
 
 [[package]]
 name = "gltf_kun"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "anyhow",
  "glam 0.25.0",
