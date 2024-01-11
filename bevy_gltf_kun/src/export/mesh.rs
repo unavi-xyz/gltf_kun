@@ -150,9 +150,15 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> Result<primitiv
         PrimitiveTopology::TriangleStrip => primitive::Mode::TriangleStrip,
     };
 
+    if mesh.attributes().count() == 0 {
+        return Ok(primitive);
+    }
+
+    let buffer = context.doc.create_buffer();
+
     mesh.attributes().for_each(|(id, values)| {
         let array = vertex_to_accessor(values);
-        let accessor = accessor::Accessor::from_array(&mut context.doc.0, array, None);
+        let accessor = accessor::Accessor::from_array(&mut context.doc.0, array, Some(buffer));
 
         if id == Mesh::ATTRIBUTE_POSITION.id {
             primitive.set_attribute(&mut context.doc.0, &Semantic::Positions, Some(&accessor));

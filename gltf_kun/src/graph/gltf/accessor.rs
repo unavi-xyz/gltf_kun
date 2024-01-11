@@ -1,4 +1,5 @@
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
+use tracing::debug;
 
 use crate::extension::ExtensionProperty;
 
@@ -75,22 +76,23 @@ impl Accessor {
 
         let accessor_weight = accessor.get_mut(graph);
         accessor_weight.element_type = array.element_type;
-        let element_size = accessor_weight.element_size();
 
         let buffer_weight = buffer.get_mut(graph);
         let prev_buffer_length = buffer_weight.byte_length;
 
-        let byte_length = element_size * array.vec.len();
-        buffer_weight.byte_length += byte_length;
+        let array_byte_length = array.vec.len();
+        buffer_weight.byte_length += array_byte_length;
 
         match buffer_weight.blob {
-            Some(ref mut blob) => blob.extend(array.vec),
-            None => buffer_weight.blob = Some(array.vec),
+            Some(ref mut blob) => blob.extend(array.vec.clone()),
+            None => buffer_weight.blob = Some(array.vec.clone()),
         }
 
+        let blob_len = buffer_weight.blob.as_ref().unwrap().len();
+        debug!("Buffer length: {} -> {}", prev_buffer_length, blob_len);
+
         let buffer_view_weight = buffer_view.get_mut(graph);
-        buffer_view_weight.byte_length = byte_length;
-        buffer_view_weight.byte_stride = Some(element_size);
+        buffer_view_weight.byte_length = array_byte_length;
         buffer_view_weight.byte_offset = prev_buffer_length;
 
         accessor

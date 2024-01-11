@@ -1,4 +1,5 @@
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
+use tracing::error;
 
 use crate::extension::ExtensionProperty;
 
@@ -88,13 +89,26 @@ impl BufferView {
 
     /// Returns the slice of the buffer that this view represents.
     pub fn slice<'a>(&'a self, graph: &'a GltfGraph, buffer: &'a Buffer) -> Option<&'a [u8]> {
+        let weight = self.get(graph);
+
         let buffer = buffer.get(graph);
 
-        let start = self.get(graph).byte_offset;
-        let end = start + self.get(graph).byte_length;
+        let start = weight.byte_offset;
+        let end = start + weight.byte_length;
 
         match &buffer.blob {
-            Some(blob) => Some(&blob[start..end]),
+            Some(blob) => {
+                if end > blob.len() {
+                    panic!(
+                        "Buffer view slice out of bounds: {}..{} > {}",
+                        start,
+                        end,
+                        blob.len()
+                    );
+                }
+
+                Some(&blob[start..end])
+            }
             None => None,
         }
     }
