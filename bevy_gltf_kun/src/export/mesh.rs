@@ -1,7 +1,11 @@
 use anyhow::Result;
-use bevy::{prelude::*, render::render_resource::PrimitiveTopology};
+use bevy::{
+    prelude::*,
+    render::{mesh::Indices, render_resource::PrimitiveTopology},
+};
 use gltf_kun::graph::gltf::{
-    accessor, mesh, node,
+    accessor::{self, AccessorArray},
+    mesh, node,
     primitive::{self, Semantic},
 };
 
@@ -150,11 +154,28 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> Result<primitiv
         PrimitiveTopology::TriangleStrip => primitive::Mode::TriangleStrip,
     };
 
-    if mesh.attributes().count() == 0 {
+    if mesh.attributes().count() == 0 && mesh.indices().is_none() {
         return Ok(primitive);
     }
 
     let buffer = context.doc.create_buffer();
+
+    if let Some(indices) = mesh.indices() {
+        let array = AccessorArray {
+            element_type: accessor::Type::Scalar,
+            data_type: match indices {
+                Indices::U32(_) => accessor::DataType::U32,
+                Indices::U16(_) => accessor::DataType::U16,
+            },
+            vec: match indices {
+                Indices::U32(indices) => indices.iter().flat_map(|v| v.to_le_bytes()).collect(),
+                Indices::U16(indices) => indices.iter().flat_map(|v| v.to_le_bytes()).collect(),
+            },
+            normalized: false,
+        };
+        let accessor = accessor::Accessor::from_array(&mut context.doc.0, array, Some(buffer));
+        primitive.set_indices(&mut context.doc.0, Some(&accessor));
+    }
 
     mesh.attributes().for_each(|(id, values)| {
         let array = vertex_to_accessor(values);
