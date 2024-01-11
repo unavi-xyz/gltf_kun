@@ -18,14 +18,21 @@ pub fn export_nodes(
             .unwrap()
             .entity;
 
-        match export_node(&mut context, &nodes, entity) {
-            Ok(node) => {
-                scene.add_node(&mut context.doc.0, &node);
-            }
-            Err(_) => {
-                warn!("Node not found: {:?}", entity);
-            }
-        }
+        let children = match nodes.get(entity) {
+            Ok((_, _, Some(children))) => children,
+            _ => return,
+        };
+
+        children
+            .iter()
+            .for_each(|entity| match export_node(&mut context, &nodes, *entity) {
+                Ok(node) => {
+                    scene.add_node(&mut context.doc.0, &node);
+                }
+                Err(_) => {
+                    warn!("Node not found: {:?}", entity);
+                }
+            });
     });
 
     context
