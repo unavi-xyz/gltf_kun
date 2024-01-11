@@ -48,7 +48,7 @@ struct ExportTimer(Timer);
 
 impl Default for ExportTimer {
     fn default() -> Self {
-        Self(Timer::from_seconds(2.0, TimerMode::Once))
+        Self(Timer::from_seconds(1.0, TimerMode::Once))
     }
 }
 
