@@ -1,5 +1,4 @@
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
-use tracing::error;
 
 use crate::extension::ExtensionProperty;
 

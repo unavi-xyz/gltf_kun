@@ -247,13 +247,6 @@ impl ExportFormat<GltfDocument> for GltfFormat {
                     .and_then(|mesh| mesh_idxs.get(&mesh.0))
                     .map(|idx| Index::new(*idx));
 
-                let children = node
-                    .children(&doc.0)
-                    .iter()
-                    .filter_map(|child| node_idxs.get(&child.0))
-                    .map(|idx| Index::new(*idx))
-                    .collect::<Vec<_>>();
-
                 let weight = node.get_mut(&mut doc.0);
 
                 gltf::json::scene::Node {
@@ -262,11 +255,7 @@ impl ExportFormat<GltfDocument> for GltfFormat {
                     extensions: None,
 
                     camera: None,
-                    children: if children.is_empty() {
-                        None
-                    } else {
-                        Some(children)
-                    },
+                    children: None,
                     skin: None,
                     matrix: None,
                     mesh,
@@ -289,6 +278,23 @@ impl ExportFormat<GltfDocument> for GltfFormat {
                 }
             })
             .collect::<Vec<_>>();
+
+        // Parent nodes
+        doc.nodes().iter().for_each(|node| {
+            let children_idxs = node
+                .children(&doc.0)
+                .iter()
+                .filter_map(|child| node_idxs.get(&child.0))
+                .map(|idx| Index::new(*idx))
+                .collect::<Vec<_>>();
+
+            let idx = node_idxs.get(&node.0).unwrap();
+            let node = json.nodes.get_mut(*idx as usize).unwrap();
+
+            if !children_idxs.is_empty() {
+                node.children = Some(children_idxs);
+            };
+        });
 
         // TODO: Create skins
 
