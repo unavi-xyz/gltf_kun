@@ -1,5 +1,3 @@
-use std::collections::BTreeMap;
-
 use anyhow::Result;
 use bevy::prelude::*;
 use gltf_kun::graph::gltf::node;
@@ -26,10 +24,7 @@ pub fn export_nodes(
         children
             .iter()
             .for_each(|entity| match export_node(&mut context, &nodes, *entity) {
-                Ok(node) => {
-                    info!("Adding node to scene: {:?}", node);
-                    scene.add_node(&mut context.doc.0, &node);
-                }
+                Ok(node) => scene.add_node(&mut context.doc.0, &node),
                 Err(_) => {
                     warn!("Node not found: {:?}", entity);
                 }
