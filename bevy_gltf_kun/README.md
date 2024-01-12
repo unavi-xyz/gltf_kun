@@ -8,4 +8,4 @@ Compared to `bevy_gltf`, this plugin adds support for:
 - [glXF](https://github.com/KhronosGroup/glXF) import and export
 
 Additionally, the use of the `gltf_kun` graph format allows for easy use of other `gltf_kun` features
-such as running transform functions on your models to compress textures or simplify meshes.
+such as running transform functions to compress textures or simplify meshes.
