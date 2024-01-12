@@ -99,7 +99,7 @@ fn read_export_result(
             let gltf = GltfFormat::export(doc).expect("Failed export glTF");
 
             let json = serde_json::to_string_pretty(&gltf.json).expect("Failed to serialize JSON");
-            info!("Got exported glTF:\n{}", json);
+            debug!("Got exported glTF:\n{}", json);
 
             // Write to file
             let assets = Path::new(CARGO_MANIFEST_DIR).join(ASSETS_DIR);
