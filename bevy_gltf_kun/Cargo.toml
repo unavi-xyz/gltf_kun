@@ -7,6 +7,11 @@ license.workspace = true
 repository.workspace = true
 edition.workspace = true
 
+[features]
+default = ["export", "import"]
+export = []
+import = []
+
 [dependencies]
 anyhow.workspace = true
 bevy = "0.12.1"
