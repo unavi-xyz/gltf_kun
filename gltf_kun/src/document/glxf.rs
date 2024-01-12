@@ -1,4 +1,4 @@
 use crate::graph::glxf::GlxfGraph;
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct GlxfDocument(pub GlxfGraph);

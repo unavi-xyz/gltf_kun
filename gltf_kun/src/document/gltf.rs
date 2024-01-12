@@ -3,7 +3,7 @@ use crate::graph::gltf::{
     primitive::Primitive, scene::Scene, Edge, GltfGraph, Weight,
 };
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct GltfDocument(pub GltfGraph);
 
 impl GltfDocument {

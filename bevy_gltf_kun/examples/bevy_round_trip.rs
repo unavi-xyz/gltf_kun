@@ -6,7 +6,7 @@ use std::path::Path;
 use bevy::prelude::*;
 use bevy_gltf_kun::{
     export::{Export, ExportResult},
-    GltfKunPlugin,
+    import::gltf::GltfDocumentAsset,
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use gltf_kun::{
@@ -23,11 +23,10 @@ fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.2)))
         .add_plugins((
-            DefaultPlugins.set(AssetPlugin {
+            bevy_gltf_kun::DefaultPlugins.set(AssetPlugin {
                 file_path: ASSETS_DIR.to_string(),
                 ..default()
             }),
-            GltfKunPlugin,
             PanOrbitCameraPlugin,
         ))
         .add_systems(Startup, setup)
@@ -50,10 +49,12 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         ..default()
     });
 
-    commands.spawn(SceneBundle {
-        scene: asset_server.load(format!("{}#Scene0", MODEL)),
-        ..default()
-    });
+    let _handle = asset_server.load::<GltfDocumentAsset>(MODEL);
+
+    // commands.spawn(SceneBundle {
+    //     scene: asset_server.load(format!("{}#Scene0", MODEL)),
+    //     ..default()
+    // });
 }
 
 #[derive(Resource)]

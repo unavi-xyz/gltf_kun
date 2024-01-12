@@ -1,9 +1,12 @@
 use bevy::prelude::*;
 
+mod default_plugins;
 #[cfg(feature = "export")]
 pub mod export;
 #[cfg(feature = "import")]
 pub mod import;
+
+pub use default_plugins::DefaultPlugins;
 
 pub struct GltfKunPlugin;
 
