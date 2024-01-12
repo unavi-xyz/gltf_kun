@@ -15,7 +15,6 @@ impl Plugin for GltfExportPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<Export<GltfDocument>>()
             .add_event::<ExportResult<GltfDocument>>()
-            .add_state::<ExportState>()
             .add_systems(Update, read_event.pipe(export_gltf));
     }
 }
@@ -30,15 +29,6 @@ pub struct Export<T> {
 #[derive(Event)]
 pub struct ExportResult<T> {
     pub result: Result<T>,
-}
-
-/// State used to control the export systems.
-/// We don't want to run the systems every frame if there's nothing to export.
-#[derive(Clone, Debug, Default, Eq, PartialEq, Hash, States)]
-pub enum ExportState {
-    Active,
-    #[default]
-    Inactive,
 }
 
 pub struct ExportContext {
