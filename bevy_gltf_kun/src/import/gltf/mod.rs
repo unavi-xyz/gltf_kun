@@ -107,7 +107,7 @@ impl AssetLoader for GlbLoader {
 #[derive(Debug, Error)]
 pub enum BevyImportError {}
 
-fn bevy_import(doc: GltfDocument) -> Result<Gltf, BevyImportError> {
+fn bevy_import(_doc: GltfDocument) -> Result<Gltf, BevyImportError> {
     let gltf = Gltf {
         animations: Vec::new(),
         default_scene: None,
