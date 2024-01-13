@@ -47,7 +47,7 @@ impl GltfFileFormat {
             .expect("Failed to get parent directory");
         let resolver = FileResolver::new(dir);
 
-        let format = GltfFormat {
+        let format = GltfFileFormat {
             json,
             resolver: Some(resolver),
             resources: HashMap::new(),

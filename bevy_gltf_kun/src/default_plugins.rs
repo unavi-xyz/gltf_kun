@@ -5,7 +5,7 @@ use crate::GltfKunPlugin;
 /// Copy of [bevy::DefaultPlugins], using `gltf_kun` instead of `bevy_gltf`.
 ///
 /// Does not obey Cargo feature flags (I don't think it's possible to do so),
-/// so all plugins are enabled.
+/// all plugins are enabled.
 pub struct DefaultPlugins;
 
 impl PluginGroup for DefaultPlugins {
