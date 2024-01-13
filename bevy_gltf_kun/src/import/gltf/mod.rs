@@ -2,22 +2,23 @@ use bevy::{
     asset::{
         io::Reader, AssetLoadError, AssetLoader, AsyncReadExt, LoadContext, ReadAssetBytesError,
     },
-    utils::{hashbrown::HashMap, BoxedFuture},
+    utils::BoxedFuture,
 };
-use gltf_kun::{
-    document::GltfDocument,
-    io::{
-        format::{
-            glb::{GlbFormat, GlbImportError},
-            gltf::{import::GltfImportError, GltfFormat},
-            ImportFormat,
-        },
-        resolver::file_resolver::FileResolver,
+use gltf_kun::io::{
+    format::{
+        glb::{GlbFormat, GlbImportError},
+        gltf::{import::GltfImportError, GltfFormat},
+        ImportFormat,
     },
+    resolver::file_resolver::FileResolver,
 };
 use thiserror::Error;
 
+pub mod document;
+
 pub use bevy::gltf::Gltf;
+
+use self::document::{import_gltf, BevyImportError};
 
 #[derive(Default)]
 pub struct GltfLoader;
@@ -57,7 +58,7 @@ impl AssetLoader for GltfLoader {
                 resolver: Some(FileResolver::new(load_context.path().parent().unwrap())),
             };
             let doc = format.import()?;
-            let gltf = bevy_import(doc)?;
+            let gltf = import_gltf(load_context, doc)?;
             Ok(gltf)
         })
     }
@@ -88,13 +89,13 @@ impl AssetLoader for GlbLoader {
         &'a self,
         reader: &'a mut Reader,
         _settings: &'a (),
-        _load_context: &'a mut LoadContext,
+        load_context: &'a mut LoadContext,
     ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
         Box::pin(async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
             let doc = GlbFormat::import_slice(&bytes)?;
-            let gltf = bevy_import(doc)?;
+            let gltf = import_gltf(load_context, doc)?;
             Ok(gltf)
         })
     }
@@ -102,25 +103,4 @@ impl AssetLoader for GlbLoader {
     fn extensions(&self) -> &[&str] {
         &["glb"]
     }
-}
-
-#[derive(Debug, Error)]
-pub enum BevyImportError {}
-
-fn bevy_import(_doc: GltfDocument) -> Result<Gltf, BevyImportError> {
-    let gltf = Gltf {
-        animations: Vec::new(),
-        default_scene: None,
-        materials: Vec::new(),
-        meshes: Vec::new(),
-        named_animations: HashMap::new(),
-        named_materials: HashMap::new(),
-        named_meshes: HashMap::new(),
-        named_nodes: HashMap::new(),
-        named_scenes: HashMap::new(),
-        nodes: Vec::new(),
-        scenes: Vec::new(),
-    };
-
-    Ok(gltf)
 }
