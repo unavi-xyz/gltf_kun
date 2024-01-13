@@ -87,7 +87,7 @@ impl AssetLoader for GlbLoader {
         &'a self,
         reader: &'a mut Reader,
         _settings: &'a (),
-        load_context: &'a mut LoadContext,
+        _load_context: &'a mut LoadContext,
     ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
         Box::pin(async move {
             let mut bytes = Vec::new();
