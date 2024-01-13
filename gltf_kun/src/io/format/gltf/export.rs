@@ -1,20 +1,29 @@
 use std::collections::{BTreeMap, HashMap};
 
-use anyhow::Result;
 use glam::Quat;
 use gltf::json::{
     accessor::GenericComponentType, buffer::Stride, scene::UnitQuaternion, validation::Checked,
     Index,
 };
 use petgraph::stable_graph::NodeIndex;
+use thiserror::Error;
 use tracing::warn;
 
-use crate::{document::GltfDocument, graph::gltf::buffer_view::Target, io::format::ExportFormat};
+use crate::{
+    document::GltfDocument,
+    graph::gltf::buffer_view::Target,
+    io::{format::ExportFormat, resolver::Resolver},
+};
 
 use super::GltfFormat;
 
-impl ExportFormat<GltfDocument> for GltfFormat {
-    fn export(mut doc: GltfDocument) -> Result<Box<GltfFormat>> {
+#[derive(Debug, Error)]
+pub enum GltfExportError {}
+
+impl<T: Resolver> ExportFormat<GltfDocument> for GltfFormat<T> {
+    type Error = GltfExportError;
+
+    fn export(mut doc: GltfDocument) -> Result<Box<GltfFormat<T>>, Self::Error> {
         let mut json = gltf::json::root::Root::default();
         let mut resources = HashMap::new();
 

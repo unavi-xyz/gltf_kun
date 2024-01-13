@@ -1,4 +1,3 @@
-use anyhow::Result;
 use bevy::prelude::*;
 use gltf_kun::graph::gltf::node;
 
@@ -21,14 +20,10 @@ pub fn export_nodes(
             _ => return,
         };
 
-        children
-            .iter()
-            .for_each(|entity| match export_node(&mut context, &nodes, *entity) {
-                Ok(node) => scene.add_node(&mut context.doc.0, &node),
-                Err(_) => {
-                    warn!("Node not found: {:?}", entity);
-                }
-            });
+        children.iter().for_each(|child| {
+            let n = export_node(&mut context, &nodes, *child);
+            scene.add_node(&mut context.doc.0, &n);
+        });
     });
 
     context
@@ -38,11 +33,11 @@ fn export_node(
     context: &mut ExportContext,
     nodes: &Query<(&Transform, Option<&Name>, Option<&Children>)>,
     entity: Entity,
-) -> Result<node::Node> {
+) -> node::Node {
     let mut node = node::Node::new(&mut context.doc.0);
     let weight = node.get_mut(&mut context.doc.0);
 
-    let (transform, name, children) = nodes.get(entity)?;
+    let (transform, name, children) = nodes.get(entity).expect("Node not found");
 
     if let Some(name) = name {
         weight.name = Some(name.to_string());
@@ -53,17 +48,13 @@ fn export_node(
     weight.scale = transform.scale.to_array().into();
 
     if let Some(children) = children {
-        children
-            .iter()
-            .for_each(|child| match export_node(context, nodes, *child) {
-                Ok(n) => node.add_child(&mut context.doc.0, &n),
-                Err(_) => {
-                    warn!("Node not found: {:?}", child);
-                }
-            })
+        children.iter().for_each(|child| {
+            let n = export_node(context, nodes, *child);
+            node.add_child(&mut context.doc.0, &n);
+        })
     }
 
     context.nodes.push(CachedNode { node, entity });
 
-    Ok(node)
+    node
 }

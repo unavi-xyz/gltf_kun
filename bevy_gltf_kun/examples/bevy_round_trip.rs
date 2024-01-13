@@ -6,7 +6,7 @@ use std::path::Path;
 use bevy::prelude::*;
 use bevy_gltf_kun::{
     export::{Export, ExportResult},
-    import::gltf::GltfDocumentAsset,
+    import::gltf::Gltf,
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use gltf_kun::{
@@ -49,7 +49,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         ..default()
     });
 
-    let _handle = asset_server.load::<GltfDocumentAsset>(MODEL);
+    let _handle = asset_server.load::<Gltf>(MODEL);
 
     // commands.spawn(SceneBundle {
     //     scene: asset_server.load(format!("{}#Scene0", MODEL)),

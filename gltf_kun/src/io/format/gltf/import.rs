@@ -1,6 +1,6 @@
-use anyhow::Result;
 use glam::Quat;
 use gltf::json::{accessor::ComponentType, validation::Checked};
+use thiserror::Error;
 use tracing::{debug, error, warn};
 
 use crate::{
@@ -14,13 +14,18 @@ use crate::{
         primitive::Primitive,
         scene::Scene,
     },
-    io::format::ImportFormat,
+    io::{format::ImportFormat, resolver::Resolver},
 };
 
 use super::GltfFormat;
 
-impl ImportFormat<GltfDocument> for GltfFormat {
-    fn import(mut self) -> Result<GltfDocument> {
+#[derive(Debug, Error)]
+pub enum GltfImportError {}
+
+impl<T: Resolver> ImportFormat<GltfDocument> for GltfFormat<T> {
+    type Error = GltfImportError;
+
+    fn import(mut self) -> Result<GltfDocument, Self::Error> {
         let mut doc = GltfDocument::default();
 
         // Create buffers

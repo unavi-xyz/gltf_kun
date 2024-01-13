@@ -176,12 +176,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "anyhow"
-version = "1.0.79"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "080e9890a082662b09c1ad45f567faeeb47f22b5fb23895fbe1e651e718e25ca"
-
-[[package]]
 name = "approx"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -616,12 +610,12 @@ dependencies = [
 name = "bevy_gltf_kun"
 version = "0.0.4"
 dependencies = [
- "anyhow",
  "bevy",
  "bevy_panorbit_camera",
  "glam 0.25.0",
  "gltf_kun",
  "serde_json",
+ "thiserror",
 ]
 
 [[package]]
@@ -1805,11 +1799,11 @@ dependencies = [
 name = "gltf_kun"
 version = "0.0.4"
 dependencies = [
- "anyhow",
  "glam 0.25.0",
  "gltf",
  "petgraph",
  "serde_json",
+ "thiserror",
  "tracing",
  "tracing-test",
 ]
@@ -3051,9 +3045,9 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.50"
+version = "1.0.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f9a7210f5c9a7156bb50aa36aed4c95afb51df0df00713949448cf9e97d382d2"
+checksum = "d54378c645627613241d077a3a79db965db602882668f9136ac42af9ecb730ad"
 dependencies = [
  "thiserror-impl",
 ]
@@ -3080,9 +3074,9 @@ dependencies = [
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.50"
+version = "1.0.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "266b2e40bc00e5a6c09c3584011e08b06f123c00362c92b975ba9843aaaa14b8"
+checksum = "fa0faa943b50f3db30a20aa7e265dbc66076993efed8463e8de414e5d06d3471"
 dependencies = [
  "proc-macro2",
  "quote",

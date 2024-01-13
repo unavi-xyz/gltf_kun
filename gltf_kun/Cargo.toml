@@ -8,11 +8,11 @@ repository.workspace = true
 edition.workspace = true
 
 [dependencies]
-anyhow.workspace = true
 glam.workspace = true
 gltf = { version = "1.4.0", features = ["extensions", "extras"] }
 petgraph = "0.6.4"
 serde_json.workspace = true
+thiserror.workspace = true
 tracing = "0.1.40"
 
 [dev-dependencies]

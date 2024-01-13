@@ -1,6 +1,9 @@
 use std::path::Path;
 
-use gltf_kun::io::format::{gltf::GltfFormat, ExportFormat};
+use gltf_kun::io::format::{
+    gltf::{GltfFileFormat, GltfFormat},
+    ExportFormat,
+};
 use tracing::debug;
 use tracing_test::traced_test;
 
@@ -33,8 +36,8 @@ fn main() {
     gltf::import(&path).expect("Failed to read exported glTF");
 
     // Import written file
-    let doc = GltfFormat::import_file(&path).expect("Failed to import glTF");
-    let out = GltfFormat::export(doc).expect("Failed to export glTF");
+    let doc = GltfFileFormat::import_file(&path).expect("Failed to import glTF");
+    let out = GltfFileFormat::export(doc).expect("Failed to export glTF");
     let out_json2 = serde_json::to_string(&out.json).expect("Failed to serialize json");
 
     assert_eq!(out_json, out_json2);

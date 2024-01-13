@@ -1,4 +1,3 @@
-use anyhow::Result;
 use bevy::{
     prelude::*,
     render::{mesh::Indices, render_resource::PrimitiveTopology},
@@ -123,12 +122,8 @@ fn export_node_mesh(
                 }
             };
 
-            match export_primitive(context, bevy_mesh) {
-                Ok(primitive) => mesh.add_primitive(&mut context.doc.0, &primitive),
-                Err(e) => {
-                    error!("Error exporting primitive: {}", e);
-                }
-            }
+            let primitive = export_primitive(context, bevy_mesh);
+            mesh.add_primitive(&mut context.doc.0, &primitive);
         });
 
         context.meshes.push(CachedMesh { mesh, bevy_meshes });
@@ -142,7 +137,7 @@ fn export_node_mesh(
     });
 }
 
-fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> Result<primitive::Primitive> {
+fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Primitive {
     let mut primitive = primitive::Primitive::new(&mut context.doc.0);
     let weight = primitive.get_mut(&mut context.doc.0);
 
@@ -155,7 +150,7 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> Result<primitiv
     };
 
     if mesh.attributes().count() == 0 && mesh.indices().is_none() {
-        return Ok(primitive);
+        return primitive;
     }
 
     let buffer = context.doc.create_buffer();
@@ -214,5 +209,5 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> Result<primitiv
         }
     });
 
-    Ok(primitive)
+    primitive
 }

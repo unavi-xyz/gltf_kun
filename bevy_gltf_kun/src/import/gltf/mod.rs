@@ -1,28 +1,47 @@
-use std::collections::HashMap;
-
 use bevy::{
-    asset::{io::Reader, AssetLoader, AsyncReadExt, LoadContext},
-    prelude::*,
-    utils::BoxedFuture,
+    asset::{
+        io::Reader, AssetLoadError, AssetLoader, AsyncReadExt, LoadContext, ReadAssetBytesError,
+    },
+    utils::{hashbrown::HashMap, BoxedFuture},
 };
 use gltf_kun::{
     document::GltfDocument,
     io::{
-        format::{glb::GlbFormat, gltf::GltfFormat, ImportFormat},
+        format::{
+            glb::{GlbFormat, GlbImportError},
+            gltf::{import::GltfImportError, GltfFormat},
+            ImportFormat,
+        },
         resolver::file_resolver::FileResolver,
     },
 };
+use thiserror::Error;
 
-#[derive(Asset, TypePath)]
-pub struct GltfDocumentAsset(pub GltfDocument);
+pub use bevy::gltf::Gltf;
 
 #[derive(Default)]
 pub struct GltfLoader;
 
+#[derive(Debug, Error)]
+pub enum GltfError {
+    #[error("failed to load asset from an asset path: {0}")]
+    AssetLoadError(#[from] AssetLoadError),
+    #[error("failed to import into bevy: {0}")]
+    Bevy(#[from] BevyImportError),
+    #[error("failed to import gltf: {0}")]
+    Import(#[from] GltfImportError),
+    #[error("failed to load file: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("failed to read bytes from an asset path: {0}")]
+    ReadAssetBytesError(#[from] ReadAssetBytesError),
+    #[error("failed to parse gltf: {0}")]
+    SerdeJson(#[from] serde_json::Error),
+}
+
 impl AssetLoader for GltfLoader {
-    type Asset = GltfDocumentAsset;
+    type Asset = Gltf;
     type Settings = ();
-    type Error = anyhow::Error;
+    type Error = GltfError;
     fn load<'a>(
         &'a self,
         reader: &'a mut Reader,
@@ -32,16 +51,14 @@ impl AssetLoader for GltfLoader {
         Box::pin(async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
-
             let format = GltfFormat {
                 json: serde_json::from_slice(&bytes)?,
-                resources: HashMap::new(),
-                resolver: Some(Box::new(FileResolver::new(
-                    load_context.path().parent().unwrap(),
-                ))),
+                resources: std::collections::HashMap::new(),
+                resolver: Some(FileResolver::new(load_context.path().parent().unwrap())),
             };
-
-            Ok(GltfDocumentAsset(format.import()?))
+            let doc = format.import()?;
+            let gltf = bevy_import(doc)?;
+            Ok(gltf)
         })
     }
 
@@ -53,10 +70,20 @@ impl AssetLoader for GltfLoader {
 #[derive(Default)]
 pub struct GlbLoader;
 
+#[derive(Debug, Error)]
+pub enum GlbError {
+    #[error("failed to import into bevy: {0}")]
+    Bevy(#[from] BevyImportError),
+    #[error("failed to import glb: {0}")]
+    Import(#[from] GlbImportError),
+    #[error("failed to load file: {0}")]
+    Io(#[from] std::io::Error),
+}
+
 impl AssetLoader for GlbLoader {
-    type Asset = GltfDocumentAsset;
+    type Asset = Gltf;
     type Settings = ();
-    type Error = anyhow::Error;
+    type Error = GlbError;
     fn load<'a>(
         &'a self,
         reader: &'a mut Reader,
@@ -66,11 +93,34 @@ impl AssetLoader for GlbLoader {
         Box::pin(async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
-            Ok(GltfDocumentAsset(GlbFormat::import_slice(&bytes)?))
+            let doc = GlbFormat::import_slice(&bytes)?;
+            let gltf = bevy_import(doc)?;
+            Ok(gltf)
         })
     }
 
     fn extensions(&self) -> &[&str] {
         &["glb"]
     }
+}
+
+#[derive(Debug, Error)]
+pub enum BevyImportError {}
+
+fn bevy_import(doc: GltfDocument) -> Result<Gltf, BevyImportError> {
+    let gltf = Gltf {
+        animations: Vec::new(),
+        default_scene: None,
+        materials: Vec::new(),
+        meshes: Vec::new(),
+        named_animations: HashMap::new(),
+        named_materials: HashMap::new(),
+        named_meshes: HashMap::new(),
+        named_nodes: HashMap::new(),
+        named_scenes: HashMap::new(),
+        nodes: Vec::new(),
+        scenes: Vec::new(),
+    };
+
+    Ok(gltf)
 }

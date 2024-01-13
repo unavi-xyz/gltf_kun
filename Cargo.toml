@@ -9,9 +9,9 @@ repository = "https://github.com/unavi-xyz/gltf_kun"
 edition = "2021"
 
 [workspace.dependencies]
-anyhow = "1.0.79"
 glam = "0.25.0"
 serde_json = "1.0.110"
+thiserror = "1.0.56"
 
 [profile.dev]
 opt-level = 1

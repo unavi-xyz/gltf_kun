@@ -1,8 +1,8 @@
 use std::marker::PhantomData;
 
-use anyhow::Result;
 use bevy::{ecs::system::RunSystemOnce, prelude::*};
 use gltf_kun::{document::GltfDocument, graph::gltf};
+use thiserror::Error;
 
 pub mod mesh;
 pub mod node;
@@ -26,9 +26,12 @@ pub struct Export<T> {
     pub doc_type: PhantomData<T>,
 }
 
+#[derive(Debug, Error)]
+pub enum ExportError {}
+
 #[derive(Event)]
 pub struct ExportResult<T> {
-    pub result: Result<T>,
+    pub result: Result<T, ExportError>,
 }
 
 pub struct ExportContext {
