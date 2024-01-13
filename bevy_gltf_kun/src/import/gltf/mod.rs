@@ -4,13 +4,9 @@ use bevy::{
     },
     utils::BoxedFuture,
 };
-use gltf_kun::io::{
-    format::{
-        glb::{GlbFormat, GlbImportError},
-        gltf::{import::GltfImportError, GltfFormat},
-        ImportFormat,
-    },
-    resolver::file_resolver::FileResolver,
+use gltf_kun::io::format::{
+    glb::{GlbFormat, GlbImportError},
+    gltf::{import::GltfImportError, GltfFormat},
 };
 use thiserror::Error;
 
@@ -19,6 +15,8 @@ pub mod document;
 pub use bevy::gltf::Gltf;
 
 use self::document::{import_gltf, BevyImportError};
+
+use super::resolver::BevyAssetResolver;
 
 #[derive(Default)]
 pub struct GltfLoader;
@@ -55,10 +53,10 @@ impl AssetLoader for GltfLoader {
             let format = GltfFormat {
                 json: serde_json::from_slice(&bytes)?,
                 resources: std::collections::HashMap::new(),
-                resolver: Some(FileResolver::new(load_context.path().parent().unwrap())),
             };
-            let doc = format.import()?;
-            let gltf = import_gltf(load_context, doc)?;
+            let mut resolver = BevyAssetResolver { load_context };
+            let doc = format.import(Some(&mut resolver)).await?;
+            let gltf = import_gltf(doc)?;
             Ok(gltf)
         })
     }
@@ -94,8 +92,10 @@ impl AssetLoader for GlbLoader {
         Box::pin(async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
-            let doc = GlbFormat::import_slice(&bytes)?;
-            let gltf = import_gltf(load_context, doc)?;
+
+            let doc = GlbFormat::import_slice(&bytes).await?;
+
+            let gltf = import_gltf(doc)?;
             Ok(gltf)
         })
     }

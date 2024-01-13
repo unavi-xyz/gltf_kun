@@ -14,7 +14,7 @@ use crate::{
         primitive::Primitive,
         scene::Scene,
     },
-    io::{format::ImportFormat, resolver::Resolver},
+    io::resolver::Resolver,
 };
 
 use super::GltfFormat;
@@ -22,51 +22,49 @@ use super::GltfFormat;
 #[derive(Debug, Error)]
 pub enum GltfImportError {}
 
-impl<T: Resolver> ImportFormat<GltfDocument> for GltfFormat<T> {
-    type Error = GltfImportError;
-
-    fn import(mut self) -> Result<GltfDocument, Self::Error> {
+impl GltfFormat {
+    pub async fn import(
+        mut self,
+        mut resolver: Option<&mut impl Resolver>,
+    ) -> Result<GltfDocument, GltfImportError> {
         let mut doc = GltfDocument::default();
 
         // Create buffers
-        let buffers = self
-            .json
-            .buffers
-            .iter_mut()
-            .map(|b| {
-                let mut buffer = Buffer::new(&mut doc.0);
-                let weight = buffer.get_mut(&mut doc.0);
+        let mut buffers = Vec::new();
 
-                weight.name = b.name.take();
-                weight.extras = b.extras.take();
+        for b in self.json.buffers.iter_mut() {
+            let mut buffer = Buffer::new(&mut doc.0);
+            let weight = buffer.get_mut(&mut doc.0);
 
-                weight.byte_length = b.byte_length.0 as usize;
-                weight.uri = b.uri.take();
+            weight.name = b.name.take();
+            weight.extras = b.extras.take();
 
-                if let Some(uri) = weight.uri.as_ref() {
-                    if let Some(resolver) = self.resolver.as_ref() {
-                        if let Ok(blob) = resolver.resolve(uri) {
-                            debug!("Resolved buffer: {} ({} bytes)", uri, blob.len());
-                            weight.blob = Some(blob);
-                        } else {
-                            warn!("Failed to resolve URI: {}", uri);
-                        }
+            weight.byte_length = b.byte_length.0 as usize;
+            weight.uri = b.uri.take();
+
+            if let Some(uri) = weight.uri.as_ref() {
+                if let Some(resolver) = resolver.as_mut() {
+                    if let Ok(blob) = resolver.resolve(uri).await {
+                        debug!("Resolved buffer: {} ({} bytes)", uri, blob.len());
+                        weight.blob = Some(blob);
                     } else {
-                        warn!("No URI resolver provided");
+                        warn!("Failed to resolve URI: {}", uri);
                     }
-                } else if self.resources.len() == 1 {
-                    let key = self
-                        .resources
-                        .iter_mut()
-                        .find(|_| true)
-                        .map(|(k, _)| k.clone())
-                        .unwrap();
-                    weight.blob = self.resources.remove(&key);
+                } else {
+                    warn!("No resolver provided");
                 }
+            } else if self.resources.len() == 1 {
+                let key = self
+                    .resources
+                    .iter_mut()
+                    .find(|_| true)
+                    .map(|(k, _)| k.clone())
+                    .unwrap();
+                weight.blob = self.resources.remove(&key);
+            }
 
-                buffer
-            })
-            .collect::<Vec<_>>();
+            buffers.push(buffer);
+        }
 
         // Create buffer views
         let buffer_views = self

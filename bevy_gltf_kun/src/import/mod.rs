@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use gltf::{GlbLoader, Gltf, GltfLoader};
 
 pub mod gltf;
+pub mod resolver;
 
 pub struct GltfImportPlugin;
 

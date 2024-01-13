@@ -9,21 +9,15 @@ use petgraph::stable_graph::NodeIndex;
 use thiserror::Error;
 use tracing::warn;
 
-use crate::{
-    document::GltfDocument,
-    graph::gltf::buffer_view::Target,
-    io::{format::ExportFormat, resolver::Resolver},
-};
+use crate::{document::GltfDocument, graph::gltf::buffer_view::Target};
 
 use super::GltfFormat;
 
 #[derive(Debug, Error)]
 pub enum GltfExportError {}
 
-impl<T: Resolver> ExportFormat<GltfDocument> for GltfFormat<T> {
-    type Error = GltfExportError;
-
-    fn export(mut doc: GltfDocument) -> Result<Box<GltfFormat<T>>, Self::Error> {
+impl GltfFormat {
+    pub fn export(mut doc: GltfDocument) -> Result<GltfFormat, GltfExportError> {
         let mut json = gltf::json::root::Root::default();
         let mut resources = HashMap::new();
 
@@ -341,10 +335,6 @@ impl<T: Resolver> ExportFormat<GltfDocument> for GltfFormat<T> {
 
         // TODO: Create animations
 
-        Ok(Box::new(GltfFormat {
-            json,
-            resolver: None,
-            resources,
-        }))
+        Ok(GltfFormat { json, resources })
     }
 }

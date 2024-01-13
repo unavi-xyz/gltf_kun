@@ -24,13 +24,12 @@ pub enum FileResolverError {
 impl Resolver for FileResolver {
     type Error = FileResolverError;
 
-    fn resolve(&self, uri: &str) -> Result<Vec<u8>, Self::Error> {
+    async fn resolve(&mut self, uri: &str) -> Result<Vec<u8>, Self::Error> {
         let path = self.root.join(uri);
         debug!("Resolving: {}", path.display());
 
-        let mut file = File::open(path)?;
         let mut buf = Vec::new();
-        file.read_to_end(&mut buf)?;
+        File::open(path)?.read_to_end(&mut buf)?;
 
         Ok(buf)
     }

@@ -2,22 +2,14 @@ use std::{collections::HashMap, fs::File, io::BufWriter, path::Path};
 
 use thiserror::Error;
 
-use crate::{
-    document::GltfDocument,
-    io::resolver::{file_resolver::FileResolver, Resolver},
-};
-
-use super::ImportFormat;
+use crate::{document::GltfDocument, io::resolver::file_resolver::FileResolver};
 
 pub mod export;
 pub mod import;
 
-pub type GltfFileFormat = GltfFormat<FileResolver>;
-
-pub struct GltfFormat<T: Resolver> {
+pub struct GltfFormat {
     pub json: gltf::json::Root,
     pub resources: HashMap<String, Vec<u8>>,
-    pub resolver: Option<T>,
 }
 
 #[derive(Debug, Error)]
@@ -38,22 +30,18 @@ pub enum WriteFileError {
     SerdeJson(#[from] serde_json::Error),
 }
 
-impl GltfFileFormat {
-    pub fn import_file(path: &Path) -> Result<GltfDocument, ImportFileError> {
+impl GltfFormat {
+    pub async fn import_file(path: &Path) -> Result<GltfDocument, ImportFileError> {
         let json = serde_json::from_reader(std::fs::File::open(path)?)?;
 
-        let dir = std::path::Path::new(path)
-            .parent()
-            .expect("Failed to get parent directory");
-        let resolver = FileResolver::new(dir);
-
-        let format = GltfFileFormat {
+        let format = GltfFormat {
             json,
-            resolver: Some(resolver),
             resources: HashMap::new(),
         };
 
-        let doc = format.import()?;
+        let dir = std::path::Path::new(path).parent().unwrap();
+        let mut resolver = FileResolver::new(dir);
+        let doc = format.import(Some(&mut resolver)).await?;
 
         Ok(doc)
     }

@@ -29,7 +29,7 @@
 //!     println!("Scene name: {:?}", weight.name);
 //! });
 //!
-//! use gltf_kun::io::format::{ExportFormat, glb::GlbFormat};
+//! use gltf_kun::io::format::glb::GlbFormat;
 //!
 //! // Export the document to a GLB byte array.
 //! let glb = GlbFormat::export(doc).ok();

@@ -1,13 +1,11 @@
-use bevy::{asset::LoadContext, utils::hashbrown::HashMap};
+use bevy::{gltf::Gltf, utils::hashbrown::HashMap};
 use gltf_kun::document::GltfDocument;
 use thiserror::Error;
-
-use super::Gltf;
 
 #[derive(Debug, Error)]
 pub enum BevyImportError {}
 
-pub fn import_gltf(load_context: &LoadContext, doc: GltfDocument) -> Result<Gltf, BevyImportError> {
+pub fn import_gltf(_doc: GltfDocument) -> Result<Gltf, BevyImportError> {
     let gltf = Gltf {
         animations: Vec::new(),
         default_scene: None,

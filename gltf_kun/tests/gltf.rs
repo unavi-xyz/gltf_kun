@@ -1,9 +1,6 @@
 use std::path::Path;
 
-use gltf_kun::io::format::{
-    gltf::{GltfFileFormat, GltfFormat},
-    ExportFormat,
-};
+use gltf_kun::io::format::gltf::GltfFormat;
 use tracing::debug;
 use tracing_test::traced_test;
 
@@ -11,14 +8,16 @@ const ASSETS_DIR: &str = "../assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 const MODEL: &str = "BoxTextured/BoxTextured.gltf";
 
-#[test]
+#[tokio::test]
 #[traced_test]
-fn main() {
+async fn main() {
     let assets = Path::new(CARGO_MANIFEST_DIR).join(ASSETS_DIR);
     let path = assets.join(MODEL);
 
     // Import / export
-    let doc = GltfFormat::import_file(&path).expect("Failed to import glTF");
+    let doc = GltfFormat::import_file(&path)
+        .await
+        .expect("Failed to import glTF");
     let out = GltfFormat::export(doc).expect("Failed to export glTF");
     let out_json = serde_json::to_string(&out.json).expect("Failed to serialize json");
 
@@ -36,8 +35,10 @@ fn main() {
     gltf::import(&path).expect("Failed to read exported glTF");
 
     // Import / export written file
-    let doc = GltfFileFormat::import_file(&path).expect("Failed to import glTF");
-    let out = GltfFileFormat::export(doc).expect("Failed to export glTF");
+    let doc = GltfFormat::import_file(&path)
+        .await
+        .expect("Failed to import glTF");
+    let out = GltfFormat::export(doc).expect("Failed to export glTF");
     let out_json2 = serde_json::to_string(&out.json).expect("Failed to serialize json");
 
     assert_eq!(out_json, out_json2);
