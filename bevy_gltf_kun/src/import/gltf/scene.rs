@@ -24,7 +24,7 @@ pub fn import_scene(
 
     let scene = Scene { world };
 
-    let index = context.gltf.scenes.len();
+    let index = context.doc.scenes().iter().position(|x| *x == s).unwrap();
     let weight = s.get(&context.doc.0);
     let scene_label = scene_label(index, weight);
 
