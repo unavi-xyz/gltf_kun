@@ -19,8 +19,7 @@ pub struct EmptyResolver;
 impl Resolver for EmptyResolver {
     type Error = std::convert::Infallible;
 
-    async fn resolve(
-        &mut self,
-        _uri: &str,
-    ) -> Result<Vec<u8>, Self::Error> { Ok(Vec::new()) }
+    async fn resolve(&mut self, _uri: &str) -> Result<Vec<u8>, Self::Error> {
+        Ok(Vec::new())
+    }
 }
