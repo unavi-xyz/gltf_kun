@@ -2,7 +2,7 @@ use bevy::asset::LoadContext;
 use gltf_kun::document::GltfDocument;
 use thiserror::Error;
 
-use super::{scene::import_scenes, Gltf};
+use super::{scene::import_scene, Gltf};
 
 #[derive(Debug, Error)]
 pub enum BevyImportError {}
@@ -25,7 +25,9 @@ pub fn import_gltf_document(
         load_context,
     };
 
-    import_scenes(&mut context)?;
+    for scene in context.doc.scenes() {
+        import_scene(&mut context, scene)?;
+    }
 
     Ok(gltf)
 }
