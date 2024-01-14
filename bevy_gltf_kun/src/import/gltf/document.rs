@@ -1,4 +1,4 @@
-use bevy::asset::LoadContext;
+use bevy::{asset::LoadContext, prelude::*};
 use gltf_kun::document::GltfDocument;
 use thiserror::Error;
 
@@ -17,7 +17,11 @@ pub fn import_gltf_document(
     mut doc: GltfDocument,
     load_context: &mut LoadContext<'_>,
 ) -> Result<Gltf, BevyImportError> {
-    let mut gltf = Gltf::default();
+    let mut gltf = Gltf {
+        nodes: vec![Handle::default(); doc.nodes().len()],
+        scenes: vec![Handle::default(); doc.scenes().len()],
+        ..default()
+    };
 
     let mut context = ImportContext {
         doc: &mut doc,

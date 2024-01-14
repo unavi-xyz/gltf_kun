@@ -59,7 +59,7 @@ pub fn import_node(
         .load_context
         .add_labeled_asset(node_label.clone(), node);
 
-    context.gltf.nodes.push(handle.clone());
+    context.gltf.nodes.insert(index, handle.clone());
 
     if has_name {
         if context.gltf.named_nodes.contains_key(&node_label) {

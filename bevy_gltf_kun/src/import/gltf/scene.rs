@@ -46,7 +46,7 @@ pub fn import_scene(
         }
     }
 
-    context.gltf.scenes.push(handle);
+    context.gltf.scenes.insert(index, handle);
 
     Ok(())
 }
