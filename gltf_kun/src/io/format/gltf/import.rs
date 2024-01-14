@@ -111,8 +111,10 @@ impl GltfFormat {
 
                 weight.name = a.name.take();
                 weight.extras = a.extras.take();
-                weight.normalized = a.normalized;
+
                 weight.byte_offset = a.byte_offset.map(|o| o.0).unwrap_or_default() as usize;
+                weight.count = a.count.0 as usize;
+                weight.normalized = a.normalized;
                 weight.component_type = match a.component_type {
                     Checked::Valid(component_type) => component_type.0,
                     Checked::Invalid => {

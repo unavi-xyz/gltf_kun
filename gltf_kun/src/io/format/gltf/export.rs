@@ -34,8 +34,8 @@ impl GltfFormat {
             .accessors()
             .iter()
             .map(|a| {
-                let max = a.calc_max(&doc.0).map(|v| v.into());
-                let min = a.calc_min(&doc.0).map(|v| v.into());
+                let min = a.calc_min(&doc.0);
+                let max = a.calc_max(&doc.0);
                 (min, max)
             })
             .collect::<Vec<_>>();
@@ -154,9 +154,8 @@ impl GltfFormat {
                     }
                 };
 
-                let max = min_max[i].1.take();
                 let min = min_max[i].0.take();
-                let count = a.count(&doc.0)? as u64;
+                let max = min_max[i].1.take();
                 let weight = a.get_mut(&mut doc.0);
 
                 Some(gltf::json::accessor::Accessor {
@@ -167,9 +166,9 @@ impl GltfFormat {
                     buffer_view: Some(Index::new(*buffer_view_idx)),
                     byte_offset: Some(weight.byte_offset.into()),
                     component_type: Checked::Valid(GenericComponentType(weight.component_type)),
-                    count: count.into(),
-                    max,
-                    min,
+                    count: weight.count.into(),
+                    max: Some(max.into()),
+                    min: Some(min.into()),
                     normalized: weight.normalized,
                     sparse: None,
                     type_: Checked::Valid(weight.element_type),

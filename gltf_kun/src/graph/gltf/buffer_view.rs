@@ -88,10 +88,9 @@ impl BufferView {
 
     /// Returns the slice of the buffer that this view represents.
     pub fn slice<'a>(&'a self, graph: &'a GltfGraph, buffer: &'a Buffer) -> Option<&'a [u8]> {
-        let weight = self.get(graph);
-
         let buffer = buffer.get(graph);
 
+        let weight = self.get(graph);
         let start = weight.byte_offset;
         let end = start + weight.byte_length;
 

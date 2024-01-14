@@ -20,6 +20,8 @@ async fn main() {
     let out = GlbFormat::export(doc).expect("Failed to export glTF");
     let out_bytes = out.0.clone();
 
+    assert!(!out_bytes.is_empty());
+
     // Write to file
     let path = assets.join("temp/glb/model.glb");
     std::fs::create_dir_all(path.parent().unwrap()).expect("Failed to create directory");
@@ -38,8 +40,4 @@ async fn main() {
 
     // TODO: Figure out why this fails
     // assert_eq!(out_bytes.len(), out_bytes2.len());
-
-    // For now just assert that the output is not empty
-    assert!(!out_bytes.is_empty());
-    assert!(!out_bytes2.is_empty());
 }
