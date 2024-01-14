@@ -37,9 +37,7 @@ pub fn import_node(
         extras: weight.extras.take(),
     };
 
-    let children = n.children(&context.doc.0);
-
-    for mut c in children {
+    for mut c in n.children(&context.doc.0) {
         let child = import_node(context, &mut c)?;
         node.children.push(child);
     }
@@ -47,6 +45,8 @@ pub fn import_node(
     let handle = context
         .load_context
         .add_labeled_asset(node_label.clone(), node);
+
+    context.gltf.nodes.push(handle.clone());
 
     if has_name {
         if context.gltf.named_nodes.contains_key(&node_label) {
@@ -58,8 +58,6 @@ pub fn import_node(
             context.gltf.named_nodes.insert(node_label, handle.clone());
         }
     }
-
-    context.gltf.nodes.push(handle.clone());
 
     Ok(handle)
 }
