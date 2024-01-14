@@ -19,7 +19,7 @@ pub fn import_node(
     builder: &mut WorldChildBuilder,
     n: &mut Node,
 ) -> Result<Handle<GltfNode>, BevyImportError> {
-    let index = n.0.index();
+    let index = context.gltf.nodes.len();
     let weight = n.get_mut(&mut context.doc.0);
     let node_label = node_label(index, weight);
 
