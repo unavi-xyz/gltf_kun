@@ -6,6 +6,7 @@ Bevy glTF plugin using [gltf_kun](https://crates.io/crates/gltf_kun).
 
 Compared to `bevy_gltf`, this plugin adds support for:
 - Arbitrary glTF extensions
+- Name-based asset labels
 - glTF exporting
 - [glXF](https://github.com/KhronosGroup/glXF) import and export
 

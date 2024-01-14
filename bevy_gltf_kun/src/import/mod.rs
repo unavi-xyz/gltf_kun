@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use gltf::{GlbLoader, Gltf, GltfLoader};
+use self::gltf::{
+    loader::{GlbLoader, GltfLoader},
+    Gltf,
+};
 
 pub mod gltf;
 pub mod resolver;

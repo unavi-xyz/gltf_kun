@@ -13,7 +13,30 @@ export = []
 import = []
 
 [dependencies]
-bevy = "0.12.1"
+bevy = { version = "0.12.1", default-features = false, features = [
+  "android_shared_stdcxx",
+  "animation",
+  "bevy_asset",
+  "bevy_audio",
+  "bevy_core_pipeline",
+  "bevy_gilrs",
+  "bevy_gizmos",
+  "bevy_pbr",
+  "bevy_render",
+  "bevy_scene",
+  "bevy_sprite",
+  "bevy_text",
+  "bevy_ui",
+  "bevy_winit",
+  "default_font",
+  "hdr",
+  "multi-threaded",
+  "png",
+  "tonemapping_luts",
+  "vorbis",
+  "webgl2",
+  "x11"
+]}
 glam.workspace = true
 gltf_kun = { version = "0.0.4", path = "../gltf_kun" }
 serde_json.workspace = true
