@@ -1,24 +1,72 @@
 use bevy::prelude::*;
-use gltf_kun::{
-    document::GltfDocument,
-    graph::gltf::{node::Node, GltfGraph},
+use gltf_kun::graph::gltf::node::{Node, NodeWeight};
+
+use super::{
+    document::{BevyImportError, ImportContext},
+    mesh::GltfMesh,
 };
 
-use super::{document::BevyImportError, Gltf};
-
 #[derive(Asset, Debug, TypePath)]
-pub struct GltfNode {}
-
-pub fn import_node(
-    doc: &mut GltfDocument,
-    gltf: &mut Gltf,
-    node: &Node,
-) -> Result<(), BevyImportError> {
-    let node_label = node_label(node, &doc.0);
-
-    Ok(())
+pub struct GltfNode {
+    pub children: Vec<Handle<GltfNode>>,
+    pub mesh: Option<Handle<GltfMesh>>,
+    pub transform: Transform,
+    pub extras: Option<Box<serde_json::value::RawValue>>,
 }
 
-fn node_label(node: &Node, graph: &GltfGraph) -> Option<String> {
-    node.get(graph).name.as_ref().map(|n| format!("Node/{}", n))
+pub fn import_node(
+    context: &mut ImportContext<'_, '_>,
+    n: &mut Node,
+) -> Result<Handle<GltfNode>, BevyImportError> {
+    let index = n.0.index();
+    let weight = n.get_mut(&mut context.doc.0);
+
+    let node_label = node_label(index, weight);
+    let has_name = weight.name.is_some();
+
+    let transform = Transform {
+        translation: Vec3::from_array(weight.translation.to_array()),
+        rotation: Quat::from_array(weight.rotation.to_array()),
+        scale: Vec3::from_array(weight.scale.to_array()),
+    };
+
+    let mut node = GltfNode {
+        mesh: None,
+        children: Vec::new(),
+        transform,
+        extras: weight.extras.take(),
+    };
+
+    let children = n.children(&context.doc.0);
+
+    for mut c in children {
+        let child = import_node(context, &mut c)?;
+        node.children.push(child);
+    }
+
+    let handle = context
+        .load_context
+        .add_labeled_asset(node_label.clone(), node);
+
+    if has_name {
+        if context.gltf.named_nodes.contains_key(&node_label) {
+            warn!(
+                "Duplicate node name: {}. May cause issues if using name-based resolution.",
+                node_label
+            );
+        } else {
+            context.gltf.named_nodes.insert(node_label, handle.clone());
+        }
+    }
+
+    context.gltf.nodes.push(handle.clone());
+
+    Ok(handle)
+}
+
+fn node_label(index: usize, weight: &NodeWeight) -> String {
+    match weight.name.as_ref() {
+        Some(n) => format!("Node/{}", n),
+        None => format!("Node{}", index),
+    }
 }

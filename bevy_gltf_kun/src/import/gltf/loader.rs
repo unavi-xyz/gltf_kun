@@ -55,7 +55,7 @@ impl AssetLoader for GltfLoader {
             };
             let mut resolver = BevyAssetResolver { load_context };
             let doc = format.import(Some(&mut resolver)).await?;
-            let gltf = import_gltf_document(doc)?;
+            let gltf = import_gltf_document(doc, load_context)?;
             Ok(gltf)
         })
     }
@@ -86,13 +86,13 @@ impl AssetLoader for GlbLoader {
         &'a self,
         reader: &'a mut Reader,
         _settings: &'a (),
-        _load_context: &'a mut LoadContext,
+        load_context: &'a mut LoadContext,
     ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
         Box::pin(async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
             let doc = GlbFormat::import_slice(&bytes).await?;
-            let gltf = import_gltf_document(doc)?;
+            let gltf = import_gltf_document(doc, load_context)?;
             Ok(gltf)
         })
     }

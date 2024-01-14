@@ -1,20 +1,20 @@
 use bevy::prelude::*;
-use gltf_kun::{
-    document::GltfDocument,
-    graph::gltf::{scene::Scene, GltfGraph},
-};
+use gltf_kun::graph::gltf::{scene::Scene, GltfGraph};
 
-use super::{document::BevyImportError, node::import_node, Gltf};
+use super::{
+    document::{BevyImportError, ImportContext},
+    node::import_node,
+};
 
 #[derive(Asset, Debug, TypePath)]
 pub struct GltfScene {}
 
-pub fn import_scenes(doc: &mut GltfDocument, gltf: &mut Gltf) -> Result<(), BevyImportError> {
-    for scene in doc.scenes().iter() {
-        let scene_label = scene_label(scene, &doc.0);
+pub fn import_scenes(context: &mut ImportContext) -> Result<(), BevyImportError> {
+    for scene in context.doc.scenes().iter() {
+        let scene_label = scene_label(scene, &context.doc.0);
 
-        for node in scene.nodes(&doc.0) {
-            import_node(doc, gltf, &node)?;
+        for mut node in scene.nodes(&context.doc.0) {
+            import_node(context, &mut node)?;
         }
     }
 

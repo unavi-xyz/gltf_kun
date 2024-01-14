@@ -5,3 +5,5 @@
 
 pub mod gltf;
 pub mod glxf;
+
+pub use petgraph::graph::NodeIndex;
