@@ -1,332 +1,184 @@
-use gltf::{
-    accessor::{util::ItemIter, Iter},
-    json::accessor::{ComponentType, Type},
-};
-use serde_json::Number;
+use gltf::json::accessor::{ComponentType, Type};
 
 pub enum AccessorIter<'a> {
-    F32(Iter<'a, f32>),
-    F32x2(Iter<'a, [f32; 2]>),
-    F32x3(Iter<'a, [f32; 3]>),
-    F32x4(Iter<'a, [f32; 4]>),
-    U32(Iter<'a, u32>),
-    U32x2(Iter<'a, [u32; 2]>),
-    U32x3(Iter<'a, [u32; 3]>),
-    U32x4(Iter<'a, [u32; 4]>),
-    U16(Iter<'a, u16>),
-    U16x2(Iter<'a, [u16; 2]>),
-    U16x3(Iter<'a, [u16; 3]>),
-    U16x4(Iter<'a, [u16; 4]>),
-    U8(Iter<'a, u8>),
-    U8x2(Iter<'a, [u8; 2]>),
-    U8x3(Iter<'a, [u8; 3]>),
-    U8x4(Iter<'a, [u8; 4]>),
-    I16(Iter<'a, i16>),
-    I16x2(Iter<'a, [i16; 2]>),
-    I16x3(Iter<'a, [i16; 3]>),
-    I16x4(Iter<'a, [i16; 4]>),
-    I8(Iter<'a, i8>),
-    I8x2(Iter<'a, [i8; 2]>),
-    I8x3(Iter<'a, [i8; 3]>),
-    I8x4(Iter<'a, [i8; 4]>),
+    F32(ElementIter<'a, f32>),
+    F32x2(ElementIter<'a, [f32; 2]>),
+    F32x3(ElementIter<'a, [f32; 3]>),
+    F32x4(ElementIter<'a, [f32; 4]>),
+    U32(ElementIter<'a, u32>),
+    U32x2(ElementIter<'a, [u32; 2]>),
+    U32x3(ElementIter<'a, [u32; 3]>),
+    U32x4(ElementIter<'a, [u32; 4]>),
+    U16x2(ElementIter<'a, [u16; 2]>),
+    U16x4(ElementIter<'a, [u16; 4]>),
+    U8x2(ElementIter<'a, [u8; 2]>),
+    U8x4(ElementIter<'a, [u8; 4]>),
+    I16x2(ElementIter<'a, [i16; 2]>),
+    I16x4(ElementIter<'a, [i16; 4]>),
+    I8x2(ElementIter<'a, [i8; 2]>),
+    I8x4(ElementIter<'a, [i8; 4]>),
 }
 
-impl AccessorIter<'_> {
+impl<'a> AccessorIter<'a> {
+    pub fn new(slice: &'a [u8], component_type: ComponentType, element_type: Type) -> Self {
+        match (component_type, element_type) {
+            (ComponentType::F32, Type::Scalar) => AccessorIter::F32(ElementIter {
+                slice,
+                _phantom: std::marker::PhantomData,
+            }),
+            (ComponentType::F32, Type::Vec2) => AccessorIter::F32x2(ElementIter {
+                slice,
+                _phantom: std::marker::PhantomData,
+            }),
+            (ComponentType::F32, Type::Vec3) => AccessorIter::F32x3(ElementIter {
+                slice,
+                _phantom: std::marker::PhantomData,
+            }),
+            (ComponentType::F32, Type::Vec4) => AccessorIter::F32x4(ElementIter {
+                slice,
+                _phantom: std::marker::PhantomData,
+            }),
+            (ComponentType::U32, Type::Scalar) => AccessorIter::U32(ElementIter {
+                slice,
+                _phantom: std::marker::PhantomData,
+            }),
+            (ComponentType::U32, Type::Vec2) => AccessorIter::U32x2(ElementIter {
+                slice,
+                _phantom: std::marker::PhantomData,
+            }),
+            (ComponentType::U32, Type::Vec3) => AccessorIter::U32x3(ElementIter {
+                slice,
+                _phantom: std::marker::PhantomData,
+            }),
+            (ComponentType::U32, Type::Vec4) => AccessorIter::U32x4(ElementIter {
+                slice,
+                _phantom: std::marker::PhantomData,
+            }),
+            (ComponentType::U16, Type::Vec2) => AccessorIter::U16x2(ElementIter {
+                slice,
+                _phantom: std::marker::PhantomData,
+            }),
+            (ComponentType::U16, Type::Vec4) => AccessorIter::U16x4(ElementIter {
+                slice,
+                _phantom: std::marker::PhantomData,
+            }),
+            (ComponentType::U8, Type::Vec2) => AccessorIter::U8x2(ElementIter {
+                slice,
+                _phantom: std::marker::PhantomData,
+            }),
+            (ComponentType::U8, Type::Vec4) => AccessorIter::U8x4(ElementIter {
+                slice,
+                _phantom: std::marker::PhantomData,
+            }),
+            (ComponentType::I16, Type::Vec2) => AccessorIter::I16x2(ElementIter {
+                slice,
+                _phantom: std::marker::PhantomData,
+            }),
+            (ComponentType::I16, Type::Vec4) => AccessorIter::I16x4(ElementIter {
+                slice,
+                _phantom: std::marker::PhantomData,
+            }),
+            (ComponentType::I8, Type::Vec2) => AccessorIter::I8x2(ElementIter {
+                slice,
+                _phantom: std::marker::PhantomData,
+            }),
+            (ComponentType::I8, Type::Vec4) => AccessorIter::I8x4(ElementIter {
+                slice,
+                _phantom: std::marker::PhantomData,
+            }),
+            _ => panic!(
+                "Unsupported accessor type {:?} {:?}",
+                component_type, element_type
+            ),
+        }
+    }
+
     pub fn element_type(&self) -> Type {
         match self {
-            Self::F32(_) => Type::Scalar,
-            Self::F32x2(_) => Type::Vec2,
-            Self::F32x3(_) => Type::Vec3,
-            Self::F32x4(_) => Type::Vec4,
-            Self::U32(_) => Type::Scalar,
-            Self::U32x2(_) => Type::Vec2,
-            Self::U32x3(_) => Type::Vec3,
-            Self::U32x4(_) => Type::Vec4,
-            Self::U16(_) => Type::Scalar,
-            Self::U16x2(_) => Type::Vec2,
-            Self::U16x3(_) => Type::Vec3,
-            Self::U16x4(_) => Type::Vec4,
-            Self::U8(_) => Type::Scalar,
-            Self::U8x2(_) => Type::Vec2,
-            Self::U8x3(_) => Type::Vec3,
-            Self::U8x4(_) => Type::Vec4,
-            Self::I16(_) => Type::Scalar,
-            Self::I16x2(_) => Type::Vec2,
-            Self::I16x3(_) => Type::Vec3,
-            Self::I16x4(_) => Type::Vec4,
-            Self::I8(_) => Type::Scalar,
-            Self::I8x2(_) => Type::Vec2,
-            Self::I8x3(_) => Type::Vec3,
-            Self::I8x4(_) => Type::Vec4,
+            AccessorIter::F32(_) => Type::Scalar,
+            AccessorIter::F32x2(_) => Type::Vec2,
+            AccessorIter::F32x3(_) => Type::Vec3,
+            AccessorIter::F32x4(_) => Type::Vec4,
+            AccessorIter::U32(_) => Type::Scalar,
+            AccessorIter::U32x2(_) => Type::Vec2,
+            AccessorIter::U32x3(_) => Type::Vec3,
+            AccessorIter::U32x4(_) => Type::Vec4,
+            AccessorIter::U16x2(_) => Type::Vec2,
+            AccessorIter::U16x4(_) => Type::Vec4,
+            AccessorIter::U8x2(_) => Type::Vec2,
+            AccessorIter::U8x4(_) => Type::Vec4,
+            AccessorIter::I16x2(_) => Type::Vec2,
+            AccessorIter::I16x4(_) => Type::Vec4,
+            AccessorIter::I8x2(_) => Type::Vec2,
+            AccessorIter::I8x4(_) => Type::Vec4,
         }
     }
 
     pub fn component_type(&self) -> ComponentType {
         match self {
-            Self::F32(_) => ComponentType::F32,
-            Self::F32x2(_) => ComponentType::F32,
-            Self::F32x3(_) => ComponentType::F32,
-            Self::F32x4(_) => ComponentType::F32,
-            Self::U32(_) => ComponentType::U32,
-            Self::U32x2(_) => ComponentType::U32,
-            Self::U32x3(_) => ComponentType::U32,
-            Self::U32x4(_) => ComponentType::U32,
-            Self::U16(_) => ComponentType::U16,
-            Self::U16x2(_) => ComponentType::U16,
-            Self::U16x3(_) => ComponentType::U16,
-            Self::U16x4(_) => ComponentType::U16,
-            Self::U8(_) => ComponentType::U8,
-            Self::U8x2(_) => ComponentType::U8,
-            Self::U8x3(_) => ComponentType::U8,
-            Self::U8x4(_) => ComponentType::U8,
-            Self::I16(_) => ComponentType::I16,
-            Self::I16x2(_) => ComponentType::I16,
-            Self::I16x3(_) => ComponentType::I16,
-            Self::I16x4(_) => ComponentType::I16,
-            Self::I8(_) => ComponentType::I8,
-            Self::I8x2(_) => ComponentType::I8,
-            Self::I8x3(_) => ComponentType::I8,
-            Self::I8x4(_) => ComponentType::I8,
+            AccessorIter::F32(_) => ComponentType::F32,
+            AccessorIter::F32x2(_) => ComponentType::F32,
+            AccessorIter::F32x3(_) => ComponentType::F32,
+            AccessorIter::F32x4(_) => ComponentType::F32,
+            AccessorIter::U32(_) => ComponentType::U32,
+            AccessorIter::U32x2(_) => ComponentType::U32,
+            AccessorIter::U32x3(_) => ComponentType::U32,
+            AccessorIter::U32x4(_) => ComponentType::U32,
+            AccessorIter::U16x2(_) => ComponentType::U16,
+            AccessorIter::U16x4(_) => ComponentType::U16,
+            AccessorIter::U8x2(_) => ComponentType::U8,
+            AccessorIter::U8x4(_) => ComponentType::U8,
+            AccessorIter::I16x2(_) => ComponentType::I16,
+            AccessorIter::I16x4(_) => ComponentType::I16,
+            AccessorIter::I8x2(_) => ComponentType::I8,
+            AccessorIter::I8x4(_) => ComponentType::I8,
         }
     }
 
-    pub fn max(&self) -> Element {
-        match self {
-            Self::F32(iter) => Element::F32(
-                iter.clone()
-                    .max_by(|a, b| a.partial_cmp(b).unwrap())
-                    .unwrap(),
-            ),
-            Self::F32x2(iter) => Element::F32x2(
-                iter.clone()
-                    .max_by(|a, b| a.partial_cmp(b).unwrap())
-                    .unwrap(),
-            ),
-            Self::F32x3(iter) => Element::F32x3(
-                iter.clone()
-                    .max_by(|a, b| a.partial_cmp(b).unwrap())
-                    .unwrap(),
-            ),
-            Self::F32x4(iter) => Element::F32x4(
-                iter.clone()
-                    .max_by(|a, b| a.partial_cmp(b).unwrap())
-                    .unwrap(),
-            ),
-            Self::U32(iter) => Element::U32(iter.clone().max().unwrap()),
-            Self::U32x2(iter) => Element::U32x2(iter.clone().max().unwrap()),
-            Self::U32x3(iter) => Element::U32x3(iter.clone().max().unwrap()),
-            Self::U32x4(iter) => Element::U32x4(iter.clone().max().unwrap()),
-            Self::U16(iter) => Element::U16(iter.clone().max().unwrap()),
-            Self::U16x2(iter) => Element::U16x2(iter.clone().max().unwrap()),
-            Self::U16x3(iter) => Element::U16x3(iter.clone().max().unwrap()),
-            Self::U16x4(iter) => Element::U16x4(iter.clone().max().unwrap()),
-            Self::U8(iter) => Element::U8(iter.clone().max().unwrap()),
-            Self::U8x2(iter) => Element::U8x2(iter.clone().max().unwrap()),
-            Self::U8x3(iter) => Element::U8x3(iter.clone().max().unwrap()),
-            Self::U8x4(iter) => Element::U8x4(iter.clone().max().unwrap()),
-            Self::I16(iter) => Element::I16(iter.clone().max().unwrap()),
-            Self::I16x2(iter) => Element::I16x2(iter.clone().max().unwrap()),
-            Self::I16x3(iter) => Element::I16x3(iter.clone().max().unwrap()),
-            Self::I16x4(iter) => Element::I16x4(iter.clone().max().unwrap()),
-            Self::I8(iter) => Element::I8(iter.clone().max().unwrap()),
-            Self::I8x2(iter) => Element::I8x2(iter.clone().max().unwrap()),
-            Self::I8x3(iter) => Element::I8x3(iter.clone().max().unwrap()),
-            Self::I8x4(iter) => Element::I8x4(iter.clone().max().unwrap()),
+    pub fn max(iter: Self) -> AccessorElement {
+        match iter {
+            AccessorIter::F32(iter) => ElementIter::gl_max(iter).into(),
+            AccessorIter::F32x2(iter) => ElementIter::gl_max(iter).into(),
+            AccessorIter::F32x3(iter) => ElementIter::gl_max(iter).into(),
+            AccessorIter::F32x4(iter) => ElementIter::gl_max(iter).into(),
+            AccessorIter::U32(iter) => ElementIter::gl_max(iter).into(),
+            AccessorIter::U32x2(iter) => ElementIter::gl_max(iter).into(),
+            AccessorIter::U32x3(iter) => ElementIter::gl_max(iter).into(),
+            AccessorIter::U32x4(iter) => ElementIter::gl_max(iter).into(),
+            AccessorIter::U16x2(iter) => ElementIter::gl_max(iter).into(),
+            AccessorIter::U16x4(iter) => ElementIter::gl_max(iter).into(),
+            AccessorIter::U8x2(iter) => ElementIter::gl_max(iter).into(),
+            AccessorIter::U8x4(iter) => ElementIter::gl_max(iter).into(),
+            AccessorIter::I16x2(iter) => ElementIter::gl_max(iter).into(),
+            AccessorIter::I16x4(iter) => ElementIter::gl_max(iter).into(),
+            AccessorIter::I8x2(iter) => ElementIter::gl_max(iter).into(),
+            AccessorIter::I8x4(iter) => ElementIter::gl_max(iter).into(),
         }
     }
 
-    pub fn min(&self) -> Element {
-        match self {
-            Self::F32(iter) => Element::F32(
-                iter.clone()
-                    .min_by(|a, b| a.partial_cmp(b).unwrap())
-                    .unwrap(),
-            ),
-            Self::F32x2(iter) => Element::F32x2(
-                iter.clone()
-                    .min_by(|a, b| a.partial_cmp(b).unwrap())
-                    .unwrap(),
-            ),
-            Self::F32x3(iter) => Element::F32x3(
-                iter.clone()
-                    .min_by(|a, b| a.partial_cmp(b).unwrap())
-                    .unwrap(),
-            ),
-            Self::F32x4(iter) => Element::F32x4(
-                iter.clone()
-                    .min_by(|a, b| a.partial_cmp(b).unwrap())
-                    .unwrap(),
-            ),
-            Self::U32(iter) => Element::U32(iter.clone().min().unwrap()),
-            Self::U32x2(iter) => Element::U32x2(iter.clone().min().unwrap()),
-            Self::U32x3(iter) => Element::U32x3(iter.clone().min().unwrap()),
-            Self::U32x4(iter) => Element::U32x4(iter.clone().min().unwrap()),
-            Self::U16(iter) => Element::U16(iter.clone().min().unwrap()),
-            Self::U16x2(iter) => Element::U16x2(iter.clone().min().unwrap()),
-            Self::U16x3(iter) => Element::U16x3(iter.clone().min().unwrap()),
-            Self::U16x4(iter) => Element::U16x4(iter.clone().min().unwrap()),
-            Self::U8(iter) => Element::U8(iter.clone().min().unwrap()),
-            Self::U8x2(iter) => Element::U8x2(iter.clone().min().unwrap()),
-            Self::U8x3(iter) => Element::U8x3(iter.clone().min().unwrap()),
-            Self::U8x4(iter) => Element::U8x4(iter.clone().min().unwrap()),
-            Self::I16(iter) => Element::I16(iter.clone().min().unwrap()),
-            Self::I16x2(iter) => Element::I16x2(iter.clone().min().unwrap()),
-            Self::I16x3(iter) => Element::I16x3(iter.clone().min().unwrap()),
-            Self::I16x4(iter) => Element::I16x4(iter.clone().min().unwrap()),
-            Self::I8(iter) => Element::I8(iter.clone().min().unwrap()),
-            Self::I8x2(iter) => Element::I8x2(iter.clone().min().unwrap()),
-            Self::I8x3(iter) => Element::I8x3(iter.clone().min().unwrap()),
-            Self::I8x4(iter) => Element::I8x4(iter.clone().min().unwrap()),
+    pub fn min(iter: Self) -> AccessorElement {
+        match iter {
+            AccessorIter::F32(iter) => ElementIter::gl_min(iter).into(),
+            AccessorIter::F32x2(iter) => ElementIter::gl_min(iter).into(),
+            AccessorIter::F32x3(iter) => ElementIter::gl_min(iter).into(),
+            AccessorIter::F32x4(iter) => ElementIter::gl_min(iter).into(),
+            AccessorIter::U32(iter) => ElementIter::gl_min(iter).into(),
+            AccessorIter::U32x2(iter) => ElementIter::gl_min(iter).into(),
+            AccessorIter::U32x3(iter) => ElementIter::gl_min(iter).into(),
+            AccessorIter::U32x4(iter) => ElementIter::gl_min(iter).into(),
+            AccessorIter::U16x2(iter) => ElementIter::gl_min(iter).into(),
+            AccessorIter::U16x4(iter) => ElementIter::gl_min(iter).into(),
+            AccessorIter::U8x2(iter) => ElementIter::gl_min(iter).into(),
+            AccessorIter::U8x4(iter) => ElementIter::gl_min(iter).into(),
+            AccessorIter::I16x2(iter) => ElementIter::gl_min(iter).into(),
+            AccessorIter::I16x4(iter) => ElementIter::gl_min(iter).into(),
+            AccessorIter::I8x2(iter) => ElementIter::gl_min(iter).into(),
+            AccessorIter::I8x4(iter) => ElementIter::gl_min(iter).into(),
         }
     }
 }
 
-impl<'a> From<ItemIter<'a, f32>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, f32>) -> Self {
-        Self::F32(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [f32; 2]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [f32; 2]>) -> Self {
-        Self::F32x2(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [f32; 3]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [f32; 3]>) -> Self {
-        Self::F32x3(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [f32; 4]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [f32; 4]>) -> Self {
-        Self::F32x4(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, u32>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, u32>) -> Self {
-        Self::U32(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [u32; 2]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [u32; 2]>) -> Self {
-        Self::U32x2(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [u32; 3]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [u32; 3]>) -> Self {
-        Self::U32x3(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [u32; 4]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [u32; 4]>) -> Self {
-        Self::U32x4(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, u16>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, u16>) -> Self {
-        Self::U16(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [u16; 2]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [u16; 2]>) -> Self {
-        Self::U16x2(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [u16; 3]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [u16; 3]>) -> Self {
-        Self::U16x3(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [u16; 4]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [u16; 4]>) -> Self {
-        Self::U16x4(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, u8>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, u8>) -> Self {
-        Self::U8(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [u8; 2]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [u8; 2]>) -> Self {
-        Self::U8x2(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [u8; 3]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [u8; 3]>) -> Self {
-        Self::U8x3(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [u8; 4]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [u8; 4]>) -> Self {
-        Self::U8x4(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, i16>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, i16>) -> Self {
-        Self::I16(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [i16; 2]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [i16; 2]>) -> Self {
-        Self::I16x2(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [i16; 3]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [i16; 3]>) -> Self {
-        Self::I16x3(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [i16; 4]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [i16; 4]>) -> Self {
-        Self::I16x4(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, i8>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, i8>) -> Self {
-        Self::I8(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [i8; 2]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [i8; 2]>) -> Self {
-        Self::I8x2(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [i8; 3]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [i8; 3]>) -> Self {
-        Self::I8x3(Iter::Standard(iter))
-    }
-}
-
-impl<'a> From<ItemIter<'a, [i8; 4]>> for AccessorIter<'a> {
-    fn from(iter: ItemIter<'a, [i8; 4]>) -> Self {
-        Self::I8x4(Iter::Standard(iter))
-    }
-}
-
-#[derive(Clone, Debug)]
-pub enum Element {
+pub enum AccessorElement {
     F32(f32),
     F32x2([f32; 2]),
     F32x3([f32; 3]),
@@ -335,141 +187,368 @@ pub enum Element {
     U32x2([u32; 2]),
     U32x3([u32; 3]),
     U32x4([u32; 4]),
-    U16(u16),
     U16x2([u16; 2]),
-    U16x3([u16; 3]),
     U16x4([u16; 4]),
-    U8(u8),
     U8x2([u8; 2]),
-    U8x3([u8; 3]),
     U8x4([u8; 4]),
-    I16(i16),
     I16x2([i16; 2]),
-    I16x3([i16; 3]),
     I16x4([i16; 4]),
-    I8(i8),
     I8x2([i8; 2]),
-    I8x3([i8; 3]),
     I8x4([i8; 4]),
 }
 
-impl From<Element> for serde_json::Value {
-    fn from(value: Element) -> Self {
-        match value {
-            Element::F32(value) => Self::Number(Number::from_f64(value as f64).unwrap()),
-            Element::F32x2(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number(Number::from_f64(*value as f64).unwrap()))
-                    .collect(),
-            ),
-            Element::F32x3(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number(Number::from_f64(*value as f64).unwrap()))
-                    .collect(),
-            ),
-            Element::F32x4(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number(Number::from_f64(*value as f64).unwrap()))
-                    .collect(),
-            ),
-            Element::U32(value) => Self::Number(value.into()),
-            Element::U32x2(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number((*value).into()))
-                    .collect(),
-            ),
-            Element::U32x3(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number((*value).into()))
-                    .collect(),
-            ),
-            Element::U32x4(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number((*value).into()))
-                    .collect(),
-            ),
-            Element::U16(value) => Self::Number(value.into()),
-            Element::U16x2(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number((*value).into()))
-                    .collect(),
-            ),
-            Element::U16x3(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number((*value).into()))
-                    .collect(),
-            ),
-            Element::U16x4(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number((*value).into()))
-                    .collect(),
-            ),
-            Element::U8(value) => Self::Number(value.into()),
-            Element::U8x2(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number((*value).into()))
-                    .collect(),
-            ),
-            Element::U8x3(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number((*value).into()))
-                    .collect(),
-            ),
-            Element::U8x4(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number((*value).into()))
-                    .collect(),
-            ),
-            Element::I16(value) => Self::Number(value.into()),
-            Element::I16x2(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number((*value).into()))
-                    .collect(),
-            ),
-            Element::I16x3(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number((*value).into()))
-                    .collect(),
-            ),
-            Element::I16x4(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number((*value).into()))
-                    .collect(),
-            ),
-            Element::I8(value) => Self::Number(value.into()),
-            Element::I8x2(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number((*value).into()))
-                    .collect(),
-            ),
-            Element::I8x3(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number((*value).into()))
-                    .collect(),
-            ),
-            Element::I8x4(value) => Self::Array(
-                value
-                    .iter()
-                    .map(|value| Self::Number((*value).into()))
-                    .collect(),
-            ),
+impl From<f32> for AccessorElement {
+    fn from(value: f32) -> Self {
+        AccessorElement::F32(value)
+    }
+}
+impl From<[f32; 2]> for AccessorElement {
+    fn from(value: [f32; 2]) -> Self {
+        AccessorElement::F32x2(value)
+    }
+}
+impl From<[f32; 3]> for AccessorElement {
+    fn from(value: [f32; 3]) -> Self {
+        AccessorElement::F32x3(value)
+    }
+}
+impl From<[f32; 4]> for AccessorElement {
+    fn from(value: [f32; 4]) -> Self {
+        AccessorElement::F32x4(value)
+    }
+}
+impl From<u32> for AccessorElement {
+    fn from(value: u32) -> Self {
+        AccessorElement::U32(value)
+    }
+}
+impl From<[u32; 2]> for AccessorElement {
+    fn from(value: [u32; 2]) -> Self {
+        AccessorElement::U32x2(value)
+    }
+}
+impl From<[u32; 3]> for AccessorElement {
+    fn from(value: [u32; 3]) -> Self {
+        AccessorElement::U32x3(value)
+    }
+}
+impl From<[u32; 4]> for AccessorElement {
+    fn from(value: [u32; 4]) -> Self {
+        AccessorElement::U32x4(value)
+    }
+}
+impl From<[u16; 2]> for AccessorElement {
+    fn from(value: [u16; 2]) -> Self {
+        AccessorElement::U16x2(value)
+    }
+}
+impl From<[u16; 4]> for AccessorElement {
+    fn from(value: [u16; 4]) -> Self {
+        AccessorElement::U16x4(value)
+    }
+}
+impl From<[u8; 2]> for AccessorElement {
+    fn from(value: [u8; 2]) -> Self {
+        AccessorElement::U8x2(value)
+    }
+}
+impl From<[u8; 4]> for AccessorElement {
+    fn from(value: [u8; 4]) -> Self {
+        AccessorElement::U8x4(value)
+    }
+}
+impl From<[i16; 2]> for AccessorElement {
+    fn from(value: [i16; 2]) -> Self {
+        AccessorElement::I16x2(value)
+    }
+}
+impl From<[i16; 4]> for AccessorElement {
+    fn from(value: [i16; 4]) -> Self {
+        AccessorElement::I16x4(value)
+    }
+}
+impl From<[i8; 2]> for AccessorElement {
+    fn from(value: [i8; 2]) -> Self {
+        AccessorElement::I8x2(value)
+    }
+}
+impl From<[i8; 4]> for AccessorElement {
+    fn from(value: [i8; 4]) -> Self {
+        AccessorElement::I8x4(value)
+    }
+}
+
+pub struct ElementIter<'a, T: Element> {
+    pub slice: &'a [u8],
+    _phantom: std::marker::PhantomData<T>,
+}
+
+impl<'a, T: Element> Iterator for ElementIter<'a, T> {
+    type Item = T;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.slice.is_empty() {
+            return None;
         }
+
+        let stride = T::stride();
+        let (head, tail) = self.slice.split_at(stride);
+        self.slice = tail;
+
+        Some(T::from_slice(head))
+    }
+}
+
+impl<'a, T: Element> ElementIter<'a, T> {
+    pub fn gl_max(iter: ElementIter<T>) -> T {
+        let mut max = T::zero();
+        for element in iter {
+            max = max.gl_max(&element);
+        }
+        max
+    }
+
+    pub fn gl_min(iter: ElementIter<T>) -> T {
+        let mut min = T::zero();
+        for element in iter {
+            min = min.gl_min(&element);
+        }
+        min
+    }
+}
+
+pub trait Element {
+    fn stride() -> usize {
+        Self::element_type().multiplicity() * Self::component_type().size()
+    }
+
+    fn component_type() -> ComponentType;
+    fn element_type() -> Type;
+    fn from_slice(slice: &[u8]) -> Self;
+    fn zero() -> Self;
+
+    fn gl_max(&self, other: &Self) -> Self;
+    fn gl_min(&self, other: &Self) -> Self;
+}
+
+impl Element for f32 {
+    fn component_type() -> ComponentType {
+        ComponentType::F32
+    }
+    fn element_type() -> Type {
+        Type::Scalar
+    }
+    fn from_slice(slice: &[u8]) -> Self {
+        f32::from_ne_bytes(slice.try_into().unwrap())
+    }
+    fn zero() -> Self {
+        0.0
+    }
+    fn gl_max(&self, other: &Self) -> Self {
+        self.max(*other)
+    }
+    fn gl_min(&self, other: &Self) -> Self {
+        self.min(*other)
+    }
+}
+
+impl Element for u32 {
+    fn component_type() -> ComponentType {
+        ComponentType::U32
+    }
+    fn element_type() -> Type {
+        Type::Scalar
+    }
+    fn from_slice(slice: &[u8]) -> Self {
+        u32::from_ne_bytes(slice.try_into().unwrap())
+    }
+    fn zero() -> Self {
+        0
+    }
+    fn gl_max(&self, other: &Self) -> Self {
+        *self.max(other)
+    }
+    fn gl_min(&self, other: &Self) -> Self {
+        *self.min(other)
+    }
+}
+
+impl Element for u16 {
+    fn component_type() -> ComponentType {
+        ComponentType::U16
+    }
+    fn element_type() -> Type {
+        Type::Scalar
+    }
+    fn from_slice(slice: &[u8]) -> Self {
+        u16::from_ne_bytes(slice.try_into().unwrap())
+    }
+    fn zero() -> Self {
+        0
+    }
+    fn gl_max(&self, other: &Self) -> Self {
+        *self.max(other)
+    }
+    fn gl_min(&self, other: &Self) -> Self {
+        *self.min(other)
+    }
+}
+
+impl Element for u8 {
+    fn component_type() -> ComponentType {
+        ComponentType::U8
+    }
+    fn element_type() -> Type {
+        Type::Scalar
+    }
+    fn from_slice(slice: &[u8]) -> Self {
+        u8::from_ne_bytes(slice.try_into().unwrap())
+    }
+    fn zero() -> Self {
+        0
+    }
+    fn gl_max(&self, other: &Self) -> Self {
+        *self.max(other)
+    }
+    fn gl_min(&self, other: &Self) -> Self {
+        *self.min(other)
+    }
+}
+
+impl Element for i16 {
+    fn component_type() -> ComponentType {
+        ComponentType::I16
+    }
+    fn element_type() -> Type {
+        Type::Scalar
+    }
+    fn from_slice(slice: &[u8]) -> Self {
+        i16::from_ne_bytes(slice.try_into().unwrap())
+    }
+    fn zero() -> Self {
+        0
+    }
+    fn gl_max(&self, other: &Self) -> Self {
+        *self.max(other)
+    }
+    fn gl_min(&self, other: &Self) -> Self {
+        *self.min(other)
+    }
+}
+
+impl Element for i8 {
+    fn component_type() -> ComponentType {
+        ComponentType::I8
+    }
+    fn element_type() -> Type {
+        Type::Scalar
+    }
+    fn from_slice(slice: &[u8]) -> Self {
+        i8::from_ne_bytes(slice.try_into().unwrap())
+    }
+    fn zero() -> Self {
+        0
+    }
+    fn gl_max(&self, other: &Self) -> Self {
+        *self.max(other)
+    }
+    fn gl_min(&self, other: &Self) -> Self {
+        *self.min(other)
+    }
+}
+
+impl<T: Element + Copy> Element for [T; 2] {
+    fn component_type() -> ComponentType {
+        T::component_type()
+    }
+
+    fn element_type() -> Type {
+        Type::Vec2
+    }
+    fn from_slice(slice: &[u8]) -> Self {
+        [
+            T::from_slice(slice),
+            T::from_slice(&slice[std::mem::size_of::<T>()..]),
+        ]
+    }
+    fn zero() -> Self {
+        [T::zero(); 2]
+    }
+    fn gl_max(&self, other: &Self) -> Self {
+        [self[0].gl_max(&other[0]), self[1].gl_max(&other[1])]
+    }
+    fn gl_min(&self, other: &Self) -> Self {
+        [self[0].gl_min(&other[0]), self[1].gl_min(&other[1])]
+    }
+}
+
+impl<T: Element + Copy> Element for [T; 3] {
+    fn component_type() -> ComponentType {
+        T::component_type()
+    }
+
+    fn element_type() -> Type {
+        Type::Vec3
+    }
+    fn from_slice(slice: &[u8]) -> Self {
+        [
+            T::from_slice(slice),
+            T::from_slice(&slice[std::mem::size_of::<T>()..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 2..]),
+        ]
+    }
+    fn zero() -> Self {
+        [T::zero(); 3]
+    }
+    fn gl_max(&self, other: &Self) -> Self {
+        [
+            self[0].gl_max(&other[0]),
+            self[1].gl_max(&other[1]),
+            self[2].gl_max(&other[2]),
+        ]
+    }
+    fn gl_min(&self, other: &Self) -> Self {
+        [
+            self[0].gl_min(&other[0]),
+            self[1].gl_min(&other[1]),
+            self[2].gl_min(&other[2]),
+        ]
+    }
+}
+
+impl<T: Element + Copy> Element for [T; 4] {
+    fn component_type() -> ComponentType {
+        T::component_type()
+    }
+
+    fn element_type() -> Type {
+        Type::Vec4
+    }
+    fn from_slice(slice: &[u8]) -> Self {
+        [
+            T::from_slice(slice),
+            T::from_slice(&slice[std::mem::size_of::<T>()..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 2..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 3..]),
+        ]
+    }
+    fn zero() -> Self {
+        [T::zero(); 4]
+    }
+    fn gl_max(&self, other: &Self) -> Self {
+        [
+            self[0].gl_max(&other[0]),
+            self[1].gl_max(&other[1]),
+            self[2].gl_max(&other[2]),
+            self[3].gl_max(&other[3]),
+        ]
+    }
+    fn gl_min(&self, other: &Self) -> Self {
+        [
+            self[0].gl_min(&other[0]),
+            self[1].gl_min(&other[1]),
+            self[2].gl_min(&other[2]),
+            self[3].gl_min(&other[3]),
+        ]
     }
 }

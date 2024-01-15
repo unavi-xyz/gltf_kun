@@ -6,10 +6,14 @@ use gltf::json::{
     Index,
 };
 use petgraph::stable_graph::NodeIndex;
+use serde_json::{Number, Value};
 use thiserror::Error;
 use tracing::warn;
 
-use crate::{document::GltfDocument, graph::gltf::buffer_view::Target};
+use crate::{
+    document::GltfDocument,
+    graph::gltf::{accessor::iter::AccessorElement, buffer_view::Target},
+};
 
 use super::GltfFormat;
 
@@ -335,5 +339,65 @@ impl GltfFormat {
         // TODO: Create animations
 
         Ok(GltfFormat { json, resources })
+    }
+}
+
+impl From<AccessorElement> for Value {
+    fn from(value: AccessorElement) -> Self {
+        match value {
+            AccessorElement::F32(value) => Number::from_f64(value as f64).unwrap().into(),
+            AccessorElement::F32x2(value) => Value::Array(
+                value
+                    .iter()
+                    .map(|v| Number::from_f64(*v as f64).unwrap().into())
+                    .collect(),
+            ),
+            AccessorElement::F32x3(value) => Value::Array(
+                value
+                    .iter()
+                    .map(|v| Number::from_f64(*v as f64).unwrap().into())
+                    .collect(),
+            ),
+            AccessorElement::F32x4(value) => Value::Array(
+                value
+                    .iter()
+                    .map(|v| Number::from_f64(*v as f64).unwrap().into())
+                    .collect(),
+            ),
+            AccessorElement::U32(value) => Value::Number(value.into()),
+            AccessorElement::U32x2(value) => {
+                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+            }
+            AccessorElement::U32x3(value) => {
+                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+            }
+            AccessorElement::U32x4(value) => {
+                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+            }
+            AccessorElement::U16x2(value) => {
+                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+            }
+            AccessorElement::U16x4(value) => {
+                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+            }
+            AccessorElement::U8x2(value) => {
+                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+            }
+            AccessorElement::U8x4(value) => {
+                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+            }
+            AccessorElement::I16x2(value) => {
+                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+            }
+            AccessorElement::I16x4(value) => {
+                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+            }
+            AccessorElement::I8x2(value) => {
+                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+            }
+            AccessorElement::I8x4(value) => {
+                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+            }
+        }
     }
 }

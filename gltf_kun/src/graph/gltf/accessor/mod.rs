@@ -1,9 +1,8 @@
-use gltf::accessor::util::ItemIter;
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 
 use crate::extension::ExtensionProperty;
 
-use self::iter::{AccessorIter, Element};
+use self::iter::{AccessorElement, AccessorIter};
 
 use super::{buffer::Buffer, buffer_view::BufferView, Edge, GltfGraph, Weight};
 
@@ -22,20 +21,6 @@ pub struct AccessorWeight {
     pub count: usize,
     pub element_type: Type,
     pub normalized: bool,
-}
-
-impl AccessorWeight {
-    pub fn element_size(&self) -> usize {
-        match self.element_type {
-            Type::Scalar => 1,
-            Type::Vec2 => 2,
-            Type::Vec3 => 3,
-            Type::Vec4 => 4,
-            Type::Mat2 => 4,
-            Type::Mat3 => 9,
-            Type::Mat4 => 16,
-        }
-    }
 }
 
 impl Default for AccessorWeight {
@@ -97,11 +82,7 @@ impl Accessor {
         }
     }
 
-    pub fn from_iter(
-        iter: iter::AccessorIter,
-        graph: &mut GltfGraph,
-        buffer: Option<Buffer>,
-    ) -> Self {
+    pub fn from_iter(graph: &mut GltfGraph, iter: AccessorIter, buffer: Option<Buffer>) -> Self {
         let buffer = buffer.unwrap_or_else(|| Buffer::new(graph));
 
         let buffer_view = BufferView::new(graph);
@@ -124,42 +105,12 @@ impl Accessor {
         buffer: &'a Buffer,
     ) -> Option<AccessorIter<'a>> {
         let slice = self.slice(graph, buffer_view, buffer)?;
-
         let weight = self.get(graph);
-        let stride = weight.element_size() * weight.component_type.size();
-
-        let iter = match (weight.component_type, weight.element_type) {
-            (ComponentType::F32, Type::Scalar) => ItemIter::<f32>::new(slice, stride).into(),
-            (ComponentType::F32, Type::Vec2) => ItemIter::<[f32; 2]>::new(slice, stride).into(),
-            (ComponentType::F32, Type::Vec3) => ItemIter::<[f32; 3]>::new(slice, stride).into(),
-            (ComponentType::F32, Type::Vec4) => ItemIter::<[f32; 4]>::new(slice, stride).into(),
-            (ComponentType::U32, Type::Scalar) => ItemIter::<u32>::new(slice, stride).into(),
-            (ComponentType::U32, Type::Vec2) => ItemIter::<[u32; 2]>::new(slice, stride).into(),
-            (ComponentType::U32, Type::Vec3) => ItemIter::<[u32; 3]>::new(slice, stride).into(),
-            (ComponentType::U32, Type::Vec4) => ItemIter::<[u32; 4]>::new(slice, stride).into(),
-            (ComponentType::U16, Type::Scalar) => ItemIter::<u16>::new(slice, stride).into(),
-            (ComponentType::U16, Type::Vec2) => ItemIter::<[u16; 2]>::new(slice, stride).into(),
-            (ComponentType::U16, Type::Vec3) => ItemIter::<[u16; 3]>::new(slice, stride).into(),
-            (ComponentType::U16, Type::Vec4) => ItemIter::<[u16; 4]>::new(slice, stride).into(),
-            (ComponentType::U8, Type::Scalar) => ItemIter::<u8>::new(slice, stride).into(),
-            (ComponentType::U8, Type::Vec2) => ItemIter::<[u8; 2]>::new(slice, stride).into(),
-            (ComponentType::U8, Type::Vec3) => ItemIter::<[u8; 3]>::new(slice, stride).into(),
-            (ComponentType::U8, Type::Vec4) => ItemIter::<[u8; 4]>::new(slice, stride).into(),
-            (ComponentType::I16, Type::Scalar) => ItemIter::<i16>::new(slice, stride).into(),
-            (ComponentType::I16, Type::Vec2) => ItemIter::<[i16; 2]>::new(slice, stride).into(),
-            (ComponentType::I16, Type::Vec3) => ItemIter::<[i16; 3]>::new(slice, stride).into(),
-            (ComponentType::I16, Type::Vec4) => ItemIter::<[i16; 4]>::new(slice, stride).into(),
-            (ComponentType::I8, Type::Scalar) => ItemIter::<i8>::new(slice, stride).into(),
-            (ComponentType::I8, Type::Vec2) => ItemIter::<[i8; 2]>::new(slice, stride).into(),
-            (ComponentType::I8, Type::Vec3) => ItemIter::<[i8; 3]>::new(slice, stride).into(),
-            (ComponentType::I8, Type::Vec4) => ItemIter::<[i8; 4]>::new(slice, stride).into(),
-            _ => panic!(
-                "Unsupported accessor type {:?} {:?}",
-                weight.component_type, weight.element_type
-            ),
-        };
-
-        Some(iter)
+        Some(AccessorIter::new(
+            slice,
+            weight.component_type,
+            weight.element_type,
+        ))
     }
 
     pub fn slice<'a>(
@@ -172,7 +123,8 @@ impl Accessor {
 
         let weight = self.get(graph);
         let start = weight.byte_offset;
-        let end = start + weight.count * weight.element_size() * weight.component_type.size();
+        let end = start
+            + weight.count * weight.element_type.multiplicity() * weight.component_type.size();
 
         if end > slice.len() {
             panic!(
@@ -186,20 +138,20 @@ impl Accessor {
         Some(&slice[start..end])
     }
 
-    pub fn calc_max(&self, graph: &GltfGraph) -> Option<Element> {
+    pub fn calc_max(&self, graph: &GltfGraph) -> Option<AccessorElement> {
         let buffer_view = self.buffer_view(graph)?;
         let buffer = buffer_view.buffer(graph)?;
 
         let iter = self.iter(graph, &buffer_view, &buffer)?;
-        Some(iter.max())
+        Some(AccessorIter::max(iter))
     }
 
-    pub fn calc_min(&self, graph: &GltfGraph) -> Option<Element> {
+    pub fn calc_min(&self, graph: &GltfGraph) -> Option<AccessorElement> {
         let buffer_view = self.buffer_view(graph)?;
         let buffer = buffer_view.buffer(graph)?;
 
         let iter = self.iter(graph, &buffer_view, &buffer)?;
-        Some(iter.min())
+        Some(AccessorIter::min(iter))
     }
 }
 
