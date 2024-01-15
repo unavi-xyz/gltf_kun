@@ -9,7 +9,9 @@ use super::{buffer::Buffer, buffer_view::BufferView, Edge, GltfGraph, Weight};
 
 pub use gltf::json::accessor::{ComponentType, Type};
 
+pub mod colors;
 pub mod iter;
+pub mod normalize;
 
 #[derive(Debug)]
 pub struct AccessorWeight {

@@ -39,7 +39,7 @@ async fn main() {
     let out_bytes2 = out.0.clone();
 
     // TODO: Figure out why this fails
-    // assert_eq!(out_bytes, out_bytes2);
+    // assert_eq!(out_bytes.len(), out_bytes2.len());
 
     assert!(!out_bytes2.is_empty());
 }

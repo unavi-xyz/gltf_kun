@@ -14,13 +14,21 @@ pub enum AccessorIter<'a> {
     U32x2(ElementIter<'a, [u32; 2]>),
     U32x3(ElementIter<'a, [u32; 3]>),
     U32x4(ElementIter<'a, [u32; 4]>),
+    U16(ElementIter<'a, u16>),
     U16x2(ElementIter<'a, [u16; 2]>),
+    U16x3(ElementIter<'a, [u16; 3]>),
     U16x4(ElementIter<'a, [u16; 4]>),
+    U8(ElementIter<'a, u8>),
     U8x2(ElementIter<'a, [u8; 2]>),
+    U8x3(ElementIter<'a, [u8; 3]>),
     U8x4(ElementIter<'a, [u8; 4]>),
+    I16(ElementIter<'a, i16>),
     I16x2(ElementIter<'a, [i16; 2]>),
+    I16x3(ElementIter<'a, [i16; 3]>),
     I16x4(ElementIter<'a, [i16; 4]>),
+    I8(ElementIter<'a, i8>),
     I8x2(ElementIter<'a, [i8; 2]>),
+    I8x3(ElementIter<'a, [i8; 3]>),
     I8x4(ElementIter<'a, [i8; 4]>),
 }
 
@@ -77,7 +85,17 @@ impl<'a> AccessorIter<'a> {
                 normalized: false,
                 _phantom: PhantomData,
             })),
+            (ComponentType::U16, Type::Scalar) => Ok(AccessorIter::U16(ElementIter {
+                slice,
+                normalized: false,
+                _phantom: PhantomData,
+            })),
             (ComponentType::U16, Type::Vec2) => Ok(AccessorIter::U16x2(ElementIter {
+                slice,
+                normalized: false,
+                _phantom: PhantomData,
+            })),
+            (ComponentType::U16, Type::Vec3) => Ok(AccessorIter::U16x3(ElementIter {
                 slice,
                 normalized: false,
                 _phantom: PhantomData,
@@ -87,7 +105,17 @@ impl<'a> AccessorIter<'a> {
                 normalized: false,
                 _phantom: PhantomData,
             })),
+            (ComponentType::U8, Type::Scalar) => Ok(AccessorIter::U8(ElementIter {
+                slice,
+                normalized: false,
+                _phantom: PhantomData,
+            })),
             (ComponentType::U8, Type::Vec2) => Ok(AccessorIter::U8x2(ElementIter {
+                slice,
+                normalized: false,
+                _phantom: PhantomData,
+            })),
+            (ComponentType::U8, Type::Vec3) => Ok(AccessorIter::U8x3(ElementIter {
                 slice,
                 normalized: false,
                 _phantom: PhantomData,
@@ -97,7 +125,17 @@ impl<'a> AccessorIter<'a> {
                 normalized: false,
                 _phantom: PhantomData,
             })),
+            (ComponentType::I16, Type::Scalar) => Ok(AccessorIter::I16(ElementIter {
+                slice,
+                normalized: false,
+                _phantom: PhantomData,
+            })),
             (ComponentType::I16, Type::Vec2) => Ok(AccessorIter::I16x2(ElementIter {
+                slice,
+                normalized: false,
+                _phantom: PhantomData,
+            })),
+            (ComponentType::I16, Type::Vec3) => Ok(AccessorIter::I16x3(ElementIter {
                 slice,
                 normalized: false,
                 _phantom: PhantomData,
@@ -107,7 +145,17 @@ impl<'a> AccessorIter<'a> {
                 normalized: false,
                 _phantom: PhantomData,
             })),
+            (ComponentType::I8, Type::Scalar) => Ok(AccessorIter::I8(ElementIter {
+                slice,
+                normalized: false,
+                _phantom: PhantomData,
+            })),
             (ComponentType::I8, Type::Vec2) => Ok(AccessorIter::I8x2(ElementIter {
+                slice,
+                normalized: false,
+                _phantom: PhantomData,
+            })),
+            (ComponentType::I8, Type::Vec3) => Ok(AccessorIter::I8x3(ElementIter {
                 slice,
                 normalized: false,
                 _phantom: PhantomData,
@@ -134,13 +182,21 @@ impl<'a> AccessorIter<'a> {
             AccessorIter::U32x2(_) => ComponentType::U32,
             AccessorIter::U32x3(_) => ComponentType::U32,
             AccessorIter::U32x4(_) => ComponentType::U32,
+            AccessorIter::U16(_) => ComponentType::U16,
             AccessorIter::U16x2(_) => ComponentType::U16,
+            AccessorIter::U16x3(_) => ComponentType::U16,
             AccessorIter::U16x4(_) => ComponentType::U16,
+            AccessorIter::U8(_) => ComponentType::U8,
             AccessorIter::U8x2(_) => ComponentType::U8,
+            AccessorIter::U8x3(_) => ComponentType::U8,
             AccessorIter::U8x4(_) => ComponentType::U8,
+            AccessorIter::I16(_) => ComponentType::I16,
             AccessorIter::I16x2(_) => ComponentType::I16,
+            AccessorIter::I16x3(_) => ComponentType::I16,
             AccessorIter::I16x4(_) => ComponentType::I16,
+            AccessorIter::I8(_) => ComponentType::I8,
             AccessorIter::I8x2(_) => ComponentType::I8,
+            AccessorIter::I8x3(_) => ComponentType::I8,
             AccessorIter::I8x4(_) => ComponentType::I8,
         }
     }
@@ -155,13 +211,21 @@ impl<'a> AccessorIter<'a> {
             AccessorIter::U32x2(_) => Type::Vec2,
             AccessorIter::U32x3(_) => Type::Vec3,
             AccessorIter::U32x4(_) => Type::Vec4,
+            AccessorIter::U16(_) => Type::Scalar,
             AccessorIter::U16x2(_) => Type::Vec2,
+            AccessorIter::U16x3(_) => Type::Vec3,
             AccessorIter::U16x4(_) => Type::Vec4,
+            AccessorIter::U8(_) => Type::Scalar,
             AccessorIter::U8x2(_) => Type::Vec2,
+            AccessorIter::U8x3(_) => Type::Vec3,
             AccessorIter::U8x4(_) => Type::Vec4,
+            AccessorIter::I16(_) => Type::Scalar,
             AccessorIter::I16x2(_) => Type::Vec2,
+            AccessorIter::I16x3(_) => Type::Vec3,
             AccessorIter::I16x4(_) => Type::Vec4,
+            AccessorIter::I8(_) => Type::Scalar,
             AccessorIter::I8x2(_) => Type::Vec2,
+            AccessorIter::I8x3(_) => Type::Vec3,
             AccessorIter::I8x4(_) => Type::Vec4,
         }
     }
@@ -176,13 +240,21 @@ impl<'a> AccessorIter<'a> {
             AccessorIter::U32x2(iter) => iter.normalized,
             AccessorIter::U32x3(iter) => iter.normalized,
             AccessorIter::U32x4(iter) => iter.normalized,
+            AccessorIter::U16(iter) => iter.normalized,
             AccessorIter::U16x2(iter) => iter.normalized,
+            AccessorIter::U16x3(iter) => iter.normalized,
             AccessorIter::U16x4(iter) => iter.normalized,
+            AccessorIter::U8(iter) => iter.normalized,
             AccessorIter::U8x2(iter) => iter.normalized,
+            AccessorIter::U8x3(iter) => iter.normalized,
             AccessorIter::U8x4(iter) => iter.normalized,
+            AccessorIter::I16(iter) => iter.normalized,
             AccessorIter::I16x2(iter) => iter.normalized,
+            AccessorIter::I16x3(iter) => iter.normalized,
             AccessorIter::I16x4(iter) => iter.normalized,
+            AccessorIter::I8(iter) => iter.normalized,
             AccessorIter::I8x2(iter) => iter.normalized,
+            AccessorIter::I8x3(iter) => iter.normalized,
             AccessorIter::I8x4(iter) => iter.normalized,
         }
     }
@@ -197,13 +269,21 @@ impl<'a> AccessorIter<'a> {
             AccessorIter::U32x2(iter) => iter.slice,
             AccessorIter::U32x3(iter) => iter.slice,
             AccessorIter::U32x4(iter) => iter.slice,
+            AccessorIter::U16(iter) => iter.slice,
             AccessorIter::U16x2(iter) => iter.slice,
+            AccessorIter::U16x3(iter) => iter.slice,
             AccessorIter::U16x4(iter) => iter.slice,
+            AccessorIter::U8(iter) => iter.slice,
             AccessorIter::U8x2(iter) => iter.slice,
+            AccessorIter::U8x3(iter) => iter.slice,
             AccessorIter::U8x4(iter) => iter.slice,
+            AccessorIter::I16(iter) => iter.slice,
             AccessorIter::I16x2(iter) => iter.slice,
+            AccessorIter::I16x3(iter) => iter.slice,
             AccessorIter::I16x4(iter) => iter.slice,
+            AccessorIter::I8(iter) => iter.slice,
             AccessorIter::I8x2(iter) => iter.slice,
+            AccessorIter::I8x3(iter) => iter.slice,
             AccessorIter::I8x4(iter) => iter.slice,
         }
     }
@@ -218,13 +298,21 @@ impl<'a> AccessorIter<'a> {
             AccessorIter::U32x2(iter) => iter.count(),
             AccessorIter::U32x3(iter) => iter.count(),
             AccessorIter::U32x4(iter) => iter.count(),
+            AccessorIter::U16(iter) => iter.count(),
             AccessorIter::U16x2(iter) => iter.count(),
+            AccessorIter::U16x3(iter) => iter.count(),
             AccessorIter::U16x4(iter) => iter.count(),
+            AccessorIter::U8(iter) => iter.count(),
             AccessorIter::U8x2(iter) => iter.count(),
+            AccessorIter::U8x3(iter) => iter.count(),
             AccessorIter::U8x4(iter) => iter.count(),
+            AccessorIter::I16(iter) => iter.count(),
             AccessorIter::I16x2(iter) => iter.count(),
+            AccessorIter::I16x3(iter) => iter.count(),
             AccessorIter::I16x4(iter) => iter.count(),
+            AccessorIter::I8(iter) => iter.count(),
             AccessorIter::I8x2(iter) => iter.count(),
+            AccessorIter::I8x3(iter) => iter.count(),
             AccessorIter::I8x4(iter) => iter.count(),
         }
     }
@@ -239,13 +327,21 @@ impl<'a> AccessorIter<'a> {
             AccessorIter::U32x2(iter) => iter.gl_max().into(),
             AccessorIter::U32x3(iter) => iter.gl_max().into(),
             AccessorIter::U32x4(iter) => iter.gl_max().into(),
+            AccessorIter::U16(iter) => iter.gl_max().into(),
             AccessorIter::U16x2(iter) => iter.gl_max().into(),
+            AccessorIter::U16x3(iter) => iter.gl_max().into(),
             AccessorIter::U16x4(iter) => iter.gl_max().into(),
+            AccessorIter::U8(iter) => iter.gl_max().into(),
             AccessorIter::U8x2(iter) => iter.gl_max().into(),
+            AccessorIter::U8x3(iter) => iter.gl_max().into(),
             AccessorIter::U8x4(iter) => iter.gl_max().into(),
+            AccessorIter::I16(iter) => iter.gl_max().into(),
             AccessorIter::I16x2(iter) => iter.gl_max().into(),
+            AccessorIter::I16x3(iter) => iter.gl_max().into(),
             AccessorIter::I16x4(iter) => iter.gl_max().into(),
+            AccessorIter::I8(iter) => iter.gl_max().into(),
             AccessorIter::I8x2(iter) => iter.gl_max().into(),
+            AccessorIter::I8x3(iter) => iter.gl_max().into(),
             AccessorIter::I8x4(iter) => iter.gl_max().into(),
         }
     }
@@ -260,13 +356,21 @@ impl<'a> AccessorIter<'a> {
             AccessorIter::U32x2(iter) => iter.gl_min().into(),
             AccessorIter::U32x3(iter) => iter.gl_min().into(),
             AccessorIter::U32x4(iter) => iter.gl_min().into(),
+            AccessorIter::U16(iter) => iter.gl_min().into(),
             AccessorIter::U16x2(iter) => iter.gl_min().into(),
+            AccessorIter::U16x3(iter) => iter.gl_min().into(),
             AccessorIter::U16x4(iter) => iter.gl_min().into(),
+            AccessorIter::U8(iter) => iter.gl_min().into(),
             AccessorIter::U8x2(iter) => iter.gl_min().into(),
+            AccessorIter::U8x3(iter) => iter.gl_min().into(),
             AccessorIter::U8x4(iter) => iter.gl_min().into(),
+            AccessorIter::I16(iter) => iter.gl_min().into(),
             AccessorIter::I16x2(iter) => iter.gl_min().into(),
+            AccessorIter::I16x3(iter) => iter.gl_min().into(),
             AccessorIter::I16x4(iter) => iter.gl_min().into(),
+            AccessorIter::I8(iter) => iter.gl_min().into(),
             AccessorIter::I8x2(iter) => iter.gl_min().into(),
+            AccessorIter::I8x3(iter) => iter.gl_min().into(),
             AccessorIter::I8x4(iter) => iter.gl_min().into(),
         }
     }
@@ -281,13 +385,21 @@ pub enum AccessorElement {
     U32x2([u32; 2]),
     U32x3([u32; 3]),
     U32x4([u32; 4]),
+    U16(u16),
     U16x2([u16; 2]),
+    U16x3([u16; 3]),
     U16x4([u16; 4]),
+    U8(u8),
     U8x2([u8; 2]),
+    U8x3([u8; 3]),
     U8x4([u8; 4]),
+    I16(i16),
     I16x2([i16; 2]),
+    I16x3([i16; 3]),
     I16x4([i16; 4]),
+    I8(i8),
     I8x2([i8; 2]),
+    I8x3([i8; 3]),
     I8x4([i8; 4]),
 }
 
@@ -331,9 +443,19 @@ impl From<[u32; 4]> for AccessorElement {
         AccessorElement::U32x4(value)
     }
 }
+impl From<u16> for AccessorElement {
+    fn from(value: u16) -> Self {
+        AccessorElement::U16(value)
+    }
+}
 impl From<[u16; 2]> for AccessorElement {
     fn from(value: [u16; 2]) -> Self {
         AccessorElement::U16x2(value)
+    }
+}
+impl From<[u16; 3]> for AccessorElement {
+    fn from(value: [u16; 3]) -> Self {
+        AccessorElement::U16x3(value)
     }
 }
 impl From<[u16; 4]> for AccessorElement {
@@ -341,9 +463,19 @@ impl From<[u16; 4]> for AccessorElement {
         AccessorElement::U16x4(value)
     }
 }
+impl From<u8> for AccessorElement {
+    fn from(value: u8) -> Self {
+        AccessorElement::U8(value)
+    }
+}
 impl From<[u8; 2]> for AccessorElement {
     fn from(value: [u8; 2]) -> Self {
         AccessorElement::U8x2(value)
+    }
+}
+impl From<[u8; 3]> for AccessorElement {
+    fn from(value: [u8; 3]) -> Self {
+        AccessorElement::U8x3(value)
     }
 }
 impl From<[u8; 4]> for AccessorElement {
@@ -351,9 +483,19 @@ impl From<[u8; 4]> for AccessorElement {
         AccessorElement::U8x4(value)
     }
 }
+impl From<i16> for AccessorElement {
+    fn from(value: i16) -> Self {
+        AccessorElement::I16(value)
+    }
+}
 impl From<[i16; 2]> for AccessorElement {
     fn from(value: [i16; 2]) -> Self {
         AccessorElement::I16x2(value)
+    }
+}
+impl From<[i16; 3]> for AccessorElement {
+    fn from(value: [i16; 3]) -> Self {
+        AccessorElement::I16x3(value)
     }
 }
 impl From<[i16; 4]> for AccessorElement {
@@ -361,9 +503,19 @@ impl From<[i16; 4]> for AccessorElement {
         AccessorElement::I16x4(value)
     }
 }
+impl From<i8> for AccessorElement {
+    fn from(value: i8) -> Self {
+        AccessorElement::I8(value)
+    }
+}
 impl From<[i8; 2]> for AccessorElement {
     fn from(value: [i8; 2]) -> Self {
         AccessorElement::I8x2(value)
+    }
+}
+impl From<[i8; 3]> for AccessorElement {
+    fn from(value: [i8; 3]) -> Self {
+        AccessorElement::I8x3(value)
     }
 }
 impl From<[i8; 4]> for AccessorElement {
@@ -372,7 +524,7 @@ impl From<[i8; 4]> for AccessorElement {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub struct ElementIter<'a, T: Element> {
     pub normalized: bool,
     pub slice: &'a [u8],

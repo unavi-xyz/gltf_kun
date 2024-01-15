@@ -14,7 +14,13 @@ pub fn import_mesh(
     m: &gltf::mesh::Mesh,
 ) -> Result<(), BevyImportError> {
     for primitive in m.primitives(&context.doc.0) {
-        import_primitive(context, &primitive)?;
+        match import_primitive(context, &primitive) {
+            Ok(()) => (),
+            Err(e) => {
+                warn!("Failed to import primitive: {}", e);
+                continue;
+            }
+        }
     }
 
     Ok(())
