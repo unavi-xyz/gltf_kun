@@ -18,8 +18,8 @@ pub fn import_gltf_document(
     load_context: &mut LoadContext<'_>,
 ) -> Result<Gltf, BevyImportError> {
     let mut gltf = Gltf {
-        nodes: Vec::with_capacity(doc.nodes().len()),
-        scenes: Vec::with_capacity(doc.scenes().len()),
+        nodes: vec![Handle::default(); doc.nodes().len()],
+        scenes: vec![Handle::default(); doc.scenes().len()],
         ..default()
     };
 
