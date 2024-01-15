@@ -20,6 +20,7 @@ pub fn import_gltf_document(
     let mut gltf = Gltf {
         nodes: vec![Handle::default(); doc.nodes().len()],
         scenes: vec![Handle::default(); doc.scenes().len()],
+        meshes: vec![Handle::default(); doc.meshes().len()],
         ..default()
     };
 

@@ -49,7 +49,7 @@ pub fn import_mesh(
             .insert(name.clone(), handle.clone());
     }
 
-    context.gltf.meshes.push(handle);
+    context.gltf.meshes.insert(index, handle);
 }
 
 fn mesh_label(index: usize, weight: &MeshWeight) -> String {
