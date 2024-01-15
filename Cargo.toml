@@ -3,7 +3,7 @@ resolver = "2"
 members = ["bevy_gltf_kun", "gltf_kun"]
 
 [workspace.package]
-version = "0.0.4"
+version = "0.0.5"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/unavi-xyz/gltf_kun"
 edition = "2021"

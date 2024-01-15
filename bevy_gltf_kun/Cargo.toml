@@ -38,7 +38,7 @@ bevy = { version = "0.12.1", default-features = false, features = [
   "x11"
 ]}
 glam.workspace = true
-gltf_kun = { version = "0.0.4", path = "../gltf_kun" }
+gltf_kun = { version = "0.0.5", path = "../gltf_kun" }
 serde_json.workspace = true
 thiserror.workspace = true
 

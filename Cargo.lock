@@ -608,7 +608,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_gltf_kun"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "bevy",
  "bevy_panorbit_camera",
@@ -1797,7 +1797,7 @@ dependencies = [
 
 [[package]]
 name = "gltf_kun"
-version = "0.0.4"
+version = "0.0.5"
 dependencies = [
  "byteorder",
  "glam 0.25.0",
