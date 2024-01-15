@@ -1,7 +1,6 @@
 use std::marker::PhantomData;
 
-use super::iter::ElementIter;
-use super::normalize::Normalize;
+use super::{iter::ElementIter, normalize::Normalize};
 
 /// Vertex colors.
 #[derive(Clone, Debug)]

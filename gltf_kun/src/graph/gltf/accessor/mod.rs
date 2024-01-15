@@ -11,7 +11,10 @@ pub use gltf::json::accessor::{ComponentType, Type};
 
 pub mod colors;
 pub mod iter;
+pub mod joints;
 pub mod normalize;
+pub mod tex_coords;
+pub mod weights;
 
 #[derive(Debug)]
 pub struct AccessorWeight {
