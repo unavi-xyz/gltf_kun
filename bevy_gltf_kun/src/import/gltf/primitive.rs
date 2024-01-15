@@ -16,8 +16,13 @@ use thiserror::Error;
 
 use super::document::ImportContext;
 
-#[derive(Asset, Debug, TypePath)]
-pub struct GltfPrimitive {}
+#[derive(Debug)]
+pub struct GltfPrimitive {
+    pub extras: Option<Box<serde_json::value::RawValue>>,
+    pub material: Option<Handle<StandardMaterial>>,
+    pub material_extras: Option<Box<serde_json::value::RawValue>>,
+    pub mesh: Handle<Mesh>,
+}
 
 enum ConversionMode {
     Any,
@@ -38,10 +43,11 @@ pub fn import_primitive(
     parent: &mut WorldChildBuilder,
     mesh_label: &str,
     index: usize,
-    p: &Primitive,
-) -> Result<(), ImportPrimitiveError> {
-    let weight = p.get(&context.doc.0);
+    p: &mut Primitive,
+) -> Result<GltfPrimitive, ImportPrimitiveError> {
     let primitive_label = primitive_label(mesh_label, index);
+
+    let weight = p.get(&context.doc.0);
 
     let topology = match weight.mode {
         Mode::Lines => PrimitiveTopology::LineList,
@@ -66,12 +72,25 @@ pub fn import_primitive(
         mesh.insert_attribute(attribute, values);
     }
 
+    let mesh = context
+        .load_context
+        .add_labeled_asset(primitive_label.clone(), mesh);
+
     let ent = parent.spawn(PbrBundle {
         mesh: context.load_context.get_label_handle(&primitive_label),
         ..default()
     });
 
-    Ok(())
+    let weight = p.get_mut(&mut context.doc.0);
+
+    let primitive = GltfPrimitive {
+        extras: weight.extras.take(),
+        material: None,
+        material_extras: None,
+        mesh,
+    };
+
+    Ok(primitive)
 }
 
 fn primitive_label(mesh_label: &str, primitive_index: usize) -> String {

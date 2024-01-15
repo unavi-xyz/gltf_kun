@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use self::gltf::{
     loader::{GlbLoader, GltfLoader},
+    mesh::GltfMesh,
     node::GltfNode,
     Gltf,
 };
@@ -15,6 +16,7 @@ impl Plugin for GltfImportPlugin {
     fn build(&self, app: &mut App) {
         app.init_asset::<Gltf>()
             .init_asset::<GltfNode>()
+            .init_asset::<GltfMesh>()
             .register_asset_loader::<GltfLoader>(GltfLoader)
             .register_asset_loader::<GlbLoader>(GlbLoader);
     }
