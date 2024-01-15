@@ -54,7 +54,7 @@ fn export(
     time: Res<Time>,
     mut exported: Local<bool>,
     mut export: EventWriter<GltfExport>,
-    scenes: Query<&Handle<Scene>, With<SceneMarker>>,
+    scene: Query<&Handle<Scene>, With<SceneMarker>>,
 ) {
     if time.elapsed_seconds() < 3.0 {
         return;
@@ -66,8 +66,8 @@ fn export(
 
     info!("Exporting scene...");
 
-    let scene = scenes.get_single().expect("Failed to get scene handle");
-    export.send(Export::new(scene.clone()));
+    let handle = scene.get_single().expect("Failed to get scene handle");
+    export.send(Export::new(handle.clone()));
     *exported = true;
 }
 
