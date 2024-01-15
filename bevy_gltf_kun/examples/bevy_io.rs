@@ -64,7 +64,7 @@ fn export(
         return;
     }
 
-    info!("Gltf asset loaded. Exporting scene...");
+    info!("Exporting scene...");
 
     let scene = scenes.get_single().expect("Failed to get scene handle");
     export.send(Export::new(scene.clone()));
