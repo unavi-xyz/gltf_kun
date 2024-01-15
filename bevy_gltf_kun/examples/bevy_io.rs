@@ -49,7 +49,7 @@ fn import(mut commands: Commands, asset_server: Res<AssetServer>) {
     ));
 }
 
-// Once the Gltf asset is loaded, export the scene
+// After a short delay, export the scene
 fn export(
     time: Res<Time>,
     mut exported: Local<bool>,
