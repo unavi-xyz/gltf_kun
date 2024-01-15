@@ -16,8 +16,8 @@ async fn main() {
     // Import / export
     let doc = GlbFormat::import_file(&path)
         .await
-        .expect("Failed to import glTF");
-    let out = GlbFormat::export(doc).expect("Failed to export glTF");
+        .expect("Failed to import glb");
+    let out = GlbFormat::export(doc).expect("Failed to export glb");
     let out_bytes = out.0.clone();
 
     assert!(!out_bytes.is_empty());
@@ -34,8 +34,8 @@ async fn main() {
     // Import / export written file
     let doc = GlbFormat::import_file(&path)
         .await
-        .expect("Failed to import glTF");
-    let out = GlbFormat::export(doc).expect("Failed to export glTF");
+        .expect("Failed to import glb");
+    let out = GlbFormat::export(doc).expect("Failed to export glb");
     let out_bytes2 = out.0.clone();
 
     // TODO: Figure out why this fails

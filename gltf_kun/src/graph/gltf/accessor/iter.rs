@@ -1,3 +1,4 @@
+use byteorder::{ByteOrder, LE};
 use gltf::json::accessor::{ComponentType, Type};
 use thiserror::Error;
 
@@ -350,7 +351,7 @@ impl Element for f32 {
         Type::Scalar
     }
     fn from_slice(slice: &[u8]) -> Self {
-        f32::from_ne_bytes(slice.try_into().unwrap())
+        LE::read_f32(slice)
     }
     fn zero() -> Self {
         0.0
@@ -371,7 +372,7 @@ impl Element for u32 {
         Type::Scalar
     }
     fn from_slice(slice: &[u8]) -> Self {
-        u32::from_ne_bytes(slice.try_into().unwrap())
+        LE::read_u32(slice)
     }
     fn zero() -> Self {
         0
@@ -392,7 +393,7 @@ impl Element for u16 {
         Type::Scalar
     }
     fn from_slice(slice: &[u8]) -> Self {
-        u16::from_ne_bytes(slice.try_into().unwrap())
+        LE::read_u16(slice)
     }
     fn zero() -> Self {
         0
@@ -413,7 +414,7 @@ impl Element for u8 {
         Type::Scalar
     }
     fn from_slice(slice: &[u8]) -> Self {
-        u8::from_ne_bytes(slice.try_into().unwrap())
+        slice[0]
     }
     fn zero() -> Self {
         0
@@ -434,7 +435,7 @@ impl Element for i16 {
         Type::Scalar
     }
     fn from_slice(slice: &[u8]) -> Self {
-        i16::from_ne_bytes(slice.try_into().unwrap())
+        LE::read_i16(slice)
     }
     fn zero() -> Self {
         0
@@ -455,7 +456,7 @@ impl Element for i8 {
         Type::Scalar
     }
     fn from_slice(slice: &[u8]) -> Self {
-        i8::from_ne_bytes(slice.try_into().unwrap())
+        slice[0] as i8
     }
     fn zero() -> Self {
         0
