@@ -395,7 +395,7 @@ impl<'a, T: Element> Iterator for ElementIter<'a, T> {
     }
 }
 
-impl<'a, T: Element> ElementIter<'a, T> {
+impl<'a, T: Element + Copy> ElementIter<'a, T> {
     pub fn count(&self) -> usize {
         self.slice.len() / T::stride()
     }
