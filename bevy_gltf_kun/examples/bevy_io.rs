@@ -1,11 +1,10 @@
 use bevy::prelude::*;
 use bevy_gltf_kun::{
-    export::{Export, ExportResult},
-    import::gltf::Gltf,
+    export::{Export, GltfExport, GltfExportResult},
     GltfKunPlugin,
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
-use gltf_kun::{document::GltfDocument, io::format::gltf::GltfFormat};
+use gltf_kun::io::format::gltf::GltfFormat;
 
 fn main() {
     App::new()
@@ -23,6 +22,9 @@ fn main() {
         .run();
 }
 
+#[derive(Component)]
+pub struct SceneMarker;
+
 // Set up the scene and import a glb model
 fn import(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
@@ -38,57 +40,48 @@ fn import(mut commands: Commands, asset_server: Res<AssetServer>) {
         ..default()
     });
 
-    commands.spawn(SceneBundle {
-        scene: asset_server.load("BoxTextured.glb#Scene0"),
-        ..default()
-    });
+    commands.spawn((
+        SceneBundle {
+            scene: asset_server.load("BoxTextured.glb#Scene0"),
+            ..default()
+        },
+        SceneMarker,
+    ));
 }
 
 // Once the Gltf asset is loaded, export the scene
 fn export(
-    mut reader: EventReader<AssetEvent<Gltf>>,
-    mut export: EventWriter<Export<GltfDocument>>,
-    gltfs: Res<Assets<Gltf>>,
+    time: Res<Time>,
+    mut exported: Local<bool>,
+    mut export: EventWriter<GltfExport>,
+    scenes: Query<&Handle<Scene>, With<SceneMarker>>,
 ) {
-    for event in reader.read() {
-        let id = match event {
-            AssetEvent::LoadedWithDependencies { id } => id,
-            _ => continue,
-        };
-
-        info!("Exporting loaded gltf: {}", id);
-
-        let gltf = match gltfs.get(*id) {
-            Some(gltf) => gltf,
-            None => continue,
-        };
-
-        let scene = match gltf.scenes.first() {
-            Some(scene) => scene,
-            None => continue,
-        };
-
-        export.send(Export::new(scene.clone()));
+    if time.elapsed_seconds() < 3.0 {
+        return;
     }
+
+    if *exported {
+        return;
+    }
+
+    info!("Gltf asset loaded. Exporting scene...");
+
+    let scene = scenes.get_single().expect("Failed to get scene handle");
+    export.send(Export::new(scene.clone()));
+    *exported = true;
 }
 
 // Log the result of the export
-fn log_result(mut events: ResMut<Events<ExportResult<GltfDocument>>>) {
+fn log_result(mut events: ResMut<Events<GltfExportResult>>) {
     for event in events.drain() {
         let doc = match event.result {
             Ok(doc) => doc,
-            Err(e) => {
-                error!("Failed to export gltf from Bevy: {}", e);
-                continue;
-            }
+            Err(e) => panic!("Failed to export gltf from Bevy: {}", e),
         };
 
         let gltf = match GltfFormat::export(doc) {
             Ok(gltf) => gltf,
-            Err(e) => {
-                error!("Failed to export gltf document: {}", e);
-                continue;
-            }
+            Err(e) => panic!("Failed to export gltf document: {}", e),
         };
 
         let json = serde_json::to_string_pretty(&gltf.json).expect("Failed to serialize gltf");

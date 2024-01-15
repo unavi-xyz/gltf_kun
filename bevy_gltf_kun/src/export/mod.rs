@@ -13,11 +13,14 @@ pub struct GltfExportPlugin;
 
 impl Plugin for GltfExportPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<Export<GltfDocument>>()
-            .add_event::<ExportResult<GltfDocument>>()
+        app.add_event::<GltfExport>()
+            .add_event::<GltfExportResult>()
             .add_systems(Update, read_event.pipe(export_gltf));
     }
 }
+
+pub type GltfExport = Export<GltfDocument>;
+pub type GltfExportResult = ExportResult<GltfDocument>;
 
 #[derive(Default, Event)]
 pub struct Export<T> {
@@ -46,14 +49,14 @@ pub struct ExportResult<T> {
 
 pub struct ExportContext {
     pub doc: GltfDocument,
-    pub event: Export<GltfDocument>,
+    pub event: GltfExport,
     pub meshes: Vec<CachedMesh>,
     pub nodes: Vec<CachedNode>,
     pub scenes: Vec<CachedScene>,
 }
 
 impl ExportContext {
-    pub fn new(event: Export<GltfDocument>) -> Self {
+    pub fn new(event: GltfExport) -> Self {
         Self {
             doc: GltfDocument::default(),
             event,
@@ -77,16 +80,15 @@ pub struct CachedNode {
 
 pub struct CachedScene {
     pub scene: gltf::scene::Scene,
+    pub handle: Handle<Scene>,
     pub entity: Entity,
 }
 
-pub fn read_event(
-    mut events: ResMut<Events<Export<GltfDocument>>>,
-) -> Option<Export<GltfDocument>> {
+pub fn read_event(mut events: ResMut<Events<GltfExport>>) -> Option<GltfExport> {
     events.drain().next()
 }
 
-pub fn export_gltf(In(event): In<Option<Export<GltfDocument>>>, world: &mut World) {
+pub fn export_gltf(In(event): In<Option<GltfExport>>, world: &mut World) {
     let event = match event {
         Some(event) => event,
         None => return,
@@ -99,7 +101,7 @@ pub fn export_gltf(In(event): In<Option<Export<GltfDocument>>>, world: &mut Worl
 
 pub fn create_export_result(
     In(context): In<ExportContext>,
-    mut writer: EventWriter<ExportResult<GltfDocument>>,
+    mut writer: EventWriter<GltfExportResult>,
 ) {
     writer.send(ExportResult {
         result: Ok(context.doc),
