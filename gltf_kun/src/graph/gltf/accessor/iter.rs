@@ -174,59 +174,59 @@ impl<'a> AccessorIter<'a> {
 
     pub fn component_type(&self) -> ComponentType {
         match self {
-            AccessorIter::F32(_) => ComponentType::F32,
-            AccessorIter::F32x2(_) => ComponentType::F32,
-            AccessorIter::F32x3(_) => ComponentType::F32,
-            AccessorIter::F32x4(_) => ComponentType::F32,
-            AccessorIter::U32(_) => ComponentType::U32,
-            AccessorIter::U32x2(_) => ComponentType::U32,
-            AccessorIter::U32x3(_) => ComponentType::U32,
-            AccessorIter::U32x4(_) => ComponentType::U32,
-            AccessorIter::U16(_) => ComponentType::U16,
-            AccessorIter::U16x2(_) => ComponentType::U16,
-            AccessorIter::U16x3(_) => ComponentType::U16,
-            AccessorIter::U16x4(_) => ComponentType::U16,
-            AccessorIter::U8(_) => ComponentType::U8,
-            AccessorIter::U8x2(_) => ComponentType::U8,
-            AccessorIter::U8x3(_) => ComponentType::U8,
-            AccessorIter::U8x4(_) => ComponentType::U8,
-            AccessorIter::I16(_) => ComponentType::I16,
-            AccessorIter::I16x2(_) => ComponentType::I16,
-            AccessorIter::I16x3(_) => ComponentType::I16,
-            AccessorIter::I16x4(_) => ComponentType::I16,
-            AccessorIter::I8(_) => ComponentType::I8,
-            AccessorIter::I8x2(_) => ComponentType::I8,
-            AccessorIter::I8x3(_) => ComponentType::I8,
-            AccessorIter::I8x4(_) => ComponentType::I8,
+            AccessorIter::F32(_)
+            | AccessorIter::F32x2(_)
+            | AccessorIter::F32x3(_)
+            | AccessorIter::F32x4(_) => ComponentType::F32,
+            AccessorIter::U32(_)
+            | AccessorIter::U32x2(_)
+            | AccessorIter::U32x3(_)
+            | AccessorIter::U32x4(_) => ComponentType::U32,
+            AccessorIter::U16(_)
+            | AccessorIter::U16x2(_)
+            | AccessorIter::U16x3(_)
+            | AccessorIter::U16x4(_) => ComponentType::U16,
+            AccessorIter::U8(_)
+            | AccessorIter::U8x2(_)
+            | AccessorIter::U8x3(_)
+            | AccessorIter::U8x4(_) => ComponentType::U8,
+            AccessorIter::I16(_)
+            | AccessorIter::I16x2(_)
+            | AccessorIter::I16x3(_)
+            | AccessorIter::I16x4(_) => ComponentType::I16,
+            AccessorIter::I8(_)
+            | AccessorIter::I8x2(_)
+            | AccessorIter::I8x3(_)
+            | AccessorIter::I8x4(_) => ComponentType::I8,
         }
     }
 
     pub fn element_type(&self) -> Type {
         match self {
-            AccessorIter::F32(_) => Type::Scalar,
-            AccessorIter::F32x2(_) => Type::Vec2,
-            AccessorIter::F32x3(_) => Type::Vec3,
-            AccessorIter::F32x4(_) => Type::Vec4,
-            AccessorIter::U32(_) => Type::Scalar,
-            AccessorIter::U32x2(_) => Type::Vec2,
-            AccessorIter::U32x3(_) => Type::Vec3,
-            AccessorIter::U32x4(_) => Type::Vec4,
-            AccessorIter::U16(_) => Type::Scalar,
-            AccessorIter::U16x2(_) => Type::Vec2,
-            AccessorIter::U16x3(_) => Type::Vec3,
-            AccessorIter::U16x4(_) => Type::Vec4,
-            AccessorIter::U8(_) => Type::Scalar,
-            AccessorIter::U8x2(_) => Type::Vec2,
-            AccessorIter::U8x3(_) => Type::Vec3,
-            AccessorIter::U8x4(_) => Type::Vec4,
-            AccessorIter::I16(_) => Type::Scalar,
-            AccessorIter::I16x2(_) => Type::Vec2,
-            AccessorIter::I16x3(_) => Type::Vec3,
-            AccessorIter::I16x4(_) => Type::Vec4,
-            AccessorIter::I8(_) => Type::Scalar,
-            AccessorIter::I8x2(_) => Type::Vec2,
-            AccessorIter::I8x3(_) => Type::Vec3,
-            AccessorIter::I8x4(_) => Type::Vec4,
+            AccessorIter::F32(_)
+            | AccessorIter::U32(_)
+            | AccessorIter::U16(_)
+            | AccessorIter::U8(_)
+            | AccessorIter::I16(_)
+            | AccessorIter::I8(_) => Type::Scalar,
+            AccessorIter::F32x2(_)
+            | AccessorIter::U32x2(_)
+            | AccessorIter::U16x2(_)
+            | AccessorIter::U8x2(_)
+            | AccessorIter::I16x2(_)
+            | AccessorIter::I8x2(_) => Type::Vec2,
+            AccessorIter::F32x3(_)
+            | AccessorIter::U32x3(_)
+            | AccessorIter::U16x3(_)
+            | AccessorIter::U8x3(_)
+            | AccessorIter::I16x3(_)
+            | AccessorIter::I8x3(_) => Type::Vec3,
+            AccessorIter::F32x4(_)
+            | AccessorIter::U32x4(_)
+            | AccessorIter::U16x4(_)
+            | AccessorIter::U8x4(_)
+            | AccessorIter::I16x4(_)
+            | AccessorIter::I8x4(_) => Type::Vec4,
         }
     }
 
