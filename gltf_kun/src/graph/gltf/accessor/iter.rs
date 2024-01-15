@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use byteorder::{ByteOrder, LE};
 use gltf::json::accessor::{ComponentType, Type};
 use thiserror::Error;
@@ -36,67 +38,67 @@ impl<'a> AccessorIter<'a> {
         match (component_type, element_type) {
             (ComponentType::F32, Type::Scalar) => Ok(AccessorIter::F32(ElementIter {
                 slice,
-                _phantom: std::marker::PhantomData,
+                _phantom: PhantomData,
             })),
             (ComponentType::F32, Type::Vec2) => Ok(AccessorIter::F32x2(ElementIter {
                 slice,
-                _phantom: std::marker::PhantomData,
+                _phantom: PhantomData,
             })),
             (ComponentType::F32, Type::Vec3) => Ok(AccessorIter::F32x3(ElementIter {
                 slice,
-                _phantom: std::marker::PhantomData,
+                _phantom: PhantomData,
             })),
             (ComponentType::F32, Type::Vec4) => Ok(AccessorIter::F32x4(ElementIter {
                 slice,
-                _phantom: std::marker::PhantomData,
+                _phantom: PhantomData,
             })),
             (ComponentType::U32, Type::Scalar) => Ok(AccessorIter::U32(ElementIter {
                 slice,
-                _phantom: std::marker::PhantomData,
+                _phantom: PhantomData,
             })),
             (ComponentType::U32, Type::Vec2) => Ok(AccessorIter::U32x2(ElementIter {
                 slice,
-                _phantom: std::marker::PhantomData,
+                _phantom: PhantomData,
             })),
             (ComponentType::U32, Type::Vec3) => Ok(AccessorIter::U32x3(ElementIter {
                 slice,
-                _phantom: std::marker::PhantomData,
+                _phantom: PhantomData,
             })),
             (ComponentType::U32, Type::Vec4) => Ok(AccessorIter::U32x4(ElementIter {
                 slice,
-                _phantom: std::marker::PhantomData,
+                _phantom: PhantomData,
             })),
             (ComponentType::U16, Type::Vec2) => Ok(AccessorIter::U16x2(ElementIter {
                 slice,
-                _phantom: std::marker::PhantomData,
+                _phantom: PhantomData,
             })),
             (ComponentType::U16, Type::Vec4) => Ok(AccessorIter::U16x4(ElementIter {
                 slice,
-                _phantom: std::marker::PhantomData,
+                _phantom: PhantomData,
             })),
             (ComponentType::U8, Type::Vec2) => Ok(AccessorIter::U8x2(ElementIter {
                 slice,
-                _phantom: std::marker::PhantomData,
+                _phantom: PhantomData,
             })),
             (ComponentType::U8, Type::Vec4) => Ok(AccessorIter::U8x4(ElementIter {
                 slice,
-                _phantom: std::marker::PhantomData,
+                _phantom: PhantomData,
             })),
             (ComponentType::I16, Type::Vec2) => Ok(AccessorIter::I16x2(ElementIter {
                 slice,
-                _phantom: std::marker::PhantomData,
+                _phantom: PhantomData,
             })),
             (ComponentType::I16, Type::Vec4) => Ok(AccessorIter::I16x4(ElementIter {
                 slice,
-                _phantom: std::marker::PhantomData,
+                _phantom: PhantomData,
             })),
             (ComponentType::I8, Type::Vec2) => Ok(AccessorIter::I8x2(ElementIter {
                 slice,
-                _phantom: std::marker::PhantomData,
+                _phantom: PhantomData,
             })),
             (ComponentType::I8, Type::Vec4) => Ok(AccessorIter::I8x4(ElementIter {
                 slice,
-                _phantom: std::marker::PhantomData,
+                _phantom: PhantomData,
             })),
             (component_type, element_type) => Err(AccessorIterCreateError::UnsupportedType(
                 component_type,
@@ -292,7 +294,7 @@ impl From<[i8; 4]> for AccessorElement {
 
 pub struct ElementIter<'a, T: Element> {
     pub slice: &'a [u8],
-    _phantom: std::marker::PhantomData<T>,
+    _phantom: PhantomData<T>,
 }
 
 impl<'a, T: Element> Iterator for ElementIter<'a, T> {
