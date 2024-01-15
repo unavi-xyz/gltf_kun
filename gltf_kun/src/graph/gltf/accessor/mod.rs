@@ -100,10 +100,22 @@ impl Accessor {
     }
 
     pub fn from_iter(graph: &mut GltfGraph, iter: AccessorIter, buffer: Option<Buffer>) -> Self {
-        let buffer = buffer.unwrap_or_else(|| Buffer::new(graph));
+        let mut buffer = buffer.unwrap_or_else(|| Buffer::new(graph));
+        let buffer_weight = buffer.get_mut(graph);
 
-        let buffer_view = BufferView::new(graph);
+        let iter_byte_length = iter.slice().len();
+        let buffer_view_start = buffer_weight.byte_length;
+        buffer_weight.byte_length += iter_byte_length;
+
+        let blob = buffer_weight.blob.get_or_insert_with(Vec::new);
+        blob.extend_from_slice(iter.slice());
+
+        let mut buffer_view = BufferView::new(graph);
         buffer_view.set_buffer(graph, Some(&buffer));
+
+        let buffer_view_weight = buffer_view.get_mut(graph);
+        buffer_view_weight.byte_offset = buffer_view_start;
+        buffer_view_weight.byte_length = iter_byte_length;
 
         let mut accessor = Self::new(graph);
         accessor.set_buffer_view(graph, Some(&buffer_view));
@@ -112,6 +124,7 @@ impl Accessor {
         accessor_weight.component_type = iter.component_type();
         accessor_weight.count = iter.count();
         accessor_weight.element_type = iter.element_type();
+        accessor_weight.normalized = iter.normalized();
 
         accessor
     }

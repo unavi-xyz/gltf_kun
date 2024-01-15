@@ -39,66 +39,82 @@ impl<'a> AccessorIter<'a> {
         match (component_type, element_type) {
             (ComponentType::F32, Type::Scalar) => Ok(AccessorIter::F32(ElementIter {
                 slice,
+                normalized: false,
                 _phantom: PhantomData,
             })),
             (ComponentType::F32, Type::Vec2) => Ok(AccessorIter::F32x2(ElementIter {
                 slice,
+                normalized: false,
                 _phantom: PhantomData,
             })),
             (ComponentType::F32, Type::Vec3) => Ok(AccessorIter::F32x3(ElementIter {
                 slice,
+                normalized: false,
                 _phantom: PhantomData,
             })),
             (ComponentType::F32, Type::Vec4) => Ok(AccessorIter::F32x4(ElementIter {
                 slice,
+                normalized: false,
                 _phantom: PhantomData,
             })),
             (ComponentType::U32, Type::Scalar) => Ok(AccessorIter::U32(ElementIter {
                 slice,
+                normalized: false,
                 _phantom: PhantomData,
             })),
             (ComponentType::U32, Type::Vec2) => Ok(AccessorIter::U32x2(ElementIter {
                 slice,
+                normalized: false,
                 _phantom: PhantomData,
             })),
             (ComponentType::U32, Type::Vec3) => Ok(AccessorIter::U32x3(ElementIter {
                 slice,
+                normalized: false,
                 _phantom: PhantomData,
             })),
             (ComponentType::U32, Type::Vec4) => Ok(AccessorIter::U32x4(ElementIter {
                 slice,
+                normalized: false,
                 _phantom: PhantomData,
             })),
             (ComponentType::U16, Type::Vec2) => Ok(AccessorIter::U16x2(ElementIter {
                 slice,
+                normalized: false,
                 _phantom: PhantomData,
             })),
             (ComponentType::U16, Type::Vec4) => Ok(AccessorIter::U16x4(ElementIter {
                 slice,
+                normalized: false,
                 _phantom: PhantomData,
             })),
             (ComponentType::U8, Type::Vec2) => Ok(AccessorIter::U8x2(ElementIter {
                 slice,
+                normalized: false,
                 _phantom: PhantomData,
             })),
             (ComponentType::U8, Type::Vec4) => Ok(AccessorIter::U8x4(ElementIter {
                 slice,
+                normalized: false,
                 _phantom: PhantomData,
             })),
             (ComponentType::I16, Type::Vec2) => Ok(AccessorIter::I16x2(ElementIter {
                 slice,
+                normalized: false,
                 _phantom: PhantomData,
             })),
             (ComponentType::I16, Type::Vec4) => Ok(AccessorIter::I16x4(ElementIter {
                 slice,
+                normalized: false,
                 _phantom: PhantomData,
             })),
             (ComponentType::I8, Type::Vec2) => Ok(AccessorIter::I8x2(ElementIter {
                 slice,
+                normalized: false,
                 _phantom: PhantomData,
             })),
             (ComponentType::I8, Type::Vec4) => Ok(AccessorIter::I8x4(ElementIter {
                 slice,
+                normalized: false,
                 _phantom: PhantomData,
             })),
             (component_type, element_type) => Err(AccessorIterCreateError::UnsupportedType(
@@ -147,6 +163,48 @@ impl<'a> AccessorIter<'a> {
             AccessorIter::I16x4(_) => Type::Vec4,
             AccessorIter::I8x2(_) => Type::Vec2,
             AccessorIter::I8x4(_) => Type::Vec4,
+        }
+    }
+
+    pub fn normalized(&self) -> bool {
+        match self {
+            AccessorIter::F32(iter) => iter.normalized,
+            AccessorIter::F32x2(iter) => iter.normalized,
+            AccessorIter::F32x3(iter) => iter.normalized,
+            AccessorIter::F32x4(iter) => iter.normalized,
+            AccessorIter::U32(iter) => iter.normalized,
+            AccessorIter::U32x2(iter) => iter.normalized,
+            AccessorIter::U32x3(iter) => iter.normalized,
+            AccessorIter::U32x4(iter) => iter.normalized,
+            AccessorIter::U16x2(iter) => iter.normalized,
+            AccessorIter::U16x4(iter) => iter.normalized,
+            AccessorIter::U8x2(iter) => iter.normalized,
+            AccessorIter::U8x4(iter) => iter.normalized,
+            AccessorIter::I16x2(iter) => iter.normalized,
+            AccessorIter::I16x4(iter) => iter.normalized,
+            AccessorIter::I8x2(iter) => iter.normalized,
+            AccessorIter::I8x4(iter) => iter.normalized,
+        }
+    }
+
+    pub fn slice(&self) -> &[u8] {
+        match self {
+            AccessorIter::F32(iter) => iter.slice,
+            AccessorIter::F32x2(iter) => iter.slice,
+            AccessorIter::F32x3(iter) => iter.slice,
+            AccessorIter::F32x4(iter) => iter.slice,
+            AccessorIter::U32(iter) => iter.slice,
+            AccessorIter::U32x2(iter) => iter.slice,
+            AccessorIter::U32x3(iter) => iter.slice,
+            AccessorIter::U32x4(iter) => iter.slice,
+            AccessorIter::U16x2(iter) => iter.slice,
+            AccessorIter::U16x4(iter) => iter.slice,
+            AccessorIter::U8x2(iter) => iter.slice,
+            AccessorIter::U8x4(iter) => iter.slice,
+            AccessorIter::I16x2(iter) => iter.slice,
+            AccessorIter::I16x4(iter) => iter.slice,
+            AccessorIter::I8x2(iter) => iter.slice,
+            AccessorIter::I8x4(iter) => iter.slice,
         }
     }
 
@@ -316,6 +374,7 @@ impl From<[i8; 4]> for AccessorElement {
 
 #[derive(Copy, Clone)]
 pub struct ElementIter<'a, T: Element> {
+    pub normalized: bool,
     pub slice: &'a [u8],
     _phantom: PhantomData<T>,
 }
