@@ -32,6 +32,7 @@ pub enum ImportPrimitiveError {}
 
 pub fn import_primitive(
     context: &mut ImportContext,
+    mesh: &mut Mesh,
     p: &Primitive,
 ) -> Result<(), ImportPrimitiveError> {
     for (semantic, accessor) in p.attributes(&context.doc.0) {
@@ -42,6 +43,8 @@ pub fn import_primitive(
                 continue;
             }
         };
+
+        mesh.insert_attribute(attribute, values);
     }
 
     Ok(())
