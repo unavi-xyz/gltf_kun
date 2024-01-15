@@ -21,9 +21,19 @@ impl Plugin for GltfExportPlugin {
 
 #[derive(Default, Event)]
 pub struct Export<T> {
-    pub scenes: Vec<Entity>,
-    pub default_scene: Option<Entity>,
+    pub scenes: Vec<Handle<Scene>>,
+    pub default_scene: Option<Handle<Scene>>,
     pub _doc_type: PhantomData<T>,
+}
+
+impl<T> Export<T> {
+    pub fn new(scene: Handle<Scene>) -> Self {
+        Self {
+            scenes: vec![scene.clone()],
+            default_scene: Some(scene),
+            _doc_type: PhantomData,
+        }
+    }
 }
 
 #[derive(Debug, Error)]
