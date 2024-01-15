@@ -109,10 +109,11 @@ impl Accessor {
         accessor.set_buffer_view(graph, Some(&buffer_view));
 
         let accessor_weight = accessor.get_mut(graph);
-        accessor_weight.element_type = iter.element_type();
         accessor_weight.component_type = iter.component_type();
+        accessor_weight.count = iter.count();
+        accessor_weight.element_type = iter.element_type();
 
-        todo!()
+        accessor
     }
 
     pub fn iter<'a>(
@@ -154,14 +155,14 @@ impl Accessor {
         let buffer_view = self.buffer_view(graph)?;
         let buffer = buffer_view.buffer(graph)?;
         let iter = self.iter(graph, &buffer_view, &buffer).ok()?;
-        Some(AccessorIter::max(iter))
+        Some(iter.max())
     }
 
     pub fn calc_min(&self, graph: &GltfGraph) -> Option<AccessorElement> {
         let buffer_view = self.buffer_view(graph)?;
         let buffer = buffer_view.buffer(graph)?;
         let iter = self.iter(graph, &buffer_view, &buffer).ok()?;
-        Some(AccessorIter::min(iter))
+        Some(iter.min())
     }
 }
 

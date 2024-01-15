@@ -4,6 +4,7 @@ use byteorder::{ByteOrder, LE};
 use gltf::json::accessor::{ComponentType, Type};
 use thiserror::Error;
 
+#[derive(Copy, Clone)]
 pub enum AccessorIter<'a> {
     F32(ElementIter<'a, f32>),
     F32x2(ElementIter<'a, [f32; 2]>),
@@ -107,27 +108,6 @@ impl<'a> AccessorIter<'a> {
         }
     }
 
-    pub fn element_type(&self) -> Type {
-        match self {
-            AccessorIter::F32(_) => Type::Scalar,
-            AccessorIter::F32x2(_) => Type::Vec2,
-            AccessorIter::F32x3(_) => Type::Vec3,
-            AccessorIter::F32x4(_) => Type::Vec4,
-            AccessorIter::U32(_) => Type::Scalar,
-            AccessorIter::U32x2(_) => Type::Vec2,
-            AccessorIter::U32x3(_) => Type::Vec3,
-            AccessorIter::U32x4(_) => Type::Vec4,
-            AccessorIter::U16x2(_) => Type::Vec2,
-            AccessorIter::U16x4(_) => Type::Vec4,
-            AccessorIter::U8x2(_) => Type::Vec2,
-            AccessorIter::U8x4(_) => Type::Vec4,
-            AccessorIter::I16x2(_) => Type::Vec2,
-            AccessorIter::I16x4(_) => Type::Vec4,
-            AccessorIter::I8x2(_) => Type::Vec2,
-            AccessorIter::I8x4(_) => Type::Vec4,
-        }
-    }
-
     pub fn component_type(&self) -> ComponentType {
         match self {
             AccessorIter::F32(_) => ComponentType::F32,
@@ -149,8 +129,50 @@ impl<'a> AccessorIter<'a> {
         }
     }
 
-    pub fn max(iter: Self) -> AccessorElement {
-        match iter {
+    pub fn element_type(&self) -> Type {
+        match self {
+            AccessorIter::F32(_) => Type::Scalar,
+            AccessorIter::F32x2(_) => Type::Vec2,
+            AccessorIter::F32x3(_) => Type::Vec3,
+            AccessorIter::F32x4(_) => Type::Vec4,
+            AccessorIter::U32(_) => Type::Scalar,
+            AccessorIter::U32x2(_) => Type::Vec2,
+            AccessorIter::U32x3(_) => Type::Vec3,
+            AccessorIter::U32x4(_) => Type::Vec4,
+            AccessorIter::U16x2(_) => Type::Vec2,
+            AccessorIter::U16x4(_) => Type::Vec4,
+            AccessorIter::U8x2(_) => Type::Vec2,
+            AccessorIter::U8x4(_) => Type::Vec4,
+            AccessorIter::I16x2(_) => Type::Vec2,
+            AccessorIter::I16x4(_) => Type::Vec4,
+            AccessorIter::I8x2(_) => Type::Vec2,
+            AccessorIter::I8x4(_) => Type::Vec4,
+        }
+    }
+
+    pub fn count(&self) -> usize {
+        match self {
+            AccessorIter::F32(iter) => iter.count(),
+            AccessorIter::F32x2(iter) => iter.count(),
+            AccessorIter::F32x3(iter) => iter.count(),
+            AccessorIter::F32x4(iter) => iter.count(),
+            AccessorIter::U32(iter) => iter.count(),
+            AccessorIter::U32x2(iter) => iter.count(),
+            AccessorIter::U32x3(iter) => iter.count(),
+            AccessorIter::U32x4(iter) => iter.count(),
+            AccessorIter::U16x2(iter) => iter.count(),
+            AccessorIter::U16x4(iter) => iter.count(),
+            AccessorIter::U8x2(iter) => iter.count(),
+            AccessorIter::U8x4(iter) => iter.count(),
+            AccessorIter::I16x2(iter) => iter.count(),
+            AccessorIter::I16x4(iter) => iter.count(),
+            AccessorIter::I8x2(iter) => iter.count(),
+            AccessorIter::I8x4(iter) => iter.count(),
+        }
+    }
+
+    pub fn max(&self) -> AccessorElement {
+        match self {
             AccessorIter::F32(iter) => ElementIter::gl_max(iter).into(),
             AccessorIter::F32x2(iter) => ElementIter::gl_max(iter).into(),
             AccessorIter::F32x3(iter) => ElementIter::gl_max(iter).into(),
@@ -170,8 +192,8 @@ impl<'a> AccessorIter<'a> {
         }
     }
 
-    pub fn min(iter: Self) -> AccessorElement {
-        match iter {
+    pub fn min(&self) -> AccessorElement {
+        match self {
             AccessorIter::F32(iter) => ElementIter::gl_min(iter).into(),
             AccessorIter::F32x2(iter) => ElementIter::gl_min(iter).into(),
             AccessorIter::F32x3(iter) => ElementIter::gl_min(iter).into(),
@@ -292,6 +314,7 @@ impl From<[i8; 4]> for AccessorElement {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct ElementIter<'a, T: Element> {
     pub slice: &'a [u8],
     _phantom: PhantomData<T>,
@@ -313,18 +336,22 @@ impl<'a, T: Element> Iterator for ElementIter<'a, T> {
     }
 }
 
-impl<'a, T: Element> ElementIter<'a, T> {
-    pub fn gl_max(iter: ElementIter<T>) -> T {
+impl<'a, T: Element + Copy> ElementIter<'a, T> {
+    pub fn count(&self) -> usize {
+        self.slice.len() / T::stride()
+    }
+
+    pub fn gl_max(&self) -> T {
         let mut max = T::zero();
-        for element in iter {
+        for element in *self {
             max = max.gl_max(&element);
         }
         max
     }
 
-    pub fn gl_min(iter: ElementIter<T>) -> T {
+    pub fn gl_min(&self) -> T {
         let mut min = T::zero();
-        for element in iter {
+        for element in *self {
             min = min.gl_min(&element);
         }
         min
