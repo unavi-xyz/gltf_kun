@@ -1,14 +1,16 @@
 use bevy::prelude::*;
+use bevy_gltf_kun::GltfKunPlugin;
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 
 fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.2)))
         .add_plugins((
-            bevy_gltf_kun::DefaultPlugins.set(AssetPlugin {
+            DefaultPlugins.set(AssetPlugin {
                 file_path: "../assets".to_string(),
                 ..default()
             }),
+            GltfKunPlugin,
             PanOrbitCameraPlugin,
         ))
         .add_systems(Startup, setup)

@@ -13,4 +13,5 @@ Compared to `bevy_gltf`, this plugin adds support for:
 ## Compatibility
 
 Asset loading in Bevy requires claiming a file extension.
-Thus, glTF importing will only work if you do not have the `bevy_gltf` plugin added to your app.
+Thus, `.gltf` and `.glb` importing will only work if you do not have the `bevy_gltf` plugin added to your app.
+This can be done by removing the `bevy_gltf` feature flag from Bevy (included in default-features).
