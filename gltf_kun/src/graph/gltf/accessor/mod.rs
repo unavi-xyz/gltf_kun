@@ -174,6 +174,6 @@ mod tests {
     #[test]
     #[traced_test]
     fn test_iter() {
-        let mut graph = GltfGraph::new();
+        let _graph = GltfGraph::new();
     }
 }

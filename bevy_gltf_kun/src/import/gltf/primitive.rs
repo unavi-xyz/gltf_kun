@@ -15,8 +15,8 @@ enum ConversionMode {
 }
 
 pub fn import_primitive(context: &mut ImportContext, p: &Primitive) -> Result<(), BevyImportError> {
-    for (semantic, accessor) in p.attributes(&context.doc.0) {
-        let (attribute, conversion) = match semantic {
+    for (semantic, _accessor) in p.attributes(&context.doc.0) {
+        let (_attribute, _conversion) = match semantic {
             Semantic::Normals => (Mesh::ATTRIBUTE_NORMAL, ConversionMode::Any),
             Semantic::Positions => (Mesh::ATTRIBUTE_POSITION, ConversionMode::Any),
             Semantic::Tangents => (Mesh::ATTRIBUTE_TANGENT, ConversionMode::Any),
