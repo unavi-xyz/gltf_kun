@@ -1,4 +1,5 @@
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
+use thiserror::Error;
 
 use crate::extension::ExtensionProperty;
 
@@ -41,6 +42,14 @@ impl From<Target> for usize {
             Target::Unknown(value) => value,
         }
     }
+}
+
+#[derive(Debug, Error)]
+pub enum GetBufferViewSliceError {
+    #[error("Buffer has no blob")]
+    MissingBlob,
+    #[error("Slice {0}..{1} is out of bounds for buffer of length {2}")]
+    OutOfBounds(usize, usize, usize),
 }
 
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -87,7 +96,11 @@ impl BufferView {
     }
 
     /// Returns the slice of the buffer that this view represents.
-    pub fn slice<'a>(&'a self, graph: &'a GltfGraph, buffer: &'a Buffer) -> Option<&'a [u8]> {
+    pub fn slice<'a>(
+        &'a self,
+        graph: &'a GltfGraph,
+        buffer: &'a Buffer,
+    ) -> Result<&'a [u8], GetBufferViewSliceError> {
         let buffer = buffer.get(graph);
 
         let weight = self.get(graph);
@@ -97,17 +110,12 @@ impl BufferView {
         match &buffer.blob {
             Some(blob) => {
                 if end > blob.len() {
-                    panic!(
-                        "Buffer view slice out of bounds: {}..{} > {}",
-                        start,
-                        end,
-                        blob.len()
-                    );
+                    return Err(GetBufferViewSliceError::OutOfBounds(start, end, blob.len()));
                 }
 
-                Some(&blob[start..end])
+                Ok(&blob[start..end])
             }
-            None => None,
+            None => Err(GetBufferViewSliceError::MissingBlob),
         }
     }
 }

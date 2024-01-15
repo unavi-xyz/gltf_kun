@@ -1,4 +1,5 @@
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
+use thiserror::Error;
 
 use crate::extension::ExtensionProperty;
 
@@ -37,6 +38,22 @@ impl Default for AccessorWeight {
             normalized: false,
         }
     }
+}
+
+#[derive(Debug, Error)]
+pub enum GetAccessorSliceError {
+    #[error("Failed to get buffer slice: {0}")]
+    GetBufferViewSliceError(#[from] super::buffer_view::GetBufferViewSliceError),
+    #[error("Accessor slice {0}..{1} is out of bounds for buffer view of length {2}")]
+    OutOfBounds(usize, usize, usize),
+}
+
+#[derive(Debug, Error)]
+pub enum GetAccessorIterError {
+    #[error("Failed to create accessor iterator: {0}")]
+    CreateError(#[from] iter::AccessorIterCreateError),
+    #[error("Failed to get accessor slice: {0}")]
+    GetSliceError(#[from] GetAccessorSliceError),
 }
 
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -103,14 +120,14 @@ impl Accessor {
         graph: &'a GltfGraph,
         buffer_view: &'a BufferView,
         buffer: &'a Buffer,
-    ) -> Option<AccessorIter<'a>> {
+    ) -> Result<AccessorIter<'a>, GetAccessorIterError> {
         let slice = self.slice(graph, buffer_view, buffer)?;
         let weight = self.get(graph);
-        Some(AccessorIter::new(
+        Ok(AccessorIter::new(
             slice,
             weight.component_type,
             weight.element_type,
-        ))
+        )?)
     }
 
     pub fn slice<'a>(
@@ -118,7 +135,7 @@ impl Accessor {
         graph: &'a GltfGraph,
         buffer_view: &'a BufferView,
         buffer: &'a Buffer,
-    ) -> Option<&'a [u8]> {
+    ) -> Result<&'a [u8], GetAccessorSliceError> {
         let slice = buffer_view.slice(graph, buffer)?;
 
         let weight = self.get(graph);
@@ -127,30 +144,23 @@ impl Accessor {
             + weight.count * weight.element_type.multiplicity() * weight.component_type.size();
 
         if end > slice.len() {
-            panic!(
-                "Accessor slice out of bounds: {}..{} > {}",
-                start,
-                end,
-                slice.len()
-            );
+            return Err(GetAccessorSliceError::OutOfBounds(start, end, slice.len()));
         }
 
-        Some(&slice[start..end])
+        Ok(&slice[start..end])
     }
 
     pub fn calc_max(&self, graph: &GltfGraph) -> Option<AccessorElement> {
         let buffer_view = self.buffer_view(graph)?;
         let buffer = buffer_view.buffer(graph)?;
-
-        let iter = self.iter(graph, &buffer_view, &buffer)?;
+        let iter = self.iter(graph, &buffer_view, &buffer).ok()?;
         Some(AccessorIter::max(iter))
     }
 
     pub fn calc_min(&self, graph: &GltfGraph) -> Option<AccessorElement> {
         let buffer_view = self.buffer_view(graph)?;
         let buffer = buffer_view.buffer(graph)?;
-
-        let iter = self.iter(graph, &buffer_view, &buffer)?;
+        let iter = self.iter(graph, &buffer_view, &buffer).ok()?;
         Some(AccessorIter::min(iter))
     }
 }

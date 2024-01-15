@@ -1,4 +1,5 @@
 use gltf::json::accessor::{ComponentType, Type};
+use thiserror::Error;
 
 pub enum AccessorIter<'a> {
     F32(ElementIter<'a, f32>),
@@ -19,77 +20,87 @@ pub enum AccessorIter<'a> {
     I8x4(ElementIter<'a, [i8; 4]>),
 }
 
+#[derive(Debug, Error)]
+pub enum AccessorIterCreateError {
+    #[error("Unsupported accessor type {0:?} {1:?}")]
+    UnsupportedType(ComponentType, Type),
+}
+
 impl<'a> AccessorIter<'a> {
-    pub fn new(slice: &'a [u8], component_type: ComponentType, element_type: Type) -> Self {
+    pub fn new(
+        slice: &'a [u8],
+        component_type: ComponentType,
+        element_type: Type,
+    ) -> Result<Self, AccessorIterCreateError> {
         match (component_type, element_type) {
-            (ComponentType::F32, Type::Scalar) => AccessorIter::F32(ElementIter {
+            (ComponentType::F32, Type::Scalar) => Ok(AccessorIter::F32(ElementIter {
                 slice,
                 _phantom: std::marker::PhantomData,
-            }),
-            (ComponentType::F32, Type::Vec2) => AccessorIter::F32x2(ElementIter {
+            })),
+            (ComponentType::F32, Type::Vec2) => Ok(AccessorIter::F32x2(ElementIter {
                 slice,
                 _phantom: std::marker::PhantomData,
-            }),
-            (ComponentType::F32, Type::Vec3) => AccessorIter::F32x3(ElementIter {
+            })),
+            (ComponentType::F32, Type::Vec3) => Ok(AccessorIter::F32x3(ElementIter {
                 slice,
                 _phantom: std::marker::PhantomData,
-            }),
-            (ComponentType::F32, Type::Vec4) => AccessorIter::F32x4(ElementIter {
+            })),
+            (ComponentType::F32, Type::Vec4) => Ok(AccessorIter::F32x4(ElementIter {
                 slice,
                 _phantom: std::marker::PhantomData,
-            }),
-            (ComponentType::U32, Type::Scalar) => AccessorIter::U32(ElementIter {
+            })),
+            (ComponentType::U32, Type::Scalar) => Ok(AccessorIter::U32(ElementIter {
                 slice,
                 _phantom: std::marker::PhantomData,
-            }),
-            (ComponentType::U32, Type::Vec2) => AccessorIter::U32x2(ElementIter {
+            })),
+            (ComponentType::U32, Type::Vec2) => Ok(AccessorIter::U32x2(ElementIter {
                 slice,
                 _phantom: std::marker::PhantomData,
-            }),
-            (ComponentType::U32, Type::Vec3) => AccessorIter::U32x3(ElementIter {
+            })),
+            (ComponentType::U32, Type::Vec3) => Ok(AccessorIter::U32x3(ElementIter {
                 slice,
                 _phantom: std::marker::PhantomData,
-            }),
-            (ComponentType::U32, Type::Vec4) => AccessorIter::U32x4(ElementIter {
+            })),
+            (ComponentType::U32, Type::Vec4) => Ok(AccessorIter::U32x4(ElementIter {
                 slice,
                 _phantom: std::marker::PhantomData,
-            }),
-            (ComponentType::U16, Type::Vec2) => AccessorIter::U16x2(ElementIter {
+            })),
+            (ComponentType::U16, Type::Vec2) => Ok(AccessorIter::U16x2(ElementIter {
                 slice,
                 _phantom: std::marker::PhantomData,
-            }),
-            (ComponentType::U16, Type::Vec4) => AccessorIter::U16x4(ElementIter {
+            })),
+            (ComponentType::U16, Type::Vec4) => Ok(AccessorIter::U16x4(ElementIter {
                 slice,
                 _phantom: std::marker::PhantomData,
-            }),
-            (ComponentType::U8, Type::Vec2) => AccessorIter::U8x2(ElementIter {
+            })),
+            (ComponentType::U8, Type::Vec2) => Ok(AccessorIter::U8x2(ElementIter {
                 slice,
                 _phantom: std::marker::PhantomData,
-            }),
-            (ComponentType::U8, Type::Vec4) => AccessorIter::U8x4(ElementIter {
+            })),
+            (ComponentType::U8, Type::Vec4) => Ok(AccessorIter::U8x4(ElementIter {
                 slice,
                 _phantom: std::marker::PhantomData,
-            }),
-            (ComponentType::I16, Type::Vec2) => AccessorIter::I16x2(ElementIter {
+            })),
+            (ComponentType::I16, Type::Vec2) => Ok(AccessorIter::I16x2(ElementIter {
                 slice,
                 _phantom: std::marker::PhantomData,
-            }),
-            (ComponentType::I16, Type::Vec4) => AccessorIter::I16x4(ElementIter {
+            })),
+            (ComponentType::I16, Type::Vec4) => Ok(AccessorIter::I16x4(ElementIter {
                 slice,
                 _phantom: std::marker::PhantomData,
-            }),
-            (ComponentType::I8, Type::Vec2) => AccessorIter::I8x2(ElementIter {
+            })),
+            (ComponentType::I8, Type::Vec2) => Ok(AccessorIter::I8x2(ElementIter {
                 slice,
                 _phantom: std::marker::PhantomData,
-            }),
-            (ComponentType::I8, Type::Vec4) => AccessorIter::I8x4(ElementIter {
+            })),
+            (ComponentType::I8, Type::Vec4) => Ok(AccessorIter::I8x4(ElementIter {
                 slice,
                 _phantom: std::marker::PhantomData,
-            }),
-            _ => panic!(
-                "Unsupported accessor type {:?} {:?}",
-                component_type, element_type
-            ),
+            })),
+            (component_type, element_type) => Err(AccessorIterCreateError::UnsupportedType(
+                component_type,
+                element_type,
+            )),
         }
     }
 

@@ -3,7 +3,7 @@ use bevy::{
     render::{mesh::Indices, render_resource::PrimitiveTopology},
 };
 use gltf_kun::graph::gltf::{
-    accessor::{self, AccessorArray},
+    accessor::{self, iter::AccessorIter, ComponentType, Type},
     mesh, node,
     primitive::{self, Semantic},
 };
@@ -156,25 +156,49 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Prim
     let buffer = context.doc.create_buffer();
 
     if let Some(indices) = mesh.indices() {
-        let array = AccessorArray {
-            element_type: accessor::Type::Scalar,
-            data_type: match indices {
-                Indices::U32(_) => accessor::DataType::U32,
-                Indices::U16(_) => accessor::DataType::U16,
-            },
-            vec: match indices {
-                Indices::U32(indices) => indices.iter().flat_map(|v| v.to_le_bytes()).collect(),
-                Indices::U16(indices) => indices.iter().flat_map(|v| v.to_le_bytes()).collect(),
-            },
-            normalized: false,
+        let bytes = match indices {
+            Indices::U32(indices) => indices
+                .iter()
+                .flat_map(|v| v.to_le_bytes())
+                .collect::<Vec<_>>(),
+            Indices::U16(indices) => indices
+                .iter()
+                .flat_map(|v| v.to_le_bytes())
+                .collect::<Vec<_>>(),
         };
-        let accessor = accessor::Accessor::from_array(&mut context.doc.0, array, Some(buffer));
+
+        let iter = match indices {
+            Indices::U32(_) => {
+                AccessorIter::new(bytes.as_slice(), ComponentType::U32, Type::Scalar)
+            }
+            Indices::U16(_) => {
+                AccessorIter::new(bytes.as_slice(), ComponentType::U16, Type::Scalar)
+            }
+        };
+
+        let iter = match iter {
+            Ok(iter) => iter,
+            Err(err) => {
+                error!("Failed to create indices accessor iterator: {}", err);
+                return primitive;
+            }
+        };
+
+        let accessor = accessor::Accessor::from_iter(&mut context.doc.0, iter, Some(buffer));
         primitive.set_indices(&mut context.doc.0, Some(&accessor));
     }
 
     mesh.attributes().for_each(|(id, values)| {
-        let array = vertex_to_accessor(values);
-        let accessor = accessor::Accessor::from_array(&mut context.doc.0, array, Some(buffer));
+        let accessor = match vertex_to_accessor(&mut context.doc.0, values, Some(buffer)) {
+            Ok(accessor) => accessor,
+            Err(err) => {
+                error!(
+                    "Failed to convert vertex attribute {:?} to accessor: {}",
+                    id, err
+                );
+                return;
+            }
+        };
 
         if id == Mesh::ATTRIBUTE_POSITION.id {
             primitive.set_attribute(&mut context.doc.0, &Semantic::Positions, Some(&accessor));

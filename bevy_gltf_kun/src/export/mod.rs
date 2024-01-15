@@ -23,7 +23,7 @@ impl Plugin for GltfExportPlugin {
 pub struct Export<T> {
     pub scenes: Vec<Entity>,
     pub default_scene: Option<Entity>,
-    pub doc_type: PhantomData<T>,
+    pub _doc_type: PhantomData<T>,
 }
 
 #[derive(Debug, Error)]
