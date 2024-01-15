@@ -528,7 +528,7 @@ impl From<[i8; 4]> for AccessorElement {
 pub struct ElementIter<'a, T: Element> {
     pub normalized: bool,
     pub slice: &'a [u8],
-    _phantom: PhantomData<T>,
+    pub _phantom: PhantomData<T>,
 }
 
 impl<'a, T: Element> Iterator for ElementIter<'a, T> {

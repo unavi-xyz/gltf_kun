@@ -1,14 +1,19 @@
 use bevy::{
     prelude::*,
     render::{
-        mesh::{MeshVertexAttribute, VertexAttributeValues},
+        mesh::{Indices, MeshVertexAttribute, VertexAttributeValues},
         render_resource::{PrimitiveTopology, VertexFormat},
     },
 };
 use gltf_kun::graph::gltf::{
     accessor::{
-        colors::ReadColors, iter::AccessorIter, joints::ReadJoints, tex_coords::ReadTexCoords,
-        weights::ReadWeights, Accessor, ComponentType, GetAccessorIterError, Type,
+        colors::ReadColors,
+        indices::ReadIndices,
+        iter::{AccessorIter, ElementIter},
+        joints::ReadJoints,
+        tex_coords::ReadTexCoords,
+        weights::ReadWeights,
+        Accessor, ComponentType, GetAccessorIterError, GetAccessorSliceError, Type,
     },
     primitive::{Mode, Primitive, Semantic},
 };
@@ -72,11 +77,20 @@ pub fn import_primitive(
         mesh.insert_attribute(attribute, values);
     }
 
+    if let Some(indices) = p.indices(&context.doc.0) {
+        match read_indices(context, indices) {
+            Ok(indices) => mesh.set_indices(Some(indices)),
+            Err(err) => {
+                warn!("Failed to read indices: {}", err);
+            }
+        }
+    };
+
     let mesh = context
         .load_context
         .add_labeled_asset(primitive_label.clone(), mesh);
 
-    let ent = parent.spawn(PbrBundle {
+    parent.spawn(PbrBundle {
         mesh: context.load_context.get_label_handle(&primitive_label),
         ..default()
     });
@@ -95,6 +109,61 @@ pub fn import_primitive(
 
 fn primitive_label(mesh_label: &str, primitive_index: usize) -> String {
     format!("{}/Primitive{}", mesh_label, primitive_index)
+}
+
+#[derive(Debug, Error)]
+enum ReadIndicesError {
+    #[error("Buffer view not found for indices")]
+    BufferViewNotFound,
+    #[error("Buffer not found for indices")]
+    BufferNotFound,
+    #[error("Failed to get accessor slice: {0}")]
+    GetAccessorSliceError(#[from] GetAccessorSliceError),
+}
+
+fn read_indices(context: &ImportContext, indices: Accessor) -> Result<Indices, ReadIndicesError> {
+    let buffer_view = match indices.buffer_view(&context.doc.0) {
+        Some(buffer_view) => buffer_view,
+        None => {
+            return Err(ReadIndicesError::BufferViewNotFound);
+        }
+    };
+
+    let buffer = match buffer_view.buffer(&context.doc.0) {
+        Some(buffer) => buffer,
+        None => {
+            return Err(ReadIndicesError::BufferNotFound);
+        }
+    };
+
+    let slice = indices.slice(&context.doc.0, &buffer_view, &buffer)?;
+
+    let weight = indices.get(&context.doc.0);
+
+    let read = match weight.component_type {
+        ComponentType::U8 => ReadIndices::U8(ElementIter::<u8> {
+            slice,
+            normalized: weight.normalized,
+            _phantom: default(),
+        }),
+        ComponentType::U16 => ReadIndices::U16(ElementIter::<u16> {
+            slice,
+            normalized: weight.normalized,
+            _phantom: default(),
+        }),
+        ComponentType::U32 => ReadIndices::U32(ElementIter::<u32> {
+            slice,
+            normalized: weight.normalized,
+            _phantom: default(),
+        }),
+        _ => unreachable!(),
+    };
+
+    Ok(match read {
+        ReadIndices::U8(is) => Indices::U16(is.map(|x| x as u16).collect()),
+        ReadIndices::U16(is) => Indices::U16(is.collect()),
+        ReadIndices::U32(is) => Indices::U32(is.collect()),
+    })
 }
 
 #[derive(Debug, Error)]

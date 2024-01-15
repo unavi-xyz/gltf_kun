@@ -10,6 +10,7 @@ use super::{buffer::Buffer, buffer_view::BufferView, Edge, GltfGraph, Weight};
 pub use gltf::json::accessor::{ComponentType, Type};
 
 pub mod colors;
+pub mod indices;
 pub mod iter;
 pub mod joints;
 pub mod normalize;
@@ -142,6 +143,7 @@ impl Accessor {
     ) -> Result<AccessorIter<'a>, GetAccessorIterError> {
         let slice = self.slice(graph, buffer_view, buffer)?;
         let weight = self.get(graph);
+
         Ok(AccessorIter::new(
             slice,
             weight.component_type,
