@@ -1,11 +1,11 @@
 use bevy::{prelude::*, render::mesh::VertexAttributeValues};
 use gltf_kun::graph::gltf::{
-    accessor::{colors::ReadColors, iter::AccessorIter, GetAccessorIterError},
+    accessor::{colors::ReadColors, iter::AccessorIter, ComponentType, GetAccessorIterError, Type},
     primitive::{Primitive, Semantic},
 };
 use thiserror::Error;
 
-use super::document::{BevyImportError, ImportContext};
+use super::document::ImportContext;
 
 #[derive(Asset, Debug, TypePath)]
 pub struct GltfPrimitive {}
@@ -22,8 +22,8 @@ enum ConversionMode {
 pub enum ImportPrimitiveError {
     #[error("Failed to get accessor iterator: {0}")]
     GetAccessorIterError(#[from] GetAccessorIterError),
-    #[error("Failed to convert attribute values: {0}")]
-    UnsupportedAttributeFormat,
+    #[error("Unsupported attribute format: {0:?} {1:?}")]
+    UnsupportedAttributeFormat(ComponentType, Type),
 }
 
 pub fn import_primitive(
@@ -137,7 +137,10 @@ fn convert_any_values(iter: AccessorIter) -> Result<VertexAttributeValues, Impor
                 Ok(VertexAttributeValues::Uint8x4(iter.collect()))
             }
         }
-        iter => Err(ImportPrimitiveError::UnsupportedAttributeFormat),
+        iter => Err(ImportPrimitiveError::UnsupportedAttributeFormat(
+            iter.component_type(),
+            iter.element_type(),
+        )),
     }
 }
 

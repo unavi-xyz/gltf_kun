@@ -20,6 +20,44 @@ pub enum ReadColors<'a> {
     RgbaF32(ElementIter<'a, [f32; 4]>),
 }
 
+impl<'a> ReadColors<'a> {
+    /// Reinterpret colors as RGB u8, discarding alpha, if present.  Lossy if
+    /// the underlying iterator yields u16, f32 or any RGBA.
+    pub fn into_rgb_u8(self) -> CastingIter<'a, RgbU8> {
+        CastingIter::new(self)
+    }
+
+    /// Reinterpret colors as RGB u16, discarding alpha, if present.  Lossy if
+    /// the underlying iterator yields f32 or any RGBA.
+    pub fn into_rgb_u16(self) -> CastingIter<'a, RgbU16> {
+        CastingIter::new(self)
+    }
+
+    /// Reinterpret colors as RGB f32, discarding alpha, if present.  Lossy if
+    /// the underlying iterator yields u16 or any RGBA.
+    pub fn into_rgb_f32(self) -> CastingIter<'a, RgbF32> {
+        CastingIter::new(self)
+    }
+
+    /// Reinterpret colors as RGBA u8, with default alpha 255.  Lossy if the
+    /// underlying iterator yields u16 or f32.
+    pub fn into_rgba_u8(self) -> CastingIter<'a, RgbaU8> {
+        CastingIter::new(self)
+    }
+
+    /// Reinterpret colors as RGBA u16, with default alpha 65535.  Lossy if the
+    /// underlying iterator yields f32.
+    pub fn into_rgba_u16(self) -> CastingIter<'a, RgbaU16> {
+        CastingIter::new(self)
+    }
+
+    /// Reinterpret colors as RGBA f32, with default alpha 1.0.  Lossy if the
+    /// underlying iterator yields u16.
+    pub fn into_rgba_f32(self) -> CastingIter<'a, RgbaF32> {
+        CastingIter::new(self)
+    }
+}
+
 /// Casting iterator for `Colors`.
 #[derive(Clone, Debug)]
 pub struct CastingIter<'a, T>(ReadColors<'a>, PhantomData<T>);

@@ -374,25 +374,41 @@ impl From<AccessorElement> for Value {
             AccessorElement::U32x4(value) => {
                 Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
             }
+            AccessorElement::U16(value) => Value::Number(value.into()),
             AccessorElement::U16x2(value) => {
+                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+            }
+            AccessorElement::U16x3(value) => {
                 Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
             }
             AccessorElement::U16x4(value) => {
                 Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
             }
+            AccessorElement::U8(value) => Value::Number(value.into()),
             AccessorElement::U8x2(value) => {
+                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+            }
+            AccessorElement::U8x3(value) => {
                 Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
             }
             AccessorElement::U8x4(value) => {
                 Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
             }
+            AccessorElement::I16(value) => Value::Number(value.into()),
             AccessorElement::I16x2(value) => {
+                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+            }
+            AccessorElement::I16x3(value) => {
                 Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
             }
             AccessorElement::I16x4(value) => {
                 Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
             }
+            AccessorElement::I8(value) => Value::Number(value.into()),
             AccessorElement::I8x2(value) => {
+                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+            }
+            AccessorElement::I8x3(value) => {
                 Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
             }
             AccessorElement::I8x4(value) => {
