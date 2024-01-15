@@ -173,43 +173,43 @@ impl<'a> AccessorIter<'a> {
 
     pub fn max(&self) -> AccessorElement {
         match self {
-            AccessorIter::F32(iter) => ElementIter::gl_max(iter).into(),
-            AccessorIter::F32x2(iter) => ElementIter::gl_max(iter).into(),
-            AccessorIter::F32x3(iter) => ElementIter::gl_max(iter).into(),
-            AccessorIter::F32x4(iter) => ElementIter::gl_max(iter).into(),
-            AccessorIter::U32(iter) => ElementIter::gl_max(iter).into(),
-            AccessorIter::U32x2(iter) => ElementIter::gl_max(iter).into(),
-            AccessorIter::U32x3(iter) => ElementIter::gl_max(iter).into(),
-            AccessorIter::U32x4(iter) => ElementIter::gl_max(iter).into(),
-            AccessorIter::U16x2(iter) => ElementIter::gl_max(iter).into(),
-            AccessorIter::U16x4(iter) => ElementIter::gl_max(iter).into(),
-            AccessorIter::U8x2(iter) => ElementIter::gl_max(iter).into(),
-            AccessorIter::U8x4(iter) => ElementIter::gl_max(iter).into(),
-            AccessorIter::I16x2(iter) => ElementIter::gl_max(iter).into(),
-            AccessorIter::I16x4(iter) => ElementIter::gl_max(iter).into(),
-            AccessorIter::I8x2(iter) => ElementIter::gl_max(iter).into(),
-            AccessorIter::I8x4(iter) => ElementIter::gl_max(iter).into(),
+            AccessorIter::F32(iter) => iter.gl_max().into(),
+            AccessorIter::F32x2(iter) => iter.gl_max().into(),
+            AccessorIter::F32x3(iter) => iter.gl_max().into(),
+            AccessorIter::F32x4(iter) => iter.gl_max().into(),
+            AccessorIter::U32(iter) => iter.gl_max().into(),
+            AccessorIter::U32x2(iter) => iter.gl_max().into(),
+            AccessorIter::U32x3(iter) => iter.gl_max().into(),
+            AccessorIter::U32x4(iter) => iter.gl_max().into(),
+            AccessorIter::U16x2(iter) => iter.gl_max().into(),
+            AccessorIter::U16x4(iter) => iter.gl_max().into(),
+            AccessorIter::U8x2(iter) => iter.gl_max().into(),
+            AccessorIter::U8x4(iter) => iter.gl_max().into(),
+            AccessorIter::I16x2(iter) => iter.gl_max().into(),
+            AccessorIter::I16x4(iter) => iter.gl_max().into(),
+            AccessorIter::I8x2(iter) => iter.gl_max().into(),
+            AccessorIter::I8x4(iter) => iter.gl_max().into(),
         }
     }
 
     pub fn min(&self) -> AccessorElement {
         match self {
-            AccessorIter::F32(iter) => ElementIter::gl_min(iter).into(),
-            AccessorIter::F32x2(iter) => ElementIter::gl_min(iter).into(),
-            AccessorIter::F32x3(iter) => ElementIter::gl_min(iter).into(),
-            AccessorIter::F32x4(iter) => ElementIter::gl_min(iter).into(),
-            AccessorIter::U32(iter) => ElementIter::gl_min(iter).into(),
-            AccessorIter::U32x2(iter) => ElementIter::gl_min(iter).into(),
-            AccessorIter::U32x3(iter) => ElementIter::gl_min(iter).into(),
-            AccessorIter::U32x4(iter) => ElementIter::gl_min(iter).into(),
-            AccessorIter::U16x2(iter) => ElementIter::gl_min(iter).into(),
-            AccessorIter::U16x4(iter) => ElementIter::gl_min(iter).into(),
-            AccessorIter::U8x2(iter) => ElementIter::gl_min(iter).into(),
-            AccessorIter::U8x4(iter) => ElementIter::gl_min(iter).into(),
-            AccessorIter::I16x2(iter) => ElementIter::gl_min(iter).into(),
-            AccessorIter::I16x4(iter) => ElementIter::gl_min(iter).into(),
-            AccessorIter::I8x2(iter) => ElementIter::gl_min(iter).into(),
-            AccessorIter::I8x4(iter) => ElementIter::gl_min(iter).into(),
+            AccessorIter::F32(iter) => iter.gl_min().into(),
+            AccessorIter::F32x2(iter) => iter.gl_min().into(),
+            AccessorIter::F32x3(iter) => iter.gl_min().into(),
+            AccessorIter::F32x4(iter) => iter.gl_min().into(),
+            AccessorIter::U32(iter) => iter.gl_min().into(),
+            AccessorIter::U32x2(iter) => iter.gl_min().into(),
+            AccessorIter::U32x3(iter) => iter.gl_min().into(),
+            AccessorIter::U32x4(iter) => iter.gl_min().into(),
+            AccessorIter::U16x2(iter) => iter.gl_min().into(),
+            AccessorIter::U16x4(iter) => iter.gl_min().into(),
+            AccessorIter::U8x2(iter) => iter.gl_min().into(),
+            AccessorIter::U8x4(iter) => iter.gl_min().into(),
+            AccessorIter::I16x2(iter) => iter.gl_min().into(),
+            AccessorIter::I16x4(iter) => iter.gl_min().into(),
+            AccessorIter::I8x2(iter) => iter.gl_min().into(),
+            AccessorIter::I8x4(iter) => iter.gl_min().into(),
         }
     }
 }
@@ -336,7 +336,7 @@ impl<'a, T: Element> Iterator for ElementIter<'a, T> {
     }
 }
 
-impl<'a, T: Element + Copy> ElementIter<'a, T> {
+impl<'a, T: Element> ElementIter<'a, T> {
     pub fn count(&self) -> usize {
         self.slice.len() / T::stride()
     }
