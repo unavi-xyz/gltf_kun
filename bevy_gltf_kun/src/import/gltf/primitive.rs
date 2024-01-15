@@ -2,7 +2,7 @@ use bevy::{
     prelude::*,
     render::{
         mesh::{MeshVertexAttribute, VertexAttributeValues},
-        render_resource::VertexFormat,
+        render_resource::{PrimitiveTopology, VertexFormat},
     },
 };
 use gltf_kun::graph::gltf::{
@@ -10,7 +10,7 @@ use gltf_kun::graph::gltf::{
         colors::ReadColors, iter::AccessorIter, joints::ReadJoints, tex_coords::ReadTexCoords,
         weights::ReadWeights, Accessor, ComponentType, GetAccessorIterError, Type,
     },
-    primitive::{Primitive, Semantic},
+    primitive::{Mode, Primitive, Semantic},
 };
 use thiserror::Error;
 
@@ -28,13 +28,28 @@ enum ConversionMode {
 }
 
 #[derive(Debug, Error)]
-pub enum ImportPrimitiveError {}
+pub enum ImportPrimitiveError {
+    #[error("Unsupported primitive mode: {0:?}")]
+    UnsupportedMode(Mode),
+}
 
 pub fn import_primitive(
     context: &mut ImportContext,
-    mesh: &mut Mesh,
     p: &Primitive,
 ) -> Result<(), ImportPrimitiveError> {
+    let weight = p.get(&context.doc.0);
+
+    let topology = match weight.mode {
+        Mode::Lines => PrimitiveTopology::LineList,
+        Mode::Points => PrimitiveTopology::PointList,
+        Mode::LineStrip => PrimitiveTopology::LineStrip,
+        Mode::Triangles => PrimitiveTopology::TriangleList,
+        Mode::TriangleStrip => PrimitiveTopology::TriangleStrip,
+        mode => return Err(ImportPrimitiveError::UnsupportedMode(mode)),
+    };
+
+    let mut mesh = Mesh::new(topology);
+
     for (semantic, accessor) in p.attributes(&context.doc.0) {
         let (attribute, values) = match convert_attribute(context, &semantic, &accessor) {
             Ok(a) => a,
