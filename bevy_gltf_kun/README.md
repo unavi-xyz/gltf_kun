@@ -10,5 +10,7 @@ Compared to `bevy_gltf`, this plugin adds support for:
 - glTF exporting
 - [glXF](https://github.com/KhronosGroup/glXF) import and export
 
-Additionally, the use of the `gltf_kun` graph format allows for easy use of other `gltf_kun` features
-such as running transform functions to compress textures or simplify meshes.
+## Compatibility
+
+Asset loading in Bevy requires claiming a file extension.
+Thus, glTF importing will only work if you do not have the `bevy_gltf` plugin added to your app.
