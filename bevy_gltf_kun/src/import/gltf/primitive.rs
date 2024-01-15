@@ -35,9 +35,13 @@ pub enum ImportPrimitiveError {
 
 pub fn import_primitive(
     context: &mut ImportContext,
+    parent: &mut WorldChildBuilder,
+    mesh_label: &str,
+    index: usize,
     p: &Primitive,
 ) -> Result<(), ImportPrimitiveError> {
     let weight = p.get(&context.doc.0);
+    let primitive_label = primitive_label(mesh_label, index);
 
     let topology = match weight.mode {
         Mode::Lines => PrimitiveTopology::LineList,
@@ -62,7 +66,16 @@ pub fn import_primitive(
         mesh.insert_attribute(attribute, values);
     }
 
+    let ent = parent.spawn(PbrBundle {
+        mesh: context.load_context.get_label_handle(&primitive_label),
+        ..default()
+    });
+
     Ok(())
+}
+
+fn primitive_label(mesh_label: &str, primitive_index: usize) -> String {
+    format!("{}/Primitive{}", mesh_label, primitive_index)
 }
 
 #[derive(Debug, Error)]

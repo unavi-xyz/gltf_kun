@@ -3,7 +3,7 @@ use gltf_kun::graph::gltf::node::{Node, NodeWeight};
 
 use super::{
     document::{BevyImportError, ImportContext},
-    mesh::GltfMesh,
+    mesh::{import_mesh, GltfMesh},
 };
 
 #[derive(Asset, Debug, TypePath)]
@@ -35,6 +35,10 @@ pub fn import_node(
 
     if let Some(name) = &weight.name {
         ent.insert(Name::new(name.clone()));
+    }
+
+    if let Some(ref mut mesh) = n.mesh(&context.doc.0) {
+        ent.with_children(|parent| import_mesh(context, parent, mesh));
     }
 
     let mut children = Vec::new();
