@@ -187,7 +187,22 @@ mod tests {
 
     #[test]
     #[traced_test]
-    fn test_iter() {
-        let _graph = GltfGraph::new();
+    fn test_from_iter() {
+        let mut graph = GltfGraph::new();
+
+        let iter = AccessorIter::new(&[0, 1, 2, 3, 4, 5], ComponentType::U8, Type::Vec2)
+            .expect("Failed to create iter");
+
+        let accessor = Accessor::from_iter(&mut graph, iter, None);
+
+        let buffer_view = accessor
+            .buffer_view(&graph)
+            .expect("Failed to get buffer view");
+        let buffer = buffer_view.buffer(&graph).expect("Failed to get buffer");
+
+        assert_eq!(
+            accessor.slice(&graph, &buffer_view, &buffer).unwrap(),
+            &[0, 1, 2, 3, 4, 5]
+        );
     }
 }
