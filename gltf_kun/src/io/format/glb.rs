@@ -52,7 +52,7 @@ pub enum GlbImportError {
 }
 
 impl GlbFormat {
-    pub fn export(doc: GltfDocument) -> Result<Box<Self>, GlbExportError> {
+    pub fn export(doc: GltfDocument) -> Result<Self, GlbExportError> {
         if doc.buffers().len() > 1 {
             // TODO: Merge multiple buffers into one (maybe using a transform function)
             return Err(GlbExportError::MultipleBuffers);
@@ -74,7 +74,7 @@ impl GlbFormat {
 
         let bytes = glb.to_vec()?;
 
-        Ok(Box::new(GlbFormat(bytes)))
+        Ok(GlbFormat(bytes))
     }
 
     pub async fn import(self) -> Result<GltfDocument, GlbImportError> {
