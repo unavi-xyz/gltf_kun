@@ -42,7 +42,15 @@ impl GltfFormat {
             weight.byte_length = b.byte_length.0 as usize;
             weight.uri = b.uri.take();
 
-            if let Some(uri) = weight.uri.as_ref() {
+            if resolver.is_none() && self.resources.len() == 1 {
+                let key = self
+                    .resources
+                    .iter_mut()
+                    .find(|_| true)
+                    .map(|(k, _)| k.clone())
+                    .unwrap();
+                weight.blob = self.resources.remove(&key);
+            } else if let Some(uri) = weight.uri.as_ref() {
                 if let Some(resolver) = resolver.as_mut() {
                     if let Ok(blob) = resolver.resolve(uri).await {
                         debug!("Resolved buffer: {} ({} bytes)", uri, blob.len());
@@ -53,14 +61,6 @@ impl GltfFormat {
                 } else {
                     warn!("No resolver provided");
                 }
-            } else if self.resources.len() == 1 {
-                let key = self
-                    .resources
-                    .iter_mut()
-                    .find(|_| true)
-                    .map(|(k, _)| k.clone())
-                    .unwrap();
-                weight.blob = self.resources.remove(&key);
             }
 
             buffers.push(buffer);

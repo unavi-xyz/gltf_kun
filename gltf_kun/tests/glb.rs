@@ -38,8 +38,6 @@ async fn main() {
     let out = GlbFormat::export(doc).expect("Failed to export glb");
     let out_bytes2 = out.0.clone();
 
-    // TODO: Figure out why this fails
-    // assert_eq!(out_bytes.len(), out_bytes2.len());
-
-    assert!(!out_bytes2.is_empty());
+    assert_eq!(out_bytes.len(), out_bytes2.len()); // Gives a better error message
+    assert_eq!(out_bytes, out_bytes2);
 }
