@@ -105,6 +105,7 @@ fn get_result(
 
         info!("Exported glb. Writing to {}", path.display());
 
+        std::fs::create_dir_all(path.parent().unwrap()).expect("Failed to create temp directory");
         std::fs::write(path, glb.0).expect("Failed to write glb");
 
         info!("Clearing scene");
