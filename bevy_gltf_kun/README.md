@@ -16,4 +16,4 @@ Asset loading in Bevy requires claiming a file extension.
 Thus, `.gltf` and `.glb` importing will only work if you do not have the `bevy_gltf` plugin added to your app.
 This can be done by removing the `bevy_gltf` feature flag from Bevy (included in default-features).
 
-In the future when Bevy allows you to choose an asset loader when loading a URI this will not be an issue.
+In the future when Bevy allows you to specify an asset loader when loading a URI this will not be an issue.
