@@ -1,8 +1,6 @@
 use gltf::json::mesh::Semantic;
 use petgraph::graph::DiGraph;
 
-use crate::extensions::ExtensionProperty;
-
 pub mod accessor;
 pub mod buffer;
 pub mod buffer_view;
@@ -19,9 +17,9 @@ pub enum Weight {
     DefaultScene,
     Mesh(mesh::MeshWeight),
     Node(node::NodeWeight),
+    Other(Vec<u8>),
     Primitive(primitive::PrimitiveWeight),
     Scene(scene::SceneWeight),
-    ExtensionProperty(Box<dyn ExtensionProperty>),
 }
 
 #[derive(Debug)]
@@ -30,6 +28,7 @@ pub enum Edge {
     Buffer,
     BufferView,
     Child,
+    Extension(&'static str),
     Indices,
     Material,
     Mesh,
