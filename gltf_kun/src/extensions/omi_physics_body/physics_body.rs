@@ -2,7 +2,7 @@ use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    extensions::Extension,
+    extensions::{Extension, ExtensionProperty},
     graph::gltf::{node::Node, Edge, GltfGraph, Weight},
 };
 
@@ -64,19 +64,6 @@ impl PhysicsBody {
         Self(index)
     }
 
-    pub fn get(&self, graph: &GltfGraph) -> PhysicsBodyWeight {
-        match &graph[self.0] {
-            Weight::Other(bytes) => OMIPhysicsBodyExtension
-                .decode_property(bytes)
-                .expect("Failed to decode physics body"),
-            _ => panic!("Incorrect weight type"),
-        }
-    }
-
-    pub fn set(&mut self, graph: &mut GltfGraph, weight: PhysicsBodyWeight) {
-        graph[self.0] = Weight::Other(OMIPhysicsBodyExtension.encode_property(weight));
-    }
-
     pub fn node(&self, graph: &GltfGraph) -> Option<Node> {
         graph
             .edges_directed(self.0, petgraph::Direction::Incoming)
@@ -84,6 +71,16 @@ impl PhysicsBody {
                 Edge::Extension(EXTENSION_NAME) => Some(Node(e.source())),
                 _ => None,
             })
+    }
+}
+
+impl ExtensionProperty<PhysicsBodyWeight> for PhysicsBody {
+    fn index(&self) -> NodeIndex {
+        self.0
+    }
+
+    fn extension(&self) -> &dyn Extension<PhysicsBodyWeight> {
+        &OMIPhysicsBodyExtension
     }
 }
 

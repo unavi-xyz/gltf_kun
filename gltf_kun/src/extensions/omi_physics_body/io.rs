@@ -29,9 +29,12 @@ impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsBodyExtension {
 #[cfg(test)]
 mod tests {
     use crate::{
-        extensions::omi_physics_body::{
-            physics_body::{BodyType, Motion},
-            OMIPhysicsBodyExtension,
+        extensions::{
+            omi_physics_body::{
+                physics_body::{BodyType, Motion},
+                OMIPhysicsBodyExtension,
+            },
+            ExtensionProperty,
         },
         io::format::glb::GlbIO,
     };
@@ -45,10 +48,10 @@ mod tests {
 
         let mut physics_body = OMIPhysicsBodyExtension::create_body(&mut doc.0, &node);
 
-        let mut weight = physics_body.get(&doc.0);
+        let mut weight = physics_body.read(&doc.0);
         weight.motion = Some(Motion::new(BodyType::Dynamic));
 
-        physics_body.set(&mut doc.0, weight);
+        physics_body.write(&mut doc.0, weight);
 
         let mut io = GlbIO::default();
         io.extensions.add(OMIPhysicsBodyExtension);

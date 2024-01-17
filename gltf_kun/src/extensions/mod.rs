@@ -4,7 +4,7 @@
 
 use std::{collections::HashMap, error::Error, sync::Arc};
 
-use petgraph::visit::EdgeRef;
+use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 use serde::{Deserialize, Serialize};
 
 use crate::graph::gltf::{Edge, GltfGraph, Weight};
@@ -12,20 +12,18 @@ use crate::graph::gltf::{Edge, GltfGraph, Weight};
 pub mod omi_physics_body;
 pub mod omi_physics_shape;
 
-pub trait Extension {
-    type PropertyWeight: Serialize + for<'de> Deserialize<'de>;
-
+pub trait Extension<T: Serialize + for<'de> Deserialize<'de>> {
     fn name(&self) -> &'static str;
 
-    fn decode_property(&self, bytes: &[u8]) -> Option<Self::PropertyWeight> {
+    fn decode_property(&self, bytes: &[u8]) -> Option<T> {
         bincode::deserialize(bytes).ok()
     }
 
-    fn encode_property(&self, property: Self::PropertyWeight) -> Vec<u8> {
+    fn encode_property(&self, property: T) -> Vec<u8> {
         bincode::serialize(&property).unwrap()
     }
 
-    fn properties(&self, graph: &GltfGraph) -> Vec<Self::PropertyWeight> {
+    fn properties(&self, graph: &GltfGraph) -> Vec<T> {
         graph
             .node_indices()
             .flat_map(|n| {
@@ -47,6 +45,35 @@ pub trait Extension {
             })
             .collect()
     }
+}
+
+pub trait ExtensionProperty<T: Serialize + for<'de> Deserialize<'de>> {
+    fn index(&self) -> NodeIndex;
+    fn extension(&self) -> &dyn Extension<T>;
+
+    fn read(&self, graph: &GltfGraph) -> T {
+        match &graph[self.index()] {
+            Weight::Other(bytes) => self
+                .extension()
+                .decode_property(bytes)
+                .expect("Failed to decode physics body"),
+            _ => panic!("Incorrect weight type"),
+        }
+    }
+
+    fn write(&mut self, graph: &mut GltfGraph, weight: T) {
+        graph[self.index()] = Weight::Other(self.extension().encode_property(weight));
+    }
+}
+
+pub trait ExtensionIO<D, F>: Send + Sync {
+    fn name(&self) -> &'static str;
+
+    /// Export the extension from the document to the format.
+    fn export(&self, doc: &mut D, format: &mut F) -> Result<(), Box<dyn Error>>;
+
+    /// Import the extension from the format to the document.
+    fn import(&self, format: &mut F, doc: &mut D) -> Result<(), Box<dyn Error>>;
 }
 
 #[derive(Default)]
@@ -75,14 +102,4 @@ impl<D, F> Clone for Extensions<D, F> {
 
         Self { map }
     }
-}
-
-pub trait ExtensionIO<D, F>: Send + Sync {
-    fn name(&self) -> &'static str;
-
-    /// Export the extension from the document to the format.
-    fn export(&self, doc: &mut D, format: &mut F) -> Result<(), Box<dyn Error>>;
-
-    /// Import the extension from the format to the document.
-    fn import(&self, format: &mut F, doc: &mut D) -> Result<(), Box<dyn Error>>;
 }

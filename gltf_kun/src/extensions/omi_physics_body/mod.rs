@@ -20,9 +20,7 @@ impl OMIPhysicsBodyExtension {
     }
 }
 
-impl Extension for OMIPhysicsBodyExtension {
-    type PropertyWeight = PhysicsBodyWeight;
-
+impl Extension<PhysicsBodyWeight> for OMIPhysicsBodyExtension {
     fn name(&self) -> &'static str {
         EXTENSION_NAME
     }
