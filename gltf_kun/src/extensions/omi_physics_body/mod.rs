@@ -17,7 +17,7 @@ pub const EXTENSION_NAME: &str = "OMI_physics_body";
 pub struct OMIPhysicsBodyExtension;
 
 impl OMIPhysicsBodyExtension {
-    pub fn create_body(graph: &mut GltfGraph, node: &Node) -> PhysicsBody {
+    pub fn create_body(graph: &mut GltfGraph, _node: &Node) -> PhysicsBody {
         let weight = Box::<PhysicsBodyWeight>::default();
         let index = graph.add_node(Weight::ExtensionProperty(weight));
 
@@ -32,16 +32,16 @@ impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsBodyExtension {
 
     fn export(
         &self,
-        doc: &mut GltfDocument,
-        format: &mut GltfFormat,
+        _doc: &mut GltfDocument,
+        _format: &mut GltfFormat,
     ) -> Result<(), Box<dyn Error>> {
         todo!()
     }
 
     fn import(
         &self,
-        format: &mut GltfFormat,
-        doc: &mut GltfDocument,
+        _format: &mut GltfFormat,
+        _doc: &mut GltfDocument,
     ) -> Result<(), Box<dyn Error>> {
         todo!()
     }
