@@ -50,7 +50,6 @@ mod tests {
 
         let mut weight = physics_body.read(&doc.0);
         weight.motion = Some(Motion::new(BodyType::Dynamic));
-
         physics_body.write(&mut doc.0, weight);
 
         let mut io = GlbIO::default();

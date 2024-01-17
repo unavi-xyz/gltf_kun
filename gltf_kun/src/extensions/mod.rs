@@ -51,6 +51,8 @@ pub trait ExtensionProperty<T: Serialize + for<'de> Deserialize<'de>> {
     fn index(&self) -> NodeIndex;
     fn extension(&self) -> &dyn Extension<T>;
 
+    /// Reads the weight from the graph.
+    /// Changes need to be written back to the graph using [Self::write].
     fn read(&self, graph: &GltfGraph) -> T {
         match &graph[self.index()] {
             Weight::Other(bytes) => self
@@ -61,6 +63,7 @@ pub trait ExtensionProperty<T: Serialize + for<'de> Deserialize<'de>> {
         }
     }
 
+    /// Writes the weight to the graph.
     fn write(&mut self, graph: &mut GltfGraph, weight: T) {
         graph[self.index()] = Weight::Other(self.extension().encode_property(weight));
     }
