@@ -1,15 +1,12 @@
 use glam::{Quat, Vec3};
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 
-use crate::extension::ExtensionProperty;
-
 use super::{mesh::Mesh, scene::Scene, Edge, GltfGraph, Weight};
 
 #[derive(Debug)]
 pub struct NodeWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,
-    pub extensions: Vec<Box<dyn ExtensionProperty>>,
 
     pub translation: Vec3,
     pub rotation: Quat,
@@ -21,7 +18,6 @@ impl Default for NodeWeight {
         Self {
             name: None,
             extras: None,
-            extensions: Vec::new(),
 
             translation: Vec3::ZERO,
             rotation: Quat::IDENTITY,

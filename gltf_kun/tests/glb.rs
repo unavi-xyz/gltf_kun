@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use gltf_kun::io::format::glb::GlbFormat;
+use gltf_kun::io::format::{glb::GlbIO, DocumentIO};
 use tracing_test::traced_test;
 
 const ASSETS_DIR: &str = "../assets";
@@ -13,14 +13,14 @@ async fn main() {
     let assets = Path::new(CARGO_MANIFEST_DIR).join(ASSETS_DIR);
     let path = assets.join(MODEL);
 
-    // Import / export
-    let doc = GlbFormat::import_file(&path)
-        .await
-        .expect("Failed to import glb");
-    let out = GlbFormat::export(doc).expect("Failed to export glb");
-    let out_bytes = out.0.clone();
+    let mut io = GlbIO::default();
 
-    assert!(!out_bytes.is_empty());
+    // Import / export
+    let doc = io.import_file(&path).await.expect("Failed to import glb");
+    let out = io.export(doc).expect("Failed to export glb");
+    let bytes = out.0.clone();
+
+    assert!(!bytes.is_empty());
 
     // Write to file
     let path = assets.join("temp/glb/model.glb");
@@ -32,12 +32,10 @@ async fn main() {
     gltf::Glb::from_reader(&reader).expect("Failed to read exported glb");
 
     // Import / export written file
-    let doc = GlbFormat::import_file(&path)
-        .await
-        .expect("Failed to import glb");
-    let out = GlbFormat::export(doc).expect("Failed to export glb");
-    let out_bytes2 = out.0.clone();
+    let doc = io.import_file(&path).await.expect("Failed to import glb");
+    let out = io.export(doc).expect("Failed to export glb");
+    let bytes2 = out.0.clone();
 
-    assert_eq!(out_bytes.len(), out_bytes2.len()); // Gives a better error message
-    assert_eq!(out_bytes, out_bytes2);
+    assert_eq!(bytes.len(), bytes2.len()); // Gives a better error message
+    assert_eq!(bytes, bytes2);
 }

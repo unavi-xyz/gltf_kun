@@ -1,14 +1,11 @@
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 
-use crate::extension::ExtensionProperty;
-
 use super::{primitive::Primitive, Edge, GltfGraph, Weight};
 
 #[derive(Debug, Default)]
 pub struct MeshWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,
-    pub extensions: Vec<Box<dyn ExtensionProperty>>,
 
     pub weights: Vec<f32>,
 }

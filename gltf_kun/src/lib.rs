@@ -29,13 +29,14 @@
 //!     println!("Scene name: {:?}", weight.name);
 //! });
 //!
-//! use gltf_kun::io::format::glb::GlbFormat;
+//! use gltf_kun::io::format::{DocumentIO, glb::GlbIO};
 //!
 //! // Export the document to a GLB byte array.
-//! let glb = GlbFormat::export(doc).ok();
+//! let io = GlbIO::default();
+//! let glb = io.export(doc).ok();
 //! ```
 
 pub mod document;
-pub mod extension;
+pub mod extensions;
 pub mod graph;
 pub mod io;

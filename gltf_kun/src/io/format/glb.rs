@@ -2,9 +2,14 @@ use std::{borrow::Cow, collections::HashMap, path::Path};
 
 use thiserror::Error;
 
-use crate::{document::GltfDocument, io::resolver::NO_RESOLVER};
+use crate::{
+    document::GltfDocument, extensions::Extensions, io::resolver::file_resolver::FileResolver,
+};
 
-use super::gltf::{export::GltfExportError, import::GltfImportError, GltfFormat};
+use super::{
+    gltf::{export::GltfExportError, import::GltfImportError, GltfFormat, GltfIO},
+    DocumentIO,
+};
 
 #[derive(Default)]
 pub struct GlbFormat(pub Vec<u8>);
@@ -17,14 +22,20 @@ pub enum ImportFileError {
     Io(#[from] std::io::Error),
 }
 
-impl GlbFormat {
-    pub async fn import_slice(bytes: &[u8]) -> Result<GltfDocument, GlbImportError> {
-        GlbFormat(bytes.to_vec()).import().await
+#[derive(Default)]
+pub struct GlbIO {
+    pub extensions: Extensions<GltfDocument, GltfFormat>,
+}
+
+impl GlbIO {
+    pub async fn import_slice(&mut self, bytes: &[u8]) -> Result<GltfDocument, GlbImportError> {
+        let format = GlbFormat(bytes.to_vec());
+        self.import(format).await
     }
 
-    pub async fn import_file(path: &Path) -> Result<GltfDocument, ImportFileError> {
+    pub async fn import_file(&mut self, path: &Path) -> Result<GltfDocument, ImportFileError> {
         let bytes = std::fs::read(path)?;
-        let doc = GlbFormat::import_slice(&bytes).await?;
+        let doc = self.import_slice(&bytes).await?;
         Ok(doc)
     }
 }
@@ -51,14 +62,21 @@ pub enum GlbImportError {
     SerdeJson(#[from] serde_json::Error),
 }
 
-impl GlbFormat {
-    pub fn export(doc: GltfDocument) -> Result<Self, GlbExportError> {
+impl DocumentIO<GltfDocument, GlbFormat> for GlbIO {
+    type ImportError = GlbImportError;
+    type ExportError = GlbExportError;
+
+    fn export(&self, doc: GltfDocument) -> Result<GlbFormat, Self::ExportError> {
         if doc.buffers().len() > 1 {
             // TODO: Merge multiple buffers into one (maybe using a transform function)
             return Err(GlbExportError::MultipleBuffers);
         }
 
-        let gltf = GltfFormat::export(doc)?;
+        let io = GltfIO::<FileResolver> {
+            extensions: self.extensions.clone(),
+            resolver: None,
+        };
+        let gltf = io.export(doc)?;
         let json_bin = serde_json::to_vec(&gltf.json)?;
         let resource = gltf.resources.iter().find(|_| true);
 
@@ -77,8 +95,8 @@ impl GlbFormat {
         Ok(GlbFormat(bytes))
     }
 
-    pub async fn import(self) -> Result<GltfDocument, GlbImportError> {
-        let mut glb = gltf::Glb::from_slice(&self.0)?;
+    async fn import(&mut self, format: GlbFormat) -> Result<GltfDocument, Self::ImportError> {
+        let mut glb = gltf::Glb::from_slice(&format.0)?;
 
         let json = serde_json::from_slice(&glb.json)?;
         let blob = glb.bin.take().map(|blob| blob.into_owned());
@@ -90,7 +108,12 @@ impl GlbFormat {
         }
 
         let format = GltfFormat { json, resources };
-        let doc = format.import(NO_RESOLVER).await?;
+        let extensions = self.extensions.clone();
+        let mut io = GltfIO::<FileResolver> {
+            extensions,
+            resolver: None,
+        };
+        let doc = io.import(format).await?;
 
         Ok(doc)
     }

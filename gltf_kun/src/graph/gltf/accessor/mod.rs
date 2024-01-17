@@ -1,8 +1,6 @@
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 use thiserror::Error;
 
-use crate::extension::ExtensionProperty;
-
 use self::iter::{AccessorElement, AccessorIter};
 
 use super::{buffer::Buffer, buffer_view::BufferView, Edge, GltfGraph, Weight};
@@ -21,7 +19,6 @@ pub mod weights;
 pub struct AccessorWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,
-    pub extensions: Vec<Box<dyn ExtensionProperty>>,
 
     pub byte_offset: usize,
     pub component_type: ComponentType,
@@ -35,7 +32,6 @@ impl Default for AccessorWeight {
         Self {
             name: None,
             extras: None,
-            extensions: Vec::new(),
 
             byte_offset: 0,
             component_type: ComponentType::F32,

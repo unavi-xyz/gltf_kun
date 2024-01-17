@@ -1,15 +1,12 @@
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 use thiserror::Error;
 
-use crate::extension::ExtensionProperty;
-
 use super::{buffer::Buffer, Edge, GltfGraph, Weight};
 
 #[derive(Debug, Default)]
 pub struct BufferViewWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,
-    pub extensions: Vec<Box<dyn ExtensionProperty>>,
 
     pub byte_length: usize,
     pub byte_offset: usize,

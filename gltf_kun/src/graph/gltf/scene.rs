@@ -1,14 +1,11 @@
 use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
 
-use crate::extension::ExtensionProperty;
-
 use super::{node::Node, Edge, GltfGraph, Weight};
 
 #[derive(Debug, Default)]
 pub struct SceneWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,
-    pub extensions: Vec<Box<dyn ExtensionProperty>>,
 }
 
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
