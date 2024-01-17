@@ -38,10 +38,7 @@ pub trait Extension {
                             }
 
                             match graph.node_weight(e.target()) {
-                                Some(Weight::Other(bytes)) => match self.decode_property(bytes) {
-                                    Some(property) => Some(property),
-                                    None => None,
-                                },
+                                Some(Weight::Other(bytes)) => self.decode_property(bytes),
                                 _ => None,
                             }
                         }
