@@ -5,8 +5,9 @@ use bevy::{
     utils::BoxedFuture,
 };
 use gltf_kun::io::format::{
-    glb::{GlbFormat, GlbImportError},
-    gltf::{import::GltfImportError, GltfFormat},
+    glb::{GlbIO, GlbImportError},
+    gltf::{import::GltfImportError, GltfFormat, GltfIO},
+    DocumentIO,
 };
 use thiserror::Error;
 
@@ -53,8 +54,8 @@ impl AssetLoader for GltfLoader {
                 json: serde_json::from_slice(&bytes)?,
                 resources: std::collections::HashMap::new(),
             };
-            let mut resolver = BevyAssetResolver { load_context };
-            let doc = format.import(Some(&mut resolver)).await?;
+            let mut io = GltfIO::new(BevyAssetResolver { load_context });
+            let doc = io.import(format).await?;
             let gltf = import_gltf_document(doc, load_context)?;
             Ok(gltf)
         })
@@ -91,7 +92,8 @@ impl AssetLoader for GlbLoader {
         Box::pin(async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
-            let doc = GlbFormat::import_slice(&bytes).await?;
+            let mut io = GlbIO::default();
+            let doc = io.import_slice(&bytes).await?;
             let gltf = import_gltf_document(doc, load_context)?;
             Ok(gltf)
         })

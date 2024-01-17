@@ -24,7 +24,7 @@ impl<D, F> Clone for Extensions<D, F> {
     }
 }
 
-pub trait ExtensionIO<D, F> {
+pub trait ExtensionIO<D, F>: Send + Sync {
     fn name(&self) -> &'static str;
 
     /// Export the extension from the document to the format.
@@ -34,6 +34,6 @@ pub trait ExtensionIO<D, F> {
     fn import(&self, format: &mut F, doc: &mut D) -> Result<(), Box<dyn Error>>;
 }
 
-pub trait ExtensionProperty: Debug {
+pub trait ExtensionProperty: Debug + Send + Sync {
     fn extension_name(&self) -> &'static str;
 }
