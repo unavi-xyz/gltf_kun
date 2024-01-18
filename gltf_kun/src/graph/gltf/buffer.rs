@@ -1,4 +1,4 @@
-use petgraph::stable_graph::NodeIndex;
+use petgraph::graph::NodeIndex;
 
 use super::{GltfGraph, Weight};
 

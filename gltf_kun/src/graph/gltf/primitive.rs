@@ -1,4 +1,4 @@
-use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
+use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
 use super::{accessor::Accessor, Edge, GltfGraph, Weight};
 

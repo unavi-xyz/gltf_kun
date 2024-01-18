@@ -5,7 +5,7 @@ use gltf::json::{
     accessor::GenericComponentType, buffer::Stride, scene::UnitQuaternion, validation::Checked,
     Index,
 };
-use petgraph::stable_graph::NodeIndex;
+use petgraph::graph::NodeIndex;
 use serde_json::{Number, Value};
 use thiserror::Error;
 use tracing::warn;

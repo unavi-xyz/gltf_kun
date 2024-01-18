@@ -4,7 +4,7 @@
 
 use std::{collections::HashMap, error::Error, sync::Arc};
 
-use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
+use petgraph::{graph::NodeIndex, visit::EdgeRef};
 use serde::{Deserialize, Serialize};
 
 use crate::graph::gltf::{Edge, GltfGraph, Weight};

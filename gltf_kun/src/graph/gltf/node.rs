@@ -1,5 +1,5 @@
 use glam::{Quat, Vec3};
-use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
+use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
 use super::{mesh::Mesh, scene::Scene, Edge, GltfGraph, Weight};
 

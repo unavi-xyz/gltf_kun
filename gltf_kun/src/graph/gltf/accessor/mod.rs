@@ -1,4 +1,4 @@
-use petgraph::{stable_graph::NodeIndex, visit::EdgeRef};
+use petgraph::{graph::NodeIndex, visit::EdgeRef};
 use thiserror::Error;
 
 use self::iter::{AccessorElement, AccessorIter};
