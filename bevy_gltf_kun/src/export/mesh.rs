@@ -185,6 +185,15 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Prim
         };
 
         let accessor = accessor::Accessor::from_iter(&mut context.graph, iter, Some(buffer));
+
+        if let Some(buffer_view) = accessor.buffer_view(&context.graph) {
+            context
+                .doc
+                .add_buffer_view(&mut context.graph, &buffer_view);
+        }
+
+        context.doc.add_accessor(&mut context.graph, &accessor);
+
         primitive.set_indices(&mut context.graph, Some(&accessor));
     }
 
@@ -199,6 +208,14 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Prim
                 return;
             }
         };
+
+        if let Some(buffer_view) = accessor.buffer_view(&context.graph) {
+            context
+                .doc
+                .add_buffer_view(&mut context.graph, &buffer_view);
+        }
+
+        context.doc.add_accessor(&mut context.graph, &accessor);
 
         if id == Mesh::ATTRIBUTE_POSITION.id {
             primitive.set_attribute(&mut context.graph, &Semantic::Positions, Some(&accessor));
