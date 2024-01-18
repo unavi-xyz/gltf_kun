@@ -34,18 +34,18 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 
     // Calculate min/max before exporting buffer blobs
     let mut min_max = doc
-        .accessors(&graph)
+        .accessors(graph)
         .iter()
         .map(|a| {
-            let min = a.calc_min(&graph);
-            let max = a.calc_max(&graph);
+            let min = a.calc_min(graph);
+            let max = a.calc_max(graph);
             (min, max)
         })
         .collect::<Vec<_>>();
 
     // Create buffers
     json.buffers = doc
-        .buffers(&graph)
+        .buffers(graph)
         .iter_mut()
         .enumerate()
         .map(|(i, buffer)| {
@@ -92,7 +92,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 
     // Create buffer views
     json.buffer_views = doc
-        .buffer_views(&graph)
+        .buffer_views(graph)
         .iter_mut()
         .enumerate()
         .filter_map(|(i, view)| {
@@ -140,7 +140,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 
     // Create accessors
     json.accessors = doc
-        .accessors(&graph)
+        .accessors(graph)
         .iter_mut()
         .enumerate()
         .filter_map(|(i, a)| {
@@ -183,7 +183,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 
     // Create meshes
     json.meshes = doc
-        .meshes(&graph)
+        .meshes(graph)
         .iter_mut()
         .enumerate()
         .map(|(i, mesh)| {
@@ -241,7 +241,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 
     // Create nodes
     json.nodes = doc
-        .nodes(&graph)
+        .nodes(graph)
         .iter_mut()
         .enumerate()
         .map(|(i, node)| {
@@ -305,7 +305,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 
     // Create scenes
     json.scenes = doc
-        .scenes(&graph)
+        .scenes(graph)
         .iter_mut()
         .enumerate()
         .map(|(i, scene)| {
@@ -331,7 +331,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
         .collect::<Vec<_>>();
 
     // Default scene
-    if let Some(scene) = doc.default_scene(&graph) {
+    if let Some(scene) = doc.default_scene(graph) {
         json.scene = scene_idxs.get(&scene.0).map(|idx| Index::new(*idx));
     }
 

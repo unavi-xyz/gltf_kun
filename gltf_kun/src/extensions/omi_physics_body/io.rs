@@ -11,18 +11,18 @@ impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsBodyExtension {
 
     fn export(
         &self,
-        graph: &mut crate::graph::Graph,
-        doc: &GltfDocument,
-        format: &mut GltfFormat,
+        _graph: &mut crate::graph::Graph,
+        _doc: &GltfDocument,
+        _format: &mut GltfFormat,
     ) -> Result<(), Box<dyn Error>> {
         todo!()
     }
 
     fn import(
         &self,
-        graph: &mut crate::graph::Graph,
-        format: &mut GltfFormat,
-        doc: &GltfDocument,
+        _graph: &mut crate::graph::Graph,
+        _format: &mut GltfFormat,
+        _doc: &GltfDocument,
     ) -> Result<(), Box<dyn Error>> {
         todo!()
     }
