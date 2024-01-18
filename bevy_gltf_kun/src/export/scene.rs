@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use gltf_kun::graph::GraphNode;
 
 use super::{CachedScene, ExportContext};
 

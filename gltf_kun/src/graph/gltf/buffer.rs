@@ -1,6 +1,6 @@
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{Graph, Weight};
+use crate::graph::{Graph, GraphNode, Weight};
 
 use super::GltfWeight;
 
@@ -13,6 +13,26 @@ pub struct BufferWeight {
     pub uri: Option<String>,
 
     pub blob: Option<Vec<u8>>,
+}
+
+impl<'a> TryFrom<&'a Weight> for &'a BufferWeight {
+    type Error = ();
+    fn try_from(value: &'a Weight) -> Result<Self, Self::Error> {
+        match value {
+            Weight::Gltf(GltfWeight::Buffer(weight)) => Ok(weight),
+            _ => Err(()),
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a mut Weight> for &'a mut BufferWeight {
+    type Error = ();
+    fn try_from(value: &'a mut Weight) -> Result<Self, Self::Error> {
+        match value {
+            Weight::Gltf(GltfWeight::Buffer(weight)) => Ok(weight),
+            _ => Err(()),
+        }
+    }
 }
 
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -30,23 +50,12 @@ impl From<Buffer> for NodeIndex {
     }
 }
 
+impl GraphNode<BufferWeight> for Buffer {}
+
 impl Buffer {
     pub fn new(graph: &mut Graph) -> Self {
-        let index = graph.add_node(Weight::Gltf(GltfWeight::Buffer(BufferWeight::default())));
+        let index = graph.add_node(Weight::Gltf(GltfWeight::Buffer(Default::default())));
         Self(index)
-    }
-
-    pub fn get<'a>(&'a self, graph: &'a Graph) -> &'a BufferWeight {
-        match graph.node_weight(self.0).expect("Weight not found") {
-            Weight::Gltf(GltfWeight::Buffer(weight)) => weight,
-            _ => panic!("Incorrect weight type"),
-        }
-    }
-    pub fn get_mut<'a>(&'a mut self, graph: &'a mut Graph) -> &'a mut BufferWeight {
-        match graph.node_weight_mut(self.0).expect("Weight not found") {
-            Weight::Gltf(GltfWeight::Buffer(weight)) => weight,
-            _ => panic!("Incorrect weight type"),
-        }
     }
 }
 

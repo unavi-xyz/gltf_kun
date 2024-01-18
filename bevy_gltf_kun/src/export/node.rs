@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use gltf_kun::graph::gltf::node;
+use gltf_kun::graph::{gltf::node, GraphNode};
 
 use super::{CachedNode, ExportContext};
 

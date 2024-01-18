@@ -1,7 +1,7 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 use thiserror::Error;
 
-use crate::graph::{Edge, Graph, Weight};
+use crate::graph::{Edge, Graph, GraphNode, Weight};
 
 use self::iter::{AccessorElement, AccessorIter};
 
@@ -49,6 +49,26 @@ impl Default for AccessorWeight {
     }
 }
 
+impl<'a> TryFrom<&'a Weight> for &'a AccessorWeight {
+    type Error = ();
+    fn try_from(value: &'a Weight) -> Result<Self, Self::Error> {
+        match value {
+            Weight::Gltf(GltfWeight::Accessor(weight)) => Ok(weight),
+            _ => Err(()),
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a mut Weight> for &'a mut AccessorWeight {
+    type Error = ();
+    fn try_from(value: &'a mut Weight) -> Result<Self, Self::Error> {
+        match value {
+            Weight::Gltf(GltfWeight::Accessor(weight)) => Ok(weight),
+            _ => Err(()),
+        }
+    }
+}
+
 #[derive(Debug, Error)]
 pub enum GetAccessorSliceError {
     #[error("Failed to get buffer slice: {0}")]
@@ -80,25 +100,12 @@ impl From<Accessor> for NodeIndex {
     }
 }
 
+impl GraphNode<AccessorWeight> for Accessor {}
+
 impl Accessor {
     pub fn new(graph: &mut Graph) -> Self {
-        let index = graph.add_node(Weight::Gltf(
-            GltfWeight::Accessor(AccessorWeight::default()),
-        ));
+        let index = graph.add_node(Weight::Gltf(GltfWeight::Accessor(Default::default())));
         Self(index)
-    }
-
-    pub fn get<'a>(&'a self, graph: &'a Graph) -> &'a AccessorWeight {
-        match graph.node_weight(self.0).expect("Weight not found") {
-            Weight::Gltf(GltfWeight::Accessor(weight)) => weight,
-            _ => panic!("Incorrect weight type"),
-        }
-    }
-    pub fn get_mut<'a>(&'a mut self, graph: &'a mut Graph) -> &'a mut AccessorWeight {
-        match graph.node_weight_mut(self.0).expect("Weight not found") {
-            Weight::Gltf(GltfWeight::Accessor(weight)) => weight,
-            _ => panic!("Incorrect weight type"),
-        }
     }
 
     pub fn buffer_view(&self, graph: &Graph) -> Option<BufferView> {

@@ -2,10 +2,13 @@ use bevy::{
     prelude::*,
     render::{mesh::Indices, render_resource::PrimitiveTopology},
 };
-use gltf_kun::graph::gltf::{
-    accessor::{self, iter::AccessorIter, ComponentType, Type},
-    node,
-    primitive::{self, Semantic},
+use gltf_kun::graph::{
+    gltf::{
+        accessor::{self, iter::AccessorIter, ComponentType, Type},
+        node,
+        primitive::{self, Semantic},
+    },
+    GraphNode,
 };
 
 use super::{vertex_to_accessor::vertex_to_accessor, CachedMesh, ExportContext};

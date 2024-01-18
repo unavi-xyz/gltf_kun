@@ -12,7 +12,7 @@ use tracing::warn;
 
 use crate::graph::{
     gltf::{accessor::iter::AccessorElement, buffer_view::Target, document::GltfDocument},
-    Graph,
+    Graph, GraphNode,
 };
 
 use super::GltfFormat;

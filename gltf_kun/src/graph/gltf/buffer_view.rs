@@ -1,7 +1,7 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 use thiserror::Error;
 
-use crate::graph::{Edge, Graph, Weight};
+use crate::graph::{Edge, Graph, GraphNode, Weight};
 
 use super::{buffer::Buffer, GltfEdge, GltfWeight};
 
@@ -19,6 +19,26 @@ pub struct BufferViewWeight {
     pub byte_offset: usize,
     pub byte_stride: Option<usize>,
     pub target: Option<Target>,
+}
+
+impl<'a> TryFrom<&'a Weight> for &'a BufferViewWeight {
+    type Error = ();
+    fn try_from(value: &'a Weight) -> Result<Self, Self::Error> {
+        match value {
+            Weight::Gltf(GltfWeight::BufferView(weight)) => Ok(weight),
+            _ => Err(()),
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a mut Weight> for &'a mut BufferViewWeight {
+    type Error = ();
+    fn try_from(value: &'a mut Weight) -> Result<Self, Self::Error> {
+        match value {
+            Weight::Gltf(GltfWeight::BufferView(weight)) => Ok(weight),
+            _ => Err(()),
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -71,25 +91,12 @@ impl From<BufferView> for NodeIndex {
     }
 }
 
+impl GraphNode<BufferViewWeight> for BufferView {}
+
 impl BufferView {
     pub fn new(graph: &mut Graph) -> Self {
-        let index = graph.add_node(Weight::Gltf(GltfWeight::BufferView(
-            BufferViewWeight::default(),
-        )));
+        let index = graph.add_node(Weight::Gltf(GltfWeight::BufferView(Default::default())));
         Self(index)
-    }
-
-    pub fn get<'a>(&'a self, graph: &'a Graph) -> &'a BufferViewWeight {
-        match graph.node_weight(self.0).expect("Weight not found") {
-            Weight::Gltf(GltfWeight::BufferView(weight)) => weight,
-            _ => panic!("Incorrect weight type"),
-        }
-    }
-    pub fn get_mut<'a>(&'a mut self, graph: &'a mut Graph) -> &'a mut BufferViewWeight {
-        match graph.node_weight_mut(self.0).expect("Weight not found") {
-            Weight::Gltf(GltfWeight::BufferView(weight)) => weight,
-            _ => panic!("Incorrect weight type"),
-        }
     }
 
     pub fn buffer(&self, graph: &Graph) -> Option<Buffer> {

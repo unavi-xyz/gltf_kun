@@ -1,6 +1,6 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
-use crate::graph::{Edge, Graph, Weight};
+use crate::graph::{Edge, Graph, GraphNode, Weight};
 
 use super::{accessor::Accessor, GltfEdge, GltfWeight};
 
@@ -27,6 +27,26 @@ impl Default for PrimitiveWeight {
     }
 }
 
+impl<'a> TryFrom<&'a Weight> for &'a PrimitiveWeight {
+    type Error = ();
+    fn try_from(value: &'a Weight) -> Result<Self, Self::Error> {
+        match value {
+            Weight::Gltf(GltfWeight::Primitive(weight)) => Ok(weight),
+            _ => Err(()),
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a mut Weight> for &'a mut PrimitiveWeight {
+    type Error = ();
+    fn try_from(value: &'a mut Weight) -> Result<Self, Self::Error> {
+        match value {
+            Weight::Gltf(GltfWeight::Primitive(weight)) => Ok(weight),
+            _ => Err(()),
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Primitive(pub NodeIndex);
 
@@ -42,25 +62,14 @@ impl From<Primitive> for NodeIndex {
     }
 }
 
+impl GraphNode<PrimitiveWeight> for Primitive {}
+
 impl Primitive {
     pub fn new(graph: &mut Graph) -> Self {
         let index = graph.add_node(Weight::Gltf(GltfWeight::Primitive(
             PrimitiveWeight::default(),
         )));
         Self(index)
-    }
-
-    pub fn get<'a>(&'a self, graph: &'a Graph) -> &'a PrimitiveWeight {
-        match graph.node_weight(self.0).expect("Weight not found") {
-            Weight::Gltf(GltfWeight::Primitive(weight)) => weight,
-            _ => panic!("Incorrect weight type"),
-        }
-    }
-    pub fn get_mut<'a>(&'a mut self, graph: &'a mut Graph) -> &'a mut PrimitiveWeight {
-        match graph.node_weight_mut(self.0).expect("Weight not found") {
-            Weight::Gltf(GltfWeight::Primitive(weight)) => weight,
-            _ => panic!("Incorrect weight type"),
-        }
     }
 
     pub fn indices(&self, graph: &Graph) -> Option<Accessor> {

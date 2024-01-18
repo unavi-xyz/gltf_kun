@@ -6,7 +6,7 @@ use tracing::{debug, error, warn};
 use crate::{
     graph::{
         gltf::{buffer_view::Target, document::GltfDocument},
-        Graph,
+        Graph, GraphNode,
     },
     io::resolver::Resolver,
 };

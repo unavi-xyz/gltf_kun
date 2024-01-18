@@ -1,5 +1,8 @@
 use bevy::prelude::*;
-use gltf_kun::graph::gltf::node::{Node, NodeWeight};
+use gltf_kun::graph::{
+    gltf::node::{Node, NodeWeight},
+    GraphNode,
+};
 
 use super::{
     document::{DocumentImportError, ImportContext},

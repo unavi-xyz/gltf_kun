@@ -5,10 +5,12 @@
 
 use petgraph::graph::DiGraph;
 
-pub use petgraph::graph::NodeIndex;
-
 pub mod gltf;
 pub mod glxf;
+mod graph_node;
+
+pub use graph_node::GraphNode;
+pub use petgraph::graph::NodeIndex;
 
 #[derive(Debug)]
 pub enum Weight {

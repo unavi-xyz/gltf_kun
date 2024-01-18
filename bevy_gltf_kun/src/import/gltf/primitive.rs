@@ -5,17 +5,20 @@ use bevy::{
         render_resource::{PrimitiveTopology, VertexFormat},
     },
 };
-use gltf_kun::graph::gltf::{
-    accessor::{
-        colors::ReadColors,
-        indices::ReadIndices,
-        iter::{AccessorIter, ElementIter},
-        joints::ReadJoints,
-        tex_coords::ReadTexCoords,
-        weights::ReadWeights,
-        Accessor, ComponentType, GetAccessorIterError, GetAccessorSliceError, Type,
+use gltf_kun::graph::{
+    gltf::{
+        accessor::{
+            colors::ReadColors,
+            indices::ReadIndices,
+            iter::{AccessorIter, ElementIter},
+            joints::ReadJoints,
+            tex_coords::ReadTexCoords,
+            weights::ReadWeights,
+            Accessor, ComponentType, GetAccessorIterError, GetAccessorSliceError, Type,
+        },
+        primitive::{Mode, Primitive, Semantic},
     },
-    primitive::{Mode, Primitive, Semantic},
+    GraphNode,
 };
 use thiserror::Error;
 

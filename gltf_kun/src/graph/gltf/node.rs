@@ -1,9 +1,9 @@
 use glam::{Quat, Vec3};
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
-use crate::graph::{Edge, Graph, Weight};
+use crate::graph::{Edge, Graph, GraphNode, Weight};
 
-use super::{mesh::Mesh, scene::Scene, GltfEdge, GltfWeight};
+use super::{mesh::Mesh, GltfEdge, GltfWeight};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum NodeEdge {
@@ -34,6 +34,26 @@ impl Default for NodeWeight {
     }
 }
 
+impl<'a> TryFrom<&'a Weight> for &'a NodeWeight {
+    type Error = ();
+    fn try_from(value: &'a Weight) -> Result<Self, Self::Error> {
+        match value {
+            Weight::Gltf(GltfWeight::Node(weight)) => Ok(weight),
+            _ => Err(()),
+        }
+    }
+}
+
+impl<'a> TryFrom<&'a mut Weight> for &'a mut NodeWeight {
+    type Error = ();
+    fn try_from(value: &'a mut Weight) -> Result<Self, Self::Error> {
+        match value {
+            Weight::Gltf(GltfWeight::Node(weight)) => Ok(weight),
+            _ => Err(()),
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Node(pub NodeIndex);
 
@@ -49,27 +69,16 @@ impl From<Node> for NodeIndex {
     }
 }
 
+impl GraphNode<NodeWeight> for Node {}
+
 impl Node {
     pub fn new(graph: &mut Graph) -> Self {
         let index = graph.add_node(Weight::Gltf(GltfWeight::Node(NodeWeight::default())));
         Self(index)
     }
 
-    pub fn get<'a>(&'a self, graph: &'a Graph) -> &'a NodeWeight {
-        match graph.node_weight(self.0).expect("Weight not found") {
-            Weight::Gltf(GltfWeight::Node(weight)) => weight,
-            _ => panic!("Incorrect weight type"),
-        }
-    }
-    pub fn get_mut<'a>(&'a mut self, graph: &'a mut Graph) -> &'a mut NodeWeight {
-        match graph.node_weight_mut(self.0).expect("Weight not found") {
-            Weight::Gltf(GltfWeight::Node(weight)) => weight,
-            _ => panic!("Incorrect weight type"),
-        }
-    }
-
     pub fn children(&self, graph: &Graph) -> Vec<Node> {
-        graph
+        let mut vec = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .filter_map(|edge| {
                 if let Edge::Gltf(GltfEdge::Node(NodeEdge::Child)) = edge.weight() {
@@ -78,7 +87,11 @@ impl Node {
                     None
                 }
             })
-            .collect()
+            .collect::<Vec<_>>();
+
+        vec.sort();
+
+        vec
     }
     pub fn add_child(&self, graph: &mut Graph, child: &Node) {
         graph.add_edge(self.0, child.0, Edge::Gltf(GltfEdge::Node(NodeEdge::Child)));
@@ -91,17 +104,14 @@ impl Node {
 
         graph.remove_edge(edge.id());
     }
-    pub fn parent(&self, graph: &Graph) -> Option<Parent> {
+    pub fn parent(&self, graph: &Graph) -> Option<Node> {
         graph
             .edges_directed(self.0, petgraph::Direction::Incoming)
             .find_map(|edge| {
                 if let Edge::Gltf(GltfEdge::Node(NodeEdge::Child)) = edge.weight() {
                     Some(
                         match graph.node_weight(edge.source()).expect("Weight not found") {
-                            Weight::Gltf(GltfWeight::Node(_)) => Parent::Node(Node(edge.source())),
-                            Weight::Gltf(GltfWeight::Scene(_)) => {
-                                Parent::Scene(Scene(edge.source()))
-                            }
+                            Weight::Gltf(GltfWeight::Node(_)) => Node(edge.source()),
                             _ => panic!("Incorrect weight type"),
                         },
                     )
@@ -131,12 +141,6 @@ impl Node {
             graph.add_edge(self.0, mesh.0, Edge::Gltf(GltfEdge::Node(NodeEdge::Mesh)));
         }
     }
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum Parent {
-    Node(Node),
-    Scene(Scene),
 }
 
 #[cfg(test)]
@@ -169,7 +173,7 @@ mod tests {
         let children = node.children(&graph);
         assert_eq!(children.len(), 1);
         assert_eq!(children[0], child);
-        assert_eq!(child.parent(&graph).unwrap(), Parent::Node(node));
+        assert_eq!(child.parent(&graph).unwrap(), node);
         assert_eq!(node.parent(&graph), None);
         assert_eq!(child.children(&graph).len(), 0);
 
