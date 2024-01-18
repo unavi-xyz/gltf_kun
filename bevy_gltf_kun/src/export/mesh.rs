@@ -15,11 +15,15 @@ pub fn export_meshes(
     mesh_assets: Res<Assets<Mesh>>,
     meshes: Query<(&Handle<Mesh>, Option<&Name>)>,
 ) -> ExportContext {
-    context.doc.scenes().iter().for_each(|scene| {
-        scene.nodes(&context.doc.0).iter().for_each(|node| {
-            export_node_mesh(&mut context, &mesh_assets, &meshes, *node);
-        })
-    });
+    context
+        .doc
+        .scenes(&mut context.graph)
+        .iter()
+        .for_each(|scene| {
+            scene.nodes(&context.graph).iter().for_each(|node| {
+                export_node_mesh(&mut context, &mesh_assets, &meshes, *node);
+            })
+        });
 
     context
 }
@@ -47,16 +51,16 @@ fn export_node_mesh(
         primitive_ents.push(entity);
     }
 
-    let mut children = node.children(&context.doc.0);
+    let mut children = node.children(&context.graph);
 
     children.retain(|child| {
         // Valid child nodes have no children of their own.
-        if !node.children(&context.doc.0).is_empty() {
+        if !node.children(&context.graph).is_empty() {
             return true;
         }
 
         // Valid child nodes have no transform.
-        let weight = node.get(&context.doc.0);
+        let weight = node.get(&context.graph);
         if weight.translation != glam::Vec3::ZERO
             || weight.rotation != glam::Quat::IDENTITY
             || weight.scale != glam::Vec3::ONE
@@ -78,7 +82,7 @@ fn export_node_mesh(
         primitive_ents.push(cached.entity);
 
         // Remove the node, since it's now a primitive.
-        context.doc.0.remove_node(cached.node.0);
+        context.graph.remove_node(cached.node.0);
         context.nodes.retain(|cached| cached.node != *child);
 
         false
@@ -100,16 +104,16 @@ fn export_node_mesh(
                     .iter()
                     .all(|handle| cached.bevy_meshes.contains(handle))
         }) {
-            return node.set_mesh(&mut context.doc.0, Some(&cached.mesh));
+            return node.set_mesh(&mut context.graph, Some(&cached.mesh));
         }
 
         // Create new mesh.
-        let mut mesh = mesh::Mesh::new(&mut context.doc.0);
+        let mut mesh = mesh::Mesh::new(&mut context.graph);
 
         primitive_ents.iter().for_each(|ent| {
             let (handle, name) = meshes.get(*ent).unwrap();
 
-            let weight = mesh.get_mut(&mut context.doc.0);
+            let weight = mesh.get_mut(&mut context.graph);
             if weight.name.is_none() {
                 weight.name = name.map(|name| name.to_string());
             }
@@ -123,12 +127,12 @@ fn export_node_mesh(
             };
 
             let primitive = export_primitive(context, bevy_mesh);
-            mesh.add_primitive(&mut context.doc.0, &primitive);
+            mesh.add_primitive(&mut context.graph, &primitive);
         });
 
         context.meshes.push(CachedMesh { mesh, bevy_meshes });
 
-        node.set_mesh(&mut context.doc.0, Some(&mesh));
+        node.set_mesh(&mut context.graph, Some(&mesh));
     }
 
     // Continue down the tree
@@ -138,8 +142,8 @@ fn export_node_mesh(
 }
 
 fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Primitive {
-    let mut primitive = primitive::Primitive::new(&mut context.doc.0);
-    let weight = primitive.get_mut(&mut context.doc.0);
+    let mut primitive = primitive::Primitive::new(&mut context.graph);
+    let weight = primitive.get_mut(&mut context.graph);
 
     weight.mode = match mesh.primitive_topology() {
         PrimitiveTopology::LineList => primitive::Mode::Lines,
@@ -153,7 +157,7 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Prim
         return primitive;
     }
 
-    let buffer = context.doc.create_buffer();
+    let buffer = context.doc.create_buffer(&mut context.graph);
 
     if let Some(indices) = mesh.indices() {
         let bytes = match indices {
@@ -184,12 +188,12 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Prim
             }
         };
 
-        let accessor = accessor::Accessor::from_iter(&mut context.doc.0, iter, Some(buffer));
-        primitive.set_indices(&mut context.doc.0, Some(&accessor));
+        let accessor = accessor::Accessor::from_iter(&mut context.graph, iter, Some(buffer));
+        primitive.set_indices(&mut context.graph, Some(&accessor));
     }
 
     mesh.attributes().for_each(|(id, values)| {
-        let accessor = match vertex_to_accessor(&mut context.doc.0, values, Some(buffer)) {
+        let accessor = match vertex_to_accessor(&mut context.graph, values, Some(buffer)) {
             Ok(accessor) => accessor,
             Err(err) => {
                 error!(
@@ -201,35 +205,35 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Prim
         };
 
         if id == Mesh::ATTRIBUTE_POSITION.id {
-            primitive.set_attribute(&mut context.doc.0, &Semantic::Positions, Some(&accessor));
+            primitive.set_attribute(&mut context.graph, &Semantic::Positions, Some(&accessor));
         }
 
         if id == Mesh::ATTRIBUTE_NORMAL.id {
-            primitive.set_attribute(&mut context.doc.0, &Semantic::Normals, Some(&accessor));
+            primitive.set_attribute(&mut context.graph, &Semantic::Normals, Some(&accessor));
         }
 
         if id == Mesh::ATTRIBUTE_UV_0.id {
-            primitive.set_attribute(&mut context.doc.0, &Semantic::TexCoords(0), Some(&accessor));
+            primitive.set_attribute(&mut context.graph, &Semantic::TexCoords(0), Some(&accessor));
         }
 
         if id == Mesh::ATTRIBUTE_UV_1.id {
-            primitive.set_attribute(&mut context.doc.0, &Semantic::TexCoords(1), Some(&accessor));
+            primitive.set_attribute(&mut context.graph, &Semantic::TexCoords(1), Some(&accessor));
         }
 
         if id == Mesh::ATTRIBUTE_COLOR.id {
-            primitive.set_attribute(&mut context.doc.0, &Semantic::Colors(0), Some(&accessor));
+            primitive.set_attribute(&mut context.graph, &Semantic::Colors(0), Some(&accessor));
         }
 
         if id == Mesh::ATTRIBUTE_TANGENT.id {
-            primitive.set_attribute(&mut context.doc.0, &Semantic::Tangents, Some(&accessor));
+            primitive.set_attribute(&mut context.graph, &Semantic::Tangents, Some(&accessor));
         }
 
         if id == Mesh::ATTRIBUTE_JOINT_INDEX.id {
-            primitive.set_attribute(&mut context.doc.0, &Semantic::Joints(0), Some(&accessor));
+            primitive.set_attribute(&mut context.graph, &Semantic::Joints(0), Some(&accessor));
         }
 
         if id == Mesh::ATTRIBUTE_JOINT_WEIGHT.id {
-            primitive.set_attribute(&mut context.doc.0, &Semantic::Weights(0), Some(&accessor));
+            primitive.set_attribute(&mut context.graph, &Semantic::Weights(0), Some(&accessor));
         }
     });
 

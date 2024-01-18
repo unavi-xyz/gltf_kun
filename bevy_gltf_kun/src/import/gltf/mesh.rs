@@ -17,13 +17,18 @@ pub fn import_mesh(
     parent: &mut WorldChildBuilder,
     m: &mut gltf::mesh::Mesh,
 ) {
-    let index = context.doc.meshes().iter().position(|x| x == m).unwrap();
-    let weight = m.get(&context.doc.0);
+    let index = context
+        .doc
+        .meshes(context.graph)
+        .iter()
+        .position(|x| x == m)
+        .unwrap();
+    let weight = m.get(context.graph);
     let mesh_label = mesh_label(index, weight);
 
     let mut primitives = Vec::new();
 
-    for (i, p) in m.primitives(&context.doc.0).iter_mut().enumerate() {
+    for (i, p) in m.primitives(context.graph).iter_mut().enumerate() {
         match import_primitive(context, parent, &mesh_label, i, p) {
             Ok(handle) => primitives.push(handle),
             Err(e) => {
@@ -33,7 +38,7 @@ pub fn import_mesh(
         }
     }
 
-    let weight = m.get_mut(&mut context.doc.0);
+    let weight = m.get_mut(context.graph);
 
     let mesh = GltfMesh {
         primitives,

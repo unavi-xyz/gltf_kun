@@ -88,15 +88,14 @@ fn get_result(
     mut events: ResMut<Events<GltfExportResult>>,
     scenes: Query<Entity, With<SceneMarker>>,
 ) {
-    for event in events.drain() {
+    for mut event in events.drain() {
         let doc = match event.result {
             Ok(doc) => doc,
             Err(e) => panic!("Failed to export from Bevy: {}", e),
         };
 
         let io = GlbIO::default();
-
-        let glb = match io.export(doc) {
+        let glb = match io.export(&mut event.graph, &doc) {
             Ok(glb) => glb,
             Err(e) => panic!("Failed to export to glb: {}", e),
         };

@@ -4,10 +4,13 @@ use bevy::{
     },
     utils::BoxedFuture,
 };
-use gltf_kun::io::format::{
-    glb::{GlbIO, GlbImportError},
-    gltf::{import::GltfImportError, GltfFormat, GltfIO},
-    DocumentIO,
+use gltf_kun::{
+    graph::Graph,
+    io::format::{
+        glb::{GlbIO, GlbImportError},
+        gltf::{import::GltfImportError, GltfFormat, GltfIO},
+        DocumentIO,
+    },
 };
 use thiserror::Error;
 
@@ -55,8 +58,9 @@ impl AssetLoader for GltfLoader {
                 resources: std::collections::HashMap::new(),
             };
             let mut io = GltfIO::new(BevyAssetResolver { load_context });
-            let doc = io.import(format).await?;
-            let gltf = import_gltf_document(doc, load_context)?;
+            let mut graph = Graph::default();
+            let doc = io.import(&mut graph, format).await?;
+            let gltf = import_gltf_document(&mut graph, doc, load_context)?;
             Ok(gltf)
         })
     }
@@ -93,8 +97,9 @@ impl AssetLoader for GlbLoader {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
             let mut io = GlbIO::default();
-            let doc = io.import_slice(&bytes).await?;
-            let gltf = import_gltf_document(doc, load_context)?;
+            let mut graph = Graph::default();
+            let doc = io.import_slice(&mut graph, &bytes).await?;
+            let gltf = import_gltf_document(&mut graph, doc, load_context)?;
             Ok(gltf)
         })
     }

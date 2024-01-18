@@ -19,8 +19,13 @@ pub fn import_node(
     builder: &mut WorldChildBuilder,
     n: &mut Node,
 ) -> Result<Handle<GltfNode>, BevyImportError> {
-    let index = context.doc.nodes().iter().position(|x| x == n).unwrap();
-    let weight = n.get_mut(&mut context.doc.0);
+    let index = context
+        .doc
+        .nodes(context.graph)
+        .iter()
+        .position(|x| x == n)
+        .unwrap();
+    let weight = n.get_mut(context.graph);
     let node_label = node_label(index, weight);
 
     let has_name = weight.name.is_some();
@@ -37,14 +42,14 @@ pub fn import_node(
         ent.insert(Name::new(name.clone()));
     }
 
-    if let Some(ref mut mesh) = n.mesh(&context.doc.0) {
+    if let Some(ref mut mesh) = n.mesh(context.graph) {
         ent.with_children(|parent| import_mesh(context, parent, mesh));
     }
 
     let mut children = Vec::new();
 
     ent.with_children(|parent| {
-        n.children(&context.doc.0)
+        n.children(context.graph)
             .iter_mut()
             .for_each(|c| match import_node(context, parent, c) {
                 Ok(handle) => children.push(handle),

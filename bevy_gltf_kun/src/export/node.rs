@@ -7,24 +7,28 @@ pub fn export_nodes(
     In(mut context): In<ExportContext>,
     nodes: Query<(&Transform, Option<&Name>, Option<&Children>)>,
 ) -> ExportContext {
-    context.doc.scenes().iter().for_each(|scene| {
-        let entity = context
-            .scenes
-            .iter()
-            .find(|cached| cached.scene == *scene)
-            .unwrap()
-            .entity;
+    context
+        .doc
+        .scenes(&mut context.graph)
+        .iter()
+        .for_each(|scene| {
+            let entity = context
+                .scenes
+                .iter()
+                .find(|cached| cached.scene == *scene)
+                .unwrap()
+                .entity;
 
-        let children = match nodes.get(entity) {
-            Ok((_, _, Some(children))) => children,
-            _ => return,
-        };
+            let children = match nodes.get(entity) {
+                Ok((_, _, Some(children))) => children,
+                _ => return,
+            };
 
-        children.iter().for_each(|child| {
-            let n = export_node(&mut context, &nodes, *child);
-            scene.add_node(&mut context.doc.0, &n);
+            children.iter().for_each(|child| {
+                let n = export_node(&mut context, &nodes, *child);
+                scene.add_node(&mut context.graph, &n);
+            });
         });
-    });
 
     context
 }
@@ -34,8 +38,8 @@ fn export_node(
     nodes: &Query<(&Transform, Option<&Name>, Option<&Children>)>,
     entity: Entity,
 ) -> node::Node {
-    let mut node = node::Node::new(&mut context.doc.0);
-    let weight = node.get_mut(&mut context.doc.0);
+    let mut node = node::Node::new(&mut context.graph);
+    let weight = node.get_mut(&mut context.graph);
 
     let (transform, name, children) = nodes.get(entity).expect("Node not found");
 
@@ -50,7 +54,7 @@ fn export_node(
     if let Some(children) = children {
         children.iter().for_each(|child| {
             let n = export_node(context, nodes, *child);
-            node.add_child(&mut context.doc.0, &n);
+            node.add_child(&mut context.graph, &n);
         })
     }
 

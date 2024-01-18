@@ -17,13 +17,15 @@ pub fn export_scenes(
             continue;
         }
 
-        let mut scene = scene::Scene::new(&mut context.doc.0);
+        let mut scene = scene::Scene::new(&mut context.graph);
 
         if context.event.default_scene == Some(handle.clone()) {
-            context.doc.set_default_scene(Some(&scene));
+            context
+                .doc
+                .set_default_scene(&mut context.graph, Some(&scene));
         }
 
-        let weight = scene.get_mut(&mut context.doc.0);
+        let weight = scene.get_mut(&mut context.graph);
 
         if let Ok(name) = names.get(entity) {
             weight.name = Some(name.to_string());

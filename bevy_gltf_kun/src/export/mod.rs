@@ -1,7 +1,10 @@
 use std::marker::PhantomData;
 
 use bevy::{ecs::system::RunSystemOnce, prelude::*};
-use gltf_kun::{document::GltfDocument, graph::gltf};
+use gltf_kun::graph::{
+    gltf::{self, document::GltfDocument},
+    Graph,
+};
 use thiserror::Error;
 
 pub mod mesh;
@@ -44,12 +47,14 @@ pub enum ExportError {}
 
 #[derive(Event)]
 pub struct ExportResult<T> {
+    pub graph: Graph,
     pub result: Result<T, ExportError>,
 }
 
 pub struct ExportContext {
     pub doc: GltfDocument,
     pub event: GltfExport,
+    pub graph: Graph,
     pub meshes: Vec<CachedMesh>,
     pub nodes: Vec<CachedNode>,
     pub scenes: Vec<CachedScene>,
@@ -57,9 +62,13 @@ pub struct ExportContext {
 
 impl ExportContext {
     pub fn new(event: GltfExport) -> Self {
+        let mut graph = Graph::default();
+        let doc = GltfDocument::new(&mut graph);
+
         Self {
-            doc: GltfDocument::default(),
+            doc,
             event,
+            graph,
             meshes: Vec::new(),
             nodes: Vec::new(),
             scenes: Vec::new(),
@@ -104,6 +113,7 @@ pub fn create_export_result(
     mut writer: EventWriter<GltfExportResult>,
 ) {
     writer.send(ExportResult {
+        graph: context.graph,
         result: Ok(context.doc),
     });
 }

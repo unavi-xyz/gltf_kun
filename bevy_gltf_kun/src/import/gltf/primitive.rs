@@ -52,7 +52,7 @@ pub fn import_primitive(
 ) -> Result<GltfPrimitive, ImportPrimitiveError> {
     let primitive_label = primitive_label(mesh_label, index);
 
-    let weight = p.get(&context.doc.0);
+    let weight = p.get(context.graph);
 
     let topology = match weight.mode {
         Mode::Lines => PrimitiveTopology::LineList,
@@ -65,7 +65,7 @@ pub fn import_primitive(
 
     let mut mesh = Mesh::new(topology);
 
-    for (semantic, accessor) in p.attributes(&context.doc.0) {
+    for (semantic, accessor) in p.attributes(context.graph) {
         let (attribute, values) = match convert_attribute(context, &semantic, &accessor) {
             Ok(a) => a,
             Err(err) => {
@@ -77,7 +77,7 @@ pub fn import_primitive(
         mesh.insert_attribute(attribute, values);
     }
 
-    if let Some(indices) = p.indices(&context.doc.0) {
+    if let Some(indices) = p.indices(context.graph) {
         match read_indices(context, indices) {
             Ok(indices) => mesh.set_indices(Some(indices)),
             Err(err) => {
@@ -95,7 +95,7 @@ pub fn import_primitive(
         ..default()
     });
 
-    let weight = p.get_mut(&mut context.doc.0);
+    let weight = p.get_mut(context.graph);
 
     let primitive = GltfPrimitive {
         extras: weight.extras.take(),
@@ -122,23 +122,23 @@ enum ReadIndicesError {
 }
 
 fn read_indices(context: &ImportContext, indices: Accessor) -> Result<Indices, ReadIndicesError> {
-    let buffer_view = match indices.buffer_view(&context.doc.0) {
+    let buffer_view = match indices.buffer_view(context.graph) {
         Some(buffer_view) => buffer_view,
         None => {
             return Err(ReadIndicesError::BufferViewNotFound);
         }
     };
 
-    let buffer = match buffer_view.buffer(&context.doc.0) {
+    let buffer = match buffer_view.buffer(context.graph) {
         Some(buffer) => buffer,
         None => {
             return Err(ReadIndicesError::BufferNotFound);
         }
     };
 
-    let slice = indices.slice(&context.doc.0, &buffer_view, &buffer)?;
+    let slice = indices.slice(context.graph, &buffer_view, &buffer)?;
 
-    let weight = indices.get(&context.doc.0);
+    let weight = indices.get(context.graph);
 
     let read = match weight.component_type {
         ComponentType::U8 => ReadIndices::U8(ElementIter::<u8> {
@@ -203,7 +203,7 @@ fn convert_attribute(
         }
     };
 
-    let buffer_view = match accessor.buffer_view(&context.doc.0) {
+    let buffer_view = match accessor.buffer_view(context.graph) {
         Some(buffer_view) => buffer_view,
         None => {
             return Err(AttributeConversionError::BufferViewNotFound(
@@ -212,7 +212,7 @@ fn convert_attribute(
         }
     };
 
-    let buffer = match buffer_view.buffer(&context.doc.0) {
+    let buffer = match buffer_view.buffer(context.graph) {
         Some(buffer) => buffer,
         None => {
             return Err(AttributeConversionError::BufferNotFound(
@@ -221,7 +221,7 @@ fn convert_attribute(
         }
     };
 
-    let iter = accessor.iter(&context.doc.0, &buffer_view, &buffer)?;
+    let iter = accessor.iter(context.graph, &buffer_view, &buffer)?;
 
     let values = match conversion {
         ConversionMode::Any => convert_any_values(iter)?,
