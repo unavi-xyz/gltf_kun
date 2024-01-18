@@ -55,14 +55,15 @@ pub trait Extension<T: Serialize + for<'de> Deserialize<'de>> {
     }
 }
 
-pub trait ExtensionProperty<T: Serialize + for<'de> Deserialize<'de>> {
-    fn index(&self) -> NodeIndex;
+pub trait ExtensionProperty<T: Serialize + for<'de> Deserialize<'de>>:
+    Copy + Into<NodeIndex>
+{
     fn extension(&self) -> &dyn Extension<T>;
 
     /// Reads the weight from the graph.
     /// Changes need to be written back to the graph using [Self::write].
     fn read(&self, graph: &Graph) -> T {
-        match &graph[self.index()] {
+        match &graph[(*self).into()] {
             Weight::Gltf(GltfWeight::Other(bytes)) => self
                 .extension()
                 .decode_property(bytes)
@@ -73,7 +74,7 @@ pub trait ExtensionProperty<T: Serialize + for<'de> Deserialize<'de>> {
 
     /// Writes the weight to the graph.
     fn write(&mut self, graph: &mut Graph, weight: T) {
-        graph[self.index()] =
+        graph[(*self).into()] =
             Weight::Gltf(GltfWeight::Other(self.extension().encode_property(weight)));
     }
 }

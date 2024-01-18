@@ -58,6 +58,18 @@ pub enum BodyType {
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct PhysicsBody(pub NodeIndex);
 
+impl From<NodeIndex> for PhysicsBody {
+    fn from(index: NodeIndex) -> Self {
+        Self(index)
+    }
+}
+
+impl From<PhysicsBody> for NodeIndex {
+    fn from(physics_body: PhysicsBody) -> Self {
+        physics_body.0
+    }
+}
+
 impl PhysicsBody {
     pub fn new(graph: &mut Graph) -> Self {
         let weight = PhysicsBodyWeight::default();
@@ -78,10 +90,6 @@ impl PhysicsBody {
 }
 
 impl ExtensionProperty<PhysicsBodyWeight> for PhysicsBody {
-    fn index(&self) -> NodeIndex {
-        self.0
-    }
-
     fn extension(&self) -> &dyn Extension<PhysicsBodyWeight> {
         &OMIPhysicsBodyExtension
     }

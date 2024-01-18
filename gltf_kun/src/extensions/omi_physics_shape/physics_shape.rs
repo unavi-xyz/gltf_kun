@@ -43,6 +43,18 @@ pub struct CylinderShape {
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct PhysicsShape(pub NodeIndex);
 
+impl From<NodeIndex> for PhysicsShape {
+    fn from(index: NodeIndex) -> Self {
+        Self(index)
+    }
+}
+
+impl From<PhysicsShape> for NodeIndex {
+    fn from(physics_shape: PhysicsShape) -> Self {
+        physics_shape.0
+    }
+}
+
 impl PhysicsShape {
     pub fn new(graph: &mut Graph, weight: PhysicsShapeWeight) -> Self {
         let index = graph.add_node(Weight::Gltf(GltfWeight::Other(
@@ -53,10 +65,6 @@ impl PhysicsShape {
 }
 
 impl ExtensionProperty<PhysicsShapeWeight> for PhysicsShape {
-    fn index(&self) -> NodeIndex {
-        self.0
-    }
-
     fn extension(&self) -> &dyn Extension<PhysicsShapeWeight> {
         &OMIPhysicsShapeExtension
     }
