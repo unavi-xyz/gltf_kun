@@ -4,7 +4,7 @@ use bevy::{
 };
 use gltf_kun::graph::gltf::{
     accessor::{self, iter::AccessorIter, ComponentType, Type},
-    mesh, node,
+    node,
     primitive::{self, Semantic},
 };
 
@@ -15,15 +15,11 @@ pub fn export_meshes(
     mesh_assets: Res<Assets<Mesh>>,
     meshes: Query<(&Handle<Mesh>, Option<&Name>)>,
 ) -> ExportContext {
-    context
-        .doc
-        .scenes(&mut context.graph)
-        .iter()
-        .for_each(|scene| {
-            scene.nodes(&context.graph).iter().for_each(|node| {
-                export_node_mesh(&mut context, &mesh_assets, &meshes, *node);
-            })
-        });
+    context.doc.scenes(&context.graph).iter().for_each(|scene| {
+        scene.nodes(&context.graph).iter().for_each(|node| {
+            export_node_mesh(&mut context, &mesh_assets, &meshes, *node);
+        })
+    });
 
     context
 }
@@ -108,7 +104,7 @@ fn export_node_mesh(
         }
 
         // Create new mesh.
-        let mut mesh = mesh::Mesh::new(&mut context.graph);
+        let mut mesh = context.doc.create_mesh(&mut context.graph);
 
         primitive_ents.iter().for_each(|ent| {
             let (handle, name) = meshes.get(*ent).unwrap();

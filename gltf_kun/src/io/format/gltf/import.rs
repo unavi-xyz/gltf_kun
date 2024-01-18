@@ -5,16 +5,7 @@ use tracing::{debug, error, warn};
 
 use crate::{
     graph::{
-        gltf::{
-            accessor::Accessor,
-            buffer::Buffer,
-            buffer_view::{BufferView, Target},
-            document::GltfDocument,
-            mesh::Mesh,
-            node::Node,
-            primitive::Primitive,
-            scene::Scene,
-        },
+        gltf::{buffer_view::Target, document::GltfDocument},
         Graph,
     },
     io::resolver::Resolver,
@@ -26,18 +17,18 @@ use super::GltfFormat;
 pub enum GltfImportError {}
 
 pub async fn import(
+    graph: &mut Graph,
     format: &mut GltfFormat,
     resolver: &mut Option<impl Resolver>,
 ) -> Result<GltfDocument, GltfImportError> {
-    let mut graph = Graph::default();
-    let doc = GltfDocument::new(&mut graph);
+    let doc = GltfDocument::new(graph);
 
     // Create buffers
     let mut buffers = Vec::new();
 
     for b in format.json.buffers.iter_mut() {
-        let mut buffer = Buffer::new(&mut graph);
-        let weight = buffer.get_mut(&mut graph);
+        let mut buffer = doc.create_buffer(graph);
+        let weight = buffer.get_mut(graph);
 
         weight.name = b.name.take();
         weight.extras = b.extras.take();
@@ -75,8 +66,8 @@ pub async fn import(
         .buffer_views
         .iter_mut()
         .map(|v| {
-            let mut view = BufferView::new(&mut graph);
-            let weight = view.get_mut(&mut graph);
+            let mut view = doc.create_buffer_view(graph);
+            let weight = view.get_mut(graph);
 
             weight.name = v.name.take();
             weight.extras = v.extras.take();
@@ -94,7 +85,7 @@ pub async fn import(
             });
 
             if let Some(buffer) = buffers.get(v.buffer.value()) {
-                view.set_buffer(&mut graph, Some(buffer));
+                view.set_buffer(graph, Some(buffer));
             }
 
             view
@@ -107,8 +98,8 @@ pub async fn import(
         .accessors
         .iter_mut()
         .map(|a| {
-            let mut accessor = Accessor::new(&mut graph);
-            let weight = accessor.get_mut(&mut graph);
+            let mut accessor = doc.create_accessor(graph);
+            let weight = accessor.get_mut(graph);
 
             weight.name = a.name.take();
             weight.extras = a.extras.take();
@@ -133,7 +124,7 @@ pub async fn import(
 
             if let Some(index) = a.buffer_view {
                 if let Some(buffer_view) = buffer_views.get(index.value()) {
-                    accessor.set_buffer_view(&mut graph, Some(buffer_view));
+                    accessor.set_buffer_view(graph, Some(buffer_view));
                 }
             }
 
@@ -149,15 +140,15 @@ pub async fn import(
         .meshes
         .iter_mut()
         .map(|m| {
-            let mut mesh = Mesh::new(&mut graph);
-            let weight = mesh.get_mut(&mut graph);
+            let mut mesh = doc.create_mesh(graph);
+            let weight = mesh.get_mut(graph);
 
             weight.name = m.name.take();
             weight.extras = m.extras.take();
 
             m.primitives.iter_mut().for_each(|p| {
-                let mut primitive = Primitive::new(&mut graph);
-                let p_weight = primitive.get_mut(&mut graph);
+                let mut primitive = mesh.create_primitive(graph);
+                let p_weight = primitive.get_mut(graph);
 
                 p_weight.extras = p.extras.take();
                 p_weight.mode = match p.mode {
@@ -167,7 +158,7 @@ pub async fn import(
 
                 if let Some(index) = p.indices {
                     if let Some(accessor) = accessors.get(index.value()) {
-                        primitive.set_indices(&mut graph, Some(accessor));
+                        primitive.set_indices(graph, Some(accessor));
                     }
                 }
 
@@ -181,11 +172,9 @@ pub async fn import(
                             }
                         };
 
-                        primitive.set_attribute(&mut graph, semantic, Some(accessor));
+                        primitive.set_attribute(graph, semantic, Some(accessor));
                     }
                 });
-
-                mesh.add_primitive(&mut graph, &primitive);
             });
 
             mesh
@@ -198,8 +187,8 @@ pub async fn import(
         .nodes
         .iter_mut()
         .map(|n| {
-            let mut node = Node::new(&mut graph);
-            let weight = node.get_mut(&mut graph);
+            let mut node = doc.create_node(graph);
+            let weight = node.get_mut(graph);
 
             weight.name = n.name.take();
             weight.extras = n.extras.take();
@@ -213,7 +202,7 @@ pub async fn import(
 
             if let Some(index) = n.mesh {
                 if let Some(mesh) = meshes.get(index.value()) {
-                    node.set_mesh(&mut graph, Some(mesh));
+                    node.set_mesh(graph, Some(mesh));
                 }
             }
 
@@ -233,7 +222,7 @@ pub async fn import(
 
             children.iter().for_each(|idx| {
                 let child = &nodes[idx.value()];
-                node.add_child(&mut graph, child);
+                node.add_child(graph, child);
             });
         });
 
@@ -245,15 +234,15 @@ pub async fn import(
         .scenes
         .iter_mut()
         .map(|s| {
-            let mut scene = Scene::new(&mut graph);
-            let weight = scene.get_mut(&mut graph);
+            let mut scene = doc.create_scene(graph);
+            let weight = scene.get_mut(graph);
 
             weight.name = s.name.take();
             weight.extras = s.extras.take();
 
             s.nodes.iter().for_each(|idx| {
                 if let Some(node) = nodes.get(idx.value()) {
-                    scene.add_node(&mut graph, node);
+                    scene.add_node(graph, node);
                 }
             });
 
@@ -264,11 +253,120 @@ pub async fn import(
     // Default scene
     if let Some(index) = format.json.scene {
         if let Some(scene) = scenes.get(index.value()) {
-            doc.set_default_scene(&mut graph, Some(scene));
+            doc.set_default_scene(graph, Some(scene));
         }
     }
 
     // TODO: Create animations
 
     Ok(doc)
+}
+
+#[cfg(test)]
+mod tests {
+    use gltf::json::{self, validation::USize64, Index};
+
+    use crate::io::resolver::file_resolver::FileResolver;
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_import() {
+        let mut json = json::Root::default();
+
+        json.buffers.push(json::buffer::Buffer {
+            name: Some("MyBuffer".to_string()),
+            byte_length: USize64(0),
+            uri: None,
+            extensions: None,
+            extras: None,
+        });
+
+        json.buffer_views.push(json::buffer::View {
+            name: Some("MyBufferView".to_string()),
+            buffer: Index::new(0),
+            byte_length: USize64(0),
+            byte_offset: None,
+            byte_stride: None,
+            target: None,
+            extensions: None,
+            extras: None,
+        });
+
+        json.accessors.push(json::accessor::Accessor {
+            name: Some("MyAccessor".to_string()),
+            buffer_view: Some(Index::new(0)),
+            byte_offset: None,
+            component_type: Checked::Valid(json::accessor::GenericComponentType(
+                json::accessor::ComponentType::U8,
+            )),
+            count: USize64(0),
+            extensions: None,
+            extras: None,
+            max: None,
+            min: None,
+            normalized: false,
+            sparse: None,
+            type_: Checked::Valid(json::accessor::Type::Scalar),
+        });
+
+        json.meshes.push(json::mesh::Mesh {
+            name: Some("MyMesh".to_string()),
+            primitives: vec![json::mesh::Primitive {
+                attributes: Default::default(),
+                extensions: None,
+                extras: None,
+                indices: None,
+                material: None,
+                mode: Checked::Valid(json::mesh::Mode::Triangles),
+                targets: None,
+            }],
+            weights: None,
+            extensions: None,
+            extras: None,
+        });
+
+        json.nodes.push(json::scene::Node {
+            name: Some("MyNode".to_string()),
+            mesh: Some(Index::new(0)),
+            camera: None,
+            children: None,
+            skin: None,
+            matrix: None,
+            rotation: None,
+            scale: None,
+            translation: None,
+            weights: None,
+            extensions: None,
+            extras: None,
+        });
+
+        json.scenes.push(json::scene::Scene {
+            name: Some("MyScene".to_string()),
+            nodes: vec![Index::new(0)],
+            extras: None,
+            extensions: None,
+        });
+
+        json.scene = Some(Index::new(0));
+
+        let mut format = GltfFormat {
+            json,
+            ..Default::default()
+        };
+
+        let mut graph = Graph::new();
+
+        let doc = import(&mut graph, &mut format, &mut None::<FileResolver>)
+            .await
+            .unwrap();
+
+        assert_eq!(doc.scenes(&graph).len(), 1);
+        assert_eq!(doc.default_scene(&graph), Some(doc.scenes(&graph)[0]));
+        assert_eq!(doc.nodes(&graph).len(), 1);
+        assert_eq!(doc.meshes(&graph).len(), 1);
+        assert_eq!(doc.buffers(&graph).len(), 1);
+        assert_eq!(doc.buffer_views(&graph).len(), 1);
+        assert_eq!(doc.accessors(&graph).len(), 1);
+    }
 }

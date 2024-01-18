@@ -93,7 +93,7 @@ impl<R: Resolver> DocumentIO<GltfDocument, GltfFormat> for GltfIO<R> {
         graph: &mut Graph,
         mut format: GltfFormat,
     ) -> Result<GltfDocument, Self::ImportError> {
-        let doc = import::import(&mut format, &mut self.resolver).await?;
+        let doc = import::import(graph, &mut format, &mut self.resolver).await?;
 
         self.extensions.map.iter().for_each(|(name, ext)| {
             if let Err(e) = ext.import(graph, &mut format, &doc) {

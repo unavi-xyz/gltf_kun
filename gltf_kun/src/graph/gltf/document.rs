@@ -39,8 +39,12 @@ impl GltfDocument {
         Self(index)
     }
 
-    fn all_properties<P: From<NodeIndex>>(&self, graph: &Graph, edge: DocumentEdge) -> Vec<P> {
-        graph
+    fn all_properties<P: Ord + From<NodeIndex>>(
+        &self,
+        graph: &Graph,
+        edge: DocumentEdge,
+    ) -> Vec<P> {
+        let mut vec = graph
             .edges_directed(self.0, Direction::Outgoing)
             .filter_map(|edge_ref| {
                 if let Edge::Gltf(GltfEdge::Document(e)) = edge_ref.weight() {
@@ -53,7 +57,11 @@ impl GltfDocument {
                     None
                 }
             })
-            .collect()
+            .collect::<Vec<_>>();
+
+        vec.sort();
+
+        vec
     }
     fn add_property(&self, graph: &mut Graph, edge: DocumentEdge, index: NodeIndex) {
         graph.add_edge(self.0, index, Edge::Gltf(GltfEdge::Document(edge)));

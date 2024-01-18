@@ -420,8 +420,6 @@ impl From<AccessorElement> for Value {
 mod tests {
     use tracing_test::traced_test;
 
-    use crate::graph::gltf::primitive::Primitive;
-
     use super::*;
 
     #[traced_test]
@@ -438,11 +436,10 @@ mod tests {
         let accessor = doc.create_accessor(&mut graph);
         accessor.set_buffer_view(&mut graph, Some(&buffer_view));
 
-        let primitive = Primitive::new(&mut graph);
-        primitive.set_indices(&mut graph, Some(&accessor));
-
         let mesh = doc.create_mesh(&mut graph);
-        mesh.add_primitive(&mut graph, &primitive);
+
+        let primitive = mesh.create_primitive(&mut graph);
+        primitive.set_indices(&mut graph, Some(&accessor));
 
         let node = doc.create_node(&mut graph);
         node.set_mesh(&mut graph, Some(&mesh));

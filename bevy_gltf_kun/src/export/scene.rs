@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use gltf_kun::graph::gltf::scene;
 
 use super::{CachedScene, ExportContext};
 
@@ -17,7 +16,7 @@ pub fn export_scenes(
             continue;
         }
 
-        let mut scene = scene::Scene::new(&mut context.graph);
+        let mut scene = context.doc.create_scene(&mut context.graph);
 
         if context.event.default_scene == Some(handle.clone()) {
             context
@@ -30,6 +29,7 @@ pub fn export_scenes(
         if let Ok(name) = names.get(entity) {
             weight.name = Some(name.to_string());
         }
+
         context.scenes.push(CachedScene {
             entity,
             handle: handle.clone(),

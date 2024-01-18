@@ -2,14 +2,14 @@ use bevy::prelude::*;
 use gltf_kun::graph::gltf::{self, scene::SceneWeight};
 
 use super::{
-    document::{BevyImportError, ImportContext},
+    document::{DocumentImportError, ImportContext},
     node::import_node,
 };
 
 pub fn import_scene(
     context: &mut ImportContext,
     s: gltf::scene::Scene,
-) -> Result<(), BevyImportError> {
+) -> Result<(), DocumentImportError> {
     let mut world = World::default();
 
     world

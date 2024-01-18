@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use gltf_kun::graph::gltf::node::{Node, NodeWeight};
 
 use super::{
-    document::{BevyImportError, ImportContext},
+    document::{DocumentImportError, ImportContext},
     mesh::{import_mesh, GltfMesh},
 };
 
@@ -18,7 +18,7 @@ pub fn import_node(
     context: &mut ImportContext<'_, '_>,
     builder: &mut WorldChildBuilder,
     n: &mut Node,
-) -> Result<Handle<GltfNode>, BevyImportError> {
+) -> Result<Handle<GltfNode>, DocumentImportError> {
     let index = context
         .doc
         .nodes(context.graph)

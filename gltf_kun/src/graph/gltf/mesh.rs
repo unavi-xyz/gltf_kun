@@ -53,7 +53,7 @@ impl Mesh {
     }
 
     pub fn primitives(&self, graph: &Graph) -> Vec<Primitive> {
-        graph
+        let mut vec = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .filter_map(|edge| {
                 if let Edge::Gltf(GltfEdge::Mesh(MeshEdge::Primitive)) = edge.weight() {
@@ -62,7 +62,11 @@ impl Mesh {
                     None
                 }
             })
-            .collect()
+            .collect::<Vec<_>>();
+
+        vec.sort();
+
+        vec
     }
     pub fn add_primitive(&self, graph: &mut Graph, primitive: &Primitive) {
         graph.add_edge(
@@ -78,6 +82,11 @@ impl Mesh {
             .expect("Primitive not found");
 
         graph.remove_edge(edge.id());
+    }
+    pub fn create_primitive(&self, graph: &mut Graph) -> Primitive {
+        let primitive = Primitive::new(graph);
+        self.add_primitive(graph, &primitive);
+        primitive
     }
 }
 

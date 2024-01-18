@@ -17,7 +17,7 @@ use thiserror::Error;
 use crate::import::resolver::BevyAssetResolver;
 
 use super::{
-    document::{import_gltf_document, BevyImportError},
+    document::{import_gltf_document, DocumentImportError},
     Gltf,
 };
 
@@ -29,7 +29,7 @@ pub enum GltfError {
     #[error("failed to load asset from an asset path: {0}")]
     AssetLoadError(#[from] AssetLoadError),
     #[error("failed to import into bevy: {0}")]
-    Bevy(#[from] BevyImportError),
+    Bevy(#[from] DocumentImportError),
     #[error("failed to import gltf: {0}")]
     Import(#[from] GltfImportError),
     #[error("failed to load file: {0}")]
@@ -76,7 +76,7 @@ pub struct GlbLoader;
 #[derive(Debug, Error)]
 pub enum GlbError {
     #[error("failed to import into bevy: {0}")]
-    Bevy(#[from] BevyImportError),
+    Bevy(#[from] DocumentImportError),
     #[error("failed to import glb: {0}")]
     Import(#[from] GlbImportError),
     #[error("failed to load file: {0}")]

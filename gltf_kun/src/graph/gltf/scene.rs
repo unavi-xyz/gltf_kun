@@ -50,7 +50,7 @@ impl Scene {
     }
 
     pub fn nodes(&self, graph: &Graph) -> Vec<Node> {
-        graph
+        let mut vec = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .filter_map(|edge| {
                 if let Edge::Gltf(GltfEdge::Scene(SceneEdge::Node)) = edge.weight() {
@@ -59,7 +59,11 @@ impl Scene {
                     None
                 }
             })
-            .collect()
+            .collect::<Vec<_>>();
+
+        vec.sort();
+
+        vec
     }
     pub fn add_node(&self, graph: &mut Graph, node: &Node) {
         graph.add_edge(self.0, node.0, Edge::Gltf(GltfEdge::Scene(SceneEdge::Node)));

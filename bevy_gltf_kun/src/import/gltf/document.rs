@@ -5,7 +5,7 @@ use thiserror::Error;
 use super::{scene::import_scene, Gltf};
 
 #[derive(Debug, Error)]
-pub enum BevyImportError {}
+pub enum DocumentImportError {}
 
 pub struct ImportContext<'a, 'b> {
     pub graph: &'a mut Graph,
@@ -18,7 +18,7 @@ pub fn import_gltf_document(
     graph: &mut Graph,
     mut doc: GltfDocument,
     load_context: &mut LoadContext<'_>,
-) -> Result<Gltf, BevyImportError> {
+) -> Result<Gltf, DocumentImportError> {
     let mut gltf = Gltf {
         nodes: vec![Handle::default(); doc.nodes(graph).len()],
         scenes: vec![Handle::default(); doc.scenes(graph).len()],
