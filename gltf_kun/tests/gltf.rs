@@ -1,8 +1,11 @@
 use std::path::Path;
 
-use gltf_kun::io::{
-    format::{gltf::GltfIO, DocumentIO},
-    resolver::file_resolver::FileResolver,
+use gltf_kun::{
+    graph::Graph,
+    io::{
+        format::{gltf::GltfIO, DocumentIO},
+        resolver::file_resolver::FileResolver,
+    },
 };
 use tracing::debug;
 use tracing_test::traced_test;
@@ -20,8 +23,12 @@ async fn main() {
     let io = GltfIO::<FileResolver>::default();
 
     // Import / export
-    let doc = io.import_file(&path).await.expect("Failed to import glTF");
-    let out = io.export(doc).expect("Failed to export glTF");
+    let mut graph = Graph::default();
+    let doc = io
+        .import_file(&mut graph, &path)
+        .await
+        .expect("Failed to import glTF");
+    let out = io.export(&mut graph, &doc).expect("Failed to export glTF");
     let json = serde_json::to_string(&out.json).expect("Failed to serialize json");
 
     debug!(
@@ -38,9 +45,12 @@ async fn main() {
     gltf::import(&path).expect("Failed to read exported glTF");
 
     // Import / export written file
-    let doc = io.import_file(&path).await.expect("Failed to import glTF");
-
-    let out = io.export(doc).expect("Failed to export glTF");
+    let mut graph = Graph::default();
+    let doc = io
+        .import_file(&mut graph, &path)
+        .await
+        .expect("Failed to import glTF");
+    let out = io.export(&mut graph, &doc).expect("Failed to export glTF");
     let json2 = serde_json::to_string(&out.json).expect("Failed to serialize json");
 
     assert_eq!(json, json2);

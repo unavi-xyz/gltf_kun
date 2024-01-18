@@ -1,11 +1,13 @@
 use bevy::render::mesh::VertexAttributeValues;
-use gltf_kun::graph::gltf::{
-    accessor::{
-        iter::{AccessorIter, AccessorIterCreateError},
-        Accessor, ComponentType, Type,
+use gltf_kun::graph::{
+    gltf::{
+        accessor::{
+            iter::{AccessorIter, AccessorIterCreateError},
+            Accessor, ComponentType, Type,
+        },
+        buffer::Buffer,
     },
-    buffer::Buffer,
-    GltfGraph,
+    Graph,
 };
 use thiserror::Error;
 
@@ -18,7 +20,7 @@ pub enum VertexToAccessorError {
 }
 
 pub fn vertex_to_accessor(
-    graph: &mut GltfGraph,
+    graph: &mut Graph,
     values: &VertexAttributeValues,
     buffer: Option<Buffer>,
 ) -> Result<Accessor, VertexToAccessorError> {

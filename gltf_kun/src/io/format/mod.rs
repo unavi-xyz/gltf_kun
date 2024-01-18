@@ -2,6 +2,8 @@
 
 use std::error::Error;
 
+use crate::graph::Graph;
+
 pub mod glb;
 pub mod gltf;
 pub mod glxf;
@@ -11,8 +13,8 @@ pub trait DocumentIO<D, F> {
     type ImportError: Error + Send + Sync;
     type ExportError: Error + Send + Sync;
 
-    fn export(&self, doc: D) -> Result<F, Self::ExportError>;
+    fn export(&self, graph: &mut Graph, doc: &D) -> Result<F, Self::ExportError>;
 
     #[allow(async_fn_in_trait)]
-    async fn import(&mut self, format: F) -> Result<D, Self::ImportError>;
+    async fn import(&mut self, graph: &mut Graph, format: F) -> Result<D, Self::ImportError>;
 }

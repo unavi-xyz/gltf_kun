@@ -1,7 +1,14 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 use thiserror::Error;
 
-use super::{buffer::Buffer, Edge, GltfGraph, Weight};
+use crate::graph::{Edge, Graph, Weight};
+
+use super::{buffer::Buffer, GltfEdge, GltfWeight};
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum BufferViewEdge {
+    Buffer,
+}
 
 #[derive(Debug, Default)]
 pub struct BufferViewWeight {
@@ -52,35 +59,59 @@ pub enum GetBufferViewSliceError {
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct BufferView(pub NodeIndex);
 
+impl From<NodeIndex> for BufferView {
+    fn from(index: NodeIndex) -> Self {
+        Self(index)
+    }
+}
+
+impl From<BufferView> for NodeIndex {
+    fn from(buffer_view: BufferView) -> Self {
+        buffer_view.0
+    }
+}
+
 impl BufferView {
-    pub fn new(graph: &mut GltfGraph) -> Self {
-        let index = graph.add_node(Weight::BufferView(BufferViewWeight::default()));
+    pub fn new(graph: &mut Graph) -> Self {
+        let index = graph.add_node(Weight::Gltf(GltfWeight::BufferView(
+            BufferViewWeight::default(),
+        )));
         Self(index)
     }
 
-    pub fn get<'a>(&'a self, graph: &'a GltfGraph) -> &'a BufferViewWeight {
+    pub fn get<'a>(&'a self, graph: &'a Graph) -> &'a BufferViewWeight {
         match graph.node_weight(self.0).expect("Weight not found") {
-            Weight::BufferView(weight) => weight,
+            Weight::Gltf(GltfWeight::BufferView(weight)) => weight,
             _ => panic!("Incorrect weight type"),
         }
     }
-    pub fn get_mut<'a>(&'a mut self, graph: &'a mut GltfGraph) -> &'a mut BufferViewWeight {
+    pub fn get_mut<'a>(&'a mut self, graph: &'a mut Graph) -> &'a mut BufferViewWeight {
         match graph.node_weight_mut(self.0).expect("Weight not found") {
-            Weight::BufferView(weight) => weight,
+            Weight::Gltf(GltfWeight::BufferView(weight)) => weight,
             _ => panic!("Incorrect weight type"),
         }
     }
 
-    pub fn buffer(&self, graph: &GltfGraph) -> Option<Buffer> {
+    pub fn buffer(&self, graph: &Graph) -> Option<Buffer> {
         graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| matches!(edge.weight(), Edge::Buffer))
+            .find(|edge| {
+                matches!(
+                    edge.weight(),
+                    Edge::Gltf(GltfEdge::BufferView(BufferViewEdge::Buffer))
+                )
+            })
             .map(|edge| Buffer(edge.target()))
     }
-    pub fn set_buffer(&self, graph: &mut GltfGraph, buffer: Option<&Buffer>) {
+    pub fn set_buffer(&self, graph: &mut Graph, buffer: Option<&Buffer>) {
         let edge = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| matches!(edge.weight(), Edge::Buffer))
+            .find(|edge| {
+                matches!(
+                    edge.weight(),
+                    Edge::Gltf(GltfEdge::BufferView(BufferViewEdge::Buffer))
+                )
+            })
             .map(|edge| edge.id());
 
         if let Some(edge) = edge {
@@ -88,14 +119,18 @@ impl BufferView {
         }
 
         if let Some(buffer) = buffer {
-            graph.add_edge(self.0, buffer.0, Edge::Buffer);
+            graph.add_edge(
+                self.0,
+                buffer.0,
+                Edge::Gltf(GltfEdge::BufferView(BufferViewEdge::Buffer)),
+            );
         }
     }
 
     /// Returns the slice of the buffer that this view represents.
     pub fn slice<'a>(
         &'a self,
-        graph: &'a GltfGraph,
+        graph: &'a Graph,
         buffer: &'a Buffer,
     ) -> Result<&'a [u8], GetBufferViewSliceError> {
         let buffer = buffer.get(graph);
@@ -123,7 +158,7 @@ mod tests {
 
     #[test]
     fn test_buffer_view() {
-        let mut graph = GltfGraph::new();
+        let mut graph = Graph::new();
         let mut buffer_view = BufferView::new(&mut graph);
 
         buffer_view.get_mut(&mut graph).name = Some("Test".to_string());

@@ -1,9 +1,11 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 use thiserror::Error;
 
+use crate::graph::{Edge, Graph, Weight};
+
 use self::iter::{AccessorElement, AccessorIter};
 
-use super::{buffer::Buffer, buffer_view::BufferView, Edge, GltfGraph, Weight};
+use super::{buffer::Buffer, buffer_view::BufferView, GltfEdge, GltfWeight};
 
 pub use gltf::json::accessor::{ComponentType, Type};
 
@@ -14,6 +16,11 @@ pub mod joints;
 pub mod normalize;
 pub mod tex_coords;
 pub mod weights;
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum AccessorEdge {
+    BufferView,
+}
 
 #[derive(Debug)]
 pub struct AccessorWeight {
@@ -61,35 +68,59 @@ pub enum GetAccessorIterError {
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Accessor(pub NodeIndex);
 
+impl From<NodeIndex> for Accessor {
+    fn from(index: NodeIndex) -> Self {
+        Self(index)
+    }
+}
+
+impl From<Accessor> for NodeIndex {
+    fn from(accessor: Accessor) -> Self {
+        accessor.0
+    }
+}
+
 impl Accessor {
-    pub fn new(graph: &mut GltfGraph) -> Self {
-        let index = graph.add_node(Weight::Accessor(AccessorWeight::default()));
+    pub fn new(graph: &mut Graph) -> Self {
+        let index = graph.add_node(Weight::Gltf(
+            GltfWeight::Accessor(AccessorWeight::default()),
+        ));
         Self(index)
     }
 
-    pub fn get<'a>(&'a self, graph: &'a GltfGraph) -> &'a AccessorWeight {
+    pub fn get<'a>(&'a self, graph: &'a Graph) -> &'a AccessorWeight {
         match graph.node_weight(self.0).expect("Weight not found") {
-            Weight::Accessor(weight) => weight,
+            Weight::Gltf(GltfWeight::Accessor(weight)) => weight,
             _ => panic!("Incorrect weight type"),
         }
     }
-    pub fn get_mut<'a>(&'a mut self, graph: &'a mut GltfGraph) -> &'a mut AccessorWeight {
+    pub fn get_mut<'a>(&'a mut self, graph: &'a mut Graph) -> &'a mut AccessorWeight {
         match graph.node_weight_mut(self.0).expect("Weight not found") {
-            Weight::Accessor(weight) => weight,
+            Weight::Gltf(GltfWeight::Accessor(weight)) => weight,
             _ => panic!("Incorrect weight type"),
         }
     }
 
-    pub fn buffer_view(&self, graph: &GltfGraph) -> Option<BufferView> {
+    pub fn buffer_view(&self, graph: &Graph) -> Option<BufferView> {
         graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| matches!(edge.weight(), Edge::BufferView))
+            .find(|edge| {
+                matches!(
+                    edge.weight(),
+                    Edge::Gltf(GltfEdge::Accessor(AccessorEdge::BufferView))
+                )
+            })
             .map(|edge| BufferView(edge.target()))
     }
-    pub fn set_buffer_view(&self, graph: &mut GltfGraph, buffer_view: Option<&BufferView>) {
+    pub fn set_buffer_view(&self, graph: &mut Graph, buffer_view: Option<&BufferView>) {
         let edge = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| matches!(edge.weight(), Edge::BufferView))
+            .find(|edge| {
+                matches!(
+                    edge.weight(),
+                    Edge::Gltf(GltfEdge::Accessor(AccessorEdge::BufferView))
+                )
+            })
             .map(|edge| edge.id());
 
         if let Some(edge) = edge {
@@ -97,11 +128,15 @@ impl Accessor {
         }
 
         if let Some(buffer_view) = buffer_view {
-            graph.add_edge(self.0, buffer_view.0, Edge::BufferView);
+            graph.add_edge(
+                self.0,
+                buffer_view.0,
+                Edge::Gltf(GltfEdge::Accessor(AccessorEdge::BufferView)),
+            );
         }
     }
 
-    pub fn from_iter(graph: &mut GltfGraph, iter: AccessorIter, buffer: Option<Buffer>) -> Self {
+    pub fn from_iter(graph: &mut Graph, iter: AccessorIter, buffer: Option<Buffer>) -> Self {
         let mut buffer = buffer.unwrap_or_else(|| Buffer::new(graph));
         let buffer_weight = buffer.get_mut(graph);
 
@@ -133,7 +168,7 @@ impl Accessor {
 
     pub fn iter<'a>(
         &self,
-        graph: &'a GltfGraph,
+        graph: &'a Graph,
         buffer_view: &'a BufferView,
         buffer: &'a Buffer,
     ) -> Result<AccessorIter<'a>, GetAccessorIterError> {
@@ -149,7 +184,7 @@ impl Accessor {
 
     pub fn slice<'a>(
         &self,
-        graph: &'a GltfGraph,
+        graph: &'a Graph,
         buffer_view: &'a BufferView,
         buffer: &'a Buffer,
     ) -> Result<&'a [u8], GetAccessorSliceError> {
@@ -167,14 +202,14 @@ impl Accessor {
         Ok(&slice[start..end])
     }
 
-    pub fn calc_max(&self, graph: &GltfGraph) -> Option<AccessorElement> {
+    pub fn calc_max(&self, graph: &Graph) -> Option<AccessorElement> {
         let buffer_view = self.buffer_view(graph)?;
         let buffer = buffer_view.buffer(graph)?;
         let iter = self.iter(graph, &buffer_view, &buffer).ok()?;
         Some(iter.max())
     }
 
-    pub fn calc_min(&self, graph: &GltfGraph) -> Option<AccessorElement> {
+    pub fn calc_min(&self, graph: &Graph) -> Option<AccessorElement> {
         let buffer_view = self.buffer_view(graph)?;
         let buffer = buffer_view.buffer(graph)?;
         let iter = self.iter(graph, &buffer_view, &buffer).ok()?;
@@ -191,7 +226,7 @@ mod tests {
     #[test]
     #[traced_test]
     fn test_from_iter() {
-        let mut graph = GltfGraph::new();
+        let mut graph = Graph::new();
 
         let iter = AccessorIter::new(&[0, 1, 2, 3, 4, 5], ComponentType::U8, Type::Vec2)
             .expect("Failed to create iter");

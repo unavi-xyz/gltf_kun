@@ -1,20 +1,18 @@
-use gltf::json::mesh::Semantic;
-use petgraph::graph::DiGraph;
-
 pub mod accessor;
 pub mod buffer;
 pub mod buffer_view;
+pub mod document;
 pub mod mesh;
 pub mod node;
 pub mod primitive;
 pub mod scene;
 
 #[derive(Debug)]
-pub enum Weight {
+pub enum GltfWeight {
     Accessor(accessor::AccessorWeight),
     Buffer(buffer::BufferWeight),
     BufferView(buffer_view::BufferViewWeight),
-    DefaultScene,
+    Document,
     Mesh(mesh::MeshWeight),
     Node(node::NodeWeight),
     Other(Vec<u8>),
@@ -22,18 +20,15 @@ pub enum Weight {
     Scene(scene::SceneWeight),
 }
 
-#[derive(Debug)]
-pub enum Edge {
-    Attribute(Semantic),
-    Buffer,
-    BufferView,
-    Child,
-    Extension(&'static str),
-    Indices,
-    Material,
-    Mesh,
-    Primitive,
-    Scene,
-}
+#[derive(Debug, PartialEq, Eq)]
+pub enum GltfEdge {
+    Accessor(accessor::AccessorEdge),
+    BufferView(buffer_view::BufferViewEdge),
+    Document(document::DocumentEdge),
+    Mesh(mesh::MeshEdge),
+    Node(node::NodeEdge),
+    Primitive(primitive::PrimitiveEdge),
+    Scene(scene::SceneEdge),
 
-pub type GltfGraph = DiGraph<Weight, Edge>;
+    Extension(&'static str),
+}

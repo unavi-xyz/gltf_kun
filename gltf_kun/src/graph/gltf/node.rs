@@ -1,7 +1,15 @@
 use glam::{Quat, Vec3};
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
-use super::{mesh::Mesh, scene::Scene, Edge, GltfGraph, Weight};
+use crate::graph::{Edge, Graph, Weight};
+
+use super::{mesh::Mesh, scene::Scene, GltfEdge, GltfWeight};
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum NodeEdge {
+    Child,
+    Mesh,
+}
 
 #[derive(Debug)]
 pub struct NodeWeight {
@@ -29,30 +37,42 @@ impl Default for NodeWeight {
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Node(pub NodeIndex);
 
+impl From<NodeIndex> for Node {
+    fn from(index: NodeIndex) -> Self {
+        Self(index)
+    }
+}
+
+impl From<Node> for NodeIndex {
+    fn from(node: Node) -> Self {
+        node.0
+    }
+}
+
 impl Node {
-    pub fn new(graph: &mut GltfGraph) -> Self {
-        let index = graph.add_node(Weight::Node(NodeWeight::default()));
+    pub fn new(graph: &mut Graph) -> Self {
+        let index = graph.add_node(Weight::Gltf(GltfWeight::Node(NodeWeight::default())));
         Self(index)
     }
 
-    pub fn get<'a>(&'a self, graph: &'a GltfGraph) -> &'a NodeWeight {
+    pub fn get<'a>(&'a self, graph: &'a Graph) -> &'a NodeWeight {
         match graph.node_weight(self.0).expect("Weight not found") {
-            Weight::Node(weight) => weight,
+            Weight::Gltf(GltfWeight::Node(weight)) => weight,
             _ => panic!("Incorrect weight type"),
         }
     }
-    pub fn get_mut<'a>(&'a mut self, graph: &'a mut GltfGraph) -> &'a mut NodeWeight {
+    pub fn get_mut<'a>(&'a mut self, graph: &'a mut Graph) -> &'a mut NodeWeight {
         match graph.node_weight_mut(self.0).expect("Weight not found") {
-            Weight::Node(weight) => weight,
+            Weight::Gltf(GltfWeight::Node(weight)) => weight,
             _ => panic!("Incorrect weight type"),
         }
     }
 
-    pub fn children(&self, graph: &GltfGraph) -> Vec<Node> {
+    pub fn children(&self, graph: &Graph) -> Vec<Node> {
         graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .filter_map(|edge| {
-                if let Edge::Child = edge.weight() {
+                if let Edge::Gltf(GltfEdge::Node(NodeEdge::Child)) = edge.weight() {
                     Some(Node(edge.target()))
                 } else {
                     None
@@ -60,10 +80,10 @@ impl Node {
             })
             .collect()
     }
-    pub fn add_child(&self, graph: &mut GltfGraph, child: &Node) {
-        graph.add_edge(self.0, child.0, Edge::Child);
+    pub fn add_child(&self, graph: &mut Graph, child: &Node) {
+        graph.add_edge(self.0, child.0, Edge::Gltf(GltfEdge::Node(NodeEdge::Child)));
     }
-    pub fn remove_child(&self, graph: &mut GltfGraph, child: &Node) {
+    pub fn remove_child(&self, graph: &mut Graph, child: &Node) {
         let edge = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .find(|edge| edge.target() == child.0)
@@ -71,15 +91,17 @@ impl Node {
 
         graph.remove_edge(edge.id());
     }
-    pub fn parent(&self, graph: &GltfGraph) -> Option<Parent> {
+    pub fn parent(&self, graph: &Graph) -> Option<Parent> {
         graph
             .edges_directed(self.0, petgraph::Direction::Incoming)
             .find_map(|edge| {
-                if let Edge::Child = edge.weight() {
+                if let Edge::Gltf(GltfEdge::Node(NodeEdge::Child)) = edge.weight() {
                     Some(
                         match graph.node_weight(edge.source()).expect("Weight not found") {
-                            Weight::Node(_) => Parent::Node(Node(edge.source())),
-                            Weight::Scene(_) => Parent::Scene(Scene(edge.source())),
+                            Weight::Gltf(GltfWeight::Node(_)) => Parent::Node(Node(edge.source())),
+                            Weight::Gltf(GltfWeight::Scene(_)) => {
+                                Parent::Scene(Scene(edge.source()))
+                            }
                             _ => panic!("Incorrect weight type"),
                         },
                     )
@@ -89,16 +111,16 @@ impl Node {
             })
     }
 
-    pub fn mesh(&self, graph: &GltfGraph) -> Option<Mesh> {
+    pub fn mesh(&self, graph: &Graph) -> Option<Mesh> {
         graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| matches!(edge.weight(), Edge::Mesh))
+            .find(|edge| matches!(edge.weight(), Edge::Gltf(GltfEdge::Node(NodeEdge::Mesh))))
             .map(|edge| Mesh(edge.target()))
     }
-    pub fn set_mesh(&self, graph: &mut GltfGraph, mesh: Option<&Mesh>) {
+    pub fn set_mesh(&self, graph: &mut Graph, mesh: Option<&Mesh>) {
         let edge = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| matches!(edge.weight(), Edge::Mesh))
+            .find(|edge| matches!(edge.weight(), Edge::Gltf(GltfEdge::Node(NodeEdge::Mesh))))
             .map(|edge| edge.id());
 
         if let Some(edge) = edge {
@@ -106,7 +128,7 @@ impl Node {
         }
 
         if let Some(mesh) = mesh {
-            graph.add_edge(self.0, mesh.0, Edge::Mesh);
+            graph.add_edge(self.0, mesh.0, Edge::Gltf(GltfEdge::Node(NodeEdge::Mesh)));
         }
     }
 }
@@ -123,7 +145,7 @@ mod tests {
 
     #[test]
     fn test_node() {
-        let mut graph = GltfGraph::default();
+        let mut graph = Graph::default();
         let mut node = Node::new(&mut graph);
 
         node.get_mut(&mut graph).name = Some("Test".to_string());

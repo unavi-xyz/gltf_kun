@@ -4,8 +4,8 @@ use thiserror::Error;
 use tracing::warn;
 
 use crate::{
-    document::GltfDocument,
     extensions::Extensions,
+    graph::{gltf::document::GltfDocument, Graph},
     io::resolver::{file_resolver::FileResolver, Resolver},
 };
 
@@ -72,11 +72,15 @@ impl<R: Resolver> DocumentIO<GltfDocument, GltfFormat> for GltfIO<R> {
     type ExportError = export::GltfExportError;
     type ImportError = import::GltfImportError;
 
-    fn export(&self, mut doc: GltfDocument) -> Result<GltfFormat, Self::ExportError> {
-        let mut format = export::export(&mut doc)?;
+    fn export(
+        &self,
+        graph: &mut Graph,
+        doc: &GltfDocument,
+    ) -> Result<GltfFormat, Self::ExportError> {
+        let mut format = export::export(graph, doc)?;
 
         self.extensions.map.iter().for_each(|(name, ext)| {
-            if let Err(e) = ext.export(&mut doc, &mut format) {
+            if let Err(e) = ext.export(graph, doc, &mut format) {
                 warn!("Failed to export {}: {}", name, e);
             }
         });
@@ -84,11 +88,15 @@ impl<R: Resolver> DocumentIO<GltfDocument, GltfFormat> for GltfIO<R> {
         Ok(format)
     }
 
-    async fn import(&mut self, mut format: GltfFormat) -> Result<GltfDocument, Self::ImportError> {
-        let mut doc = import::import(&mut format, &mut self.resolver).await?;
+    async fn import(
+        &mut self,
+        graph: &mut Graph,
+        mut format: GltfFormat,
+    ) -> Result<GltfDocument, Self::ImportError> {
+        let doc = import::import(&mut format, &mut self.resolver).await?;
 
         self.extensions.map.iter().for_each(|(name, ext)| {
-            if let Err(e) = ext.import(&mut format, &mut doc) {
+            if let Err(e) = ext.import(graph, &mut format, &doc) {
                 warn!("Failed to import {}: {}", name, e);
             }
         });
@@ -118,7 +126,11 @@ pub enum WriteFileError {
 impl GltfIO<FileResolver> {
     /// Import a glTF file from a path.
     /// Ignores the current resolver, creating a new FileResolver for the given file's directory.
-    pub async fn import_file(&self, path: &Path) -> Result<GltfDocument, ImportFileError> {
+    pub async fn import_file(
+        &self,
+        graph: &mut Graph,
+        path: &Path,
+    ) -> Result<GltfDocument, ImportFileError> {
         let json = serde_json::from_reader(std::fs::File::open(path)?)?;
 
         let format = GltfFormat {
@@ -133,7 +145,7 @@ impl GltfIO<FileResolver> {
             extensions: self.extensions.clone(),
         };
 
-        let doc = io.import(format).await?;
+        let doc = io.import(graph, format).await?;
 
         Ok(doc)
     }

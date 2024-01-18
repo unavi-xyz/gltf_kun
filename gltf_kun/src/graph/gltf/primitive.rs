@@ -1,8 +1,16 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
-use super::{accessor::Accessor, Edge, GltfGraph, Weight};
+use crate::graph::{Edge, Graph, Weight};
+
+use super::{accessor::Accessor, GltfEdge, GltfWeight};
 
 pub use gltf::json::mesh::{Mode, Semantic};
+
+#[derive(Debug, PartialEq, Eq)]
+pub enum PrimitiveEdge {
+    Indices,
+    Attribute(Semantic),
+}
 
 #[derive(Debug)]
 pub struct PrimitiveWeight {
@@ -22,40 +30,59 @@ impl Default for PrimitiveWeight {
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Primitive(pub NodeIndex);
 
+impl From<NodeIndex> for Primitive {
+    fn from(index: NodeIndex) -> Self {
+        Self(index)
+    }
+}
+
+impl From<Primitive> for NodeIndex {
+    fn from(primitive: Primitive) -> Self {
+        primitive.0
+    }
+}
+
 impl Primitive {
-    pub fn new(graph: &mut GltfGraph) -> Self {
-        let index = graph.add_node(Weight::Primitive(PrimitiveWeight::default()));
+    pub fn new(graph: &mut Graph) -> Self {
+        let index = graph.add_node(Weight::Gltf(GltfWeight::Primitive(
+            PrimitiveWeight::default(),
+        )));
         Self(index)
     }
 
-    pub fn get<'a>(&'a self, graph: &'a GltfGraph) -> &'a PrimitiveWeight {
+    pub fn get<'a>(&'a self, graph: &'a Graph) -> &'a PrimitiveWeight {
         match graph.node_weight(self.0).expect("Weight not found") {
-            Weight::Primitive(weight) => weight,
+            Weight::Gltf(GltfWeight::Primitive(weight)) => weight,
             _ => panic!("Incorrect weight type"),
         }
     }
-    pub fn get_mut<'a>(&'a mut self, graph: &'a mut GltfGraph) -> &'a mut PrimitiveWeight {
+    pub fn get_mut<'a>(&'a mut self, graph: &'a mut Graph) -> &'a mut PrimitiveWeight {
         match graph.node_weight_mut(self.0).expect("Weight not found") {
-            Weight::Primitive(weight) => weight,
+            Weight::Gltf(GltfWeight::Primitive(weight)) => weight,
             _ => panic!("Incorrect weight type"),
         }
     }
 
-    pub fn indices(&self, graph: &GltfGraph) -> Option<Accessor> {
+    pub fn indices(&self, graph: &Graph) -> Option<Accessor> {
         graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .find_map(|edge| {
-                if let Edge::Indices = edge.weight() {
+                if let Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Indices)) = edge.weight() {
                     Some(Accessor(edge.target()))
                 } else {
                     None
                 }
             })
     }
-    pub fn set_indices(&mut self, graph: &mut GltfGraph, indices: Option<&Accessor>) {
+    pub fn set_indices(&mut self, graph: &mut Graph, indices: Option<&Accessor>) {
         let edge = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| matches!(edge.weight(), Edge::Indices))
+            .find(|edge| {
+                matches!(
+                    edge.weight(),
+                    Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Indices))
+                )
+            })
             .map(|edge| edge.id());
 
         if let Some(edge) = edge {
@@ -63,15 +90,21 @@ impl Primitive {
         }
 
         if let Some(indices) = indices {
-            graph.add_edge(self.0, indices.0, Edge::Indices);
+            graph.add_edge(
+                self.0,
+                indices.0,
+                Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Indices)),
+            );
         }
     }
 
-    pub fn attributes(&self, graph: &GltfGraph) -> Vec<(Semantic, Accessor)> {
+    pub fn attributes(&self, graph: &Graph) -> Vec<(Semantic, Accessor)> {
         graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .filter_map(|edge| {
-                if let Edge::Attribute(semantic) = edge.weight() {
+                if let Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Attribute(semantic))) =
+                    edge.weight()
+                {
                     Some((semantic.clone(), Accessor(edge.target())))
                 } else {
                     None
@@ -79,11 +112,13 @@ impl Primitive {
             })
             .collect()
     }
-    pub fn attribute(&self, graph: &GltfGraph, semantic: &Semantic) -> Option<Accessor> {
+    pub fn attribute(&self, graph: &Graph, semantic: &Semantic) -> Option<Accessor> {
         graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .find_map(|edge| {
-                if let Edge::Attribute(edge_semantic) = edge.weight() {
+                if let Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Attribute(edge_semantic))) =
+                    edge.weight()
+                {
                     if edge_semantic == semantic {
                         Some(Accessor(edge.target()))
                     } else {
@@ -96,16 +131,24 @@ impl Primitive {
     }
     pub fn set_attribute(
         &mut self,
-        graph: &mut GltfGraph,
+        graph: &mut Graph,
         semantic: &Semantic,
         accessor: Option<&Accessor>,
     ) {
         if let Some(accessor) = accessor {
-            graph.add_edge(self.0, accessor.0, Edge::Attribute(semantic.clone()));
+            graph.add_edge(
+                self.0,
+                accessor.0,
+                Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Attribute(
+                    semantic.clone(),
+                ))),
+            );
         } else if let Some(edge) = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .find(|edge| {
-                if let Edge::Attribute(edge_semantic) = edge.weight() {
+                if let Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Attribute(edge_semantic))) =
+                    edge.weight()
+                {
                     edge_semantic == semantic
                 } else {
                     false
@@ -119,11 +162,12 @@ impl Primitive {
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
 
     #[test]
     fn test_primitive() {
-        let mut graph = GltfGraph::new();
+        let mut graph = Graph::new();
         let mut primitive = Primitive::new(&mut graph);
 
         primitive.get_mut(&mut graph).mode = Mode::Lines;

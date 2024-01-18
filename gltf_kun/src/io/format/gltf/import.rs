@@ -4,15 +4,18 @@ use thiserror::Error;
 use tracing::{debug, error, warn};
 
 use crate::{
-    document::GltfDocument,
-    graph::gltf::{
-        accessor::Accessor,
-        buffer::Buffer,
-        buffer_view::{BufferView, Target},
-        mesh::Mesh,
-        node::Node,
-        primitive::Primitive,
-        scene::Scene,
+    graph::{
+        gltf::{
+            accessor::Accessor,
+            buffer::Buffer,
+            buffer_view::{BufferView, Target},
+            document::GltfDocument,
+            mesh::Mesh,
+            node::Node,
+            primitive::Primitive,
+            scene::Scene,
+        },
+        Graph,
     },
     io::resolver::Resolver,
 };
@@ -26,14 +29,15 @@ pub async fn import(
     format: &mut GltfFormat,
     resolver: &mut Option<impl Resolver>,
 ) -> Result<GltfDocument, GltfImportError> {
-    let mut doc = GltfDocument::default();
+    let mut graph = Graph::default();
+    let doc = GltfDocument::new(&mut graph);
 
     // Create buffers
     let mut buffers = Vec::new();
 
     for b in format.json.buffers.iter_mut() {
-        let mut buffer = Buffer::new(&mut doc.0);
-        let weight = buffer.get_mut(&mut doc.0);
+        let mut buffer = Buffer::new(&mut graph);
+        let weight = buffer.get_mut(&mut graph);
 
         weight.name = b.name.take();
         weight.extras = b.extras.take();
@@ -71,8 +75,8 @@ pub async fn import(
         .buffer_views
         .iter_mut()
         .map(|v| {
-            let mut view = BufferView::new(&mut doc.0);
-            let weight = view.get_mut(&mut doc.0);
+            let mut view = BufferView::new(&mut graph);
+            let weight = view.get_mut(&mut graph);
 
             weight.name = v.name.take();
             weight.extras = v.extras.take();
@@ -90,7 +94,7 @@ pub async fn import(
             });
 
             if let Some(buffer) = buffers.get(v.buffer.value()) {
-                view.set_buffer(&mut doc.0, Some(buffer));
+                view.set_buffer(&mut graph, Some(buffer));
             }
 
             view
@@ -103,8 +107,8 @@ pub async fn import(
         .accessors
         .iter_mut()
         .map(|a| {
-            let mut accessor = Accessor::new(&mut doc.0);
-            let weight = accessor.get_mut(&mut doc.0);
+            let mut accessor = Accessor::new(&mut graph);
+            let weight = accessor.get_mut(&mut graph);
 
             weight.name = a.name.take();
             weight.extras = a.extras.take();
@@ -129,7 +133,7 @@ pub async fn import(
 
             if let Some(index) = a.buffer_view {
                 if let Some(buffer_view) = buffer_views.get(index.value()) {
-                    accessor.set_buffer_view(&mut doc.0, Some(buffer_view));
+                    accessor.set_buffer_view(&mut graph, Some(buffer_view));
                 }
             }
 
@@ -145,15 +149,15 @@ pub async fn import(
         .meshes
         .iter_mut()
         .map(|m| {
-            let mut mesh = Mesh::new(&mut doc.0);
-            let weight = mesh.get_mut(&mut doc.0);
+            let mut mesh = Mesh::new(&mut graph);
+            let weight = mesh.get_mut(&mut graph);
 
             weight.name = m.name.take();
             weight.extras = m.extras.take();
 
             m.primitives.iter_mut().for_each(|p| {
-                let mut primitive = Primitive::new(&mut doc.0);
-                let p_weight = primitive.get_mut(&mut doc.0);
+                let mut primitive = Primitive::new(&mut graph);
+                let p_weight = primitive.get_mut(&mut graph);
 
                 p_weight.extras = p.extras.take();
                 p_weight.mode = match p.mode {
@@ -163,7 +167,7 @@ pub async fn import(
 
                 if let Some(index) = p.indices {
                     if let Some(accessor) = accessors.get(index.value()) {
-                        primitive.set_indices(&mut doc.0, Some(accessor));
+                        primitive.set_indices(&mut graph, Some(accessor));
                     }
                 }
 
@@ -177,11 +181,11 @@ pub async fn import(
                             }
                         };
 
-                        primitive.set_attribute(&mut doc.0, semantic, Some(accessor));
+                        primitive.set_attribute(&mut graph, semantic, Some(accessor));
                     }
                 });
 
-                mesh.add_primitive(&mut doc.0, &primitive);
+                mesh.add_primitive(&mut graph, &primitive);
             });
 
             mesh
@@ -194,8 +198,8 @@ pub async fn import(
         .nodes
         .iter_mut()
         .map(|n| {
-            let mut node = Node::new(&mut doc.0);
-            let weight = node.get_mut(&mut doc.0);
+            let mut node = Node::new(&mut graph);
+            let weight = node.get_mut(&mut graph);
 
             weight.name = n.name.take();
             weight.extras = n.extras.take();
@@ -209,7 +213,7 @@ pub async fn import(
 
             if let Some(index) = n.mesh {
                 if let Some(mesh) = meshes.get(index.value()) {
-                    node.set_mesh(&mut doc.0, Some(mesh));
+                    node.set_mesh(&mut graph, Some(mesh));
                 }
             }
 
@@ -229,7 +233,7 @@ pub async fn import(
 
             children.iter().for_each(|idx| {
                 let child = &nodes[idx.value()];
-                node.add_child(&mut doc.0, child);
+                node.add_child(&mut graph, child);
             });
         });
 
@@ -241,15 +245,15 @@ pub async fn import(
         .scenes
         .iter_mut()
         .map(|s| {
-            let mut scene = Scene::new(&mut doc.0);
-            let weight = scene.get_mut(&mut doc.0);
+            let mut scene = Scene::new(&mut graph);
+            let weight = scene.get_mut(&mut graph);
 
             weight.name = s.name.take();
             weight.extras = s.extras.take();
 
             s.nodes.iter().for_each(|idx| {
                 if let Some(node) = nodes.get(idx.value()) {
-                    scene.add_node(&mut doc.0, node);
+                    scene.add_node(&mut graph, node);
                 }
             });
 
@@ -260,7 +264,7 @@ pub async fn import(
     // Default scene
     if let Some(index) = format.json.scene {
         if let Some(scene) = scenes.get(index.value()) {
-            doc.set_default_scene(Some(scene));
+            doc.set_default_scene(&mut graph, Some(scene));
         }
     }
 

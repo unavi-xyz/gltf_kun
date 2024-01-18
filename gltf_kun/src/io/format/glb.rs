@@ -3,7 +3,9 @@ use std::{borrow::Cow, collections::HashMap, path::Path};
 use thiserror::Error;
 
 use crate::{
-    document::GltfDocument, extensions::Extensions, io::resolver::file_resolver::FileResolver,
+    extensions::Extensions,
+    graph::{gltf::document::GltfDocument, Graph},
+    io::resolver::file_resolver::FileResolver,
 };
 
 use super::{
@@ -28,14 +30,22 @@ pub struct GlbIO {
 }
 
 impl GlbIO {
-    pub async fn import_slice(&mut self, bytes: &[u8]) -> Result<GltfDocument, GlbImportError> {
+    pub async fn import_slice(
+        &mut self,
+        graph: &mut Graph,
+        bytes: &[u8],
+    ) -> Result<GltfDocument, GlbImportError> {
         let format = GlbFormat(bytes.to_vec());
-        self.import(format).await
+        self.import(graph, format).await
     }
 
-    pub async fn import_file(&mut self, path: &Path) -> Result<GltfDocument, ImportFileError> {
+    pub async fn import_file(
+        &mut self,
+        graph: &mut Graph,
+        path: &Path,
+    ) -> Result<GltfDocument, ImportFileError> {
         let bytes = std::fs::read(path)?;
-        let doc = self.import_slice(&bytes).await?;
+        let doc = self.import_slice(graph, &bytes).await?;
         Ok(doc)
     }
 }
@@ -66,8 +76,12 @@ impl DocumentIO<GltfDocument, GlbFormat> for GlbIO {
     type ImportError = GlbImportError;
     type ExportError = GlbExportError;
 
-    fn export(&self, doc: GltfDocument) -> Result<GlbFormat, Self::ExportError> {
-        if doc.buffers().len() > 1 {
+    fn export(
+        &self,
+        graph: &mut Graph,
+        doc: &GltfDocument,
+    ) -> Result<GlbFormat, Self::ExportError> {
+        if doc.buffers(graph).len() > 1 {
             // TODO: Merge multiple buffers into one (maybe using a transform function)
             return Err(GlbExportError::MultipleBuffers);
         }
@@ -76,7 +90,7 @@ impl DocumentIO<GltfDocument, GlbFormat> for GlbIO {
             extensions: self.extensions.clone(),
             resolver: None,
         };
-        let gltf = io.export(doc)?;
+        let gltf = io.export(graph, doc)?;
         let json_bin = serde_json::to_vec(&gltf.json)?;
         let resource = gltf.resources.iter().find(|_| true);
 
@@ -95,7 +109,11 @@ impl DocumentIO<GltfDocument, GlbFormat> for GlbIO {
         Ok(GlbFormat(bytes))
     }
 
-    async fn import(&mut self, format: GlbFormat) -> Result<GltfDocument, Self::ImportError> {
+    async fn import(
+        &mut self,
+        graph: &mut Graph,
+        format: GlbFormat,
+    ) -> Result<GltfDocument, Self::ImportError> {
         let mut glb = gltf::Glb::from_slice(&format.0)?;
 
         let json = serde_json::from_slice(&glb.json)?;
@@ -113,7 +131,7 @@ impl DocumentIO<GltfDocument, GlbFormat> for GlbIO {
             extensions,
             resolver: None,
         };
-        let doc = io.import(format).await?;
+        let doc = io.import(graph, format).await?;
 
         Ok(doc)
     }

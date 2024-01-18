@@ -1,6 +1,9 @@
 use std::path::Path;
 
-use gltf_kun::io::format::{glb::GlbIO, DocumentIO};
+use gltf_kun::{
+    graph::Graph,
+    io::format::{glb::GlbIO, DocumentIO},
+};
 use tracing_test::traced_test;
 
 const ASSETS_DIR: &str = "../assets";
@@ -16,8 +19,12 @@ async fn main() {
     let mut io = GlbIO::default();
 
     // Import / export
-    let doc = io.import_file(&path).await.expect("Failed to import glb");
-    let out = io.export(doc).expect("Failed to export glb");
+    let mut graph = Graph::default();
+    let doc = io
+        .import_file(&mut graph, &path)
+        .await
+        .expect("Failed to import glb");
+    let out = io.export(&mut graph, &doc).expect("Failed to export glb");
     let bytes = out.0.clone();
 
     assert!(!bytes.is_empty());
@@ -32,8 +39,12 @@ async fn main() {
     gltf::Glb::from_reader(&reader).expect("Failed to read exported glb");
 
     // Import / export written file
-    let doc = io.import_file(&path).await.expect("Failed to import glb");
-    let out = io.export(doc).expect("Failed to export glb");
+    let mut graph = Graph::default();
+    let doc = io
+        .import_file(&mut graph, &path)
+        .await
+        .expect("Failed to import glb");
+    let out = io.export(&mut graph, &doc).expect("Failed to export glb");
     let bytes2 = out.0.clone();
 
     assert_eq!(bytes.len(), bytes2.len()); // Gives a better error message

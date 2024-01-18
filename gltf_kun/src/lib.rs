@@ -4,28 +4,31 @@
 //! ## Basic Usage
 //!
 //! ```
-//! use gltf_kun::document::GltfDocument;
+//! use gltf_kun::graph::{Graph, gltf::document::GltfDocument};
+//!
+//! // Create a new graph.
+//! // This is where all the data will be stored.
+//! let mut graph = Graph::default();
 //!
 //! // Create a new glTF document.
-//! // This stores the graph, which will be passed in to methods using "doc.0".
-//! let mut doc = GltfDocument::default();
+//! let doc = GltfDocument::new(&mut graph);
 //!
 //! // Create a new scene.
 //! // This "scene" variable is just a wrapper around a u32 index into the graph,
 //! // making it cheap to copy and pass around.
-//! let mut scene = doc.create_scene();
+//! let mut scene = doc.create_scene(&mut graph);
 //!
 //! // To read or write data, we need to get its weight.
-//! let weight = scene.get_mut(&mut doc.0);
+//! let weight = scene.get_mut(&mut graph);
 //! weight.name = Some("My Scene".to_string());
 //!
 //! // Create a glTF node and add it to the scene.
-//! let mut node = doc.create_node();
-//! scene.add_node(&mut doc.0, &node);
+//! let mut node = doc.create_node(&mut graph);
+//! scene.add_node(&mut graph, &node);
 //!
 //! // Iterate over all scenes in the document, printing their names.
-//! doc.scenes().iter().for_each(|scene| {
-//!     let weight = scene.get(&doc.0);
+//! doc.scenes(&graph).iter().for_each(|scene| {
+//!     let weight = scene.get(&graph);
 //!     println!("Scene name: {:?}", weight.name);
 //! });
 //!
@@ -33,10 +36,9 @@
 //!
 //! // Export the document to a GLB byte array.
 //! let io = GlbIO::default();
-//! let glb = io.export(doc).ok();
+//! let glb = io.export(&mut graph, &doc).ok();
 //! ```
 
-pub mod document;
 pub mod extensions;
 pub mod graph;
 pub mod io;

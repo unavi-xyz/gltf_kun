@@ -3,7 +3,10 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     extensions::{Extension, ExtensionProperty},
-    graph::gltf::{node::Node, Edge, GltfGraph, Weight},
+    graph::{
+        gltf::{node::Node, GltfEdge, GltfWeight},
+        Edge, Graph, Weight,
+    },
 };
 
 use super::{OMIPhysicsBodyExtension, EXTENSION_NAME};
@@ -56,19 +59,19 @@ pub enum BodyType {
 pub struct PhysicsBody(pub NodeIndex);
 
 impl PhysicsBody {
-    pub fn new(graph: &mut GltfGraph) -> Self {
+    pub fn new(graph: &mut Graph) -> Self {
         let weight = PhysicsBodyWeight::default();
-        let index = graph.add_node(Weight::Other(
+        let index = graph.add_node(Weight::Gltf(GltfWeight::Other(
             OMIPhysicsBodyExtension.encode_property(weight),
-        ));
+        )));
         Self(index)
     }
 
-    pub fn node(&self, graph: &GltfGraph) -> Option<Node> {
+    pub fn node(&self, graph: &Graph) -> Option<Node> {
         graph
             .edges_directed(self.0, petgraph::Direction::Incoming)
             .find_map(|e| match e.weight() {
-                Edge::Extension(EXTENSION_NAME) => Some(Node(e.source())),
+                Edge::Gltf(GltfEdge::Extension(EXTENSION_NAME)) => Some(Node(e.source())),
                 _ => None,
             })
     }
@@ -86,17 +89,20 @@ impl ExtensionProperty<PhysicsBodyWeight> for PhysicsBody {
 
 #[cfg(test)]
 mod tests {
-    use crate::{document::GltfDocument, extensions::omi_physics_body::OMIPhysicsBodyExtension};
+
+    use crate::graph::gltf::document::GltfDocument;
 
     use super::*;
 
     #[test]
     fn test_physics_body() {
-        let mut doc = GltfDocument::default();
-        let node = doc.create_node();
+        let mut graph = Graph::default();
 
-        let body = OMIPhysicsBodyExtension::create_body(&mut doc.0, &node);
-        assert_eq!(OMIPhysicsBodyExtension.properties(&doc.0).len(), 1);
-        assert_eq!(body.node(&doc.0), Some(node));
+        let doc = GltfDocument::new(&mut graph);
+        let node = doc.create_node(&mut graph);
+
+        let body = OMIPhysicsBodyExtension::create_body(&mut graph, &node);
+        assert_eq!(OMIPhysicsBodyExtension.properties(&graph).len(), 1);
+        assert_eq!(body.node(&graph), Some(node));
     }
 }

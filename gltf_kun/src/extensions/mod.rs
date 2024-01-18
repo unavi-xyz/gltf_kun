@@ -7,7 +7,13 @@ use std::{collections::HashMap, error::Error, sync::Arc};
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 use serde::{Deserialize, Serialize};
 
-use crate::graph::gltf::{Edge, GltfGraph, Weight};
+use crate::{
+    graph::{
+        gltf::{document::GltfDocument, GltfEdge, GltfWeight},
+        Edge, Graph, Weight,
+    },
+    io::format::gltf::GltfFormat,
+};
 
 pub mod omi_physics_body;
 pub mod omi_physics_shape;
@@ -23,20 +29,22 @@ pub trait Extension<T: Serialize + for<'de> Deserialize<'de>> {
         bincode::serialize(&property).unwrap()
     }
 
-    fn properties(&self, graph: &GltfGraph) -> Vec<T> {
+    fn properties(&self, graph: &Graph) -> Vec<T> {
         graph
             .node_indices()
             .flat_map(|n| {
                 graph
                     .edges_directed(n, petgraph::Direction::Outgoing)
                     .filter_map(|e| match e.weight() {
-                        Edge::Extension(name) => {
+                        Edge::Gltf(GltfEdge::Extension(name)) => {
                             if **name != *self.name() {
                                 return None;
                             }
 
                             match graph.node_weight(e.target()) {
-                                Some(Weight::Other(bytes)) => self.decode_property(bytes),
+                                Some(Weight::Gltf(GltfWeight::Other(bytes))) => {
+                                    self.decode_property(bytes)
+                                }
                                 _ => None,
                             }
                         }
@@ -53,9 +61,9 @@ pub trait ExtensionProperty<T: Serialize + for<'de> Deserialize<'de>> {
 
     /// Reads the weight from the graph.
     /// Changes need to be written back to the graph using [Self::write].
-    fn read(&self, graph: &GltfGraph) -> T {
+    fn read(&self, graph: &Graph) -> T {
         match &graph[self.index()] {
-            Weight::Other(bytes) => self
+            Weight::Gltf(GltfWeight::Other(bytes)) => self
                 .extension()
                 .decode_property(bytes)
                 .expect("Failed to decode physics body"),
@@ -64,8 +72,9 @@ pub trait ExtensionProperty<T: Serialize + for<'de> Deserialize<'de>> {
     }
 
     /// Writes the weight to the graph.
-    fn write(&mut self, graph: &mut GltfGraph, weight: T) {
-        graph[self.index()] = Weight::Other(self.extension().encode_property(weight));
+    fn write(&mut self, graph: &mut Graph, weight: T) {
+        graph[self.index()] =
+            Weight::Gltf(GltfWeight::Other(self.extension().encode_property(weight)));
     }
 }
 
@@ -73,15 +82,22 @@ pub trait ExtensionIO<D, F>: Send + Sync {
     fn name(&self) -> &'static str;
 
     /// Export the extension from the document to the format.
-    fn export(&self, doc: &mut D, format: &mut F) -> Result<(), Box<dyn Error>>;
+    fn export(&self, graph: &mut Graph, doc: &D, format: &mut F) -> Result<(), Box<dyn Error>>;
 
     /// Import the extension from the format to the document.
-    fn import(&self, format: &mut F, doc: &mut D) -> Result<(), Box<dyn Error>>;
+    fn import(&self, graph: &mut Graph, format: &mut F, doc: &D) -> Result<(), Box<dyn Error>>;
 }
 
-#[derive(Default)]
 pub struct Extensions<D, F> {
     pub map: HashMap<String, Arc<Box<dyn ExtensionIO<D, F>>>>,
+}
+
+impl Default for Extensions<GltfDocument, GltfFormat> {
+    fn default() -> Self {
+        Self {
+            map: HashMap::new(),
+        }
+    }
 }
 
 impl<D, F> Extensions<D, F> {

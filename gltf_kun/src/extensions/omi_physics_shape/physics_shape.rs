@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     extensions::{Extension, ExtensionProperty},
-    graph::gltf::{GltfGraph, Weight},
+    graph::{gltf::GltfWeight, Graph, Weight},
 };
 
 use super::OMIPhysicsShapeExtension;
@@ -44,10 +44,10 @@ pub struct CylinderShape {
 pub struct PhysicsShape(pub NodeIndex);
 
 impl PhysicsShape {
-    pub fn new(graph: &mut GltfGraph, weight: PhysicsShapeWeight) -> Self {
-        let index = graph.add_node(Weight::Other(
+    pub fn new(graph: &mut Graph, weight: PhysicsShapeWeight) -> Self {
+        let index = graph.add_node(Weight::Gltf(GltfWeight::Other(
             OMIPhysicsShapeExtension.encode_property(weight),
-        ));
+        )));
         Self(index)
     }
 }

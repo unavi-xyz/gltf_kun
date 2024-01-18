@@ -1,4 +1,4 @@
-use crate::graph::gltf::GltfGraph;
+use crate::graph::Graph;
 
 use self::physics_shape::{PhysicsShape, PhysicsShapeWeight};
 
@@ -13,7 +13,7 @@ const EXTENSION_NAME: &str = "OMI_physics_shape";
 pub struct OMIPhysicsShapeExtension;
 
 impl OMIPhysicsShapeExtension {
-    pub fn create_shape(graph: &mut GltfGraph, weight: PhysicsShapeWeight) -> PhysicsShape {
+    pub fn create_shape(graph: &mut Graph, weight: PhysicsShapeWeight) -> PhysicsShape {
         let body = PhysicsShape::new(graph, weight);
         body
     }

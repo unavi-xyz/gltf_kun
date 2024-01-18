@@ -10,9 +10,9 @@ use serde_json::{Number, Value};
 use thiserror::Error;
 use tracing::warn;
 
-use crate::{
-    document::GltfDocument,
-    graph::gltf::{accessor::iter::AccessorElement, buffer_view::Target},
+use crate::graph::{
+    gltf::{accessor::iter::AccessorElement, buffer_view::Target, document::GltfDocument},
+    Graph,
 };
 
 use super::GltfFormat;
@@ -20,7 +20,7 @@ use super::GltfFormat;
 #[derive(Debug, Error)]
 pub enum GltfExportError {}
 
-pub fn export(doc: &mut GltfDocument) -> Result<GltfFormat, GltfExportError> {
+pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfExportError> {
     let mut json = gltf::json::root::Root::default();
     let mut resources = HashMap::new();
 
@@ -34,24 +34,24 @@ pub fn export(doc: &mut GltfDocument) -> Result<GltfFormat, GltfExportError> {
 
     // Calculate min/max before exporting buffer blobs
     let mut min_max = doc
-        .accessors()
+        .accessors(&graph)
         .iter()
         .map(|a| {
-            let min = a.calc_min(&doc.0);
-            let max = a.calc_max(&doc.0);
+            let min = a.calc_min(&graph);
+            let max = a.calc_max(&graph);
             (min, max)
         })
         .collect::<Vec<_>>();
 
     // Create buffers
     json.buffers = doc
-        .buffers()
+        .buffers(&graph)
         .iter_mut()
         .enumerate()
         .map(|(i, buffer)| {
             buffer_idxs.insert(buffer.0, i as u32);
 
-            let weight = buffer.get_mut(&mut doc.0);
+            let weight = buffer.get_mut(graph);
             let name = weight.name.take();
             let extras = weight.extras.take();
             let byte_length = weight.byte_length.into();
@@ -92,14 +92,14 @@ pub fn export(doc: &mut GltfDocument) -> Result<GltfFormat, GltfExportError> {
 
     // Create buffer views
     json.buffer_views = doc
-        .buffer_views()
+        .buffer_views(&graph)
         .iter_mut()
         .enumerate()
         .filter_map(|(i, view)| {
             buffer_view_idxs.insert(view.0, i as u32);
 
             let buffer_idx = match view
-                .buffer(&doc.0)
+                .buffer(graph)
                 .and_then(|buffer| buffer_idxs.get(&buffer.0))
             {
                 Some(idx) => idx,
@@ -109,7 +109,7 @@ pub fn export(doc: &mut GltfDocument) -> Result<GltfFormat, GltfExportError> {
                 }
             };
 
-            let weight = view.get_mut(&mut doc.0);
+            let weight = view.get_mut(graph);
 
             Some(gltf::json::buffer::View {
                 name: weight.name.take(),
@@ -140,14 +140,14 @@ pub fn export(doc: &mut GltfDocument) -> Result<GltfFormat, GltfExportError> {
 
     // Create accessors
     json.accessors = doc
-        .accessors()
+        .accessors(&graph)
         .iter_mut()
         .enumerate()
         .filter_map(|(i, a)| {
             accessor_idxs.insert(a.0, i as u32);
 
             let buffer_view_idx = match a
-                .buffer_view(&doc.0)
+                .buffer_view(graph)
                 .and_then(|buffer_view| buffer_view_idxs.get(&buffer_view.0))
             {
                 Some(idx) => idx,
@@ -159,7 +159,7 @@ pub fn export(doc: &mut GltfDocument) -> Result<GltfFormat, GltfExportError> {
 
             let min = min_max[i].0.take();
             let max = min_max[i].1.take();
-            let weight = a.get_mut(&mut doc.0);
+            let weight = a.get_mut(graph);
 
             Some(gltf::json::accessor::Accessor {
                 name: weight.name.take(),
@@ -183,25 +183,25 @@ pub fn export(doc: &mut GltfDocument) -> Result<GltfFormat, GltfExportError> {
 
     // Create meshes
     json.meshes = doc
-        .meshes()
+        .meshes(&graph)
         .iter_mut()
         .enumerate()
         .map(|(i, mesh)| {
             mesh_idxs.insert(mesh.0, i as u32);
 
             let primitives = mesh
-                .primitives(&doc.0)
+                .primitives(graph)
                 .iter()
                 .map(|p| {
-                    let weight = p.get(&doc.0);
+                    let weight = p.get(graph);
 
                     let indices = p
-                        .indices(&doc.0)
+                        .indices(graph)
                         .and_then(|indices| accessor_idxs.get(&indices.0))
                         .map(|idx| Index::new(*idx));
 
                     let attributes = p
-                        .attributes(&doc.0)
+                        .attributes(graph)
                         .iter()
                         .filter_map(|(k, v)| {
                             accessor_idxs
@@ -222,7 +222,7 @@ pub fn export(doc: &mut GltfDocument) -> Result<GltfFormat, GltfExportError> {
                 })
                 .collect::<Vec<_>>();
 
-            let weight = mesh.get_mut(&mut doc.0);
+            let weight = mesh.get_mut(graph);
 
             gltf::json::mesh::Mesh {
                 name: weight.name.take(),
@@ -241,18 +241,18 @@ pub fn export(doc: &mut GltfDocument) -> Result<GltfFormat, GltfExportError> {
 
     // Create nodes
     json.nodes = doc
-        .nodes()
+        .nodes(&graph)
         .iter_mut()
         .enumerate()
         .map(|(i, node)| {
             node_idxs.insert(node.0, i as u32);
 
             let mesh = node
-                .mesh(&doc.0)
+                .mesh(graph)
                 .and_then(|mesh| mesh_idxs.get(&mesh.0))
                 .map(|idx| Index::new(*idx));
 
-            let weight = node.get_mut(&mut doc.0);
+            let weight = node.get_mut(graph);
 
             gltf::json::scene::Node {
                 name: weight.name.take(),
@@ -285,9 +285,9 @@ pub fn export(doc: &mut GltfDocument) -> Result<GltfFormat, GltfExportError> {
         .collect::<Vec<_>>();
 
     // Parent nodes
-    doc.nodes().iter().for_each(|node| {
+    doc.nodes(graph).iter().for_each(|node| {
         let children_idxs = node
-            .children(&doc.0)
+            .children(graph)
             .iter()
             .filter_map(|child| node_idxs.get(&child.0))
             .map(|idx| Index::new(*idx))
@@ -305,20 +305,20 @@ pub fn export(doc: &mut GltfDocument) -> Result<GltfFormat, GltfExportError> {
 
     // Create scenes
     json.scenes = doc
-        .scenes()
+        .scenes(&graph)
         .iter_mut()
         .enumerate()
         .map(|(i, scene)| {
             scene_idxs.insert(scene.0, i as u32);
 
             let nodes = scene
-                .nodes(&doc.0)
+                .nodes(graph)
                 .iter()
                 .filter_map(|node| node_idxs.get(&node.0))
                 .map(|idx| Index::new(*idx))
                 .collect::<Vec<_>>();
 
-            let weight = scene.get_mut(&mut doc.0);
+            let weight = scene.get_mut(graph);
 
             gltf::json::scene::Scene {
                 name: weight.name.take(),
@@ -331,7 +331,7 @@ pub fn export(doc: &mut GltfDocument) -> Result<GltfFormat, GltfExportError> {
         .collect::<Vec<_>>();
 
     // Default scene
-    if let Some(scene) = doc.default_scene() {
+    if let Some(scene) = doc.default_scene(&graph) {
         json.scene = scene_idxs.get(&scene.0).map(|idx| Index::new(*idx));
     }
 
