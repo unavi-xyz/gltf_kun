@@ -14,7 +14,6 @@ pub struct OMIPhysicsShapeExtension;
 
 impl OMIPhysicsShapeExtension {
     pub fn create_shape(graph: &mut Graph, weight: PhysicsShapeWeight) -> PhysicsShape {
-        
         PhysicsShape::new(graph, weight)
     }
 }
