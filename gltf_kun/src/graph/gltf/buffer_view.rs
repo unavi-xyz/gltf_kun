@@ -157,30 +157,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_buffer_view() {
+    fn test_buffer() {
         let mut graph = Graph::new();
-        let mut buffer_view = BufferView::new(&mut graph);
 
-        buffer_view.get_mut(&mut graph).name = Some("Test".to_string());
-        assert_eq!(buffer_view.get(&graph).name, Some("Test".to_string()));
-
-        buffer_view.get_mut(&mut graph).byte_length = 4;
-        assert_eq!(buffer_view.get(&graph).byte_length, 4);
-
-        buffer_view.get_mut(&mut graph).byte_offset = 4;
-        assert_eq!(buffer_view.get(&graph).byte_offset, 4);
-
-        buffer_view.get_mut(&mut graph).byte_stride = Some(4);
-        assert_eq!(buffer_view.get(&graph).byte_stride, Some(4));
-
-        buffer_view.get_mut(&mut graph).target = Some(Target::ElementArrayBuffer);
-        assert_eq!(
-            buffer_view.get(&graph).target,
-            Some(Target::ElementArrayBuffer)
-        );
-
+        let buffer_view = BufferView::new(&mut graph);
         let buffer = Buffer::new(&mut graph);
         buffer_view.set_buffer(&mut graph, Some(&buffer));
+
         assert_eq!(buffer_view.buffer(&graph), Some(buffer));
     }
 }

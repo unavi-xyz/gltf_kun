@@ -64,14 +64,14 @@ impl Mesh {
             })
             .collect()
     }
-    pub fn add_primitive(&mut self, graph: &mut Graph, primitive: &Primitive) {
+    pub fn add_primitive(&self, graph: &mut Graph, primitive: &Primitive) {
         graph.add_edge(
             self.0,
             primitive.0,
             Edge::Gltf(GltfEdge::Mesh(MeshEdge::Primitive)),
         );
     }
-    pub fn remove_primitive(&mut self, graph: &mut Graph, primitive: &Primitive) {
+    pub fn remove_primitive(&self, graph: &mut Graph, primitive: &Primitive) {
         let edge = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .find(|edge| edge.target() == primitive.0)

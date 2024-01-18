@@ -415,3 +415,52 @@ impl From<AccessorElement> for Value {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use tracing_test::traced_test;
+
+    use crate::graph::gltf::primitive::Primitive;
+
+    use super::*;
+
+    #[traced_test]
+    #[test]
+    fn test_export() {
+        let mut graph = Graph::default();
+        let doc = GltfDocument::new(&mut graph);
+
+        let buffer = doc.create_buffer(&mut graph);
+
+        let buffer_view = doc.create_buffer_view(&mut graph);
+        buffer_view.set_buffer(&mut graph, Some(&buffer));
+
+        let accessor = doc.create_accessor(&mut graph);
+        accessor.set_buffer_view(&mut graph, Some(&buffer_view));
+
+        let primitive = Primitive::new(&mut graph);
+        primitive.set_indices(&mut graph, Some(&accessor));
+
+        let mesh = doc.create_mesh(&mut graph);
+        mesh.add_primitive(&mut graph, &primitive);
+
+        let node = doc.create_node(&mut graph);
+        node.set_mesh(&mut graph, Some(&mesh));
+
+        let scene = doc.create_scene(&mut graph);
+        scene.add_node(&mut graph, &node);
+
+        doc.set_default_scene(&mut graph, Some(&scene));
+
+        let result = export(&mut graph, &doc).unwrap();
+
+        assert_eq!(result.json.accessors.len(), 1);
+        assert_eq!(result.json.buffer_views.len(), 1);
+        assert_eq!(result.json.buffers.len(), 1);
+        assert_eq!(result.json.meshes.len(), 1);
+        assert_eq!(result.json.nodes.len(), 1);
+        assert_eq!(result.json.scenes.len(), 1);
+
+        assert_eq!(result.json.scene, Some(Index::new(0)));
+    }
+}

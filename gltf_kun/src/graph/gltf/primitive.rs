@@ -74,7 +74,7 @@ impl Primitive {
                 }
             })
     }
-    pub fn set_indices(&mut self, graph: &mut Graph, indices: Option<&Accessor>) {
+    pub fn set_indices(&self, graph: &mut Graph, indices: Option<&Accessor>) {
         let edge = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .find(|edge| {
@@ -130,7 +130,7 @@ impl Primitive {
             })
     }
     pub fn set_attribute(
-        &mut self,
+        &self,
         graph: &mut Graph,
         semantic: &Semantic,
         accessor: Option<&Accessor>,
