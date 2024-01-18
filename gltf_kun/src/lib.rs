@@ -4,7 +4,7 @@
 //! ## Basic Usage
 //!
 //! ```
-//! use gltf_kun::graph::{Graph, gltf::document::GltfDocument};
+//! use gltf_kun::graph::{Graph, GraphNode, gltf::document::GltfDocument};
 //!
 //! // Create a new graph.
 //! // This is where all the data will be stored.
