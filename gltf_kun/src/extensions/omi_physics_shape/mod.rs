@@ -37,10 +37,8 @@ impl OMIPhysicsShapeExtension {
     pub fn shapes<'a>(&self, graph: &'a Graph) -> impl Iterator<Item = PhysicsShape> + 'a {
         graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .filter_map(move |e| match e.weight() {
-                Edge::Other(SHAPE_EDGE) => Some(PhysicsShape(e.target())),
-                _ => None,
-            })
+            .filter(|e| matches!(e.weight(), Edge::Other(SHAPE_EDGE)))
+            .map(|e| PhysicsShape(e.target()))
     }
     pub fn add_shape(&self, graph: &mut Graph, shape: &PhysicsShape) {
         graph.add_edge(self.0, shape.0, Edge::Other(SHAPE_EDGE));
