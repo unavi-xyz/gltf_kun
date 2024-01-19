@@ -223,4 +223,52 @@ mod tests {
 
         assert_eq!(shape, shape_2);
     }
+
+    #[test]
+    fn test_default_box() {
+        let shape = Shape {
+            typ: "box".to_string(),
+            weight: PhysicsShapeWeight::Box(BoxShape::default()),
+        };
+
+        let json = serde_json::to_string(&shape).unwrap();
+        let expected = r#"{"type":"box","box":{}}"#;
+        assert_eq!(json, expected);
+    }
+
+    #[test]
+    fn test_default_sphere() {
+        let shape = Shape {
+            typ: "sphere".to_string(),
+            weight: PhysicsShapeWeight::Sphere(SphereShape::default()),
+        };
+
+        let json = serde_json::to_string(&shape).unwrap();
+        let expected = r#"{"type":"sphere","sphere":{}}"#;
+        assert_eq!(json, expected);
+    }
+
+    #[test]
+    fn test_default_capsule() {
+        let shape = Shape {
+            typ: "capsule".to_string(),
+            weight: PhysicsShapeWeight::Capsule(CapsuleShape::default()),
+        };
+
+        let json = serde_json::to_string(&shape).unwrap();
+        let expected = r#"{"type":"capsule","capsule":{}}"#;
+        assert_eq!(json, expected);
+    }
+
+    #[test]
+    fn test_default_cylinder() {
+        let shape = Shape {
+            typ: "cylinder".to_string(),
+            weight: PhysicsShapeWeight::Cylinder(CylinderShape::default()),
+        };
+
+        let json = serde_json::to_string(&shape).unwrap();
+        let expected = r#"{"type":"cylinder","cylinder":{}}"#;
+        assert_eq!(json, expected);
+    }
 }
