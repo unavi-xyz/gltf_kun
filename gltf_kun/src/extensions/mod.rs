@@ -7,7 +7,7 @@ use std::{collections::HashMap, error::Error, sync::Arc};
 use petgraph::graph::NodeIndex;
 
 use crate::{
-    graph::{gltf::document::GltfDocument, Graph, Property},
+    graph::{gltf::document::GltfDocument, Graph},
     io::format::gltf::GltfFormat,
 };
 
@@ -16,10 +16,6 @@ pub mod omi_physics_shape;
 
 pub trait Extension: Sized + From<NodeIndex> {
     fn name() -> &'static str;
-
-    fn get_extension(graph: &Graph, property: &impl Property) -> Option<Self> {
-        property.get_extension::<Self>(graph, Self::name())
-    }
 }
 
 pub trait ExtensionIO<D, F>: Send + Sync {

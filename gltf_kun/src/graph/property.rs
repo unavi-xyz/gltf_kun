@@ -4,6 +4,8 @@ use petgraph::{
     Direction,
 };
 
+use crate::extensions::Extension;
+
 use super::{Edge, Graph, Weight};
 
 /// A property is an object that can have extensions and extras.
@@ -20,8 +22,8 @@ pub trait Property: Copy + Into<NodeIndex> {
             })
             .collect::<Vec<_>>()
     }
-    fn get_extension<T: From<NodeIndex>>(&self, graph: &Graph, name: &'static str) -> Option<T> {
-        find_extension_edge((*self).into(), graph, name).map(|edge| T::from(edge.target()))
+    fn get_extension<T: Extension>(&self, graph: &Graph) -> Option<T> {
+        find_extension_edge((*self).into(), graph, T::name()).map(|edge| T::from(edge.target()))
     }
     fn add_extension<T>(&self, graph: &mut Graph, name: &'static str, value: T)
     where

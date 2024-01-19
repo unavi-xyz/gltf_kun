@@ -1,6 +1,6 @@
 use crate::{
-    extensions::{Extension, ExtensionIO},
-    graph::{gltf::document::GltfDocument, Graph},
+    extensions::ExtensionIO,
+    graph::{gltf::document::GltfDocument, Graph, Property},
     io::format::gltf::GltfFormat,
 };
 
@@ -17,7 +17,7 @@ impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsShapeExtension {
         doc: &GltfDocument,
         format: &mut GltfFormat,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let ext = match OMIPhysicsShapeExtension::get_extension(graph, doc) {
+        let ext = match doc.get_extension::<OMIPhysicsShapeExtension>(graph) {
             Some(ext) => ext,
             None => return Ok(()),
         };
