@@ -19,19 +19,55 @@ pub struct PhysicsBodyWeight {
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Motion {
     /// The type of the physics body.
+    #[serde(rename = "type")]
     pub typ: BodyType,
     /// The mass of the physics body in kilograms.
+    #[serde(default, skip_serializing_if = "float_is_zero")]
     pub mass: f32,
     /// The initial linear velocity of the body in meters per second.
+    #[serde(
+        default,
+        rename = "linearVelocity",
+        skip_serializing_if = "slice_is_zero"
+    )]
     pub linear_velocity: [f32; 3],
     /// The initial angular velocity of the body in radians per second.
+    #[serde(
+        default,
+        rename = "angularVelocity",
+        skip_serializing_if = "slice_is_zero"
+    )]
     pub angular_velocity: [f32; 3],
     /// The center of mass offset from the origin in meters.
+    #[serde(
+        default,
+        rename = "centerOfMass",
+        skip_serializing_if = "slice_is_zero"
+    )]
     pub center_of_mass: [f32; 3],
     /// The inertia around principle axes in kilogram meter squared (kg⋅m²).
+    #[serde(
+        default,
+        rename = "inertialDiagonal",
+        skip_serializing_if = "slice_is_zero"
+    )]
     pub intertial_diagonal: [f32; 3],
     /// The inertia orientation as a Quaternion.
-    pub inertia_orientation: [f32; 4],
+    #[serde(
+        default,
+        rename = "inertiaOrientation",
+        skip_serializing_if = "is_default_quat"
+    )]
+    pub inertia_orientation: Quat,
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct Quat(pub [f32; 4]);
+
+impl Default for Quat {
+    fn default() -> Self {
+        Self([0.0, 0.0, 0.0, 1.0])
+    }
 }
 
 impl Motion {
@@ -43,7 +79,7 @@ impl Motion {
             angular_velocity: [0.0; 3],
             center_of_mass: [0.0; 3],
             intertial_diagonal: [0.0; 3],
-            inertia_orientation: [0.0, 0.0, 0.0, 1.0],
+            inertia_orientation: Quat::default(),
         }
     }
 }
@@ -62,8 +98,11 @@ impl From<&PhysicsBodyWeight> for Vec<u8> {
 
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, Deserialize, Serialize)]
 pub enum BodyType {
+    #[serde(rename = "static")]
     Static,
+    #[serde(rename = "dynamic")]
     Dynamic,
+    #[serde(rename = "kinematic")]
     Kinematic,
 }
 
@@ -138,4 +177,19 @@ impl OMIPhysicsBodyExtension {
             graph.add_edge(self.0, trigger.0, Edge::Other(TRIGGER_EDGE));
         }
     }
+}
+
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn float_is_zero(num: &f32) -> bool {
+    *num == 0.0
+}
+
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn slice_is_zero(slice: &[f32]) -> bool {
+    slice.iter().all(float_is_zero)
+}
+
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn is_default_quat(quat: &Quat) -> bool {
+    quat.0 == [0.0, 0.0, 0.0, 1.0]
 }

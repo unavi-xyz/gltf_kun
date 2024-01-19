@@ -73,3 +73,25 @@ impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsBodyExtension {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+
+    use crate::extensions::omi_physics_body::{BodyType, Motion};
+
+    use super::*;
+
+    #[test]
+    fn test_motion() {
+        let weight = PhysicsBodyWeight {
+            motion: Some(Motion::new(BodyType::Dynamic)),
+        };
+
+        let json = serde_json::to_string(&weight).unwrap();
+        let expected = r#"{"motion":{"type":"dynamic"}}"#;
+        assert_eq!(json, expected);
+
+        let weight_2 = serde_json::from_str::<PhysicsBodyWeight>(expected).unwrap();
+        assert_eq!(weight, weight_2);
+    }
+}
