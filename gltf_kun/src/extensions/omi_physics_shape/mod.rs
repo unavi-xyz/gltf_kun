@@ -12,7 +12,7 @@ pub mod physics_shape;
 pub const EXTENSION_NAME: &str = "OMI_physics_shape";
 pub const SHAPE_EDGE: &str = "OMI_physics_shape/shape";
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct OMIPhysicsShapeExtension(pub NodeIndex);
 
 impl From<NodeIndex> for OMIPhysicsShapeExtension {

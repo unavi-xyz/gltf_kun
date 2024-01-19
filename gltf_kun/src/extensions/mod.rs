@@ -14,7 +14,7 @@ use crate::{
 pub mod omi_physics_body;
 pub mod omi_physics_shape;
 
-pub trait Extension<T: Property>: Sized + Into<NodeIndex> + From<NodeIndex> {
+pub trait Extension<T: Property>: Copy + Sized + Into<NodeIndex> + From<NodeIndex> {
     fn name() -> &'static str;
 
     fn new(graph: &mut Graph) -> Self {
