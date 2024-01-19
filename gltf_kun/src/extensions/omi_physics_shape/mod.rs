@@ -1,8 +1,6 @@
-use crate::graph::Graph;
+use crate::graph::{gltf::document::GltfDocument, Edge, Graph};
 
 use self::physics_shape::{PhysicsShape, PhysicsShapeWeight};
-
-use super::Extension;
 
 pub mod io;
 pub mod physics_shape;
@@ -13,13 +11,13 @@ const EXTENSION_NAME: &str = "OMI_physics_shape";
 pub struct OMIPhysicsShapeExtension;
 
 impl OMIPhysicsShapeExtension {
-    pub fn create_shape(graph: &mut Graph, weight: PhysicsShapeWeight) -> PhysicsShape {
-        PhysicsShape::new(graph, weight)
-    }
-}
-
-impl Extension<PhysicsShapeWeight> for OMIPhysicsShapeExtension {
-    fn name(&self) -> &'static str {
-        EXTENSION_NAME
+    pub fn create_shape(
+        graph: &mut Graph,
+        doc: &GltfDocument,
+        weight: PhysicsShapeWeight,
+    ) -> PhysicsShape {
+        let shape = PhysicsShape::new(graph, &weight);
+        graph.add_edge(doc.0, shape.0, Edge::Extension(EXTENSION_NAME));
+        shape
     }
 }

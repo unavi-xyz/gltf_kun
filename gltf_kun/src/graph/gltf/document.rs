@@ -12,10 +12,10 @@ pub enum DocumentEdge {
     Accessor,
     Buffer,
     BufferView,
+    DefaultScene,
     Mesh,
     Node,
     Scene,
-    DefaultScene,
 }
 
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]

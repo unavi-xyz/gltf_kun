@@ -4,78 +4,33 @@
 
 use std::{collections::HashMap, error::Error, sync::Arc};
 
-use petgraph::{graph::NodeIndex, visit::EdgeRef};
-use serde::{Deserialize, Serialize};
+use petgraph::graph::NodeIndex;
 
 use crate::{
-    graph::{
-        gltf::{document::GltfDocument, GltfEdge, GltfWeight},
-        Edge, Graph, Weight,
-    },
+    graph::{gltf::document::GltfDocument, Graph, Weight},
     io::format::gltf::GltfFormat,
 };
 
 pub mod omi_physics_body;
 pub mod omi_physics_shape;
 
-pub trait Extension<T: Serialize + for<'de> Deserialize<'de>> {
-    fn name(&self) -> &'static str;
-
-    fn decode_property(&self, bytes: &[u8]) -> Option<T> {
-        bincode::deserialize(bytes).ok()
-    }
-
-    fn encode_property(&self, property: T) -> Vec<u8> {
-        bincode::serialize(&property).unwrap()
-    }
-
-    fn properties(&self, graph: &Graph) -> Vec<T> {
-        graph
-            .node_indices()
-            .flat_map(|n| {
-                graph
-                    .edges_directed(n, petgraph::Direction::Outgoing)
-                    .filter_map(|e| match e.weight() {
-                        Edge::Gltf(GltfEdge::Extension(name)) => {
-                            if **name != *self.name() {
-                                return None;
-                            }
-
-                            match graph.node_weight(e.target()) {
-                                Some(Weight::Gltf(GltfWeight::Other(bytes))) => {
-                                    self.decode_property(bytes)
-                                }
-                                _ => None,
-                            }
-                        }
-                        _ => None,
-                    })
-            })
-            .collect()
-    }
-}
-
-pub trait ExtensionProperty<T: Serialize + for<'de> Deserialize<'de>>:
-    Copy + Into<NodeIndex>
+pub trait ExtensionProperty<T>: Copy + Into<NodeIndex>
+where
+    for<'a> T: From<&'a Vec<u8>>,
+    for<'a> &'a T: Into<Vec<u8>>,
 {
-    fn extension(&self) -> &dyn Extension<T>;
-
     /// Reads the weight from the graph.
     /// Changes need to be written back to the graph using [Self::write].
     fn read(&self, graph: &Graph) -> T {
         match &graph[(*self).into()] {
-            Weight::Gltf(GltfWeight::Other(bytes)) => self
-                .extension()
-                .decode_property(bytes)
-                .expect("Failed to decode physics body"),
+            Weight::Other(bytes) => bytes.into(),
             _ => panic!("Incorrect weight type"),
         }
     }
 
     /// Writes the weight to the graph.
-    fn write(&mut self, graph: &mut Graph, weight: T) {
-        graph[(*self).into()] =
-            Weight::Gltf(GltfWeight::Other(self.extension().encode_property(weight)));
+    fn write(&mut self, graph: &mut Graph, weight: &T) {
+        graph[(*self).into()] = Weight::Other(weight.into());
     }
 }
 

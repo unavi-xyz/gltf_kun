@@ -2,11 +2,9 @@ use petgraph::graph::NodeIndex;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    extensions::{Extension, ExtensionProperty},
-    graph::{gltf::GltfWeight, Graph, Weight},
+    extensions::ExtensionProperty,
+    graph::{Graph, Weight},
 };
-
-use super::OMIPhysicsShapeExtension;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum PhysicsShapeWeight {
@@ -40,6 +38,18 @@ pub struct CylinderShape {
     pub height: f32,
 }
 
+impl From<&Vec<u8>> for PhysicsShapeWeight {
+    fn from(bytes: &Vec<u8>) -> Self {
+        bincode::deserialize(bytes).unwrap()
+    }
+}
+
+impl From<&PhysicsShapeWeight> for Vec<u8> {
+    fn from(value: &PhysicsShapeWeight) -> Self {
+        bincode::serialize(value).unwrap()
+    }
+}
+
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct PhysicsShape(pub NodeIndex);
 
@@ -56,16 +66,10 @@ impl From<PhysicsShape> for NodeIndex {
 }
 
 impl PhysicsShape {
-    pub fn new(graph: &mut Graph, weight: PhysicsShapeWeight) -> Self {
-        let index = graph.add_node(Weight::Gltf(GltfWeight::Other(
-            OMIPhysicsShapeExtension.encode_property(weight),
-        )));
+    pub fn new(graph: &mut Graph, weight: &PhysicsShapeWeight) -> Self {
+        let index = graph.add_node(Weight::Other(weight.into()));
         Self(index)
     }
 }
 
-impl ExtensionProperty<PhysicsShapeWeight> for PhysicsShape {
-    fn extension(&self) -> &dyn Extension<PhysicsShapeWeight> {
-        &OMIPhysicsShapeExtension
-    }
-}
+impl ExtensionProperty<PhysicsShapeWeight> for PhysicsShape {}

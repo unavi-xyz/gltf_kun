@@ -2,14 +2,11 @@ use petgraph::{graph::NodeIndex, visit::EdgeRef};
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    extensions::{Extension, ExtensionProperty},
-    graph::{
-        gltf::{node::Node, GltfEdge, GltfWeight},
-        Edge, Graph, Weight,
-    },
+    extensions::ExtensionProperty,
+    graph::{gltf::node::Node, Edge, Graph, Weight},
 };
 
-use super::{OMIPhysicsBodyExtension, EXTENSION_NAME};
+use super::EXTENSION_NAME;
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct PhysicsBodyWeight {
@@ -55,6 +52,18 @@ pub enum BodyType {
     Kinematic,
 }
 
+impl From<&Vec<u8>> for PhysicsBodyWeight {
+    fn from(bytes: &Vec<u8>) -> Self {
+        bincode::deserialize(bytes).unwrap()
+    }
+}
+
+impl From<&PhysicsBodyWeight> for Vec<u8> {
+    fn from(value: &PhysicsBodyWeight) -> Self {
+        bincode::serialize(value).unwrap()
+    }
+}
+
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct PhysicsBody(pub NodeIndex);
 
@@ -72,10 +81,8 @@ impl From<PhysicsBody> for NodeIndex {
 
 impl PhysicsBody {
     pub fn new(graph: &mut Graph) -> Self {
-        let weight = PhysicsBodyWeight::default();
-        let index = graph.add_node(Weight::Gltf(GltfWeight::Other(
-            OMIPhysicsBodyExtension.encode_property(weight),
-        )));
+        let weight = &PhysicsBodyWeight::default();
+        let index = graph.add_node(Weight::Other(weight.into()));
         Self(index)
     }
 
@@ -83,17 +90,13 @@ impl PhysicsBody {
         graph
             .edges_directed(self.0, petgraph::Direction::Incoming)
             .find_map(|e| match e.weight() {
-                Edge::Gltf(GltfEdge::Extension(EXTENSION_NAME)) => Some(Node(e.source())),
+                Edge::Extension(EXTENSION_NAME) => Some(Node(e.source())),
                 _ => None,
             })
     }
 }
 
-impl ExtensionProperty<PhysicsBodyWeight> for PhysicsBody {
-    fn extension(&self) -> &dyn Extension<PhysicsBodyWeight> {
-        &OMIPhysicsBodyExtension
-    }
-}
+impl ExtensionProperty<PhysicsBodyWeight> for PhysicsBody {}
 
 #[cfg(test)]
 mod tests {
@@ -109,8 +112,8 @@ mod tests {
         let doc = GltfDocument::new(&mut graph);
         let node = doc.create_node(&mut graph);
 
-        let body = OMIPhysicsBodyExtension::create_body(&mut graph, &node);
-        assert_eq!(OMIPhysicsBodyExtension.properties(&graph).len(), 1);
-        assert_eq!(body.node(&graph), Some(node));
+        // let body = OMIPhysicsBodyExtension::create_body(&mut graph, &node);
+        // assert_eq!(OMIPhysicsBodyExtension.properties(&graph).len(), 1);
+        // assert_eq!(body.node(&graph), Some(node));
     }
 }

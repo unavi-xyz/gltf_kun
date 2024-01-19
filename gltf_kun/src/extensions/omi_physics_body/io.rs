@@ -54,7 +54,7 @@ mod tests {
 
         let mut weight = physics_body.read(&graph);
         weight.motion = Some(Motion::new(BodyType::Dynamic));
-        physics_body.write(&mut graph, weight);
+        physics_body.write(&mut graph, &weight);
 
         let mut io = GlbIO::default();
         io.extensions.add(OMIPhysicsBodyExtension);

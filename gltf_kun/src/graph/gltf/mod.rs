@@ -15,7 +15,6 @@ pub enum GltfWeight {
     Document,
     Mesh(mesh::MeshWeight),
     Node(node::NodeWeight),
-    Other(Vec<u8>),
     Primitive(primitive::PrimitiveWeight),
     Scene(scene::SceneWeight),
 }
@@ -29,6 +28,4 @@ pub enum GltfEdge {
     Node(node::NodeEdge),
     Primitive(primitive::PrimitiveEdge),
     Scene(scene::SceneEdge),
-
-    Extension(&'static str),
 }
