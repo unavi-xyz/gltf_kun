@@ -1,10 +1,7 @@
 use petgraph::graph::NodeIndex;
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    extensions::ExtensionProperty,
-    graph::{Graph, Weight},
-};
+use crate::graph::{ByteNode, Graph, Weight};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub enum PhysicsShapeWeight {
@@ -67,9 +64,9 @@ impl From<PhysicsShape> for NodeIndex {
 
 impl PhysicsShape {
     pub fn new(graph: &mut Graph, weight: &PhysicsShapeWeight) -> Self {
-        let index = graph.add_node(Weight::Other(weight.into()));
+        let index = graph.add_node(Weight::Bytes(weight.into()));
         Self(index)
     }
 }
 
-impl ExtensionProperty<PhysicsShapeWeight> for PhysicsShape {}
+impl ByteNode<PhysicsShapeWeight> for PhysicsShape {}

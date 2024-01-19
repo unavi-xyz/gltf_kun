@@ -2,6 +2,8 @@ use petgraph::graph::NodeIndex;
 
 use super::{Graph, Weight};
 
+/// A node in the graph.
+/// Provides methods for accessing the weight.
 pub trait GraphNode<T>: Copy + Into<NodeIndex>
 where
     for<'a> &'a T: TryFrom<&'a Weight>,

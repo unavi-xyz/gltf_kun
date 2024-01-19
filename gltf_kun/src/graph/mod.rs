@@ -5,11 +5,13 @@
 
 use petgraph::graph::DiGraph;
 
+mod byte_node;
 pub mod gltf;
 pub mod glxf;
 mod graph_node;
 mod property;
 
+pub use byte_node::ByteNode;
 pub use graph_node::GraphNode;
 pub use petgraph::graph::NodeIndex;
 pub use property::Property;
@@ -18,7 +20,7 @@ pub use property::Property;
 pub enum Weight {
     Gltf(gltf::GltfWeight),
     Glxf(glxf::Weight),
-    Other(Vec<u8>),
+    Bytes(Vec<u8>),
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -26,6 +28,7 @@ pub enum Edge {
     Extension(&'static str),
     Gltf(gltf::GltfEdge),
     Glxf(glxf::Edge),
+    Other(&'static str),
 }
 
 pub type Graph = DiGraph<Weight, Edge>;

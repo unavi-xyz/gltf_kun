@@ -20,22 +20,14 @@ pub trait Property: Copy + Into<NodeIndex> {
             })
             .collect::<Vec<_>>()
     }
-    fn extension<T>(&self, graph: &Graph, name: &'static str) -> Option<T>
-    where
-        for<'a> T: From<&'a Vec<u8>>,
-    {
-        find_extension_edge((*self).into(), graph, name).map(|edge| {
-            match graph.node_weight(edge.target()).expect("Weight not found") {
-                Weight::Other(bytes) => T::from(bytes),
-                _ => panic!("Incorrect weight type"),
-            }
-        })
+    fn get_extension<T: From<NodeIndex>>(&self, graph: &Graph, name: &'static str) -> Option<T> {
+        find_extension_edge((*self).into(), graph, name).map(|edge| T::from(edge.target()))
     }
     fn add_extension<T>(&self, graph: &mut Graph, name: &'static str, value: T)
     where
         T: Into<Vec<u8>>,
     {
-        let index = graph.add_node(Weight::Other(value.into()));
+        let index = graph.add_node(Weight::Bytes(value.into()));
         graph.add_edge((*self).into(), index, Edge::Extension(name));
     }
     fn remove_extension(&self, graph: &mut Graph, name: &'static str) {

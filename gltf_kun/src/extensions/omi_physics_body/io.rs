@@ -31,14 +31,11 @@ impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsBodyExtension {
 #[cfg(test)]
 mod tests {
     use crate::{
-        extensions::{
-            omi_physics_body::{
-                physics_body::{BodyType, Motion},
-                OMIPhysicsBodyExtension,
-            },
-            ExtensionProperty,
+        extensions::omi_physics_body::{
+            physics_body::{BodyType, Motion},
+            OMIPhysicsBodyExtension,
         },
-        graph::Graph,
+        graph::{ByteNode, Graph},
         io::format::glb::GlbIO,
     };
 

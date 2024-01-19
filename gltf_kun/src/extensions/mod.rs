@@ -7,30 +7,18 @@ use std::{collections::HashMap, error::Error, sync::Arc};
 use petgraph::graph::NodeIndex;
 
 use crate::{
-    graph::{gltf::document::GltfDocument, Graph, Weight},
+    graph::{gltf::document::GltfDocument, Graph, Property},
     io::format::gltf::GltfFormat,
 };
 
 pub mod omi_physics_body;
 pub mod omi_physics_shape;
 
-pub trait ExtensionProperty<T>: Copy + Into<NodeIndex>
-where
-    for<'a> T: From<&'a Vec<u8>>,
-    for<'a> &'a T: Into<Vec<u8>>,
-{
-    /// Reads the weight from the graph.
-    /// Changes need to be written back to the graph using [Self::write].
-    fn read(&self, graph: &Graph) -> T {
-        match &graph[(*self).into()] {
-            Weight::Other(bytes) => bytes.into(),
-            _ => panic!("Incorrect weight type"),
-        }
-    }
+pub trait Extension: Sized + From<NodeIndex> {
+    fn name() -> &'static str;
 
-    /// Writes the weight to the graph.
-    fn write(&mut self, graph: &mut Graph, weight: &T) {
-        graph[(*self).into()] = Weight::Other(weight.into());
+    fn get_extension(graph: &Graph, property: &impl Property) -> Option<Self> {
+        property.get_extension::<Self>(graph, Self::name())
     }
 }
 

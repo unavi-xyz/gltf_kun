@@ -1,10 +1,7 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    extensions::ExtensionProperty,
-    graph::{gltf::node::Node, Edge, Graph, Weight},
-};
+use crate::graph::{gltf::node::Node, ByteNode, Edge, Graph, Weight};
 
 use super::EXTENSION_NAME;
 
@@ -82,7 +79,7 @@ impl From<PhysicsBody> for NodeIndex {
 impl PhysicsBody {
     pub fn new(graph: &mut Graph) -> Self {
         let weight = &PhysicsBodyWeight::default();
-        let index = graph.add_node(Weight::Other(weight.into()));
+        let index = graph.add_node(Weight::Bytes(weight.into()));
         Self(index)
     }
 
@@ -96,7 +93,7 @@ impl PhysicsBody {
     }
 }
 
-impl ExtensionProperty<PhysicsBodyWeight> for PhysicsBody {}
+impl ByteNode<PhysicsBodyWeight> for PhysicsBody {}
 
 #[cfg(test)]
 mod tests {
