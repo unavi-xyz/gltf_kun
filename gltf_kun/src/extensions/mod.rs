@@ -7,15 +7,20 @@ use std::{collections::HashMap, error::Error, sync::Arc};
 use petgraph::graph::NodeIndex;
 
 use crate::{
-    graph::{gltf::document::GltfDocument, Graph, Property},
+    graph::{gltf::document::GltfDocument, Graph, Property, Weight},
     io::format::gltf::GltfFormat,
 };
 
 pub mod omi_physics_body;
 pub mod omi_physics_shape;
 
-pub trait Extension<T: Property>: Sized + From<NodeIndex> {
+pub trait Extension<T: Property>: Sized + Into<NodeIndex> + From<NodeIndex> {
     fn name() -> &'static str;
+
+    fn new(graph: &mut Graph) -> Self {
+        let index = graph.add_node(Weight::Bytes(Default::default()));
+        Self::from(index)
+    }
 }
 
 pub trait ExtensionIO<D, F>: Send + Sync {

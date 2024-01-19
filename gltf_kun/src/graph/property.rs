@@ -6,7 +6,7 @@ use petgraph::{
 
 use crate::extensions::Extension;
 
-use super::{Edge, Graph, Weight};
+use super::{Edge, Graph};
 
 /// A property is an object that can have extensions and extras.
 pub trait Property: Copy + Into<NodeIndex> {
@@ -25,12 +25,8 @@ pub trait Property: Copy + Into<NodeIndex> {
     fn get_extension<T: Extension<Self>>(&self, graph: &Graph) -> Option<T> {
         find_extension_edge((*self).into(), graph, T::name()).map(|edge| T::from(edge.target()))
     }
-    fn add_extension<T>(&self, graph: &mut Graph, name: &'static str, value: T)
-    where
-        T: Into<Vec<u8>>,
-    {
-        let index = graph.add_node(Weight::Bytes(value.into()));
-        graph.add_edge((*self).into(), index, Edge::Extension(name));
+    fn add_extension<T: Extension<Self>>(&self, graph: &mut Graph, ext: T) {
+        graph.add_edge((*self).into(), ext.into(), Edge::Extension(T::name()));
     }
     fn remove_extension(&self, graph: &mut Graph, name: &'static str) {
         let edge = find_extension_edge((*self).into(), graph, name).map(|edge| edge.id());
@@ -38,6 +34,11 @@ pub trait Property: Copy + Into<NodeIndex> {
         if let Some(edge) = edge {
             graph.remove_edge(edge);
         }
+    }
+    fn create_extension<T: Extension<Self>>(&self, graph: &mut Graph) -> T {
+        let ext = T::new(graph);
+        self.add_extension(graph, ext);
+        ext
     }
 }
 
