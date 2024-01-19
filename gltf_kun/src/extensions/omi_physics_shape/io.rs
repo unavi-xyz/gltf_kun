@@ -6,7 +6,7 @@ use crate::{
     io::format::gltf::GltfFormat,
 };
 
-use super::{physics_shape::PhysicsShapeWeight, OMIPhysicsShapeExtension, EXTENSION_NAME};
+use super::{physics_shape::PhysicsShapeWeight, OMIPhysicsShape, EXTENSION_NAME};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct RootExtension {
@@ -47,8 +47,11 @@ impl From<PhysicsShapeWeight> for Shape {
     }
 }
 
-impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsShapeExtension {
-    fn name(&self) -> &'static str {
+#[derive(Copy, Clone)]
+pub struct OMIPhysicsShapeIO;
+
+impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsShapeIO {
+    fn name() -> &'static str {
         EXTENSION_NAME
     }
 
@@ -58,7 +61,7 @@ impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsShapeExtension {
         doc: &GltfDocument,
         format: &mut GltfFormat,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let ext = match doc.get_extension::<OMIPhysicsShapeExtension>(graph) {
+        let ext = match doc.get_extension::<OMIPhysicsShape>(graph) {
             Some(ext) => ext,
             None => return Ok(()),
         };
@@ -101,9 +104,9 @@ impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsShapeExtension {
 
         let root_extension = serde_json::from_value::<RootExtension>(value.clone())?;
 
-        let ext = match doc.get_extension::<OMIPhysicsShapeExtension>(graph) {
+        let ext = match doc.get_extension::<OMIPhysicsShape>(graph) {
             Some(ext) => ext,
-            None => doc.create_extension::<OMIPhysicsShapeExtension>(graph),
+            None => doc.create_extension::<OMIPhysicsShape>(graph),
         };
 
         root_extension.shapes.iter().for_each(|shape| {

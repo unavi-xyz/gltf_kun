@@ -12,7 +12,7 @@ pub const COLLIDER_EDGE: &str = "OMI_physics_body/collider";
 pub const TRIGGER_EDGE: &str = "OMI_physics_body/trigger";
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
-pub struct PhysicsBodyWeight {
+pub struct OMIPhysicsBodyWeight {
     pub motion: Option<Motion>,
 }
 
@@ -84,14 +84,14 @@ impl Motion {
     }
 }
 
-impl From<&Vec<u8>> for PhysicsBodyWeight {
+impl From<&Vec<u8>> for OMIPhysicsBodyWeight {
     fn from(bytes: &Vec<u8>) -> Self {
         bincode::deserialize(bytes).unwrap()
     }
 }
 
-impl From<&PhysicsBodyWeight> for Vec<u8> {
-    fn from(value: &PhysicsBodyWeight) -> Self {
+impl From<&OMIPhysicsBodyWeight> for Vec<u8> {
+    fn from(value: &OMIPhysicsBodyWeight) -> Self {
         bincode::serialize(value).unwrap()
     }
 }
@@ -107,31 +107,31 @@ pub enum BodyType {
 }
 
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct OMIPhysicsBodyExtension(pub NodeIndex);
+pub struct OMIPhysicsBody(pub NodeIndex);
 
-impl From<NodeIndex> for OMIPhysicsBodyExtension {
+impl From<NodeIndex> for OMIPhysicsBody {
     fn from(index: NodeIndex) -> Self {
         Self(index)
     }
 }
 
-impl From<OMIPhysicsBodyExtension> for NodeIndex {
-    fn from(physics_body: OMIPhysicsBodyExtension) -> Self {
+impl From<OMIPhysicsBody> for NodeIndex {
+    fn from(physics_body: OMIPhysicsBody) -> Self {
         physics_body.0
     }
 }
 
-impl ByteNode<PhysicsBodyWeight> for OMIPhysicsBodyExtension {}
+impl ByteNode<OMIPhysicsBodyWeight> for OMIPhysicsBody {}
 
-impl Extension<Node> for OMIPhysicsBodyExtension {
+impl Extension<Node> for OMIPhysicsBody {
     fn name() -> &'static str {
         EXTENSION_NAME
     }
 }
 
-impl OMIPhysicsBodyExtension {
+impl OMIPhysicsBody {
     pub fn new(graph: &mut Graph) -> Self {
-        let weight = &PhysicsBodyWeight::default();
+        let weight = &OMIPhysicsBodyWeight::default();
         let index = graph.add_node(Weight::Bytes(weight.into()));
         Self(index)
     }

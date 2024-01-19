@@ -2,14 +2,11 @@
 //!
 //! Each extension IO is implemented for a specfic [format](crate::io::format).
 
-use std::{collections::HashMap, error::Error, sync::Arc};
+use std::{collections::HashMap, error::Error};
 
 use petgraph::graph::NodeIndex;
 
-use crate::{
-    graph::{gltf::document::GltfDocument, Graph, Property, Weight},
-    io::format::gltf::GltfFormat,
-};
+use crate::graph::{Graph, Property, Weight};
 
 pub mod omi_physics_body;
 pub mod omi_physics_shape;
@@ -23,8 +20,8 @@ pub trait Extension<T: Property>: Copy + Sized + Into<NodeIndex> + From<NodeInde
     }
 }
 
-pub trait ExtensionIO<D, F>: Send + Sync {
-    fn name(&self) -> &'static str;
+pub trait ExtensionIO<D, F>: Copy + Send + Sync {
+    fn name() -> &'static str;
 
     /// Export the extension from the document to the format.
     fn export(&self, graph: &mut Graph, doc: &D, format: &mut F) -> Result<(), Box<dyn Error>>;
@@ -34,36 +31,22 @@ pub trait ExtensionIO<D, F>: Send + Sync {
 }
 
 pub struct Extensions<D, F> {
-    pub map: HashMap<String, Arc<Box<dyn ExtensionIO<D, F>>>>,
-}
-
-impl Default for Extensions<GltfDocument, GltfFormat> {
-    fn default() -> Self {
-        Self {
-            map: HashMap::new(),
-        }
-    }
-}
-
-impl<D, F> Extensions<D, F> {
-    pub fn add<E: ExtensionIO<D, F> + 'static>(&mut self, extension: E) {
-        self.map
-            .insert(extension.name().to_string(), Arc::new(Box::new(extension)));
-    }
-
-    pub fn get(&self, name: &str) -> Option<&Arc<Box<dyn ExtensionIO<D, F>>>> {
-        self.map.get(name)
-    }
+    pub map: HashMap<String, Box<dyn ExtensionIO<D, F>>>,
 }
 
 impl<D, F> Clone for Extensions<D, F> {
     fn clone(&self) -> Self {
-        let map = self
-            .map
-            .iter()
-            .map(|(k, v)| (k.clone(), Arc::clone(v)))
-            .collect();
-
+        let map = self.map.iter().map(|(k, v)| (k.clone(), *v)).collect();
         Self { map }
+    }
+}
+
+impl<D, F> Extensions<D, F> {
+    pub fn add<E: ExtensionIO<D, F>>(&mut self, extension: E) {
+        self.map.insert(E::name().to_string(), Box::new(extension));
+    }
+
+    pub fn get(&self, name: &str) -> Option<&Box<dyn ExtensionIO<D, F>>> {
+        self.map.get(name)
     }
 }

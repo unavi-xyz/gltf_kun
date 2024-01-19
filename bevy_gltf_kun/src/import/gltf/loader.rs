@@ -9,7 +9,6 @@ use gltf_kun::{
     io::format::{
         glb::{GlbIO, GlbImportError},
         gltf::{import::GltfImportError, GltfFormat, GltfIO},
-        DocumentIO,
     },
 };
 use thiserror::Error;

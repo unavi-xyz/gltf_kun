@@ -9,7 +9,7 @@ use crate::{
     io::resolver::{file_resolver::FileResolver, Resolver},
 };
 
-use super::DocumentIO;
+use self::{export::GltfExportError, import::GltfImportError};
 
 pub mod export;
 pub mod import;
@@ -50,33 +50,21 @@ pub struct GltfIO<R: Resolver> {
     pub resolver: Option<R>,
 }
 
-impl<R: Resolver> Default for GltfIO<R> {
-    fn default() -> Self {
-        Self {
-            resolver: None,
-            extensions: Extensions::default(),
-        }
-    }
-}
-
 impl<R: Resolver> GltfIO<R> {
     pub fn new(resolver: R) -> Self {
         Self {
             resolver: Some(resolver),
-            ..Default::default()
+            extensions: Extensions {
+                map: HashMap::new(),
+            },
         }
     }
-}
 
-impl<R: Resolver> DocumentIO<GltfDocument, GltfFormat> for GltfIO<R> {
-    type ExportError = export::GltfExportError;
-    type ImportError = import::GltfImportError;
-
-    fn export(
+    pub fn export(
         &self,
         graph: &mut Graph,
         doc: &GltfDocument,
-    ) -> Result<GltfFormat, Self::ExportError> {
+    ) -> Result<GltfFormat, GltfExportError> {
         let mut format = export::export(graph, doc)?;
 
         self.extensions.map.iter().for_each(|(name, ext)| {
@@ -88,11 +76,11 @@ impl<R: Resolver> DocumentIO<GltfDocument, GltfFormat> for GltfIO<R> {
         Ok(format)
     }
 
-    async fn import(
+    pub async fn import(
         &mut self,
         graph: &mut Graph,
         mut format: GltfFormat,
-    ) -> Result<GltfDocument, Self::ImportError> {
+    ) -> Result<GltfDocument, GltfImportError> {
         let doc = import::import(graph, &mut format, &mut self.resolver).await?;
 
         self.extensions.map.iter().for_each(|(name, ext)| {

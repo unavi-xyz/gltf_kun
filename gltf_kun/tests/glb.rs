@@ -1,9 +1,6 @@
 use std::path::Path;
 
-use gltf_kun::{
-    graph::Graph,
-    io::format::{glb::GlbIO, DocumentIO},
-};
+use gltf_kun::{graph::Graph, io::format::glb::GlbIO};
 use tracing_test::traced_test;
 
 const ASSETS_DIR: &str = "../assets";

@@ -8,10 +8,7 @@ use crate::{
     io::resolver::file_resolver::FileResolver,
 };
 
-use super::{
-    gltf::{export::GltfExportError, import::GltfImportError, GltfFormat, GltfIO},
-    DocumentIO,
-};
+use super::gltf::{export::GltfExportError, import::GltfImportError, GltfFormat, GltfIO};
 
 #[derive(Default)]
 pub struct GlbFormat(pub Vec<u8>);
@@ -27,27 +24,6 @@ pub enum ImportFileError {
 #[derive(Default)]
 pub struct GlbIO {
     pub extensions: Extensions<GltfDocument, GltfFormat>,
-}
-
-impl GlbIO {
-    pub async fn import_slice(
-        &mut self,
-        graph: &mut Graph,
-        bytes: &[u8],
-    ) -> Result<GltfDocument, GlbImportError> {
-        let format = GlbFormat(bytes.to_vec());
-        self.import(graph, format).await
-    }
-
-    pub async fn import_file(
-        &mut self,
-        graph: &mut Graph,
-        path: &Path,
-    ) -> Result<GltfDocument, ImportFileError> {
-        let bytes = std::fs::read(path)?;
-        let doc = self.import_slice(graph, &bytes).await?;
-        Ok(doc)
-    }
 }
 
 #[derive(Debug, Error)]
@@ -72,15 +48,12 @@ pub enum GlbImportError {
     SerdeJson(#[from] serde_json::Error),
 }
 
-impl DocumentIO<GltfDocument, GlbFormat> for GlbIO {
-    type ImportError = GlbImportError;
-    type ExportError = GlbExportError;
-
-    fn export(
+impl GlbIO {
+    pub fn export(
         &self,
         graph: &mut Graph,
         doc: &GltfDocument,
-    ) -> Result<GlbFormat, Self::ExportError> {
+    ) -> Result<GlbFormat, GlbExportError> {
         if doc.buffers(graph).len() > 1 {
             // TODO: Merge multiple buffers into one (maybe using a transform function)
             return Err(GlbExportError::MultipleBuffers);
@@ -109,11 +82,30 @@ impl DocumentIO<GltfDocument, GlbFormat> for GlbIO {
         Ok(GlbFormat(bytes))
     }
 
-    async fn import(
+    pub async fn import_slice(
+        &mut self,
+        graph: &mut Graph,
+        bytes: &[u8],
+    ) -> Result<GltfDocument, GlbImportError> {
+        let format = GlbFormat(bytes.to_vec());
+        self.import(graph, format).await
+    }
+
+    pub async fn import_file(
+        &mut self,
+        graph: &mut Graph,
+        path: &Path,
+    ) -> Result<GltfDocument, ImportFileError> {
+        let bytes = std::fs::read(path)?;
+        let doc = self.import_slice(graph, &bytes).await?;
+        Ok(doc)
+    }
+
+    pub async fn import(
         &mut self,
         graph: &mut Graph,
         format: GlbFormat,
-    ) -> Result<GltfDocument, Self::ImportError> {
+    ) -> Result<GltfDocument, GlbImportError> {
         let mut glb = gltf::Glb::from_slice(&format.0)?;
 
         let json = serde_json::from_slice(&glb.json)?;

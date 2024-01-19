@@ -2,10 +2,7 @@ use std::path::Path;
 
 use gltf_kun::{
     graph::Graph,
-    io::{
-        format::{gltf::GltfIO, DocumentIO},
-        resolver::file_resolver::FileResolver,
-    },
+    io::{format::gltf::GltfIO, resolver::file_resolver::FileResolver},
 };
 use tracing::debug;
 use tracing_test::traced_test;

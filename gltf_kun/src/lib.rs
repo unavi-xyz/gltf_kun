@@ -32,7 +32,7 @@
 //!     println!("Scene name: {:?}", weight.name);
 //! });
 //!
-//! use gltf_kun::io::format::{DocumentIO, glb::GlbIO};
+//! use gltf_kun::io::format::glb::GlbIO;
 //!
 //! // Export the document to a GLB byte array.
 //! let io = GlbIO::default();

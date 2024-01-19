@@ -9,7 +9,7 @@ use bevy_gltf_kun::{
     GltfKunPlugin,
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
-use gltf_kun::io::format::{glb::GlbIO, DocumentIO};
+use gltf_kun::io::format::glb::GlbIO;
 
 const ASSETS_DIR: &str = "../assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");

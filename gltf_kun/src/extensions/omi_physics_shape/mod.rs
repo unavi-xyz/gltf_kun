@@ -13,27 +13,27 @@ pub const EXTENSION_NAME: &str = "OMI_physics_shape";
 pub const SHAPE_EDGE: &str = "OMI_physics_shape/shape";
 
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct OMIPhysicsShapeExtension(pub NodeIndex);
+pub struct OMIPhysicsShape(pub NodeIndex);
 
-impl From<NodeIndex> for OMIPhysicsShapeExtension {
+impl From<NodeIndex> for OMIPhysicsShape {
     fn from(index: NodeIndex) -> Self {
         Self(index)
     }
 }
 
-impl From<OMIPhysicsShapeExtension> for NodeIndex {
-    fn from(physics_shape: OMIPhysicsShapeExtension) -> Self {
+impl From<OMIPhysicsShape> for NodeIndex {
+    fn from(physics_shape: OMIPhysicsShape) -> Self {
         physics_shape.0
     }
 }
 
-impl Extension<GltfDocument> for OMIPhysicsShapeExtension {
+impl Extension<GltfDocument> for OMIPhysicsShape {
     fn name() -> &'static str {
         EXTENSION_NAME
     }
 }
 
-impl OMIPhysicsShapeExtension {
+impl OMIPhysicsShape {
     pub fn shapes<'a>(&self, graph: &'a Graph) -> impl Iterator<Item = PhysicsShape> + 'a {
         graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
