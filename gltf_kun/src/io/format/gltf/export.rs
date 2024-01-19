@@ -420,6 +420,11 @@ impl From<AccessorElement> for Value {
 mod tests {
     use tracing_test::traced_test;
 
+    use crate::graph::gltf::{
+        accessor::Accessor, buffer::Buffer, buffer_view::BufferView, mesh::Mesh, node::Node,
+        primitive::Primitive, scene::Scene,
+    };
+
     use super::*;
 
     #[traced_test]
@@ -449,6 +454,15 @@ mod tests {
 
         doc.set_default_scene(&mut graph, Some(&scene));
 
+        // Ensure only connected properties are exported
+        let _ = Buffer::new(&mut graph);
+        let _ = BufferView::new(&mut graph);
+        let _ = Accessor::new(&mut graph);
+        let _ = Mesh::new(&mut graph);
+        let _ = Primitive::new(&mut graph);
+        let _ = Node::new(&mut graph);
+        let _ = Scene::new(&mut graph);
+
         let result = export(&mut graph, &doc).unwrap();
 
         assert_eq!(result.json.accessors.len(), 1);
@@ -457,7 +471,6 @@ mod tests {
         assert_eq!(result.json.meshes.len(), 1);
         assert_eq!(result.json.nodes.len(), 1);
         assert_eq!(result.json.scenes.len(), 1);
-
         assert_eq!(result.json.scene, Some(Index::new(0)));
     }
 }
