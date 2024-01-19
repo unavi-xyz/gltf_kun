@@ -1,7 +1,7 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 use thiserror::Error;
 
-use crate::graph::{Edge, Graph, GraphNode, Weight};
+use crate::graph::{Edge, Graph, GraphNode, Property, Weight};
 
 use super::{buffer::Buffer, GltfEdge, GltfWeight};
 
@@ -92,6 +92,7 @@ impl From<BufferView> for NodeIndex {
 }
 
 impl GraphNode<BufferViewWeight> for BufferView {}
+impl Property for BufferView {}
 
 impl BufferView {
     pub fn new(graph: &mut Graph) -> Self {

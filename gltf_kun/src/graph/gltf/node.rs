@@ -1,7 +1,7 @@
 use glam::{Quat, Vec3};
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
-use crate::graph::{Edge, Graph, GraphNode, Weight};
+use crate::graph::{Edge, Graph, GraphNode, Property, Weight};
 
 use super::{mesh::Mesh, GltfEdge, GltfWeight};
 
@@ -70,6 +70,7 @@ impl From<Node> for NodeIndex {
 }
 
 impl GraphNode<NodeWeight> for Node {}
+impl Property for Node {}
 
 impl Node {
     pub fn new(graph: &mut Graph) -> Self {

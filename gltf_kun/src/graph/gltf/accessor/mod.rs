@@ -1,7 +1,7 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 use thiserror::Error;
 
-use crate::graph::{Edge, Graph, GraphNode, Weight};
+use crate::graph::{Edge, Graph, GraphNode, Property, Weight};
 
 use self::iter::{AccessorElement, AccessorIter};
 
@@ -101,6 +101,7 @@ impl From<Accessor> for NodeIndex {
 }
 
 impl GraphNode<AccessorWeight> for Accessor {}
+impl Property for Accessor {}
 
 impl Accessor {
     pub fn new(graph: &mut Graph) -> Self {

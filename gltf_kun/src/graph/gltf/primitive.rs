@@ -1,6 +1,6 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
-use crate::graph::{Edge, Graph, GraphNode, Weight};
+use crate::graph::{Edge, Graph, GraphNode, Property, Weight};
 
 use super::{accessor::Accessor, GltfEdge, GltfWeight};
 
@@ -63,6 +63,7 @@ impl From<Primitive> for NodeIndex {
 }
 
 impl GraphNode<PrimitiveWeight> for Primitive {}
+impl Property for Primitive {}
 
 impl Primitive {
     pub fn new(graph: &mut Graph) -> Self {

@@ -1,6 +1,6 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
 
-use crate::graph::{gltf::GltfEdge, Edge, Graph, Weight};
+use crate::graph::{gltf::GltfEdge, Edge, Graph, Property, Weight};
 
 use super::{
     accessor::Accessor, buffer::Buffer, buffer_view::BufferView, mesh::Mesh, node::Node,
@@ -27,11 +27,13 @@ impl From<NodeIndex> for GltfDocument {
     }
 }
 
-impl From<&GltfDocument> for NodeIndex {
-    fn from(document: &GltfDocument) -> Self {
+impl From<GltfDocument> for NodeIndex {
+    fn from(document: GltfDocument) -> Self {
         document.0
     }
 }
+
+impl Property for GltfDocument {}
 
 impl GltfDocument {
     pub fn new(graph: &mut Graph) -> Self {

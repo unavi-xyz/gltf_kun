@@ -1,6 +1,6 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
-use crate::graph::{Edge, Graph, GraphNode, Weight};
+use crate::graph::{Edge, Graph, GraphNode, Property, Weight};
 
 use super::{node::Node, GltfEdge, GltfWeight};
 
@@ -51,6 +51,7 @@ impl From<Scene> for NodeIndex {
 }
 
 impl GraphNode<SceneWeight> for Scene {}
+impl Property for Scene {}
 
 impl Scene {
     pub fn new(graph: &mut Graph) -> Self {
