@@ -94,10 +94,13 @@ impl From<PhysicsShapeWeight> for Value {
 
         let mut map = serde_json::Map::new();
         map.insert("type".to_string(), name.into());
-        map.insert(
-            name.to_string(),
-            serde_json::to_value(weight).expect("Failed to serialize shape"),
-        );
+
+        let shape = serde_json::to_value(weight).expect("Failed to serialize shape");
+        let shape_map = shape.as_object().unwrap();
+        shape_map.iter().for_each(|(key, value)| {
+            map.insert(name.to_string(), value.clone());
+            map.remove(key);
+        });
 
         map.into()
     }
@@ -127,5 +130,103 @@ impl From<Value> for PhysicsShapeWeight {
             "trimesh" => PhysicsShapeWeight::Trimesh,
             _ => panic!("Unknown shape type"),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+
+    use crate::extensions::omi_physics_shape::physics_shape::{
+        BoxShape, CapsuleShape, CylinderShape, SphereShape,
+    };
+
+    use super::*;
+
+    #[test]
+    fn test_box() {
+        let shape = BoxShape {
+            size: [1.0, 2.0, 3.0],
+        };
+        let weight = PhysicsShapeWeight::Box(shape.clone());
+        let value = Value::from(weight);
+        let json = serde_json::to_string(&value).unwrap();
+
+        let expected = r#"{"box":{"size":[1.0,2.0,3.0]},"type":"box"}"#;
+        assert_eq!(json, expected);
+
+        let value = serde_json::from_str::<Value>(expected).unwrap();
+        let weight = PhysicsShapeWeight::from(value);
+        let shape_2 = match weight {
+            PhysicsShapeWeight::Box(s) => s,
+            _ => panic!("Wrong shape type"),
+        };
+
+        assert_eq!(shape, shape_2);
+    }
+
+    #[test]
+    fn test_sphere() {
+        let shape = SphereShape { radius: 1.0 };
+        let weight = PhysicsShapeWeight::Sphere(shape.clone());
+        let value = Value::from(weight);
+        let json = serde_json::to_string(&value).unwrap();
+
+        let expected = r#"{"sphere":{"radius":1.0},"type":"sphere"}"#;
+        assert_eq!(json, expected);
+
+        let value = serde_json::from_str::<Value>(expected).unwrap();
+        let weight = PhysicsShapeWeight::from(value);
+        let shape_2 = match weight {
+            PhysicsShapeWeight::Sphere(s) => s,
+            _ => panic!("Wrong shape type"),
+        };
+
+        assert_eq!(shape, shape_2);
+    }
+
+    #[test]
+    fn test_capsule() {
+        let shape = CapsuleShape {
+            radius: 1.0,
+            height: 2.0,
+        };
+        let weight = PhysicsShapeWeight::Capsule(shape.clone());
+        let value = Value::from(weight);
+        let json = serde_json::to_string(&value).unwrap();
+
+        let expected = r#"{"capsule":{"height":2.0,"radius":1.0},"type":"capsule"}"#;
+        assert_eq!(json, expected);
+
+        let value = serde_json::from_str::<Value>(expected).unwrap();
+        let weight = PhysicsShapeWeight::from(value);
+        let shape_2 = match weight {
+            PhysicsShapeWeight::Capsule(s) => s,
+            _ => panic!("Wrong shape type"),
+        };
+
+        assert_eq!(shape, shape_2);
+    }
+
+    #[test]
+    fn test_cylinder() {
+        let shape = CylinderShape {
+            radius: 1.0,
+            height: 2.0,
+        };
+        let weight = PhysicsShapeWeight::Cylinder(shape.clone());
+        let value = Value::from(weight);
+        let json = serde_json::to_string(&value).unwrap();
+
+        let expected = r#"{"cylinder":{"height":2.0,"radius":1.0},"type":"cylinder"}"#;
+        assert_eq!(json, expected);
+
+        let value = serde_json::from_str::<Value>(expected).unwrap();
+        let weight = PhysicsShapeWeight::from(value);
+        let shape_2 = match weight {
+            PhysicsShapeWeight::Cylinder(s) => s,
+            _ => panic!("Wrong shape type"),
+        };
+
+        assert_eq!(shape, shape_2);
     }
 }

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::graph::{ByteNode, Graph, Weight};
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum PhysicsShapeWeight {
     Box(BoxShape),
     Sphere(SphereShape),
@@ -13,23 +13,23 @@ pub enum PhysicsShapeWeight {
     Trimesh,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct BoxShape {
     pub size: [f32; 3],
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct SphereShape {
     pub radius: f32,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct CapsuleShape {
     pub radius: f32,
     pub height: f32,
 }
 
-#[derive(Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct CylinderShape {
     pub radius: f32,
     pub height: f32,
