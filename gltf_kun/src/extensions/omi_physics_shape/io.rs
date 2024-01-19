@@ -13,18 +13,18 @@ impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsShapeExtension {
 
     fn export(
         &self,
-        graph: &mut Graph,
-        doc: &GltfDocument,
-        format: &mut GltfFormat,
+        _graph: &mut Graph,
+        _doc: &GltfDocument,
+        _format: &mut GltfFormat,
     ) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }
 
     fn import(
         &self,
-        graph: &mut Graph,
-        format: &mut GltfFormat,
-        doc: &GltfDocument,
+        _graph: &mut Graph,
+        _format: &mut GltfFormat,
+        _doc: &GltfDocument,
     ) -> Result<(), Box<dyn std::error::Error>> {
         todo!()
     }

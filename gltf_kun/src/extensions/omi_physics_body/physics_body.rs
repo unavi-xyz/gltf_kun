@@ -110,7 +110,7 @@ mod tests {
         let mut graph = Graph::default();
 
         let doc = GltfDocument::new(&mut graph);
-        let node = doc.create_node(&mut graph);
+        let _node = doc.create_node(&mut graph);
 
         // let body = OMIPhysicsBodyExtension::create_body(&mut graph, &node);
         // assert_eq!(OMIPhysicsBodyExtension.properties(&graph).len(), 1);
