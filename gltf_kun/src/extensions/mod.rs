@@ -7,14 +7,14 @@ use std::{collections::HashMap, error::Error, sync::Arc};
 use petgraph::graph::NodeIndex;
 
 use crate::{
-    graph::{gltf::document::GltfDocument, Graph},
+    graph::{gltf::document::GltfDocument, Graph, Property},
     io::format::gltf::GltfFormat,
 };
 
 pub mod omi_physics_body;
 pub mod omi_physics_shape;
 
-pub trait Extension: Sized + From<NodeIndex> {
+pub trait Extension<T: Property>: Sized + From<NodeIndex> {
     fn name() -> &'static str;
 }
 

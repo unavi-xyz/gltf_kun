@@ -62,11 +62,11 @@ impl From<PhysicsShape> for NodeIndex {
     }
 }
 
+impl ByteNode<PhysicsShapeWeight> for PhysicsShape {}
+
 impl PhysicsShape {
     pub fn new(graph: &mut Graph, weight: &PhysicsShapeWeight) -> Self {
         let index = graph.add_node(Weight::Bytes(weight.into()));
         Self(index)
     }
 }
-
-impl ByteNode<PhysicsShapeWeight> for PhysicsShape {}

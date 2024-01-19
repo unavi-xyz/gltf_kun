@@ -22,7 +22,7 @@ pub trait Property: Copy + Into<NodeIndex> {
             })
             .collect::<Vec<_>>()
     }
-    fn get_extension<T: Extension>(&self, graph: &Graph) -> Option<T> {
+    fn get_extension<T: Extension<Self>>(&self, graph: &Graph) -> Option<T> {
         find_extension_edge((*self).into(), graph, T::name()).map(|edge| T::from(edge.target()))
     }
     fn add_extension<T>(&self, graph: &mut Graph, name: &'static str, value: T)
