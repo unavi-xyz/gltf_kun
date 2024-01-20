@@ -26,9 +26,7 @@ pub struct ShapeRefJson {
     pub shape: isize,
 }
 
-pub struct OMIPhysicsBodyIO;
-
-impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsBodyIO {
+impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsBody {
     fn export(
         graph: &mut crate::graph::Graph,
         doc: &GltfDocument,
@@ -85,7 +83,7 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsBodyIO {
     }
 }
 
-impl ExtensionImport<GltfDocument, GltfFormat> for OMIPhysicsBodyIO {
+impl ExtensionImport<GltfDocument, GltfFormat> for OMIPhysicsBody {
     fn import(
         graph: &mut crate::graph::Graph,
         format: &mut GltfFormat,

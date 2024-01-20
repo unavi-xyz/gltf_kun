@@ -47,9 +47,7 @@ impl From<PhysicsShapeWeight> for Shape {
     }
 }
 
-pub struct OMIPhysicsShapeIO;
-
-impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsShapeIO {
+impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsShape {
     fn export(
         graph: &mut Graph,
         doc: &GltfDocument,
@@ -81,7 +79,7 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsShapeIO {
     }
 }
 
-impl ExtensionImport<GltfDocument, GltfFormat> for OMIPhysicsShapeIO {
+impl ExtensionImport<GltfDocument, GltfFormat> for OMIPhysicsShape {
     fn import(
         graph: &mut Graph,
         format: &mut GltfFormat,

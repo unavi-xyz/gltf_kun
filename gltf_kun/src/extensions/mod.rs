@@ -11,7 +11,7 @@ use crate::{
     io::format::gltf::GltfFormat,
 };
 
-use self::{omi_physics_body::io::OMIPhysicsBodyIO, omi_physics_shape::io::OMIPhysicsShapeIO};
+use self::{omi_physics_body::OMIPhysicsBody, omi_physics_shape::OMIPhysicsShape};
 
 pub mod omi_physics_body;
 pub mod omi_physics_shape;
@@ -49,8 +49,8 @@ impl Extensions<GltfDocument, GltfFormat> for DefaultExtensions {
         doc: &GltfDocument,
         format: &mut GltfFormat,
     ) -> Result<(), Box<dyn Error>> {
-        OMIPhysicsShapeIO::export(graph, doc, format)?;
-        OMIPhysicsBodyIO::export(graph, doc, format)?;
+        OMIPhysicsShape::export(graph, doc, format)?;
+        OMIPhysicsBody::export(graph, doc, format)?;
 
         Ok(())
     }
@@ -61,8 +61,8 @@ impl Extensions<GltfDocument, GltfFormat> for DefaultExtensions {
         format: &mut GltfFormat,
         doc: &GltfDocument,
     ) -> Result<(), Box<dyn Error>> {
-        OMIPhysicsShapeIO::import(graph, format, doc)?;
-        OMIPhysicsBodyIO::import(graph, format, doc)?;
+        OMIPhysicsShape::import(graph, format, doc)?;
+        OMIPhysicsBody::import(graph, format, doc)?;
 
         Ok(())
     }
