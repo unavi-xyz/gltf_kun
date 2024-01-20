@@ -58,7 +58,11 @@ fn setup(mut commands: Commands, mut writer: EventWriter<LoadScene>) {
 #[derive(Event)]
 struct LoadScene(String);
 
-fn ui(mut contexts: EguiContexts, mut writer: EventWriter<LoadScene>) {
+fn ui(mut contexts: EguiContexts, mut writer: EventWriter<LoadScene>, mut selected: Local<String>) {
+    if selected.is_empty() {
+        *selected = MODELS[0].to_string();
+    }
+
     bevy_egui::egui::Window::new("Controls").show(contexts.ctx_mut(), |ui| {
         ui.label("Click and drag to orbit camera");
         ui.label("Scroll to zoom camera");
@@ -66,14 +70,19 @@ fn ui(mut contexts: EguiContexts, mut writer: EventWriter<LoadScene>) {
 
         ui.separator();
 
-        ui.label("Model");
-        ui.horizontal(|ui| {
-            for model in MODELS {
-                if ui.button(*model).clicked() {
-                    writer.send(LoadScene(model.to_string()));
+        bevy_egui::egui::ComboBox::from_label("Model")
+            .selected_text(selected.as_str())
+            .show_ui(ui, |ui| {
+                for model in MODELS {
+                    if ui
+                        .selectable_label(selected.as_str() == *model, *model)
+                        .clicked()
+                    {
+                        *selected = model.to_string();
+                        writer.send(LoadScene(model.to_string()));
+                    }
                 }
-            }
-        });
+            });
     });
 }
 
