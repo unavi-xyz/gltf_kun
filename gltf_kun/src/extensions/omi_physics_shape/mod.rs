@@ -1,3 +1,5 @@
+//! [OMI_physics_shape](https://github.com/omigroup/gltf-extensions/tree/main/extensions/2.0/OMI_physics_shape) extension.
+
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
 use crate::graph::{Edge, Graph};
