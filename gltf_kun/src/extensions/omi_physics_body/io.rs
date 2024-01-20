@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use crate::{
-    extensions::{ExtensionExport, ExtensionIO, ExtensionImport},
+    extensions::{ExtensionExport, ExtensionImport},
     graph::{gltf::document::GltfDocument, ByteNode, Property},
     io::format::gltf::GltfFormat,
 };
@@ -72,8 +72,6 @@ impl ExtensionImport<GltfDocument, GltfFormat> for OMIPhysicsBodyIO {
         Ok(())
     }
 }
-
-impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsBodyIO {}
 
 #[cfg(test)]
 mod tests {

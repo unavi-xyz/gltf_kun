@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    extensions::{ExtensionExport, ExtensionIO, ExtensionImport},
+    extensions::{ExtensionExport, ExtensionImport},
     graph::{gltf::document::GltfDocument, ByteNode, Graph, Property},
     io::format::gltf::GltfFormat,
 };
@@ -111,8 +111,6 @@ impl ExtensionImport<GltfDocument, GltfFormat> for OMIPhysicsShapeIO {
         Ok(())
     }
 }
-
-impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsShapeIO {}
 
 #[cfg(test)]
 mod tests {

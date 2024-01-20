@@ -35,8 +35,6 @@ pub trait ExtensionImport<D, F> {
     fn import(graph: &mut Graph, format: &mut F, doc: &D) -> Result<(), Box<dyn Error>>;
 }
 
-pub trait ExtensionIO<D, F>: ExtensionExport<D, F> + ExtensionImport<D, F> {}
-
 pub trait Extensions<D, F> {
     fn export(&self, graph: &mut Graph, doc: &D, format: &mut F) -> Result<(), Box<dyn Error>>;
     fn import(&self, graph: &mut Graph, format: &mut F, doc: &D) -> Result<(), Box<dyn Error>>;
