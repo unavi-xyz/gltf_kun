@@ -11,9 +11,9 @@ use crate::{
     io::format::gltf::GltfFormat,
 };
 
-use self::{omi_physics_body::OMIPhysicsBody, omi_physics_shape::OMIPhysicsShape};
-
+#[cfg(feature = "omi_physics_body")]
 pub mod omi_physics_body;
+#[cfg(feature = "omi_physics_shape")]
 pub mod omi_physics_shape;
 
 pub trait Extension: Copy + Sized + Into<NodeIndex> + From<NodeIndex> {
@@ -50,8 +50,10 @@ impl ExtensionsIO<GltfDocument, GltfFormat> for DefaultExtensions {
         doc: &GltfDocument,
         format: &mut GltfFormat,
     ) -> Result<(), Box<dyn Error>> {
-        OMIPhysicsShape::export(graph, doc, format)?;
-        OMIPhysicsBody::export(graph, doc, format)?;
+        #[cfg(feature = "omi_physics_shape")]
+        omi_physics_shape::OMIPhysicsShape::export(graph, doc, format)?;
+        #[cfg(feature = "omi_physics_body")]
+        omi_physics_body::OMIPhysicsBody::export(graph, doc, format)?;
 
         Ok(())
     }
@@ -62,8 +64,10 @@ impl ExtensionsIO<GltfDocument, GltfFormat> for DefaultExtensions {
         format: &mut GltfFormat,
         doc: &GltfDocument,
     ) -> Result<(), Box<dyn Error>> {
-        OMIPhysicsShape::import(graph, format, doc)?;
-        OMIPhysicsBody::import(graph, format, doc)?;
+        #[cfg(feature = "omi_physics_shape")]
+        omi_physics_shape::OMIPhysicsShape::import(graph, format, doc)?;
+        #[cfg(feature = "omi_physics_body")]
+        omi_physics_body::OMIPhysicsBody::import(graph, format, doc)?;
 
         Ok(())
     }
