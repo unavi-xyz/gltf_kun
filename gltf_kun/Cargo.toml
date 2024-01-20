@@ -8,7 +8,6 @@ repository.workspace = true
 edition.workspace = true
 
 [dependencies]
-bincode = "1.3.3"
 byteorder = "1.5.0"
 glam.workspace = true
 gltf = { version = "1.4.0", features = ["extensions", "extras"] }

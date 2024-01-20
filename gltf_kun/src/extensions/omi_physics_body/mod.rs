@@ -86,13 +86,13 @@ impl Motion {
 
 impl From<&Vec<u8>> for OMIPhysicsBodyWeight {
     fn from(bytes: &Vec<u8>) -> Self {
-        bincode::deserialize(bytes).expect("Failed to deserialize physics body weight")
+        serde_json::from_slice(bytes).expect("Failed to deserialize physics body weight")
     }
 }
 
 impl From<&OMIPhysicsBodyWeight> for Vec<u8> {
     fn from(value: &OMIPhysicsBodyWeight) -> Self {
-        bincode::serialize(value).expect("Failed to serialize physics body weight")
+        serde_json::to_vec(value).expect("Failed to serialize physics body weight")
     }
 }
 

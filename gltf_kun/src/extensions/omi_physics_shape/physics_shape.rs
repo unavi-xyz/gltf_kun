@@ -76,13 +76,13 @@ impl Default for Height {
 
 impl From<&Vec<u8>> for PhysicsShapeWeight {
     fn from(bytes: &Vec<u8>) -> Self {
-        bincode::deserialize(bytes).unwrap()
+        serde_json::from_slice(bytes).expect("Failed to deserialize physics shape weight")
     }
 }
 
 impl From<&PhysicsShapeWeight> for Vec<u8> {
     fn from(value: &PhysicsShapeWeight) -> Self {
-        bincode::serialize(value).unwrap()
+        serde_json::to_vec(value).expect("Failed to serialize physics shape weight")
     }
 }
 
