@@ -35,6 +35,7 @@ pub trait ExtensionImport<D, F> {
     fn import(graph: &mut Graph, format: &mut F, doc: &D) -> Result<(), Box<dyn Error>>;
 }
 
+/// IO for a collection of extensions.
 pub trait ExtensionsIO<D, F> {
     fn export(&self, graph: &mut Graph, doc: &D, format: &mut F) -> Result<(), Box<dyn Error>>;
     fn import(&self, graph: &mut Graph, format: &mut F, doc: &D) -> Result<(), Box<dyn Error>>;
