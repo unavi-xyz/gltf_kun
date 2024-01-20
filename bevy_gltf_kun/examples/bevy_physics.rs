@@ -27,6 +27,7 @@ fn main() {
             GltfKunPlugin,
             PanOrbitCameraPlugin,
             PhysicsPlugins::default(),
+            PhysicsDebugPlugin::default(),
         ))
         .add_event::<LoadScene>()
         .add_systems(Startup, setup)
@@ -50,6 +51,8 @@ fn setup(mut commands: Commands, mut writer: EventWriter<LoadScene>) {
         transform: Transform::from_xyz(4.0, 7.0, 3.0),
         ..default()
     });
+
+    commands.spawn((RigidBody::Static, Collider::cuboid(10.0, 0.01, 10.0)));
 
     writer.send(LoadScene(MODELS[0].to_string()));
 }
