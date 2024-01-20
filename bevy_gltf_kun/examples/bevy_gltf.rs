@@ -141,7 +141,7 @@ fn export(
     export.send(Export::new(handle.clone()));
 }
 
-const TEMP_FILE: &str = "temp/bevy_round_trip/model.glb";
+const TEMP_FILE: &str = "temp/bevy_gltf/model.glb";
 
 fn get_result(mut exports: ResMut<Events<GltfExportResult>>, mut writer: EventWriter<LoadScene>) {
     for mut event in exports.drain() {
