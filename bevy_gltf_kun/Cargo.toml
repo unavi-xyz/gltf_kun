@@ -8,9 +8,11 @@ repository.workspace = true
 edition.workspace = true
 
 [features]
-default = ["export", "import"]
+default = ["export", "import", "omi_physics_shape", "omi_physics_body"]
 export = []
 import = []
+omi_physics_shape = ["dep:bevy_xpbd_3d"]
+omi_physics_body = ["omi_physics_shape"]
 
 [dependencies]
 bevy = { version = "0.12.1", default-features = false, features = [
@@ -37,6 +39,7 @@ bevy = { version = "0.12.1", default-features = false, features = [
   "webgl2",
   "x11"
 ]}
+bevy_xpbd_3d = { version = "0.3.3", optional = true }
 glam.workspace = true
 gltf_kun = { version = "0.0.5", path = "../gltf_kun" }
 serde_json.workspace = true

@@ -1,6 +1,3 @@
-//! Round-trip example of importing a gltf, exporting it, then re-importing it again.
-//! This is useful for debugging and testing, ensuring consistent behavior between import and export.
-
 use std::path::Path;
 
 use bevy::{input::keyboard::KeyboardInput, prelude::*};
@@ -10,12 +7,13 @@ use bevy_gltf_kun::{
     GltfKunPlugin,
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
+use bevy_xpbd_3d::prelude::*;
 use gltf_kun::{extensions::DefaultExtensions, io::format::glb::GlbIO};
 
 const ASSETS_DIR: &str = "../assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
-const MODELS: &[&str] = &["BoxTextured.glb", "DynamicBox.gltf"];
+const MODELS: &[&str] = &["DynamicBox.gltf"];
 
 fn main() {
     App::new()
@@ -28,6 +26,7 @@ fn main() {
             EguiPlugin,
             GltfKunPlugin,
             PanOrbitCameraPlugin,
+            PhysicsPlugins::default(),
         ))
         .add_event::<LoadScene>()
         .add_systems(Startup, setup)
