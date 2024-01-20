@@ -86,6 +86,9 @@ impl Motion {
 
 impl From<&Vec<u8>> for OMIPhysicsBodyWeight {
     fn from(bytes: &Vec<u8>) -> Self {
+        if bytes.is_empty() {
+            return Self::default();
+        }
         serde_json::from_slice(bytes).expect("Failed to deserialize physics body weight")
     }
 }
