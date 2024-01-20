@@ -3,7 +3,7 @@ use std::{borrow::Cow, collections::HashMap, path::Path};
 use thiserror::Error;
 
 use crate::{
-    extensions::Extensions,
+    extensions::ExtensionsIO,
     graph::{gltf::document::GltfDocument, Graph},
     io::resolver::file_resolver::FileResolver,
 };
@@ -50,7 +50,7 @@ impl GlbIO {
         &self,
         graph: &mut Graph,
         doc: &GltfDocument,
-        extensions: Option<&impl Extensions<GltfDocument, GltfFormat>>,
+        extensions: Option<&impl ExtensionsIO<GltfDocument, GltfFormat>>,
     ) -> Result<GlbFormat, GlbExportError> {
         if doc.buffers(graph).len() > 1 {
             // TODO: Merge multiple buffers into one (maybe using a transform function)
@@ -80,7 +80,7 @@ impl GlbIO {
         &mut self,
         graph: &mut Graph,
         bytes: &[u8],
-        extensions: Option<&impl Extensions<GltfDocument, GltfFormat>>,
+        extensions: Option<&impl ExtensionsIO<GltfDocument, GltfFormat>>,
     ) -> Result<GltfDocument, GlbImportError> {
         let format = GlbFormat(bytes.to_vec());
         self.import(graph, format, extensions).await
@@ -90,7 +90,7 @@ impl GlbIO {
         &mut self,
         graph: &mut Graph,
         path: &Path,
-        extensions: Option<&impl Extensions<GltfDocument, GltfFormat>>,
+        extensions: Option<&impl ExtensionsIO<GltfDocument, GltfFormat>>,
     ) -> Result<GltfDocument, ImportFileError> {
         let bytes = std::fs::read(path)?;
         let doc = self.import_slice(graph, &bytes, extensions).await?;
@@ -101,7 +101,7 @@ impl GlbIO {
         &mut self,
         graph: &mut Graph,
         format: GlbFormat,
-        extensions: Option<&impl Extensions<GltfDocument, GltfFormat>>,
+        extensions: Option<&impl ExtensionsIO<GltfDocument, GltfFormat>>,
     ) -> Result<GltfDocument, GlbImportError> {
         let mut glb = gltf::Glb::from_slice(&format.0)?;
 

@@ -4,7 +4,7 @@ use thiserror::Error;
 use tracing::warn;
 
 use crate::{
-    extensions::Extensions,
+    extensions::ExtensionsIO,
     graph::{gltf::document::GltfDocument, Graph},
     io::resolver::{file_resolver::FileResolver, Resolver},
 };
@@ -52,7 +52,7 @@ impl GltfIO {
         &self,
         graph: &mut Graph,
         doc: &GltfDocument,
-        extensions: Option<&impl Extensions<GltfDocument, GltfFormat>>,
+        extensions: Option<&impl ExtensionsIO<GltfDocument, GltfFormat>>,
     ) -> Result<GltfFormat, GltfExportError> {
         let mut format = export::export(graph, doc)?;
 
@@ -70,7 +70,7 @@ impl GltfIO {
         graph: &mut Graph,
         mut format: GltfFormat,
         mut resolver: Option<impl Resolver>,
-        extensions: Option<&impl Extensions<GltfDocument, GltfFormat>>,
+        extensions: Option<&impl ExtensionsIO<GltfDocument, GltfFormat>>,
     ) -> Result<GltfDocument, GltfImportError> {
         let doc = import::import(graph, &mut format, &mut resolver).await?;
 
@@ -88,7 +88,7 @@ impl GltfIO {
         &self,
         graph: &mut Graph,
         path: &Path,
-        extensions: Option<&impl Extensions<GltfDocument, GltfFormat>>,
+        extensions: Option<&impl ExtensionsIO<GltfDocument, GltfFormat>>,
     ) -> Result<GltfDocument, ImportFileError> {
         let format = GltfFormat {
             json: serde_json::from_reader(std::fs::File::open(path)?)?,

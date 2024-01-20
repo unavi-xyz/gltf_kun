@@ -35,14 +35,14 @@ pub trait ExtensionImport<D, F> {
     fn import(graph: &mut Graph, format: &mut F, doc: &D) -> Result<(), Box<dyn Error>>;
 }
 
-pub trait Extensions<D, F> {
+pub trait ExtensionsIO<D, F> {
     fn export(&self, graph: &mut Graph, doc: &D, format: &mut F) -> Result<(), Box<dyn Error>>;
     fn import(&self, graph: &mut Graph, format: &mut F, doc: &D) -> Result<(), Box<dyn Error>>;
 }
 
 pub struct DefaultExtensions;
 
-impl Extensions<GltfDocument, GltfFormat> for DefaultExtensions {
+impl ExtensionsIO<GltfDocument, GltfFormat> for DefaultExtensions {
     fn export(
         &self,
         graph: &mut Graph,
