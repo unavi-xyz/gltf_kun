@@ -1,6 +1,6 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
-use crate::graph::{gltf::document::GltfDocument, Edge, Graph};
+use crate::graph::{Edge, Graph};
 
 use self::physics_shape::{PhysicsShape, PhysicsShapeWeight};
 
@@ -27,7 +27,7 @@ impl From<OMIPhysicsShape> for NodeIndex {
     }
 }
 
-impl Extension<GltfDocument> for OMIPhysicsShape {
+impl Extension for OMIPhysicsShape {
     fn name() -> &'static str {
         EXTENSION_NAME
     }

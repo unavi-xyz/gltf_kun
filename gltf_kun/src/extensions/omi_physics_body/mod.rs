@@ -1,9 +1,9 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 use serde::{Deserialize, Serialize};
 
-use crate::graph::{gltf::node::Node, ByteNode, Edge, Graph, Weight};
+use crate::graph::{ByteNode, Edge, Graph, Weight};
 
-use super::{omi_physics_shape::physics_shape::PhysicsShape, Extension, ExtensionIO};
+use super::{omi_physics_shape::physics_shape::PhysicsShape, Extension};
 
 pub mod io;
 
@@ -86,13 +86,13 @@ impl Motion {
 
 impl From<&Vec<u8>> for OMIPhysicsBodyWeight {
     fn from(bytes: &Vec<u8>) -> Self {
-        bincode::deserialize(bytes).unwrap()
+        bincode::deserialize(bytes).expect("Failed to deserialize physics body weight")
     }
 }
 
 impl From<&OMIPhysicsBodyWeight> for Vec<u8> {
     fn from(value: &OMIPhysicsBodyWeight) -> Self {
-        bincode::serialize(value).unwrap()
+        bincode::serialize(value).expect("Failed to serialize physics body weight")
     }
 }
 
@@ -123,7 +123,7 @@ impl From<OMIPhysicsBody> for NodeIndex {
 
 impl ByteNode<OMIPhysicsBodyWeight> for OMIPhysicsBody {}
 
-impl Extension<Node> for OMIPhysicsBody {
+impl Extension for OMIPhysicsBody {
     fn name() -> &'static str {
         EXTENSION_NAME
     }

@@ -4,14 +4,13 @@ use gltf_kun::{
     extensions::{
         omi_physics_body::{BodyType, OMIPhysicsBody},
         omi_physics_shape::{
-            io::OMIPhysicsShapeIO,
             physics_shape::{BoxShape, PhysicsShapeWeight, Size},
             OMIPhysicsShape,
         },
-        Extension,
+        DefaultExtensions, Extension,
     },
     graph::{gltf::document::GltfDocument, ByteNode, Graph, Property},
-    io::{format::gltf::GltfIO, resolver::file_resolver::FileResolver},
+    io::format::gltf::GltfIO,
 };
 use tracing_test::traced_test;
 
@@ -25,20 +24,22 @@ async fn main() {
     let assets = Path::new(CARGO_MANIFEST_DIR).join(ASSETS_DIR);
     let path = assets.join(MODEL);
 
-    let io = GltfIO::<FileResolver>::default();
-    io.extensions.add(OMIPhysicsShapeIO);
+    let io = GltfIO;
+    let extensions = Some(&DefaultExtensions);
 
     // Import
     let mut graph = Graph::default();
     let doc = io
-        .import_file(&mut graph, &path)
+        .import_file(&mut graph, &path, extensions)
         .await
         .expect("Failed to import glTF");
 
     validate_doc(&graph, &doc);
 
     // Export to file
-    let out = io.export(&mut graph, &doc).expect("Failed to export glTF");
+    let out = io
+        .export(&mut graph, &doc, extensions)
+        .expect("Failed to export glTF");
 
     let json = serde_json::to_value(&out.json).expect("Failed to serialize glTF");
     validate_json(&json);
@@ -50,7 +51,7 @@ async fn main() {
     // Import written file
     let mut graph = Graph::default();
     let doc = io
-        .import_file(&mut graph, &path)
+        .import_file(&mut graph, &path, extensions)
         .await
         .expect("Failed to import glTF");
 

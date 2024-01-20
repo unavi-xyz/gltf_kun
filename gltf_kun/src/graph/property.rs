@@ -22,10 +22,10 @@ pub trait Property: Copy + Into<NodeIndex> {
             })
             .collect::<Vec<_>>()
     }
-    fn get_extension<T: Extension<Self>>(&self, graph: &Graph) -> Option<T> {
+    fn get_extension<T: Extension>(&self, graph: &Graph) -> Option<T> {
         find_extension_edge((*self).into(), graph, T::name()).map(|edge| T::from(edge.target()))
     }
-    fn add_extension<T: Extension<Self>>(&self, graph: &mut Graph, ext: T) {
+    fn add_extension<T: Extension>(&self, graph: &mut Graph, ext: T) {
         graph.add_edge((*self).into(), ext.into(), Edge::Extension(T::name()));
     }
     fn remove_extension(&self, graph: &mut Graph, name: &'static str) {
@@ -35,7 +35,7 @@ pub trait Property: Copy + Into<NodeIndex> {
             graph.remove_edge(edge);
         }
     }
-    fn create_extension<T: Extension<Self>>(&self, graph: &mut Graph) -> T {
+    fn create_extension<T: Extension>(&self, graph: &mut Graph) -> T {
         let ext = T::new(graph);
         self.add_extension(graph, ext);
         ext

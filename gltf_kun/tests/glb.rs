@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use gltf_kun::{graph::Graph, io::format::glb::GlbIO};
+use gltf_kun::{extensions::DefaultExtensions, graph::Graph, io::format::glb::GlbIO};
 use tracing_test::traced_test;
 
 const ASSETS_DIR: &str = "../assets";
@@ -13,15 +13,18 @@ async fn main() {
     let assets = Path::new(CARGO_MANIFEST_DIR).join(ASSETS_DIR);
     let path = assets.join(MODEL);
 
-    let mut io = GlbIO::default();
+    let mut io = GlbIO;
+    let extensions = Some(&DefaultExtensions);
 
     // Import / export
     let mut graph = Graph::default();
     let doc = io
-        .import_file(&mut graph, &path)
+        .import_file(&mut graph, &path, extensions)
         .await
         .expect("Failed to import glb");
-    let out = io.export(&mut graph, &doc).expect("Failed to export glb");
+    let out = io
+        .export(&mut graph, &doc, extensions)
+        .expect("Failed to export glb");
     let bytes = out.0.clone();
 
     assert!(!bytes.is_empty());
@@ -38,10 +41,12 @@ async fn main() {
     // Import / export written file
     let mut graph = Graph::default();
     let doc = io
-        .import_file(&mut graph, &path)
+        .import_file(&mut graph, &path, extensions)
         .await
         .expect("Failed to import glb");
-    let out = io.export(&mut graph, &doc).expect("Failed to export glb");
+    let out = io
+        .export(&mut graph, &doc, extensions)
+        .expect("Failed to export glb");
     let bytes2 = out.0.clone();
 
     assert_eq!(bytes.len(), bytes2.len()); // Gives a better error message

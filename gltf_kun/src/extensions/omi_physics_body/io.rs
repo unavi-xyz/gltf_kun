@@ -1,22 +1,17 @@
 use std::error::Error;
 
 use crate::{
+    extensions::{ExtensionExport, ExtensionIO, ExtensionImport},
     graph::{gltf::document::GltfDocument, ByteNode, Property},
     io::format::gltf::GltfFormat,
 };
 
-use super::{ExtensionIO, OMIPhysicsBody, OMIPhysicsBodyWeight, EXTENSION_NAME};
+use super::{OMIPhysicsBody, OMIPhysicsBodyWeight, EXTENSION_NAME};
 
-#[derive(Copy, Clone)]
 pub struct OMIPhysicsBodyIO;
 
-impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsBodyIO {
-    fn name() -> &'static str {
-        EXTENSION_NAME
-    }
-
+impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsBodyIO {
     fn export(
-        &self,
         graph: &mut crate::graph::Graph,
         doc: &GltfDocument,
         format: &mut GltfFormat,
@@ -47,9 +42,10 @@ impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsBodyIO {
 
         Ok(())
     }
+}
 
+impl ExtensionImport<GltfDocument, GltfFormat> for OMIPhysicsBodyIO {
     fn import(
-        &self,
         graph: &mut crate::graph::Graph,
         format: &mut GltfFormat,
         doc: &GltfDocument,
@@ -77,9 +73,10 @@ impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsBodyIO {
     }
 }
 
+impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsBodyIO {}
+
 #[cfg(test)]
 mod tests {
-
     use crate::extensions::omi_physics_body::{BodyType, Motion};
 
     use super::*;

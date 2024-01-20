@@ -9,7 +9,7 @@ use bevy_gltf_kun::{
     GltfKunPlugin,
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
-use gltf_kun::io::format::glb::GlbIO;
+use gltf_kun::{extensions::DefaultExtensions, io::format::glb::GlbIO};
 
 const ASSETS_DIR: &str = "../assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
@@ -94,8 +94,8 @@ fn get_result(
             Err(e) => panic!("Failed to export from Bevy: {}", e),
         };
 
-        let io = GlbIO::default();
-        let glb = match io.export(&mut event.graph, &doc) {
+        let io = GlbIO;
+        let glb = match io.export(&mut event.graph, &doc, Some(&DefaultExtensions)) {
             Ok(glb) => glb,
             Err(e) => panic!("Failed to export to glb: {}", e),
         };

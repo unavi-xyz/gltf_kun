@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    extensions::ExtensionIO,
+    extensions::{ExtensionExport, ExtensionIO, ExtensionImport},
     graph::{gltf::document::GltfDocument, ByteNode, Graph, Property},
     io::format::gltf::GltfFormat,
 };
@@ -47,16 +47,10 @@ impl From<PhysicsShapeWeight> for Shape {
     }
 }
 
-#[derive(Copy, Clone)]
 pub struct OMIPhysicsShapeIO;
 
-impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsShapeIO {
-    fn name() -> &'static str {
-        EXTENSION_NAME
-    }
-
+impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsShapeIO {
     fn export(
-        &self,
         graph: &mut Graph,
         doc: &GltfDocument,
         format: &mut GltfFormat,
@@ -85,9 +79,10 @@ impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsShapeIO {
 
         Ok(())
     }
+}
 
+impl ExtensionImport<GltfDocument, GltfFormat> for OMIPhysicsShapeIO {
     fn import(
-        &self,
         graph: &mut Graph,
         format: &mut GltfFormat,
         doc: &GltfDocument,
@@ -116,6 +111,8 @@ impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsShapeIO {
         Ok(())
     }
 }
+
+impl ExtensionIO<GltfDocument, GltfFormat> for OMIPhysicsShapeIO {}
 
 #[cfg(test)]
 mod tests {

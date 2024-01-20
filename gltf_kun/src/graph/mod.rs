@@ -18,9 +18,9 @@ pub use property::Property;
 
 #[derive(Debug)]
 pub enum Weight {
+    Bytes(Vec<u8>),
     Gltf(gltf::GltfWeight),
     Glxf(glxf::Weight),
-    Bytes(Vec<u8>),
 }
 
 #[derive(Debug, PartialEq, Eq)]

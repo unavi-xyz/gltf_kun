@@ -21,10 +21,7 @@ pub enum ImportFileError {
     Io(#[from] std::io::Error),
 }
 
-#[derive(Default)]
-pub struct GlbIO {
-    pub extensions: Extensions<GltfDocument, GltfFormat>,
-}
+pub struct GlbIO;
 
 #[derive(Debug, Error)]
 pub enum GlbExportError {
@@ -53,17 +50,14 @@ impl GlbIO {
         &self,
         graph: &mut Graph,
         doc: &GltfDocument,
+        extensions: Option<&impl Extensions<GltfDocument, GltfFormat>>,
     ) -> Result<GlbFormat, GlbExportError> {
         if doc.buffers(graph).len() > 1 {
             // TODO: Merge multiple buffers into one (maybe using a transform function)
             return Err(GlbExportError::MultipleBuffers);
         }
 
-        let io = GltfIO::<FileResolver> {
-            extensions: self.extensions.clone(),
-            resolver: None,
-        };
-        let gltf = io.export(graph, doc)?;
+        let gltf = GltfIO.export(graph, doc, extensions)?;
         let json_bin = serde_json::to_vec(&gltf.json)?;
         let resource = gltf.resources.iter().find(|_| true);
 
@@ -86,18 +80,20 @@ impl GlbIO {
         &mut self,
         graph: &mut Graph,
         bytes: &[u8],
+        extensions: Option<&impl Extensions<GltfDocument, GltfFormat>>,
     ) -> Result<GltfDocument, GlbImportError> {
         let format = GlbFormat(bytes.to_vec());
-        self.import(graph, format).await
+        self.import(graph, format, extensions).await
     }
 
     pub async fn import_file(
         &mut self,
         graph: &mut Graph,
         path: &Path,
+        extensions: Option<&impl Extensions<GltfDocument, GltfFormat>>,
     ) -> Result<GltfDocument, ImportFileError> {
         let bytes = std::fs::read(path)?;
-        let doc = self.import_slice(graph, &bytes).await?;
+        let doc = self.import_slice(graph, &bytes, extensions).await?;
         Ok(doc)
     }
 
@@ -105,6 +101,7 @@ impl GlbIO {
         &mut self,
         graph: &mut Graph,
         format: GlbFormat,
+        extensions: Option<&impl Extensions<GltfDocument, GltfFormat>>,
     ) -> Result<GltfDocument, GlbImportError> {
         let mut glb = gltf::Glb::from_slice(&format.0)?;
 
@@ -118,12 +115,9 @@ impl GlbIO {
         }
 
         let format = GltfFormat { json, resources };
-        let extensions = self.extensions.clone();
-        let mut io = GltfIO::<FileResolver> {
-            extensions,
-            resolver: None,
-        };
-        let doc = io.import(graph, format).await?;
+        let doc = GltfIO
+            .import(graph, format, None::<FileResolver>, extensions)
+            .await?;
 
         Ok(doc)
     }

@@ -45,49 +45,62 @@ impl GltfFormat {
     }
 }
 
-pub struct GltfIO<R: Resolver> {
-    pub extensions: Extensions<GltfDocument, GltfFormat>,
-    pub resolver: Option<R>,
-}
+pub struct GltfIO;
 
-impl<R: Resolver> GltfIO<R> {
-    pub fn new(resolver: R) -> Self {
-        Self {
-            resolver: Some(resolver),
-            extensions: Extensions {
-                map: HashMap::new(),
-            },
-        }
-    }
-
+impl GltfIO {
     pub fn export(
         &self,
         graph: &mut Graph,
         doc: &GltfDocument,
+        extensions: Option<&impl Extensions<GltfDocument, GltfFormat>>,
     ) -> Result<GltfFormat, GltfExportError> {
         let mut format = export::export(graph, doc)?;
 
-        self.extensions.map.iter().for_each(|(name, ext)| {
-            if let Err(e) = ext.export(graph, doc, &mut format) {
-                warn!("Failed to export {}: {}", name, e);
+        if let Some(extensions) = extensions {
+            if let Err(e) = extensions.export(graph, doc, &mut format) {
+                warn!("Failed to export extensions: {}", e);
             }
-        });
+        }
 
         Ok(format)
     }
 
     pub async fn import(
-        &mut self,
+        &self,
         graph: &mut Graph,
         mut format: GltfFormat,
+        mut resolver: Option<impl Resolver>,
+        extensions: Option<&impl Extensions<GltfDocument, GltfFormat>>,
     ) -> Result<GltfDocument, GltfImportError> {
-        let doc = import::import(graph, &mut format, &mut self.resolver).await?;
+        let doc = import::import(graph, &mut format, &mut resolver).await?;
 
-        self.extensions.map.iter().for_each(|(name, ext)| {
-            if let Err(e) = ext.import(graph, &mut format, &doc) {
-                warn!("Failed to import {}: {}", name, e);
+        if let Some(extensions) = extensions {
+            if let Err(e) = extensions.import(graph, &mut format, &doc) {
+                warn!("Failed to import extensions: {}", e);
             }
-        });
+        }
+
+        Ok(doc)
+    }
+
+    /// Import a glTF file from a path.
+    pub async fn import_file(
+        &self,
+        graph: &mut Graph,
+        path: &Path,
+        extensions: Option<&impl Extensions<GltfDocument, GltfFormat>>,
+    ) -> Result<GltfDocument, ImportFileError> {
+        let format = GltfFormat {
+            json: serde_json::from_reader(std::fs::File::open(path)?)?,
+            ..Default::default()
+        };
+
+        let dir = std::path::Path::new(path).parent().unwrap();
+        let resolver = FileResolver::new(dir);
+
+        let doc = self
+            .import(graph, format, Some(resolver), extensions)
+            .await?;
 
         Ok(doc)
     }
@@ -109,32 +122,4 @@ pub enum WriteFileError {
     Io(#[from] std::io::Error),
     #[error("failed to serialize json: {0}")]
     SerdeJson(#[from] serde_json::Error),
-}
-
-impl GltfIO<FileResolver> {
-    /// Import a glTF file from a path.
-    /// Ignores the current resolver, creating a new FileResolver for the given file's directory.
-    pub async fn import_file(
-        &self,
-        graph: &mut Graph,
-        path: &Path,
-    ) -> Result<GltfDocument, ImportFileError> {
-        let json = serde_json::from_reader(std::fs::File::open(path)?)?;
-
-        let format = GltfFormat {
-            json,
-            ..Default::default()
-        };
-
-        let dir = std::path::Path::new(path).parent().unwrap();
-
-        let mut io = GltfIO {
-            resolver: Some(FileResolver::new(dir)),
-            extensions: self.extensions.clone(),
-        };
-
-        let doc = io.import(graph, format).await?;
-
-        Ok(doc)
-    }
 }
