@@ -32,6 +32,8 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsBody {
         doc: &GltfDocument,
         format: &mut GltfFormat,
     ) -> Result<(), Box<dyn Error>> {
+        let mut added_extension = false;
+
         doc.nodes(graph)
             .iter()
             .enumerate()
@@ -77,7 +79,13 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsBody {
                     EXTENSION_NAME.to_string(),
                     serde_json::to_value(json).expect("Failed to serialize extension"),
                 );
+
+                added_extension = true;
             });
+
+        if added_extension {
+            format.json.extensions_used.push(EXTENSION_NAME.to_string());
+        }
 
         Ok(())
     }

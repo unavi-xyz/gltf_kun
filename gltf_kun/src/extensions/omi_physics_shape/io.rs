@@ -63,6 +63,10 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsShape {
             .map(|shape| shape.read(graph).into())
             .collect::<Vec<_>>();
 
+        if shapes.is_empty() {
+            return Ok(());
+        }
+
         let root_extension = RootExtension { shapes };
 
         let extensions = format
@@ -74,6 +78,8 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsShape {
             EXTENSION_NAME.to_string(),
             serde_json::to_value(root_extension)?,
         );
+
+        format.json.extensions_used.push(EXTENSION_NAME.to_string());
 
         Ok(())
     }
