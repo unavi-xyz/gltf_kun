@@ -3,7 +3,8 @@
 
 use std::path::Path;
 
-use bevy::prelude::*;
+use bevy::{input::keyboard::KeyboardInput, prelude::*};
+use bevy_egui::{EguiContexts, EguiPlugin};
 use bevy_gltf_kun::{
     export::{Export, GltfExport, GltfExportResult},
     GltfKunPlugin,
@@ -14,6 +15,8 @@ use gltf_kun::{extensions::DefaultExtensions, io::format::glb::GlbIO};
 const ASSETS_DIR: &str = "../assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
+const MODELS: &[&str] = &["BoxTextured.glb", "DynamicBox.gltf"];
+
 fn main() {
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.2)))
@@ -22,19 +25,20 @@ fn main() {
                 file_path: ASSETS_DIR.to_string(),
                 ..default()
             }),
+            EguiPlugin,
             GltfKunPlugin,
             PanOrbitCameraPlugin,
         ))
-        .add_systems(Startup, import)
-        .add_systems(Update, (export, get_result))
+        .add_systems(Startup, setup)
+        .add_systems(Update, (ui, spawn_model, export, get_result))
+        .insert_resource(SelectedModel(MODELS[0].to_string()))
         .run();
 }
 
 #[derive(Component)]
-pub struct SceneMarker;
+struct SceneMarker;
 
-// Set up the scene and import a glb model
-fn import(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(mut commands: Commands) {
     commands.spawn((
         Camera3dBundle {
             transform: Transform::from_xyz(1.0, 2.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
@@ -47,46 +51,88 @@ fn import(mut commands: Commands, asset_server: Res<AssetServer>) {
         transform: Transform::from_xyz(4.0, 7.0, 3.0),
         ..default()
     });
+}
+
+#[derive(Resource)]
+struct SelectedModel(String);
+
+fn ui(mut contexts: EguiContexts, mut selected_model: ResMut<SelectedModel>) {
+    bevy_egui::egui::Window::new("Controls").show(contexts.ctx_mut(), |ui| {
+        ui.label("Click and drag to orbit camera");
+        ui.label("Scroll to zoom camera");
+        ui.label("Press 'e' to test export");
+
+        ui.separator();
+
+        ui.label("Model");
+        ui.horizontal(|ui| {
+            for model in MODELS {
+                if ui.button(*model).clicked() {
+                    selected_model.0 = model.to_string();
+                }
+            }
+        });
+    });
+}
+
+fn spawn_model(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    selected_model: Res<SelectedModel>,
+    mut current_model: Local<String>,
+    scenes: Query<Entity, With<SceneMarker>>,
+) {
+    if selected_model.0 == *current_model {
+        return;
+    }
+
+    for entity in scenes.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
+
+    info!("Spawning model {}", selected_model.0);
 
     commands.spawn((
         SceneBundle {
-            scene: asset_server.load("BoxTextured.glb#Scene0"),
+            scene: asset_server.load(format!("{}#Scene0", selected_model.0)),
             ..default()
         },
         SceneMarker,
     ));
+
+    *current_model = selected_model.0.clone();
 }
 
-// After a short delay, export the scene
 fn export(
-    time: Res<Time>,
-    mut exported: Local<bool>,
+    mut keyboard_input: EventReader<KeyboardInput>,
     mut export: EventWriter<GltfExport>,
     scene: Query<&Handle<Scene>, With<SceneMarker>>,
 ) {
-    if time.elapsed_seconds() < 4.0 {
-        return;
-    }
-
-    if *exported {
+    if !keyboard_input
+        .read()
+        .any(|e| e.key_code == Some(KeyCode::E))
+    {
         return;
     }
 
     info!("Exporting scene");
 
-    let handle = scene.get_single().expect("Failed to get scene handle");
+    let handle = match scene.get_single() {
+        Ok(handle) => handle,
+        Err(e) => {
+            error!("Failed to get scene: {}", e);
+            return;
+        }
+    };
+
     export.send(Export::new(handle.clone()));
-    *exported = true;
 }
 
 const TEMP_FILE: &str = "temp/bevy_round_trip/model.glb";
 
-// Get the exported gltf, clear the scene, and re-import it
 fn get_result(
-    asset_server: Res<AssetServer>,
-    mut commands: Commands,
     mut events: ResMut<Events<GltfExportResult>>,
-    scenes: Query<Entity, With<SceneMarker>>,
+    mut selected_model: ResMut<SelectedModel>,
 ) {
     for mut event in events.drain() {
         let doc = match event.result {
@@ -109,20 +155,6 @@ fn get_result(
         std::fs::create_dir_all(path.parent().unwrap()).expect("Failed to create temp directory");
         std::fs::write(path, glb.0).expect("Failed to write glb");
 
-        info!("Clearing scene");
-
-        for entity in scenes.iter() {
-            commands.entity(entity).despawn_recursive();
-        }
-
-        info!("Re-importing glb");
-
-        commands.spawn((
-            SceneBundle {
-                scene: asset_server.load(format!("{}#Scene0", TEMP_FILE)),
-                ..default()
-            },
-            SceneMarker,
-        ));
+        selected_model.0 = TEMP_FILE.to_string();
     }
 }

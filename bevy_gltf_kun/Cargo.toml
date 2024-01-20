@@ -43,4 +43,5 @@ serde_json.workspace = true
 thiserror.workspace = true
 
 [dev-dependencies]
+bevy_egui = "0.24.0"
 bevy_panorbit_camera = "0.10.0"
