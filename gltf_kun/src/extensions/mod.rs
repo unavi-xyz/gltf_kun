@@ -49,8 +49,8 @@ impl Extensions<GltfDocument, GltfFormat> for DefaultExtensions {
         doc: &GltfDocument,
         format: &mut GltfFormat,
     ) -> Result<(), Box<dyn Error>> {
-        OMIPhysicsBodyIO::export(graph, doc, format)?;
         OMIPhysicsShapeIO::export(graph, doc, format)?;
+        OMIPhysicsBodyIO::export(graph, doc, format)?;
 
         Ok(())
     }
@@ -61,8 +61,8 @@ impl Extensions<GltfDocument, GltfFormat> for DefaultExtensions {
         format: &mut GltfFormat,
         doc: &GltfDocument,
     ) -> Result<(), Box<dyn Error>> {
-        OMIPhysicsBodyIO::import(graph, format, doc)?;
         OMIPhysicsShapeIO::import(graph, format, doc)?;
+        OMIPhysicsBodyIO::import(graph, format, doc)?;
 
         Ok(())
     }

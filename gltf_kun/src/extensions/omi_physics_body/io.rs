@@ -1,12 +1,30 @@
 use std::error::Error;
 
+use serde::{Deserialize, Serialize};
+use tracing::warn;
+
 use crate::{
-    extensions::{ExtensionExport, ExtensionImport},
+    extensions::{omi_physics_shape::OMIPhysicsShape, ExtensionExport, ExtensionImport},
     graph::{gltf::document::GltfDocument, ByteNode, Property},
     io::format::gltf::GltfFormat,
 };
 
-use super::{OMIPhysicsBody, OMIPhysicsBodyWeight, EXTENSION_NAME};
+use super::{Motion, OMIPhysicsBody, OMIPhysicsBodyWeight, EXTENSION_NAME};
+
+#[derive(Debug, Deserialize, PartialEq, Serialize)]
+pub struct PhysicsBodyJson {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    collider: Option<ShapeRefJson>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    motion: Option<Motion>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    trigger: Option<ShapeRefJson>,
+}
+
+#[derive(Debug, Deserialize, PartialEq, Serialize)]
+pub struct ShapeRefJson {
+    pub shape: isize,
+}
 
 pub struct OMIPhysicsBodyIO;
 
@@ -19,11 +37,10 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsBodyIO {
         doc.nodes(graph)
             .iter()
             .enumerate()
-            .filter_map(|(i, n)| {
-                n.get_extension::<OMIPhysicsBody>(graph)
-                    .map(|ext| (i, ext.read(graph)))
-            })
-            .for_each(|(i, weight)| {
+            .filter_map(|(i, n)| n.get_extension::<OMIPhysicsBody>(graph).map(|e| (i, e)))
+            .for_each(|(i, ext)| {
+                let weight = ext.read(graph);
+
                 let node = format
                     .json
                     .nodes
@@ -34,9 +51,33 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsBodyIO {
                     .extensions
                     .get_or_insert(gltf::json::extensions::scene::Node::default());
 
+                let collider = ext
+                    .collider(graph)
+                    .iter()
+                    .filter_map(|s| doc.get_extension::<OMIPhysicsShape>(graph).map(|e| (e, s)))
+                    .find_map(|(e, s)| e.shapes(graph).position(|x| x == *s))
+                    .map(|shape| ShapeRefJson {
+                        shape: shape as isize,
+                    });
+
+                let trigger = ext
+                    .trigger(graph)
+                    .iter()
+                    .filter_map(|s| doc.get_extension::<OMIPhysicsShape>(graph).map(|e| (e, s)))
+                    .find_map(|(e, s)| e.shapes(graph).position(|x| x == *s))
+                    .map(|shape| ShapeRefJson {
+                        shape: shape as isize,
+                    });
+
+                let json = PhysicsBodyJson {
+                    collider,
+                    trigger,
+                    motion: weight.motion,
+                };
+
                 extensions.others.insert(
                     EXTENSION_NAME.to_string(),
-                    serde_json::to_value(weight).expect("Failed to serialize extension"),
+                    serde_json::to_value(json).expect("Failed to serialize extension"),
                 );
             });
 
@@ -58,15 +99,58 @@ impl ExtensionImport<GltfDocument, GltfFormat> for OMIPhysicsBodyIO {
             .filter_map(|(i, n)| n.extensions.as_ref().map(|e| (i, e)))
             .filter_map(|(i, e)| e.others.get(EXTENSION_NAME).map(|v| (i, v)))
             .filter_map(|(i, v)| {
-                serde_json::from_value::<OMIPhysicsBodyWeight>(v.clone())
+                serde_json::from_value::<PhysicsBodyJson>(v.clone())
+                    .map(|json| (i, json))
                     .ok()
-                    .map(|w| (i, w))
             })
-            .for_each(|(i, weight)| {
+            .for_each(|(i, json)| {
                 let nodes = doc.nodes(graph);
                 let node = nodes.get(i).expect("Node index out of bounds");
                 let mut ext = node.create_extension::<OMIPhysicsBody>(graph);
-                ext.write(graph, &weight);
+
+                // Motion
+                if let Some(motion) = json.motion {
+                    let weight = OMIPhysicsBodyWeight {
+                        motion: Some(motion),
+                    };
+                    ext.write(graph, &weight);
+                }
+
+                if json.collider.is_none() && json.trigger.is_none() {
+                    return;
+                }
+
+                let omi_physics_shapes = match doc.get_extension::<OMIPhysicsShape>(graph) {
+                    Some(ext) => ext,
+                    None => {
+                        warn!("OMI_physics_shape extension not found");
+                        return;
+                    }
+                };
+
+                // Collider
+                if let Some(shape_ref) = json.collider {
+                    if let Ok(idx) = shape_ref.shape.try_into() {
+                        let shape = omi_physics_shapes
+                            .shapes(graph)
+                            .nth(idx)
+                            .expect("Collider index out of bounds");
+
+                        ext.set_collider(graph, Some(&shape));
+                    }
+                }
+
+                // Trigger
+                if let Some(shape_ref) = json.trigger {
+                    if let Ok(idx) = shape_ref.shape.try_into() {
+                        let shape = omi_physics_shapes
+                            .shapes(graph)
+                            .nth(idx)
+                            .expect("Trigger index out of bounds");
+
+                        ext.set_trigger(graph, Some(&shape));
+                    }
+                }
             });
 
         Ok(())
@@ -81,15 +165,17 @@ mod tests {
 
     #[test]
     fn test_motion() {
-        let weight = OMIPhysicsBodyWeight {
+        let json = PhysicsBodyJson {
             motion: Some(Motion::new(BodyType::Dynamic)),
+            trigger: None,
+            collider: None,
         };
 
-        let json = serde_json::to_string(&weight).unwrap();
+        let json_str = serde_json::to_string(&json).unwrap();
         let expected = r#"{"motion":{"type":"dynamic"}}"#;
-        assert_eq!(json, expected);
+        assert_eq!(json_str, expected);
 
-        let weight_2 = serde_json::from_str::<OMIPhysicsBodyWeight>(expected).unwrap();
-        assert_eq!(weight, weight_2);
+        let json_2 = serde_json::from_str::<PhysicsBodyJson>(&json_str).unwrap();
+        assert_eq!(json, json_2);
     }
 }
