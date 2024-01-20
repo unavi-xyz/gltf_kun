@@ -29,16 +29,16 @@ fn main() {
             GltfKunPlugin,
             PanOrbitCameraPlugin,
         ))
+        .add_event::<LoadScene>()
         .add_systems(Startup, setup)
         .add_systems(Update, (ui, spawn_model, export, get_result))
-        .insert_resource(SelectedModel(MODELS[0].to_string()))
         .run();
 }
 
 #[derive(Component)]
 struct SceneMarker;
 
-fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, mut writer: EventWriter<LoadScene>) {
     commands.spawn((
         Camera3dBundle {
             transform: Transform::from_xyz(1.0, 2.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
@@ -51,12 +51,14 @@ fn setup(mut commands: Commands) {
         transform: Transform::from_xyz(4.0, 7.0, 3.0),
         ..default()
     });
+
+    writer.send(LoadScene(MODELS[0].to_string()));
 }
 
-#[derive(Resource)]
-struct SelectedModel(String);
+#[derive(Event)]
+struct LoadScene(String);
 
-fn ui(mut contexts: EguiContexts, mut selected_model: ResMut<SelectedModel>) {
+fn ui(mut contexts: EguiContexts, mut writer: EventWriter<LoadScene>) {
     bevy_egui::egui::Window::new("Controls").show(contexts.ctx_mut(), |ui| {
         ui.label("Click and drag to orbit camera");
         ui.label("Scroll to zoom camera");
@@ -68,7 +70,7 @@ fn ui(mut contexts: EguiContexts, mut selected_model: ResMut<SelectedModel>) {
         ui.horizontal(|ui| {
             for model in MODELS {
                 if ui.button(*model).clicked() {
-                    selected_model.0 = model.to_string();
+                    writer.send(LoadScene(model.to_string()));
                 }
             }
         });
@@ -76,37 +78,34 @@ fn ui(mut contexts: EguiContexts, mut selected_model: ResMut<SelectedModel>) {
 }
 
 fn spawn_model(
-    mut commands: Commands,
     asset_server: Res<AssetServer>,
-    selected_model: Res<SelectedModel>,
-    mut current_model: Local<String>,
+    mut commands: Commands,
+    mut events: EventReader<LoadScene>,
     scenes: Query<Entity, With<SceneMarker>>,
 ) {
-    if selected_model.0 == *current_model {
-        return;
+    for event in events.read() {
+        for entity in scenes.iter() {
+            commands.entity(entity).despawn_recursive();
+        }
+
+        info!("Spawning model {}", event.0);
+
+        commands.spawn((
+            SceneBundle {
+                scene: asset_server.load(format!("{}#Scene0", event.0)),
+                ..default()
+            },
+            SceneMarker,
+        ));
     }
-
-    for entity in scenes.iter() {
-        commands.entity(entity).despawn_recursive();
-    }
-
-    info!("Spawning model {}", selected_model.0);
-
-    commands.spawn((
-        SceneBundle {
-            scene: asset_server.load(format!("{}#Scene0", selected_model.0)),
-            ..default()
-        },
-        SceneMarker,
-    ));
-
-    *current_model = selected_model.0.clone();
 }
 
 fn export(
-    mut keyboard_input: EventReader<KeyboardInput>,
     mut export: EventWriter<GltfExport>,
+    mut keyboard_input: EventReader<KeyboardInput>,
+    mut last_export: Local<f32>,
     scene: Query<&Handle<Scene>, With<SceneMarker>>,
+    time: Res<Time>,
 ) {
     if !keyboard_input
         .read()
@@ -114,6 +113,12 @@ fn export(
     {
         return;
     }
+
+    if time.elapsed_seconds() - *last_export < 1.0 {
+        return;
+    }
+
+    *last_export = time.elapsed_seconds();
 
     info!("Exporting scene");
 
@@ -130,11 +135,8 @@ fn export(
 
 const TEMP_FILE: &str = "temp/bevy_round_trip/model.glb";
 
-fn get_result(
-    mut events: ResMut<Events<GltfExportResult>>,
-    mut selected_model: ResMut<SelectedModel>,
-) {
-    for mut event in events.drain() {
+fn get_result(mut exports: ResMut<Events<GltfExportResult>>, mut writer: EventWriter<LoadScene>) {
+    for mut event in exports.drain() {
         let doc = match event.result {
             Ok(doc) => doc,
             Err(e) => panic!("Failed to export from Bevy: {}", e),
@@ -155,6 +157,6 @@ fn get_result(
         std::fs::create_dir_all(path.parent().unwrap()).expect("Failed to create temp directory");
         std::fs::write(path, glb.0).expect("Failed to write glb");
 
-        selected_model.0 = TEMP_FILE.to_string();
+        writer.send(LoadScene(TEMP_FILE.to_string()));
     }
 }
