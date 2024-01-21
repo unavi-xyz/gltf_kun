@@ -4,17 +4,19 @@ use gltf_kun::{
     graph::{gltf::document::GltfDocument, ByteNode, Graph, Property},
 };
 
+use crate::import::gltf::document::ImportContext;
+
 use super::{BevyExtensionExport, BevyExtensionImport};
 
 impl BevyExtensionImport<GltfDocument> for OMIPhysicsBody {
-    fn import_bevy(graph: &mut Graph, doc: &mut GltfDocument, load_context: &mut LoadContext) {
-        doc.nodes(graph)
+    fn import_bevy(context: &mut ImportContext) {
+        context
+            .doc
+            .nodes(context.graph)
             .iter()
-            .filter_map(|n| n.get_extension::<Self>(graph))
-            .for_each(|ext| {
-                let weight = ext.read(graph);
-                println!("BevyOMIPhysicsBody::import_bevy: {:?}", weight);
-            });
+            .enumerate()
+            .filter_map(|(i, n)| n.get_extension::<Self>(context.graph).map(|e| (i, e)))
+            .for_each(|(i, ext)| {});
     }
 }
 

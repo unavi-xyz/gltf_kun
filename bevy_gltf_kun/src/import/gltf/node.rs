@@ -72,6 +72,7 @@ pub fn import_node(
         .add_labeled_asset(node_label.clone(), node);
 
     context.gltf.nodes.insert(index, handle.clone());
+    context.gltf.node_entities.insert(handle.clone(), ent.id());
 
     if has_name {
         if context.gltf.named_nodes.contains_key(&node_label) {

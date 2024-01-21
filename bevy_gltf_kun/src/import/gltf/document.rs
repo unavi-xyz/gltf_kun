@@ -1,4 +1,4 @@
-use bevy::{asset::LoadContext, prelude::*};
+use bevy::asset::LoadContext;
 use gltf_kun::graph::{gltf::document::GltfDocument, Graph};
 use thiserror::Error;
 
@@ -14,28 +14,16 @@ pub struct ImportContext<'a, 'b> {
     pub load_context: &'a mut LoadContext<'b>,
 }
 
-pub fn import_gltf_document(
-    graph: &mut Graph,
-    mut doc: GltfDocument,
-    load_context: &mut LoadContext<'_>,
-) -> Result<Gltf, DocumentImportError> {
-    let mut gltf = Gltf {
-        nodes: vec![Handle::default(); doc.nodes(graph).len()],
-        scenes: vec![Handle::default(); doc.scenes(graph).len()],
-        meshes: vec![Handle::default(); doc.meshes(graph).len()],
-        ..default()
-    };
-
-    let mut context = ImportContext {
-        graph,
-        doc: &mut doc,
-        gltf: &mut gltf,
-        load_context,
-    };
+pub fn import_gltf_document(context: &mut ImportContext) -> Result<(), DocumentImportError> {
+    let default_scene = context.doc.default_scene(context.graph);
 
     for scene in context.doc.scenes(context.graph) {
-        import_scene(&mut context, scene)?;
+        let handle = import_scene(context, scene)?;
+
+        if Some(scene) == default_scene {
+            context.gltf.default_scene = Some(handle);
+        }
     }
 
-    Ok(gltf)
+    Ok(())
 }

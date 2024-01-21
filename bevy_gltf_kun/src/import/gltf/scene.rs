@@ -12,7 +12,7 @@ use super::{
 pub fn import_scene(
     context: &mut ImportContext,
     s: gltf::scene::Scene,
-) -> Result<(), DocumentImportError> {
+) -> Result<Handle<Scene>, DocumentImportError> {
     let mut world = World::default();
 
     world
@@ -54,9 +54,9 @@ pub fn import_scene(
         }
     }
 
-    context.gltf.scenes.insert(index, handle);
+    context.gltf.scenes.insert(index, handle.clone());
 
-    Ok(())
+    Ok(handle)
 }
 
 fn scene_label(index: usize, weight: &SceneWeight) -> String {

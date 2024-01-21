@@ -17,7 +17,7 @@ use thiserror::Error;
 use crate::{extensions::BevyExtensionsIO, import::resolver::BevyAssetResolver};
 
 use super::{
-    document::{import_gltf_document, DocumentImportError},
+    document::{import_gltf_document, DocumentImportError, ImportContext},
     Gltf,
 };
 
@@ -78,8 +78,17 @@ where
             let mut graph = Graph::default();
             let mut doc = GltfIO::<E>::import(&mut graph, format, Some(resolver)).await?;
 
-            let gltf = import_gltf_document(&mut graph, doc, load_context)?;
-            E::import_bevy(&mut graph, &mut doc, load_context);
+            let mut gltf = Gltf::new(&mut graph, &mut doc);
+
+            let mut context = ImportContext {
+                graph: &mut graph,
+                doc: &mut doc,
+                gltf: &mut gltf,
+                load_context,
+            };
+
+            import_gltf_document(&mut context)?;
+            E::import_bevy(&mut context);
 
             Ok(gltf)
         })
@@ -136,8 +145,17 @@ where
             let mut graph = Graph::default();
             let mut doc = GlbIO::<E>::import_slice(&mut graph, &bytes).await?;
 
-            let gltf = import_gltf_document(&mut graph, doc, load_context)?;
-            E::import_bevy(&mut graph, &mut doc, load_context);
+            let mut gltf = Gltf::new(&mut graph, &mut doc);
+
+            let mut context = ImportContext {
+                graph: &mut graph,
+                doc: &mut doc,
+                gltf: &mut gltf,
+                load_context,
+            };
+
+            import_gltf_document(&mut context)?;
+            E::import_bevy(&mut context);
 
             Ok(gltf)
         })
