@@ -21,11 +21,11 @@ use super::{
     Gltf,
 };
 
-pub struct GltfLoader<E: BevyExtensionIO> {
+pub struct GltfLoader<E: BevyExtensionIO<GltfDocument>> {
     pub _marker: std::marker::PhantomData<E>,
 }
 
-impl<E: BevyExtensionIO> Default for GltfLoader<E> {
+impl<E: BevyExtensionIO<GltfDocument>> Default for GltfLoader<E> {
     fn default() -> Self {
         Self {
             _marker: std::marker::PhantomData,
@@ -51,7 +51,11 @@ pub enum GltfError {
 
 impl<E> AssetLoader for GltfLoader<E>
 where
-    E: ExtensionsIO<GltfDocument, GltfFormat> + BevyExtensionIO + Send + Sync + 'static,
+    E: ExtensionsIO<GltfDocument, GltfFormat>
+        + BevyExtensionIO<GltfDocument>
+        + Send
+        + Sync
+        + 'static,
 {
     type Asset = Gltf;
     type Settings = ();
@@ -72,12 +76,10 @@ where
             };
             let resolver = BevyAssetResolver { load_context };
             let mut graph = Graph::default();
-
             let mut doc = GltfIO::<E>::import(&mut graph, format, Some(resolver)).await?;
 
-            E::import_bevy(&mut graph, &mut doc);
-
             let gltf = import_gltf_document(&mut graph, doc, load_context)?;
+            E::import_bevy(&mut graph, &mut doc);
 
             Ok(gltf)
         })
@@ -88,11 +90,11 @@ where
     }
 }
 
-pub struct GlbLoader<E: BevyExtensionIO> {
+pub struct GlbLoader<E: BevyExtensionIO<GltfDocument>> {
     pub _marker: std::marker::PhantomData<E>,
 }
 
-impl<E: BevyExtensionIO> Default for GlbLoader<E> {
+impl<E: BevyExtensionIO<GltfDocument>> Default for GlbLoader<E> {
     fn default() -> Self {
         Self {
             _marker: std::marker::PhantomData,
@@ -112,7 +114,11 @@ pub enum GlbError {
 
 impl<E> AssetLoader for GlbLoader<E>
 where
-    E: ExtensionsIO<GltfDocument, GltfFormat> + BevyExtensionIO + Send + Sync + 'static,
+    E: ExtensionsIO<GltfDocument, GltfFormat>
+        + BevyExtensionIO<GltfDocument>
+        + Send
+        + Sync
+        + 'static,
 {
     type Asset = Gltf;
     type Settings = ();
@@ -128,9 +134,10 @@ where
             reader.read_to_end(&mut bytes).await?;
 
             let mut graph = Graph::default();
-            let doc = GlbIO::<E>::import_slice(&mut graph, &bytes).await?;
+            let mut doc = GlbIO::<E>::import_slice(&mut graph, &bytes).await?;
 
             let gltf = import_gltf_document(&mut graph, doc, load_context)?;
+            E::import_bevy(&mut graph, &mut doc);
 
             Ok(gltf)
         })

@@ -6,11 +6,11 @@ use gltf_kun::{
 #[cfg(feature = "omi_physics_body")]
 pub mod omi_physics_body;
 
-pub trait BevyExtensionIO {
-    fn import_bevy(graph: &mut Graph, doc: &mut GltfDocument);
+pub trait BevyExtensionIO<D> {
+    fn import_bevy(graph: &mut Graph, doc: &mut D);
 }
 
-impl BevyExtensionIO for DefaultExtensions {
+impl BevyExtensionIO<GltfDocument> for DefaultExtensions {
     fn import_bevy(graph: &mut Graph, doc: &mut GltfDocument) {
         todo!()
     }
