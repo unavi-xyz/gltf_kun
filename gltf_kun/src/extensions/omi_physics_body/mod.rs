@@ -25,8 +25,8 @@ pub struct Motion {
     #[serde(rename = "type")]
     pub typ: BodyType,
     /// The mass of the physics body in kilograms.
-    #[serde(default, skip_serializing_if = "float_is_zero")]
-    pub mass: f32,
+    #[serde(default, skip_serializing_if = "is_default_mass")]
+    pub mass: Mass,
     /// The initial linear velocity of the body in meters per second.
     #[serde(
         default,
@@ -64,8 +64,25 @@ pub struct Motion {
     pub inertia_orientation: Quat,
 }
 
+#[derive(Copy, Clone, Debug, Deserialize, PartialEq, Serialize)]
+pub struct Mass(pub f32);
+
+impl Default for Mass {
+    fn default() -> Self {
+        Self(1.0)
+    }
+}
+
+pub fn is_default_mass(mass: &Mass) -> bool {
+    mass.0 == 1.0
+}
+
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Quat(pub [f32; 4]);
+
+fn is_default_quat(quat: &Quat) -> bool {
+    quat.0 == [0.0, 0.0, 0.0, 1.0]
+}
 
 impl Default for Quat {
     fn default() -> Self {
@@ -77,12 +94,12 @@ impl Motion {
     pub fn new(typ: BodyType) -> Self {
         Self {
             typ,
-            mass: 0.0,
-            linear_velocity: [0.0; 3],
-            angular_velocity: [0.0; 3],
-            center_of_mass: [0.0; 3],
-            intertial_diagonal: [0.0; 3],
-            inertia_orientation: Quat::default(),
+            angular_velocity: Default::default(),
+            center_of_mass: Default::default(),
+            inertia_orientation: Default::default(),
+            intertial_diagonal: Default::default(),
+            linear_velocity: Default::default(),
+            mass: Default::default(),
         }
     }
 }
@@ -185,17 +202,27 @@ impl OMIPhysicsBody {
     }
 }
 
-#[allow(clippy::trivially_copy_pass_by_ref)]
 fn float_is_zero(num: &f32) -> bool {
     *num == 0.0
 }
 
-#[allow(clippy::trivially_copy_pass_by_ref)]
 fn slice_is_zero(slice: &[f32]) -> bool {
     slice.iter().all(float_is_zero)
 }
 
-#[allow(clippy::trivially_copy_pass_by_ref)]
-fn is_default_quat(quat: &Quat) -> bool {
-    quat.0 == [0.0, 0.0, 0.0, 1.0]
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_default_mass() {
+        assert!(Mass::default().0 == 1.0);
+        assert!(is_default_mass(&Mass::default()));
+    }
+
+    #[test]
+    fn test_default_quat() {
+        assert!(Quat::default().0 == [0.0, 0.0, 0.0, 1.0]);
+        assert!(is_default_quat(&Quat::default()));
+    }
 }
