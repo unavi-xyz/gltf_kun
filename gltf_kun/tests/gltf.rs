@@ -14,18 +14,12 @@ async fn main() {
     let assets = Path::new(CARGO_MANIFEST_DIR).join(ASSETS_DIR);
     let path = assets.join(MODEL);
 
-    let io = GltfIO;
-    let extensions = Some(&DefaultExtensions);
-
     // Import / export
     let mut graph = Graph::default();
-    let doc = io
-        .import_file(&mut graph, &path, extensions)
+    let doc = GltfIO::<DefaultExtensions>::import_file(&mut graph, &path)
         .await
         .expect("Failed to import glTF");
-    let out = io
-        .export(&mut graph, &doc, extensions)
-        .expect("Failed to export glTF");
+    let out = GltfIO::<DefaultExtensions>::export(&mut graph, &doc).expect("Failed to export glTF");
     let json = serde_json::to_string(&out.json).expect("Failed to serialize json");
 
     debug!(
@@ -43,13 +37,10 @@ async fn main() {
 
     // Import / export written file
     let mut graph = Graph::default();
-    let doc = io
-        .import_file(&mut graph, &path, extensions)
+    let doc = GltfIO::<DefaultExtensions>::import_file(&mut graph, &path)
         .await
         .expect("Failed to import glTF");
-    let out = io
-        .export(&mut graph, &doc, extensions)
-        .expect("Failed to export glTF");
+    let out = GltfIO::<DefaultExtensions>::export(&mut graph, &doc).expect("Failed to export glTF");
     let json2 = serde_json::to_string(&out.json).expect("Failed to serialize json");
 
     assert_eq!(json, json2);

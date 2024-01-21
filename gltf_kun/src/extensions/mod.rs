@@ -37,15 +37,14 @@ pub trait ExtensionImport<D, F> {
 
 /// IO for a collection of extensions.
 pub trait ExtensionsIO<D, F> {
-    fn export(&self, graph: &mut Graph, doc: &D, format: &mut F) -> Result<(), Box<dyn Error>>;
-    fn import(&self, graph: &mut Graph, format: &mut F, doc: &D) -> Result<(), Box<dyn Error>>;
+    fn export(graph: &mut Graph, doc: &D, format: &mut F) -> Result<(), Box<dyn Error>>;
+    fn import(graph: &mut Graph, format: &mut F, doc: &D) -> Result<(), Box<dyn Error>>;
 }
 
 pub struct DefaultExtensions;
 
 impl ExtensionsIO<GltfDocument, GltfFormat> for DefaultExtensions {
     fn export(
-        &self,
         graph: &mut Graph,
         doc: &GltfDocument,
         format: &mut GltfFormat,
@@ -59,7 +58,6 @@ impl ExtensionsIO<GltfDocument, GltfFormat> for DefaultExtensions {
     }
 
     fn import(
-        &self,
         graph: &mut Graph,
         format: &mut GltfFormat,
         doc: &GltfDocument,

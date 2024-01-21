@@ -153,8 +153,7 @@ fn get_result(mut exports: ResMut<Events<GltfExportResult>>, mut writer: EventWr
             Err(e) => panic!("Failed to export from Bevy: {}", e),
         };
 
-        let io = GlbIO;
-        let glb = match io.export(&mut event.graph, &doc, Some(&DefaultExtensions)) {
+        let glb = match GlbIO::<DefaultExtensions>::export(&mut event.graph, &doc) {
             Ok(glb) => glb,
             Err(e) => panic!("Failed to export to glb: {}", e),
         };

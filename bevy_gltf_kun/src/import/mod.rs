@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use gltf_kun::extensions::DefaultExtensions;
 
 use self::gltf::{
     loader::{GlbLoader, GltfLoader},
@@ -17,7 +18,11 @@ impl Plugin for GltfImportPlugin {
         app.init_asset::<Gltf>()
             .init_asset::<GltfNode>()
             .init_asset::<GltfMesh>()
-            .register_asset_loader::<GltfLoader>(GltfLoader)
-            .register_asset_loader::<GlbLoader>(GlbLoader);
+            .register_asset_loader::<GltfLoader<DefaultExtensions>>(
+                GltfLoader::<DefaultExtensions>::default(),
+            )
+            .register_asset_loader::<GlbLoader<DefaultExtensions>>(
+                GlbLoader::<DefaultExtensions>::default(),
+            );
     }
 }

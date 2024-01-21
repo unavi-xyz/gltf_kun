@@ -45,39 +45,30 @@ impl GltfFormat {
     }
 }
 
-pub struct GltfIO;
+pub struct GltfIO<E: ExtensionsIO<GltfDocument, GltfFormat>> {
+    pub _marker: std::marker::PhantomData<E>,
+}
 
-impl GltfIO {
-    pub fn export(
-        &self,
-        graph: &mut Graph,
-        doc: &GltfDocument,
-        extensions: Option<&impl ExtensionsIO<GltfDocument, GltfFormat>>,
-    ) -> Result<GltfFormat, GltfExportError> {
+impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GltfIO<E> {
+    pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfExportError> {
         let mut format = export::export(graph, doc)?;
 
-        if let Some(extensions) = extensions {
-            if let Err(e) = extensions.export(graph, doc, &mut format) {
-                warn!("Failed to export extensions: {}", e);
-            }
+        if let Err(e) = E::export(graph, doc, &mut format) {
+            warn!("Failed to export extensions: {}", e);
         }
 
         Ok(format)
     }
 
     pub async fn import(
-        &self,
         graph: &mut Graph,
         mut format: GltfFormat,
         mut resolver: Option<impl Resolver>,
-        extensions: Option<&impl ExtensionsIO<GltfDocument, GltfFormat>>,
     ) -> Result<GltfDocument, GltfImportError> {
         let doc = import::import(graph, &mut format, &mut resolver).await?;
 
-        if let Some(extensions) = extensions {
-            if let Err(e) = extensions.import(graph, &mut format, &doc) {
-                warn!("Failed to import extensions: {}", e);
-            }
+        if let Err(e) = E::import(graph, &mut format, &doc) {
+            warn!("Failed to import extensions: {}", e);
         }
 
         Ok(doc)
@@ -85,10 +76,8 @@ impl GltfIO {
 
     /// Import a glTF file from a path.
     pub async fn import_file(
-        &self,
         graph: &mut Graph,
         path: &Path,
-        extensions: Option<&impl ExtensionsIO<GltfDocument, GltfFormat>>,
     ) -> Result<GltfDocument, ImportFileError> {
         let format = GltfFormat {
             json: serde_json::from_reader(std::fs::File::open(path)?)?,
@@ -98,9 +87,7 @@ impl GltfIO {
         let dir = std::path::Path::new(path).parent().unwrap();
         let resolver = FileResolver::new(dir);
 
-        let doc = self
-            .import(graph, format, Some(resolver), extensions)
-            .await?;
+        let doc = Self::import(graph, format, Some(resolver)).await?;
 
         Ok(doc)
     }

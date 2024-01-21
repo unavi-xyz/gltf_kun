@@ -5,8 +5,8 @@ use bevy::{
     utils::BoxedFuture,
 };
 use gltf_kun::{
-    extensions::DefaultExtensions,
-    graph::Graph,
+    extensions::ExtensionsIO,
+    graph::{gltf::document::GltfDocument, Graph},
     io::format::{
         glb::{GlbIO, GlbImportError},
         gltf::{import::GltfImportError, GltfFormat, GltfIO},
@@ -14,15 +14,24 @@ use gltf_kun::{
 };
 use thiserror::Error;
 
-use crate::import::resolver::BevyAssetResolver;
+use crate::{extensions::BevyExtensionIO, import::resolver::BevyAssetResolver};
 
 use super::{
     document::{import_gltf_document, DocumentImportError},
     Gltf,
 };
 
-#[derive(Default)]
-pub struct GltfLoader;
+pub struct GltfLoader<E: BevyExtensionIO> {
+    pub _marker: std::marker::PhantomData<E>,
+}
+
+impl<E: BevyExtensionIO> Default for GltfLoader<E> {
+    fn default() -> Self {
+        Self {
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
 
 #[derive(Debug, Error)]
 pub enum GltfError {
@@ -40,7 +49,10 @@ pub enum GltfError {
     SerdeJson(#[from] serde_json::Error),
 }
 
-impl AssetLoader for GltfLoader {
+impl<E> AssetLoader for GltfLoader<E>
+where
+    E: ExtensionsIO<GltfDocument, GltfFormat> + BevyExtensionIO + Send + Sync + 'static,
+{
     type Asset = Gltf;
     type Settings = ();
     type Error = GltfError;
@@ -61,11 +73,12 @@ impl AssetLoader for GltfLoader {
             let resolver = BevyAssetResolver { load_context };
             let mut graph = Graph::default();
 
-            let doc = GltfIO
-                .import(&mut graph, format, Some(resolver), Some(&DefaultExtensions))
-                .await?;
+            let mut doc = GltfIO::<E>::import(&mut graph, format, Some(resolver)).await?;
+
+            E::import_bevy(&mut graph, &mut doc);
 
             let gltf = import_gltf_document(&mut graph, doc, load_context)?;
+
             Ok(gltf)
         })
     }
@@ -75,8 +88,17 @@ impl AssetLoader for GltfLoader {
     }
 }
 
-#[derive(Default)]
-pub struct GlbLoader;
+pub struct GlbLoader<E: BevyExtensionIO> {
+    pub _marker: std::marker::PhantomData<E>,
+}
+
+impl<E: BevyExtensionIO> Default for GlbLoader<E> {
+    fn default() -> Self {
+        Self {
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
 
 #[derive(Debug, Error)]
 pub enum GlbError {
@@ -88,7 +110,10 @@ pub enum GlbError {
     Io(#[from] std::io::Error),
 }
 
-impl AssetLoader for GlbLoader {
+impl<E> AssetLoader for GlbLoader<E>
+where
+    E: ExtensionsIO<GltfDocument, GltfFormat> + BevyExtensionIO + Send + Sync + 'static,
+{
     type Asset = Gltf;
     type Settings = ();
     type Error = GlbError;
@@ -103,11 +128,10 @@ impl AssetLoader for GlbLoader {
             reader.read_to_end(&mut bytes).await?;
 
             let mut graph = Graph::default();
-            let doc = GlbIO
-                .import_slice(&mut graph, &bytes, Some(&DefaultExtensions))
-                .await?;
+            let doc = GlbIO::<E>::import_slice(&mut graph, &bytes).await?;
 
             let gltf = import_gltf_document(&mut graph, doc, load_context)?;
+
             Ok(gltf)
         })
     }

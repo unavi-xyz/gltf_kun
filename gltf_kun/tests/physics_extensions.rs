@@ -24,22 +24,16 @@ async fn main() {
     let assets = Path::new(CARGO_MANIFEST_DIR).join(ASSETS_DIR);
     let path = assets.join(MODEL);
 
-    let io = GltfIO;
-    let extensions = Some(&DefaultExtensions);
-
     // Import
     let mut graph = Graph::default();
-    let doc = io
-        .import_file(&mut graph, &path, extensions)
+    let doc = GltfIO::<DefaultExtensions>::import_file(&mut graph, &path)
         .await
         .expect("Failed to import glTF");
 
     validate_doc(&graph, &doc);
 
     // Export to file
-    let out = io
-        .export(&mut graph, &doc, extensions)
-        .expect("Failed to export glTF");
+    let out = GltfIO::<DefaultExtensions>::export(&mut graph, &doc).expect("Failed to export glTF");
 
     let json = serde_json::to_value(&out.json).expect("Failed to serialize glTF");
     validate_json(&json);
@@ -50,8 +44,7 @@ async fn main() {
 
     // Import written file
     let mut graph = Graph::default();
-    let doc = io
-        .import_file(&mut graph, &path, extensions)
+    let doc = GltfIO::<DefaultExtensions>::import_file(&mut graph, &path)
         .await
         .expect("Failed to import glTF");
 

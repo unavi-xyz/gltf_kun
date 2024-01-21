@@ -10,7 +10,7 @@
 //! // This is where all the data will be stored.
 //! let mut graph = Graph::default();
 //!
-//! // Create a new glTF document.
+//! // Create a new glTF document within the graph.
 //! let doc = GltfDocument::new(&mut graph);
 //!
 //! // Create a new scene.
@@ -35,7 +35,7 @@
 //! use gltf_kun::{extensions::DefaultExtensions, io::format::glb::GlbIO};
 //!
 //! // Export the document to a GLB byte array.
-//! let glb = GlbIO.export(&mut graph, &doc, Some(&DefaultExtensions)).ok();
+//! let glb = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).ok();
 //! ```
 
 pub mod extensions;
