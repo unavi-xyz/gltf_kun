@@ -53,7 +53,7 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsShape {
         doc: &GltfDocument,
         format: &mut GltfFormat,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let ext = match doc.get_extension::<OMIPhysicsShape>(graph) {
+        let ext = match doc.get_extension::<Self>(graph) {
             Some(ext) => ext,
             None => return Ok(()),
         };
@@ -103,9 +103,9 @@ impl ExtensionImport<GltfDocument, GltfFormat> for OMIPhysicsShape {
 
         let root_extension = serde_json::from_value::<RootExtension>(value.clone())?;
 
-        let ext = match doc.get_extension::<OMIPhysicsShape>(graph) {
+        let ext = match doc.get_extension::<Self>(graph) {
             Some(ext) => ext,
-            None => doc.create_extension::<OMIPhysicsShape>(graph),
+            None => doc.create_extension::<Self>(graph),
         };
 
         root_extension.shapes.iter().for_each(|shape| {

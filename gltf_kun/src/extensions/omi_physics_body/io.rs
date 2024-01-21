@@ -37,7 +37,7 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsBody {
         doc.nodes(graph)
             .iter()
             .enumerate()
-            .filter_map(|(i, n)| n.get_extension::<OMIPhysicsBody>(graph).map(|e| (i, e)))
+            .filter_map(|(i, n)| n.get_extension::<Self>(graph).map(|e| (i, e)))
             .for_each(|(i, ext)| {
                 let weight = ext.read(graph);
 
@@ -112,7 +112,7 @@ impl ExtensionImport<GltfDocument, GltfFormat> for OMIPhysicsBody {
             .for_each(|(i, json)| {
                 let nodes = doc.nodes(graph);
                 let node = nodes.get(i).expect("Node index out of bounds");
-                let mut ext = node.create_extension::<OMIPhysicsBody>(graph);
+                let mut ext = node.create_extension::<Self>(graph);
 
                 // Motion
                 if let Some(motion) = json.motion {
