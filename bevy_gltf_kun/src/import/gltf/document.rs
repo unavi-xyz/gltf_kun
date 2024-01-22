@@ -2,7 +2,7 @@ use bevy::asset::LoadContext;
 use gltf_kun::graph::{gltf::document::GltfDocument, Graph};
 use thiserror::Error;
 
-use crate::extensions::BevyImportExtensions;
+use crate::import::extensions::BevyImportExtensions;
 
 use super::{scene::import_scene, Gltf};
 

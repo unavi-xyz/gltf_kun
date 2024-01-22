@@ -4,7 +4,7 @@ use gltf_kun::graph::{
     GraphNode,
 };
 
-use crate::extensions::BevyImportExtensions;
+use crate::import::extensions::BevyImportExtensions;
 
 use super::{
     document::{DocumentImportError, ImportContext},

@@ -14,7 +14,7 @@ use gltf_kun::{
 };
 use thiserror::Error;
 
-use crate::{extensions::BevyImportExtensions, import::resolver::BevyAssetResolver};
+use crate::import::{extensions::BevyImportExtensions, resolver::BevyAssetResolver};
 
 use super::{
     document::{import_gltf_document, DocumentImportError, ImportContext},

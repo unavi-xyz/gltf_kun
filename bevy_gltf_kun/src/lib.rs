@@ -11,9 +11,9 @@ pub struct GltfKunPlugin;
 impl Plugin for GltfKunPlugin {
     fn build(&self, app: &mut App) {
         #[cfg(feature = "export")]
-        app.add_plugins(export::GltfExportPlugin);
+        app.add_plugins(export::gltf::GltfExportPlugin);
         #[cfg(feature = "import")]
-        app.add_plugins(import::GltfImportPlugin);
+        app.add_plugins(import::gltf::GltfImportPlugin);
         app.add_plugins(extensions::ExtensionsPlugin);
     }
 }

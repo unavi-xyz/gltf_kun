@@ -3,7 +3,7 @@ use std::path::Path;
 use bevy::{input::keyboard::KeyboardInput, prelude::*};
 use bevy_egui::{EguiContexts, EguiPlugin};
 use bevy_gltf_kun::{
-    export::{Export, GltfExport, GltfExportResult},
+    export::gltf::{Export, GltfExport, GltfExportResult},
     GltfKunPlugin,
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
