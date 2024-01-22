@@ -8,11 +8,10 @@ repository.workspace = true
 edition.workspace = true
 
 [features]
-default = ["export", "import", "omi_physics_shape", "omi_physics_body"]
+default = ["export", "import", "omi_physics"]
 export = []
 import = []
-omi_physics_shape = ["dep:bevy_xpbd_3d", "gltf_kun/omi_physics_shape"]
-omi_physics_body = ["omi_physics_shape", "gltf_kun/omi_physics_body"]
+omi_physics = ["dep:bevy_xpbd_3d", "gltf_kun/omi_physics_body"]
 
 [dependencies]
 bevy = { version = "0.12.1", default-features = false, features = ["bevy_asset", "bevy_pbr", "bevy_render", "bevy_scene"] }

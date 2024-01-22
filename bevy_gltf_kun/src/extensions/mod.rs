@@ -1,43 +1,33 @@
-use bevy::asset::LoadContext;
+use bevy::ecs::world::EntityWorldMut;
 use gltf_kun::{
-    extensions::{
-        omi_physics_body::OMIPhysicsBody, omi_physics_shape::OMIPhysicsShape, DefaultExtensions,
+    extensions::{omi_physics_body::OMIPhysicsBody, DefaultExtensions, Extension},
+    graph::{
+        gltf::{document::GltfDocument, node::Node},
+        Property,
     },
-    graph::{gltf::document::GltfDocument, Graph},
 };
 
 use crate::import::gltf::document::ImportContext;
 
-#[cfg(feature = "omi_physics_body")]
-pub mod omi_physics_body;
-#[cfg(feature = "omi_physics_shape")]
-pub mod omi_physics_shape;
+#[cfg(feature = "omi_physics")]
+pub mod omi_physics;
 
-pub trait BevyExtensionImport<D> {
-    fn import_bevy(context: &mut ImportContext);
-}
-
-pub trait BevyExtensionExport<D> {
-    fn export_bevy(graph: &mut Graph, doc: &mut D, load_context: &mut LoadContext);
-}
-
-pub trait BevyExtensionsIO<D> {
-    fn import_bevy(context: &mut ImportContext);
-    fn export_bevy(graph: &mut Graph, doc: &mut D, load_context: &mut LoadContext);
-}
-
-impl BevyExtensionsIO<GltfDocument> for DefaultExtensions {
-    fn import_bevy(context: &mut ImportContext) {
-        #[cfg(feature = "omi_physics_shape")]
-        OMIPhysicsShape::import_bevy(context);
-        #[cfg(feature = "omi_physics_body")]
-        OMIPhysicsBody::import_bevy(context);
+pub trait NodeExtensionImport<D>: Extension {
+    fn maybe_import_node(context: &mut ImportContext, entity: &mut EntityWorldMut, node: Node) {
+        if let Some(ext) = node.get_extension::<Self>(context.graph) {
+            Self::import_node(context, entity, ext);
+        }
     }
 
-    fn export_bevy(graph: &mut Graph, doc: &mut GltfDocument, load_context: &mut LoadContext) {
-        #[cfg(feature = "omi_physics_shape")]
-        OMIPhysicsShape::export_bevy(graph, doc, load_context);
-        #[cfg(feature = "omi_physics_body")]
-        OMIPhysicsBody::export_bevy(graph, doc, load_context);
+    fn import_node(context: &mut ImportContext, entity: &mut EntityWorldMut, ext: Self);
+}
+
+pub trait BevyImportExtensions<D> {
+    fn process_node(context: &mut ImportContext, entity: &mut EntityWorldMut, node: Node);
+}
+
+impl BevyImportExtensions<GltfDocument> for DefaultExtensions {
+    fn process_node(context: &mut ImportContext, entity: &mut EntityWorldMut, node: Node) {
+        OMIPhysicsBody::maybe_import_node(context, entity, node)
     }
 }

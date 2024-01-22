@@ -26,8 +26,8 @@ fn main() {
             EguiPlugin,
             GltfKunPlugin,
             PanOrbitCameraPlugin,
-            PhysicsPlugins::default(),
             PhysicsDebugPlugin::default(),
+            PhysicsPlugins::default(),
         ))
         .add_event::<LoadScene>()
         .add_systems(Startup, setup)

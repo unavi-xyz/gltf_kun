@@ -1,8 +1,13 @@
 use bevy::prelude::*;
 use gltf_kun::graph::{
-    gltf::node::{Node, NodeWeight},
+    gltf::{
+        document::GltfDocument,
+        node::{Node, NodeWeight},
+    },
     GraphNode,
 };
+
+use crate::extensions::BevyImportExtensions;
 
 use super::{
     document::{DocumentImportError, ImportContext},
@@ -17,7 +22,7 @@ pub struct GltfNode {
     pub extras: Option<Box<serde_json::value::RawValue>>,
 }
 
-pub fn import_node(
+pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext<'_, '_>,
     builder: &mut WorldChildBuilder,
     n: &mut Node,
@@ -52,12 +57,12 @@ pub fn import_node(
     let mut children = Vec::new();
 
     ent.with_children(|parent| {
-        n.children(context.graph)
-            .iter_mut()
-            .for_each(|c| match import_node(context, parent, c) {
+        n.children(context.graph).iter_mut().for_each(|c| {
+            match import_node::<E>(context, parent, c) {
                 Ok(handle) => children.push(handle),
                 Err(e) => warn!("Failed to import node: {}", e),
-            })
+            }
+        })
     });
 
     let node = GltfNode {
@@ -84,6 +89,8 @@ pub fn import_node(
             context.gltf.named_nodes.insert(node_label, handle.clone());
         }
     }
+
+    E::process_node(context, &mut ent, *n);
 
     Ok(handle)
 }

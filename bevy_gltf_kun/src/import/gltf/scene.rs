@@ -1,15 +1,17 @@
 use bevy::prelude::*;
 use gltf_kun::graph::{
-    gltf::{self, scene::SceneWeight},
+    gltf::{self, document::GltfDocument, scene::SceneWeight},
     GraphNode,
 };
+
+use crate::extensions::BevyImportExtensions;
 
 use super::{
     document::{DocumentImportError, ImportContext},
     node::import_node,
 };
 
-pub fn import_scene(
+pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
     s: gltf::scene::Scene,
 ) -> Result<Handle<Scene>, DocumentImportError> {
@@ -19,7 +21,7 @@ pub fn import_scene(
         .spawn(SpatialBundle::INHERITED_IDENTITY)
         .with_children(|parent| {
             for mut node in s.nodes(context.graph) {
-                if let Err(e) = import_node(context, parent, &mut node) {
+                if let Err(e) = import_node::<E>(context, parent, &mut node) {
                     warn!("Failed to import node: {}", e);
                 }
             }

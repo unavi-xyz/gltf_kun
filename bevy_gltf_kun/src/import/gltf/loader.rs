@@ -14,18 +14,18 @@ use gltf_kun::{
 };
 use thiserror::Error;
 
-use crate::{extensions::BevyExtensionsIO, import::resolver::BevyAssetResolver};
+use crate::{extensions::BevyImportExtensions, import::resolver::BevyAssetResolver};
 
 use super::{
     document::{import_gltf_document, DocumentImportError, ImportContext},
     Gltf,
 };
 
-pub struct GltfLoader<E: BevyExtensionsIO<GltfDocument>> {
+pub struct GltfLoader<E: BevyImportExtensions<GltfDocument>> {
     pub _marker: std::marker::PhantomData<E>,
 }
 
-impl<E: BevyExtensionsIO<GltfDocument>> Default for GltfLoader<E> {
+impl<E: BevyImportExtensions<GltfDocument>> Default for GltfLoader<E> {
     fn default() -> Self {
         Self {
             _marker: std::marker::PhantomData,
@@ -52,7 +52,7 @@ pub enum GltfError {
 impl<E> AssetLoader for GltfLoader<E>
 where
     E: ExtensionsIO<GltfDocument, GltfFormat>
-        + BevyExtensionsIO<GltfDocument>
+        + BevyImportExtensions<GltfDocument>
         + Send
         + Sync
         + 'static,
@@ -87,8 +87,7 @@ where
                 load_context,
             };
 
-            import_gltf_document(&mut context)?;
-            E::import_bevy(&mut context);
+            import_gltf_document::<E>(&mut context)?;
 
             Ok(gltf)
         })
@@ -99,11 +98,11 @@ where
     }
 }
 
-pub struct GlbLoader<E: BevyExtensionsIO<GltfDocument>> {
+pub struct GlbLoader<E: BevyImportExtensions<GltfDocument>> {
     pub _marker: std::marker::PhantomData<E>,
 }
 
-impl<E: BevyExtensionsIO<GltfDocument>> Default for GlbLoader<E> {
+impl<E: BevyImportExtensions<GltfDocument>> Default for GlbLoader<E> {
     fn default() -> Self {
         Self {
             _marker: std::marker::PhantomData,
@@ -124,7 +123,7 @@ pub enum GlbError {
 impl<E> AssetLoader for GlbLoader<E>
 where
     E: ExtensionsIO<GltfDocument, GltfFormat>
-        + BevyExtensionsIO<GltfDocument>
+        + BevyImportExtensions<GltfDocument>
         + Send
         + Sync
         + 'static,
@@ -154,8 +153,7 @@ where
                 load_context,
             };
 
-            import_gltf_document(&mut context)?;
-            E::import_bevy(&mut context);
+            import_gltf_document::<E>(&mut context)?;
 
             Ok(gltf)
         })
