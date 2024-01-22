@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use bevy::{input::keyboard::KeyboardInput, prelude::*};
+use bevy::prelude::*;
 use bevy_egui::{EguiContexts, EguiPlugin};
 use bevy_gltf_kun::{
     export::gltf::{GltfExport, GltfExportResult},
@@ -117,23 +117,12 @@ fn spawn_model(
 
 fn export(
     mut export: EventWriter<GltfExport<DefaultExtensions>>,
-    mut keyboard_input: EventReader<KeyboardInput>,
-    mut last_export: Local<f32>,
+    keyboard: Res<Input<KeyCode>>,
     scene: Query<&Handle<Scene>, With<SceneMarker>>,
-    time: Res<Time>,
 ) {
-    if !keyboard_input
-        .read()
-        .any(|e| e.key_code == Some(KeyCode::E))
-    {
+    if !keyboard.just_pressed(KeyCode::E) {
         return;
     }
-
-    if time.elapsed_seconds() - *last_export < 0.5 {
-        return;
-    }
-
-    *last_export = time.elapsed_seconds();
 
     info!("Exporting scene");
 
