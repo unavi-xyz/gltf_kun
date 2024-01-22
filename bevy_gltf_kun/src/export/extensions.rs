@@ -7,7 +7,7 @@ use gltf_kun::{
 use super::gltf::ExportContext;
 
 pub trait BevyExtensionExport {
-    fn bevy_export(context: In<ExportContext>) -> ExportContext;
+    fn bevy_export(context: In<ExportContext>, world: &mut World) -> ExportContext;
 }
 
 pub trait BevyExportExtensions<D>: Send + Sync + 'static {

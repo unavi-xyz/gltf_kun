@@ -73,6 +73,12 @@ impl Default for Mass {
     }
 }
 
+impl From<f32> for Mass {
+    fn from(value: f32) -> Self {
+        Self(value)
+    }
+}
+
 pub fn is_default_mass(mass: &Mass) -> bool {
     mass.0 == 1.0
 }
