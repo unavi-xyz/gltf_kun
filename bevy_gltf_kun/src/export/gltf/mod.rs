@@ -7,34 +7,46 @@ use gltf_kun::graph::{
 };
 use thiserror::Error;
 
+use super::extensions::BevyExportExtensions;
+
 pub mod mesh;
 pub mod node;
 pub mod scene;
 pub mod vertex_to_accessor;
 
-pub struct GltfExportPlugin;
+pub struct GltfExportPlugin<E: BevyExportExtensions<GltfDocument>> {
+    _marker: PhantomData<E>,
+}
 
-impl Plugin for GltfExportPlugin {
+impl<E: BevyExportExtensions<GltfDocument>> Default for GltfExportPlugin<E> {
+    fn default() -> Self {
+        Self {
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<E: BevyExportExtensions<GltfDocument>> Plugin for GltfExportPlugin<E> {
     fn build(&self, app: &mut App) {
-        app.add_event::<GltfExport>()
+        app.add_event::<GltfExport<E>>()
             .add_event::<GltfExportResult>()
-            .add_systems(Update, read_event.pipe(export_gltf));
+            .add_systems(Update, read_event::<E>.pipe(export_gltf));
     }
 }
 
 #[derive(Default, Event)]
-pub struct GltfExport<E> {
+pub struct GltfExport<E: BevyExportExtensions<GltfDocument>> {
     pub scenes: Vec<Handle<Scene>>,
     pub default_scene: Option<Handle<Scene>>,
-    pub _marker: PhantomData<E>,
+    _marker: PhantomData<E>,
 }
 
-impl<T> GltfExport<T> {
+impl<E: BevyExportExtensions<GltfDocument>> GltfExport<E> {
     pub fn new(scene: Handle<Scene>) -> Self {
         Self {
             scenes: vec![scene.clone()],
             default_scene: Some(scene),
-            _doc_type: PhantomData,
+            _marker: PhantomData,
         }
     }
 }
@@ -43,29 +55,35 @@ impl<T> GltfExport<T> {
 pub enum ExportError {}
 
 #[derive(Event)]
-pub struct GltfExportResult<T> {
+pub struct GltfExportResult {
     pub graph: Graph,
-    pub result: Result<T, ExportError>,
+    pub result: Result<GltfDocument, ExportError>,
 }
 
 pub struct ExportContext {
     pub doc: GltfDocument,
-    pub event: GltfExport,
     pub graph: Graph,
+
+    pub target_scenes: Vec<Handle<Scene>>,
+    pub target_default_scene: Option<Handle<Scene>>,
+
     pub meshes: Vec<CachedMesh>,
     pub nodes: Vec<CachedNode>,
     pub scenes: Vec<CachedScene>,
 }
 
 impl ExportContext {
-    pub fn new(event: GltfExport) -> Self {
+    pub fn new<E: BevyExportExtensions<GltfDocument>>(event: GltfExport<E>) -> Self {
         let mut graph = Graph::default();
         let doc = GltfDocument::new(&mut graph);
 
         Self {
             doc,
-            event,
             graph,
+
+            target_scenes: event.scenes,
+            target_default_scene: event.default_scene,
+
             meshes: Vec::new(),
             nodes: Vec::new(),
             scenes: Vec::new(),
@@ -90,11 +108,16 @@ pub struct CachedScene {
     pub entity: Entity,
 }
 
-pub fn read_event(mut events: ResMut<Events<GltfExport>>) -> Option<GltfExport> {
+pub fn read_event<E: BevyExportExtensions<GltfDocument>>(
+    mut events: ResMut<Events<GltfExport<E>>>,
+) -> Option<GltfExport<E>> {
     events.drain().next()
 }
 
-pub fn export_gltf(In(event): In<Option<GltfExport>>, world: &mut World) {
+pub fn export_gltf<E: BevyExportExtensions<GltfDocument>>(
+    In(event): In<Option<GltfExport<E>>>,
+    world: &mut World,
+) {
     let event = match event {
         Some(event) => event,
         None => return,
@@ -105,6 +128,7 @@ pub fn export_gltf(In(event): In<Option<GltfExport>>, world: &mut World) {
         scene::export_scenes
             .pipe(node::export_nodes)
             .pipe(mesh::export_meshes)
+            .pipe(E::bevy_export)
             .pipe(create_export_result),
     );
 }

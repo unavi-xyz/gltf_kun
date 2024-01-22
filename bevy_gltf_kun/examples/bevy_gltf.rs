@@ -5,7 +5,7 @@ use std::path::Path;
 use bevy::{input::keyboard::KeyboardInput, prelude::*};
 use bevy_egui::{EguiContexts, EguiPlugin};
 use bevy_gltf_kun::{
-    export::gltf::{GltfExport, GltfExport, GltfExportResult},
+    export::gltf::{GltfExport, GltfExportResult},
     GltfKunPlugin,
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
@@ -25,7 +25,7 @@ fn main() {
                 ..default()
             }),
             EguiPlugin,
-            GltfKunPlugin,
+            GltfKunPlugin::<DefaultExtensions>::default(),
             PanOrbitCameraPlugin,
         ))
         .add_event::<LoadScene>()
@@ -109,7 +109,7 @@ fn spawn_model(
 }
 
 fn export(
-    mut export: EventWriter<GltfExport>,
+    mut export: EventWriter<GltfExport<DefaultExtensions>>,
     mut keyboard_input: EventReader<KeyboardInput>,
     mut last_export: Local<f32>,
     scene: Query<&Handle<Scene>, With<SceneMarker>>,

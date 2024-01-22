@@ -9,7 +9,7 @@ pub fn export_scenes(
     scenes: Query<(Entity, &Handle<Scene>)>,
 ) -> ExportContext {
     for (entity, handle) in scenes.iter() {
-        if !context.event.scenes.contains(handle) {
+        if !context.target_scenes.contains(handle) {
             continue;
         }
 
@@ -19,7 +19,7 @@ pub fn export_scenes(
 
         let mut scene = context.doc.create_scene(&mut context.graph);
 
-        if context.event.default_scene == Some(handle.clone()) {
+        if context.target_default_scene == Some(handle.clone()) {
             context
                 .doc
                 .set_default_scene(&mut context.graph, Some(&scene));
