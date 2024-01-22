@@ -41,7 +41,7 @@ struct SceneMarker;
 fn setup(mut commands: Commands, mut writer: EventWriter<LoadScene>) {
     commands.spawn((
         Camera3dBundle {
-            transform: Transform::from_xyz(1.0, 2.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
+            transform: Transform::from_xyz(2.0, 5.0, 20.0),
             ..default()
         },
         PanOrbitCamera::default(),
@@ -52,7 +52,11 @@ fn setup(mut commands: Commands, mut writer: EventWriter<LoadScene>) {
         ..default()
     });
 
-    commands.spawn((RigidBody::Static, Collider::cuboid(10.0, 0.01, 10.0)));
+    commands.spawn((
+        RigidBody::Static,
+        Collider::cuboid(10.0, 0.01, 10.0),
+        TransformBundle::from_transform(Transform::from_xyz(0.0, -5.0, 0.0)),
+    ));
 
     writer.send(LoadScene(MODELS[0].to_string()));
 }

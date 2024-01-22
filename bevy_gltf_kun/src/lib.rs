@@ -14,5 +14,6 @@ impl Plugin for GltfKunPlugin {
         app.add_plugins(export::GltfExportPlugin);
         #[cfg(feature = "import")]
         app.add_plugins(import::GltfImportPlugin);
+        app.add_plugins(extensions::ExtensionsPlugin);
     }
 }

@@ -1,4 +1,4 @@
-use bevy::ecs::world::EntityWorldMut;
+use bevy::prelude::*;
 use gltf_kun::{
     extensions::{omi_physics_body::OMIPhysicsBody, DefaultExtensions, Extension},
     graph::{
@@ -11,6 +11,15 @@ use crate::import::gltf::document::ImportContext;
 
 #[cfg(feature = "omi_physics")]
 pub mod omi_physics;
+
+pub struct ExtensionsPlugin;
+
+impl Plugin for ExtensionsPlugin {
+    fn build(&self, app: &mut App) {
+        #[cfg(feature = "omi_physics")]
+        app.add_plugins(omi_physics::OMIPhysicsPlugin);
+    }
+}
 
 pub trait NodeExtensionImport<D>: Extension {
     fn maybe_import_node(context: &mut ImportContext, entity: &mut EntityWorldMut, node: Node) {
