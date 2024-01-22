@@ -8,6 +8,7 @@ use self::gltf::{
     Gltf,
 };
 
+pub mod extensions;
 pub mod gltf;
 pub mod resolver;
 

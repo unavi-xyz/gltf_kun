@@ -10,7 +10,7 @@ use gltf_kun::{
     graph::{gltf::document::GltfDocument, ByteNode},
 };
 
-use crate::{extensions::NodeExtensionImport, import::gltf::document::ImportContext};
+use crate::import::{extensions::NodeExtensionImport, gltf::document::ImportContext};
 
 /// Mark a collider to be added to the entity after asset loading.
 /// This is needed because `Collider` doesn't implement `Reflect`.
