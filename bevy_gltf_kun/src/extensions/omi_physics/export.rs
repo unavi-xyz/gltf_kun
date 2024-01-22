@@ -60,6 +60,29 @@ pub fn export_physics_bodies(
                 .create_extension::<OMIPhysicsShape>(&mut context.graph),
         };
 
+        if let Ok(body) = body {
+            let (body, angular_velocity, linear_velocity, mass, _inertia, center_of_mass) = body;
+
+            // TODO: convert inertia Mat3 to diagonal and orientation
+
+            let mut weight = ext.read(&context.graph);
+
+            let typ = match body {
+                RigidBody::Static => BodyType::Static,
+                RigidBody::Dynamic => BodyType::Dynamic,
+                RigidBody::Kinematic => BodyType::Kinematic,
+            };
+
+            let mut motion = Motion::new(typ);
+            motion.angular_velocity = angular_velocity.0.to_array();
+            motion.linear_velocity = linear_velocity.0.to_array();
+            motion.mass = mass.0.into();
+            motion.center_of_mass = center_of_mass.0.to_array();
+            weight.motion = Some(motion);
+
+            ext.write(&mut context.graph, &weight);
+        }
+
         if let Ok(collider) = collider {
             let collider_shape = collider.shape();
 
@@ -102,29 +125,6 @@ pub fn export_physics_bodies(
             let collider_shape = shapes_ext.create_shape(&mut context.graph, &shape_weight);
             ext.set_collider(&mut context.graph, Some(&collider_shape));
         };
-
-        if let Ok(body) = body {
-            let (body, angular_velocity, linear_velocity, mass, _inertia, center_of_mass) = body;
-
-            // TODO: convert inertia Mat3 to diagonal and orientation
-
-            let mut weight = ext.read(&context.graph);
-
-            let typ = match body {
-                RigidBody::Static => BodyType::Static,
-                RigidBody::Dynamic => BodyType::Dynamic,
-                RigidBody::Kinematic => BodyType::Kinematic,
-            };
-
-            let mut motion = Motion::new(typ);
-            motion.angular_velocity = angular_velocity.0.to_array();
-            motion.linear_velocity = linear_velocity.0.to_array();
-            motion.mass = mass.0.into();
-            motion.center_of_mass = center_of_mass.0.to_array();
-            weight.motion = Some(motion);
-
-            ext.write(&mut context.graph, &weight);
-        }
     }
 
     context
