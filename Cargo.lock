@@ -640,7 +640,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_gltf_kun"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "bevy",
  "bevy_egui",
@@ -2002,7 +2002,7 @@ dependencies = [
 
 [[package]]
 name = "gltf_kun"
-version = "0.0.5"
+version = "0.0.6"
 dependencies = [
  "byteorder",
  "glam 0.25.0",

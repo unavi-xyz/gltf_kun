@@ -19,7 +19,7 @@ type_complexity = "allow"
 [dependencies]
 bevy = { version = "0.12.1", default-features = false, features = ["bevy_asset", "bevy_pbr", "bevy_render", "bevy_scene"] }
 glam.workspace = true
-gltf_kun = { version = "0.0.5", path = "../gltf_kun" }
+gltf_kun = { version = "0.0.6", path = "../gltf_kun" }
 serde_json.workspace = true
 thiserror.workspace = true
 
