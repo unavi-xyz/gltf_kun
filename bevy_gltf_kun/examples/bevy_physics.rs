@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use bevy::prelude::*;
+use bevy::{core::FrameCount, prelude::*};
 use bevy_egui::{EguiContexts, EguiPlugin};
 use bevy_gltf_kun::{
     export::gltf::{GltfExport, GltfExportResult},
@@ -12,7 +12,6 @@ use gltf_kun::{extensions::DefaultExtensions, io::format::glb::GlbIO};
 
 const ASSETS_DIR: &str = "../assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
-
 const MODELS: &[&str] = &["DynamicBox.gltf"];
 
 fn main() {
@@ -29,14 +28,25 @@ fn main() {
             PhysicsDebugPlugin::default(),
             PhysicsPlugins::default(),
         ))
+        .init_resource::<ExportedPath>()
+        .init_resource::<SelectedModel>()
         .add_event::<LoadScene>()
         .add_systems(Startup, setup)
-        .add_systems(Update, (ui, spawn_model, export, get_result))
+        .add_systems(Update, (ui, spawn_model, export, reload, get_result))
         .run();
 }
 
 #[derive(Component)]
 struct SceneMarker;
+
+#[derive(Event)]
+struct LoadScene(String);
+
+#[derive(Default, Resource)]
+struct SelectedModel(String);
+
+#[derive(Default, Resource)]
+struct ExportedPath(String);
 
 fn setup(mut commands: Commands, mut writer: EventWriter<LoadScene>) {
     commands.spawn((
@@ -61,30 +71,34 @@ fn setup(mut commands: Commands, mut writer: EventWriter<LoadScene>) {
     writer.send(LoadScene(MODELS[0].to_string()));
 }
 
-#[derive(Event)]
-struct LoadScene(String);
-
-fn ui(mut contexts: EguiContexts, mut writer: EventWriter<LoadScene>, mut selected: Local<String>) {
-    if selected.is_empty() {
-        *selected = MODELS[0].to_string();
+fn ui(
+    mut contexts: EguiContexts,
+    mut writer: EventWriter<LoadScene>,
+    mut selected: ResMut<SelectedModel>,
+    mut exported: ResMut<ExportedPath>,
+) {
+    if selected.0.is_empty() {
+        selected.0 = MODELS[0].to_string();
     }
 
     bevy_egui::egui::Window::new("Controls").show(contexts.ctx_mut(), |ui| {
         ui.label("Click and drag to orbit camera");
         ui.label("Scroll to zoom camera");
         ui.label("Press 'e' to test export");
+        ui.label("Press 'r' to re-load the scene");
 
         ui.separator();
 
         bevy_egui::egui::ComboBox::from_label("Model")
-            .selected_text(selected.as_str())
+            .selected_text(selected.0.as_str())
             .show_ui(ui, |ui| {
                 for model in MODELS {
                     if ui
-                        .selectable_label(selected.as_str() == *model, *model)
+                        .selectable_label(selected.0.as_str() == *model, *model)
                         .clicked()
                     {
-                        *selected = model.to_string();
+                        selected.0 = model.to_string();
+                        exported.0.clear();
                         writer.send(LoadScene(model.to_string()));
                     }
                 }
@@ -137,9 +151,33 @@ fn export(
     export.send(GltfExport::new(handle.clone()));
 }
 
-const TEMP_FILE: &str = "temp/bevy_physics/model.glb";
+fn reload(
+    mut writer: EventWriter<LoadScene>,
+    keyboard: Res<Input<KeyCode>>,
+    exported: Res<ExportedPath>,
+    selected: Res<SelectedModel>,
+) {
+    if !keyboard.just_pressed(KeyCode::R) {
+        return;
+    }
 
-fn get_result(mut exports: ResMut<Events<GltfExportResult>>, mut writer: EventWriter<LoadScene>) {
+    let mut used_path = exported.0.clone();
+
+    if used_path.is_empty() {
+        used_path = selected.0.clone();
+    }
+
+    info!("Reloading scene");
+
+    writer.send(LoadScene(used_path));
+}
+
+fn get_result(
+    mut exports: ResMut<Events<GltfExportResult>>,
+    mut writer: EventWriter<LoadScene>,
+    frame: Res<FrameCount>,
+    mut exported_path: ResMut<ExportedPath>,
+) {
     for mut event in exports.drain() {
         let doc = match event.result {
             Ok(doc) => doc,
@@ -151,15 +189,37 @@ fn get_result(mut exports: ResMut<Events<GltfExportResult>>, mut writer: EventWr
             Err(e) => panic!("Failed to export to glb: {}", e),
         };
 
-        let path = Path::new(CARGO_MANIFEST_DIR)
+        let temp_dir = Path::new(CARGO_MANIFEST_DIR)
             .join(ASSETS_DIR)
-            .join(TEMP_FILE);
+            .join(TEMP_FOLDER);
 
-        info!("Writing glb to {}", path.display());
+        // Delete and re-create temp dir
+        if temp_dir.exists() {
+            std::fs::remove_dir_all(temp_dir.clone()).expect("Failed to delete temp directory");
+        }
 
-        std::fs::create_dir_all(path.parent().unwrap()).expect("Failed to create temp directory");
-        std::fs::write(path, glb.0).expect("Failed to write glb");
+        std::fs::create_dir_all(temp_dir).expect("Failed to create temp directory");
 
-        writer.send(LoadScene(TEMP_FILE.to_string()));
+        // Write glb to temp dir
+        let file_path = Path::new(TEMP_FOLDER).join(temp_file(frame.0));
+        let file_path_str = file_path.to_str().unwrap().to_string();
+        exported_path.0 = file_path_str.clone();
+
+        info!("Writing glb to {}", file_path.display());
+
+        let full_path = Path::new(CARGO_MANIFEST_DIR)
+            .join(ASSETS_DIR)
+            .join(file_path);
+
+        std::fs::write(full_path, glb.0).expect("Failed to write glb");
+
+        // Load glb
+        writer.send(LoadScene(file_path_str));
     }
+}
+
+const TEMP_FOLDER: &str = "temp/bevy_physics";
+
+fn temp_file(frame: u32) -> String {
+    format!("model_{}.glb", frame)
 }
