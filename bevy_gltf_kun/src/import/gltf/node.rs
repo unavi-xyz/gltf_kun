@@ -90,7 +90,7 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
         }
     }
 
-    E::process_node(context, &mut ent, *n);
+    E::import_node(context, &mut ent, *n);
 
     Ok(handle)
 }

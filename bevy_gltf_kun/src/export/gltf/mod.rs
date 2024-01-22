@@ -22,17 +22,14 @@ impl Plugin for GltfExportPlugin {
     }
 }
 
-pub type GltfExport = Export<GltfDocument>;
-pub type GltfExportResult = ExportResult<GltfDocument>;
-
 #[derive(Default, Event)]
-pub struct Export<T> {
+pub struct GltfExport<E> {
     pub scenes: Vec<Handle<Scene>>,
     pub default_scene: Option<Handle<Scene>>,
-    pub _doc_type: PhantomData<T>,
+    pub _marker: PhantomData<E>,
 }
 
-impl<T> Export<T> {
+impl<T> GltfExport<T> {
     pub fn new(scene: Handle<Scene>) -> Self {
         Self {
             scenes: vec![scene.clone()],
@@ -46,7 +43,7 @@ impl<T> Export<T> {
 pub enum ExportError {}
 
 #[derive(Event)]
-pub struct ExportResult<T> {
+pub struct GltfExportResult<T> {
     pub graph: Graph,
     pub result: Result<T, ExportError>,
 }
@@ -116,7 +113,7 @@ pub fn create_export_result(
     In(context): In<ExportContext>,
     mut writer: EventWriter<GltfExportResult>,
 ) {
-    writer.send(ExportResult {
+    writer.send(GltfExportResult {
         graph: context.graph,
         result: Ok(context.doc),
     });

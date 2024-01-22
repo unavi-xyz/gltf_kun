@@ -20,11 +20,11 @@ pub trait NodeExtensionImport<D>: Extension {
 }
 
 pub trait BevyImportExtensions<D> {
-    fn process_node(context: &mut ImportContext, entity: &mut EntityWorldMut, node: Node);
+    fn import_node(context: &mut ImportContext, entity: &mut EntityWorldMut, node: Node);
 }
 
 impl BevyImportExtensions<GltfDocument> for DefaultExtensions {
-    fn process_node(context: &mut ImportContext, entity: &mut EntityWorldMut, node: Node) {
+    fn import_node(context: &mut ImportContext, entity: &mut EntityWorldMut, node: Node) {
         OMIPhysicsBody::maybe_import_node(context, entity, node)
     }
 }

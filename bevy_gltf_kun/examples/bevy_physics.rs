@@ -3,7 +3,7 @@ use std::path::Path;
 use bevy::{input::keyboard::KeyboardInput, prelude::*};
 use bevy_egui::{EguiContexts, EguiPlugin};
 use bevy_gltf_kun::{
-    export::gltf::{Export, GltfExport, GltfExportResult},
+    export::gltf::{GltfExport, GltfExport, GltfExportResult},
     GltfKunPlugin,
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
@@ -145,7 +145,7 @@ fn export(
         }
     };
 
-    export.send(Export::new(handle.clone()));
+    export.send(GltfExport::new(handle.clone()));
 }
 
 const TEMP_FILE: &str = "temp/bevy_physics/model.glb";
