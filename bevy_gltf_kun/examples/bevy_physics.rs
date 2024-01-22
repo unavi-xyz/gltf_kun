@@ -12,6 +12,7 @@ use gltf_kun::{extensions::DefaultExtensions, io::format::glb::GlbIO};
 
 const ASSETS_DIR: &str = "../assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
+
 const MODELS: &[&str] = &["DynamicBox.gltf"];
 
 fn main() {
