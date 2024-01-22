@@ -5,7 +5,7 @@ use std::path::Path;
 use bevy::{input::keyboard::KeyboardInput, prelude::*};
 use bevy_egui::{EguiContexts, EguiPlugin};
 use bevy_gltf_kun::{
-    export::{Export, GltfExport, GltfExportResult},
+    export::gltf::{Export, GltfExport, GltfExportResult},
     GltfKunPlugin,
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
@@ -122,7 +122,7 @@ fn export(
         return;
     }
 
-    if time.elapsed_seconds() - *last_export < 1.0 {
+    if time.elapsed_seconds() - *last_export < 0.5 {
         return;
     }
 

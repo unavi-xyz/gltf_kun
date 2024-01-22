@@ -103,9 +103,13 @@ pub fn export_gltf(In(event): In<Option<GltfExport>>, world: &mut World) {
         None => return,
     };
 
-    let system = scene::export_scenes
-        .pipe(node::export_nodes.pipe(mesh::export_meshes.pipe(create_export_result)));
-    world.run_system_once_with(ExportContext::new(event), system);
+    world.run_system_once_with(
+        ExportContext::new(event),
+        scene::export_scenes
+            .pipe(node::export_nodes)
+            .pipe(mesh::export_meshes)
+            .pipe(create_export_result),
+    );
 }
 
 pub fn create_export_result(

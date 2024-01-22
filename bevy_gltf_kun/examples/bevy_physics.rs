@@ -129,7 +129,7 @@ fn export(
         return;
     }
 
-    if time.elapsed_seconds() - *last_export < 1.0 {
+    if time.elapsed_seconds() - *last_export < 0.5 {
         return;
     }
 
