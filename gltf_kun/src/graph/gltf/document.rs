@@ -3,8 +3,8 @@ use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
 use crate::graph::{gltf::GltfEdge, Edge, Graph, Property, Weight};
 
 use super::{
-    accessor::Accessor, buffer::Buffer, buffer_view::BufferView, material::Material, mesh::Mesh,
-    node::Node, scene::Scene, GltfWeight,
+    accessor::Accessor, buffer::Buffer, buffer_view::BufferView, image::Image, material::Material,
+    mesh::Mesh, node::Node, sampler::Sampler, scene::Scene, GltfWeight,
 };
 
 #[derive(Debug, PartialEq, Eq)]
@@ -13,9 +13,11 @@ pub enum DocumentEdge {
     Buffer,
     BufferView,
     DefaultScene,
+    Image,
     Material,
     Mesh,
     Node,
+    Sampler,
     Scene,
 }
 
@@ -180,6 +182,23 @@ impl GltfDocument {
         }
     }
 
+    pub fn images(&self, graph: &Graph) -> Vec<Image> {
+        self.all_properties(graph, DocumentEdge::Image)
+    }
+    pub fn add_image(&self, graph: &mut Graph, image: &Image) {
+        self.add_property(graph, DocumentEdge::Image, image.0);
+    }
+    pub fn remove_image(&self, graph: &mut Graph, image: &Image) {
+        self.remove_property(graph, image.0);
+    }
+    pub fn create_image(&self, graph: &mut Graph) -> Image {
+        self.create_property(
+            graph,
+            DocumentEdge::Image,
+            GltfWeight::Image(Default::default()),
+        )
+    }
+
     pub fn materials(&self, graph: &Graph) -> Vec<Material> {
         self.all_properties(graph, DocumentEdge::Material)
     }
@@ -228,6 +247,23 @@ impl GltfDocument {
             graph,
             DocumentEdge::Node,
             GltfWeight::Node(Default::default()),
+        )
+    }
+
+    pub fn samplers(&self, graph: &Graph) -> Vec<Sampler> {
+        self.all_properties(graph, DocumentEdge::Sampler)
+    }
+    pub fn add_sampler(&self, graph: &mut Graph, sampler: &Accessor) {
+        self.add_property(graph, DocumentEdge::Sampler, sampler.0);
+    }
+    pub fn remove_sampler(&self, graph: &mut Graph, sampler: &Accessor) {
+        self.remove_property(graph, sampler.0);
+    }
+    pub fn create_sampler(&self, graph: &mut Graph) -> Accessor {
+        self.create_property(
+            graph,
+            DocumentEdge::Sampler,
+            GltfWeight::Accessor(Default::default()),
         )
     }
 

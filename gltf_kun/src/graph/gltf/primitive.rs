@@ -2,7 +2,7 @@ use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
 use crate::graph::{Edge, Graph, GraphNode, Property, Weight};
 
-use super::{accessor::Accessor, GltfEdge, GltfWeight};
+use super::{accessor::Accessor, material::Material, GltfEdge, GltfWeight};
 
 pub use gltf::json::mesh::{Mode, Semantic};
 
@@ -72,6 +72,41 @@ impl Primitive {
             PrimitiveWeight::default(),
         )));
         Self(index)
+    }
+
+    pub fn material(&self, graph: &Graph) -> Option<Material> {
+        graph
+            .edges_directed(self.0, petgraph::Direction::Outgoing)
+            .find_map(|edge| {
+                if let Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Material)) = edge.weight() {
+                    Some(Material(edge.target()))
+                } else {
+                    None
+                }
+            })
+    }
+    pub fn set_material(&self, graph: &mut Graph, material: Option<&Material>) {
+        let edge = graph
+            .edges_directed(self.0, petgraph::Direction::Outgoing)
+            .find(|edge| {
+                matches!(
+                    edge.weight(),
+                    Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Material))
+                )
+            })
+            .map(|edge| edge.id());
+
+        if let Some(edge) = edge {
+            graph.remove_edge(edge);
+        }
+
+        if let Some(material) = material {
+            graph.add_edge(
+                self.0,
+                material.0,
+                Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Material)),
+            );
+        }
     }
 
     pub fn indices(&self, graph: &Graph) -> Option<Accessor> {
@@ -206,5 +241,9 @@ mod tests {
         primitive.set_attribute(&mut graph, &Semantic::Normals, None);
         assert_eq!(primitive.attribute(&graph, &Semantic::Normals), None);
         assert_eq!(primitive.attributes(&graph).len(), 1);
+
+        let material = Material::new(&mut graph);
+        primitive.set_material(&mut graph, Some(&material));
+        assert_eq!(primitive.material(&graph), Some(material));
     }
 }

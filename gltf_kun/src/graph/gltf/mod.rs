@@ -7,6 +7,7 @@ pub mod material;
 pub mod mesh;
 pub mod node;
 pub mod primitive;
+pub mod sampler;
 pub mod scene;
 pub mod texture;
 pub mod texture_info;
@@ -22,6 +23,7 @@ pub enum GltfWeight {
     Mesh(mesh::MeshWeight),
     Node(node::NodeWeight),
     Primitive(primitive::PrimitiveWeight),
+    Sampler(sampler::SamplerWeight),
     Scene(scene::SceneWeight),
     Texture(texture::TextureWeight),
     TextureInfo(texture_info::TextureInfoWeight),
@@ -37,6 +39,7 @@ pub enum GltfEdge {
     Mesh(mesh::MeshEdge),
     Node(node::NodeEdge),
     Primitive(primitive::PrimitiveEdge),
+    Sampler(sampler::SamplerEdge),
     Scene(scene::SceneEdge),
     Texture(texture::TextureEdge),
     TextureInfo(texture_info::TextureInfoEdge),

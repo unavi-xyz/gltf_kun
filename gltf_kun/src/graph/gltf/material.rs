@@ -68,8 +68,8 @@ impl From<NodeIndex> for Material {
 }
 
 impl From<Material> for NodeIndex {
-    fn from(primitive: Material) -> Self {
-        primitive.0
+    fn from(material: Material) -> Self {
+        material.0
     }
 }
 
