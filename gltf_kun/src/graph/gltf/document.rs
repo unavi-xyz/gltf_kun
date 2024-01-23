@@ -3,8 +3,8 @@ use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
 use crate::graph::{gltf::GltfEdge, Edge, Graph, Property, Weight};
 
 use super::{
-    accessor::Accessor, buffer::Buffer, buffer_view::BufferView, mesh::Mesh, node::Node,
-    scene::Scene, GltfWeight,
+    accessor::Accessor, buffer::Buffer, buffer_view::BufferView, material::Material, mesh::Mesh,
+    node::Node, scene::Scene, GltfWeight,
 };
 
 #[derive(Debug, PartialEq, Eq)]
@@ -13,6 +13,7 @@ pub enum DocumentEdge {
     Buffer,
     BufferView,
     DefaultScene,
+    Material,
     Mesh,
     Node,
     Scene,
@@ -177,6 +178,23 @@ impl GltfDocument {
                 self.add_scene(graph, scene);
             }
         }
+    }
+
+    pub fn materials(&self, graph: &Graph) -> Vec<Material> {
+        self.all_properties(graph, DocumentEdge::Material)
+    }
+    pub fn add_material(&self, graph: &mut Graph, material: &Material) {
+        self.add_property(graph, DocumentEdge::Material, material.0);
+    }
+    pub fn remove_material(&self, graph: &mut Graph, material: &Material) {
+        self.remove_property(graph, material.0);
+    }
+    pub fn create_material(&self, graph: &mut Graph) -> Material {
+        self.create_property(
+            graph,
+            DocumentEdge::Material,
+            GltfWeight::Material(Default::default()),
+        )
     }
 
     pub fn meshes(&self, graph: &Graph) -> Vec<Mesh> {

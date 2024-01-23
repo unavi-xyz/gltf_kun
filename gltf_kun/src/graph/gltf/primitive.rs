@@ -8,8 +8,9 @@ pub use gltf::json::mesh::{Mode, Semantic};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum PrimitiveEdge {
-    Indices,
     Attribute(Semantic),
+    Indices,
+    Material,
 }
 
 #[derive(Debug)]

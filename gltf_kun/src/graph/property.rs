@@ -8,7 +8,7 @@ use crate::extensions::Extension;
 
 use super::{Edge, Graph};
 
-/// A property is an object that can have extensions and extras.
+/// A property is an object that can have extensions.
 pub trait Property: Copy + Into<NodeIndex> {
     fn extensions(&self, graph: &Graph) -> Vec<&str> {
         graph
