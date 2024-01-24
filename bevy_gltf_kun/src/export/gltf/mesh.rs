@@ -156,6 +156,8 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Prim
         return primitive;
     }
 
+    let buffer = context.doc.create_buffer(&mut context.graph);
+
     if let Some(indices) = mesh.indices() {
         let bytes = match indices {
             Indices::U32(indices) => indices
@@ -187,6 +189,7 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Prim
 
         let accessor = accessor::Accessor::from_iter(&mut context.graph, iter);
 
+        accessor.set_buffer(&mut context.graph, Some(&buffer));
         context.doc.add_accessor(&mut context.graph, &accessor);
 
         primitive.set_indices(&mut context.graph, Some(&accessor));
@@ -204,6 +207,7 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Prim
             }
         };
 
+        accessor.set_buffer(&mut context.graph, Some(&buffer));
         context.doc.add_accessor(&mut context.graph, &accessor);
 
         if id == Mesh::ATTRIBUTE_POSITION.id {
