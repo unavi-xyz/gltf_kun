@@ -36,7 +36,6 @@ pub enum GltfEdge {
     Mesh(mesh::MeshEdge),
     Node(node::NodeEdge),
     Primitive(primitive::PrimitiveEdge),
-    Sampler(sampler::SamplerEdge),
     Scene(scene::SceneEdge),
     Texture(texture::TextureEdge),
     TextureInfo(texture_info::TextureInfoEdge),

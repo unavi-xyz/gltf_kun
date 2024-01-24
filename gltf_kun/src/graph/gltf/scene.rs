@@ -1,12 +1,28 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
-use crate::graph::{Edge, Graph, GraphNode, Property, Weight};
+use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
 
 use super::{node::Node, GltfEdge, GltfWeight};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum SceneEdge {
     Node,
+}
+
+impl<'a> TryFrom<&'a Edge> for &'a SceneEdge {
+    type Error = ();
+    fn try_from(value: &'a Edge) -> Result<Self, Self::Error> {
+        match value {
+            Edge::Gltf(GltfEdge::Scene(edge)) => Ok(edge),
+            _ => Err(()),
+        }
+    }
+}
+
+impl From<SceneEdge> for Edge {
+    fn from(edge: SceneEdge) -> Self {
+        Self::Gltf(GltfEdge::Scene(edge))
+    }
 }
 
 #[derive(Debug, Default)]
@@ -50,7 +66,8 @@ impl From<Scene> for NodeIndex {
     }
 }
 
-impl GraphNode<SceneWeight> for Scene {}
+impl GraphNodeWeight<SceneWeight> for Scene {}
+impl GraphNodeEdges<SceneEdge> for Scene {}
 impl Property for Scene {}
 
 impl Scene {

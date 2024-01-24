@@ -1,6 +1,6 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
 
-use crate::graph::{Edge, Graph, GraphNode, Property, Weight};
+use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
 
 use super::{image::Image, sampler::Sampler, GltfEdge, GltfWeight};
 
@@ -8,6 +8,22 @@ use super::{image::Image, sampler::Sampler, GltfEdge, GltfWeight};
 pub enum TextureEdge {
     Sampler,
     Source,
+}
+
+impl<'a> TryFrom<&'a Edge> for &'a TextureEdge {
+    type Error = ();
+    fn try_from(value: &'a Edge) -> Result<Self, Self::Error> {
+        match value {
+            Edge::Gltf(GltfEdge::Texture(edge)) => Ok(edge),
+            _ => Err(()),
+        }
+    }
+}
+
+impl From<TextureEdge> for Edge {
+    fn from(edge: TextureEdge) -> Self {
+        Self::Gltf(GltfEdge::Texture(edge))
+    }
 }
 
 #[derive(Debug, Default)]
@@ -51,7 +67,8 @@ impl From<Texture> for NodeIndex {
     }
 }
 
-impl GraphNode<TextureWeight> for Texture {}
+impl GraphNodeWeight<TextureWeight> for Texture {}
+impl GraphNodeEdges<TextureEdge> for Texture {}
 impl Property for Texture {}
 
 impl Texture {
@@ -61,38 +78,10 @@ impl Texture {
     }
 
     pub fn sampler(&self, graph: &Graph) -> Option<Sampler> {
-        graph
-            .edges_directed(self.0, Direction::Outgoing)
-            .find_map(|edge| {
-                if let Edge::Gltf(GltfEdge::Texture(TextureEdge::Sampler)) = edge.weight() {
-                    Some(Sampler(edge.target()))
-                } else {
-                    None
-                }
-            })
+        self.find_edge_target::<Sampler>(graph, &TextureEdge::Sampler)
     }
-    pub fn set_sampler(&self, graph: &mut Graph, sampler: Option<&Sampler>) {
-        let edge = graph
-            .edges_directed(self.0, Direction::Outgoing)
-            .find(|edge| {
-                matches!(
-                    edge.weight(),
-                    Edge::Gltf(GltfEdge::Texture(TextureEdge::Sampler))
-                )
-            })
-            .map(|edge| edge.id());
-
-        if let Some(edge) = edge {
-            graph.remove_edge(edge);
-        }
-
-        if let Some(sampler) = sampler {
-            graph.add_edge(
-                self.0,
-                sampler.0,
-                Edge::Gltf(GltfEdge::Texture(TextureEdge::Sampler)),
-            );
-        }
+    pub fn set_sampler(&self, graph: &mut Graph, sampler: Option<Sampler>) {
+        self.set_edge_target(graph, TextureEdge::Sampler, sampler);
     }
 
     pub fn source(&self, graph: &Graph) -> Option<Image> {
@@ -142,7 +131,7 @@ mod tests {
         let texture = Texture::new(&mut graph);
         let sampler = Sampler::new(&mut graph);
 
-        texture.set_sampler(&mut graph, Some(&sampler));
+        texture.set_sampler(&mut graph, Some(sampler));
         assert_eq!(texture.sampler(&graph), Some(sampler));
 
         texture.set_sampler(&mut graph, None);

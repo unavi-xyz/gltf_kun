@@ -6,7 +6,7 @@ use thiserror::Error;
 use tracing::{debug, error, warn};
 
 use crate::{
-    graph::{gltf::document::GltfDocument, Graph, GraphNode},
+    graph::{gltf::document::GltfDocument, Graph, GraphNodeWeight},
     io::resolver::Resolver,
 };
 
@@ -203,7 +203,7 @@ pub async fn import(
 
             if let Some(index) = n.mesh {
                 if let Some(mesh) = meshes.get(index.value()) {
-                    node.set_mesh(graph, Some(mesh));
+                    node.set_mesh(graph, Some(*mesh));
                 }
             }
 

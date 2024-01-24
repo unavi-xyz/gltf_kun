@@ -1,12 +1,30 @@
-use petgraph::{graph::NodeIndex, visit::EdgeRef};
+use petgraph::graph::NodeIndex;
 
-use crate::graph::{gltf::GltfEdge, Edge, Graph, GraphNode, Property, Weight};
+use crate::graph::{
+    gltf::GltfEdge, Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight,
+};
 
 use super::{buffer::Buffer, GltfWeight};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ImageEdge {
     Buffer,
+}
+
+impl<'a> TryFrom<&'a Edge> for &'a ImageEdge {
+    type Error = ();
+    fn try_from(value: &'a Edge) -> Result<Self, Self::Error> {
+        match value {
+            Edge::Gltf(GltfEdge::Image(edge)) => Ok(edge),
+            _ => Err(()),
+        }
+    }
+}
+
+impl From<ImageEdge> for Edge {
+    fn from(edge: ImageEdge) -> Self {
+        Self::Gltf(GltfEdge::Image(edge))
+    }
 }
 
 #[derive(Debug, Default)]
@@ -55,7 +73,8 @@ impl From<Image> for NodeIndex {
     }
 }
 
-impl GraphNode<ImageWeight> for Image {}
+impl GraphNodeWeight<ImageWeight> for Image {}
+impl GraphNodeEdges<ImageEdge> for Image {}
 impl Property for Image {}
 
 impl Image {
@@ -65,38 +84,10 @@ impl Image {
     }
 
     pub fn buffer(&self, graph: &Graph) -> Option<Buffer> {
-        graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| {
-                matches!(
-                    edge.weight(),
-                    Edge::Gltf(GltfEdge::Image(ImageEdge::Buffer))
-                )
-            })
-            .map(|edge| Buffer(edge.target()))
+        self.find_edge_target::<Buffer>(graph, &ImageEdge::Buffer)
     }
-    pub fn set_buffer(&self, graph: &mut Graph, source: Option<&Buffer>) {
-        let edge = graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| {
-                matches!(
-                    edge.weight(),
-                    Edge::Gltf(GltfEdge::Image(ImageEdge::Buffer))
-                )
-            })
-            .map(|edge| edge.id());
-
-        if let Some(edge) = edge {
-            graph.remove_edge(edge);
-        }
-
-        if let Some(buffer) = source {
-            graph.add_edge(
-                self.0,
-                buffer.0,
-                Edge::Gltf(GltfEdge::Image(ImageEdge::Buffer)),
-            );
-        }
+    pub fn set_buffer(&self, graph: &mut Graph, buffer: Option<Buffer>) {
+        self.set_edge_target(graph, ImageEdge::Buffer, buffer);
     }
 }
 
@@ -111,7 +102,7 @@ mod tests {
         let image = Image::new(graph);
         let buffer = Buffer::new(graph);
 
-        image.set_buffer(graph, Some(&buffer));
+        image.set_buffer(graph, Some(buffer));
         assert_eq!(image.buffer(graph), Some(buffer));
 
         image.set_buffer(graph, None);

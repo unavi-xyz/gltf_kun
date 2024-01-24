@@ -4,7 +4,7 @@ use gltf_kun::graph::{
         document::GltfDocument,
         node::{Node, NodeWeight},
     },
-    GraphNode,
+    GraphNodeWeight,
 };
 
 use crate::import::extensions::BevyImportExtensions;

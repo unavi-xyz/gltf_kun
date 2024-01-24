@@ -1,6 +1,6 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
 
-use crate::graph::{gltf::GltfEdge, Edge, Graph, Property, Weight};
+use crate::graph::{gltf::GltfEdge, Edge, Graph, GraphNodeEdges, Property, Weight};
 
 use super::{
     accessor::Accessor, buffer::Buffer, image::Image, material::Material, mesh::Mesh, node::Node,
@@ -20,6 +20,22 @@ pub enum DocumentEdge {
     Scene,
 }
 
+impl<'a> TryFrom<&'a Edge> for &'a DocumentEdge {
+    type Error = ();
+    fn try_from(value: &'a Edge) -> Result<Self, Self::Error> {
+        match value {
+            Edge::Gltf(GltfEdge::Document(edge)) => Ok(edge),
+            _ => Err(()),
+        }
+    }
+}
+
+impl From<DocumentEdge> for Edge {
+    fn from(edge: DocumentEdge) -> Self {
+        Self::Gltf(GltfEdge::Document(edge))
+    }
+}
+
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct GltfDocument(pub NodeIndex);
 
@@ -35,6 +51,7 @@ impl From<GltfDocument> for NodeIndex {
     }
 }
 
+impl GraphNodeEdges<DocumentEdge> for GltfDocument {}
 impl Property for GltfDocument {}
 
 impl GltfDocument {

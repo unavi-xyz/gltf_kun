@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use gltf_kun::graph::{
     gltf::{self, mesh::MeshWeight},
-    GraphNode,
+    GraphNodeWeight,
 };
 
 use super::{

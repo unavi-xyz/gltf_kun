@@ -1,11 +1,8 @@
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{Graph, GraphNode, Property, Weight};
+use crate::graph::{Graph, GraphNodeWeight, Property, Weight};
 
 use super::GltfWeight;
-
-#[derive(Debug, PartialEq, Eq)]
-pub enum SamplerEdge {}
 
 #[derive(Debug, Default)]
 pub struct SamplerWeight {
@@ -82,7 +79,7 @@ impl From<Sampler> for NodeIndex {
     }
 }
 
-impl GraphNode<SamplerWeight> for Sampler {}
+impl GraphNodeWeight<SamplerWeight> for Sampler {}
 impl Property for Sampler {}
 
 impl Sampler {

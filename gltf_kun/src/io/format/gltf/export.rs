@@ -14,7 +14,7 @@ use tracing::warn;
 
 use crate::graph::{
     gltf::{accessor::iter::AccessorElement, document::GltfDocument},
-    Graph, GraphNode,
+    Graph, GraphNodeWeight,
 };
 
 use super::GltfFormat;
@@ -97,7 +97,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                 warn!("Accessor {} has no buffer. Using first buffer.", i);
                 let buffers = doc.buffers(graph);
                 let buffer = buffers.first().unwrap();
-                a.set_buffer(graph, Some(buffer));
+                a.set_buffer(graph, Some(*buffer));
                 *buffer
             });
 
@@ -402,7 +402,7 @@ mod tests {
         let buffer = doc.create_buffer(&mut graph);
 
         let accessor = doc.create_accessor(&mut graph);
-        accessor.set_buffer(&mut graph, Some(&buffer));
+        accessor.set_buffer(&mut graph, Some(buffer));
 
         let mesh = doc.create_mesh(&mut graph);
 
@@ -410,7 +410,7 @@ mod tests {
         primitive.set_indices(&mut graph, Some(&accessor));
 
         let node = doc.create_node(&mut graph);
-        node.set_mesh(&mut graph, Some(&mesh));
+        node.set_mesh(&mut graph, Some(mesh));
 
         let scene = doc.create_scene(&mut graph);
         scene.add_node(&mut graph, &node);

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use gltf_kun::graph::{
     gltf::{self, document::GltfDocument, scene::SceneWeight},
-    GraphNode,
+    GraphNodeWeight,
 };
 
 use crate::import::extensions::BevyImportExtensions;

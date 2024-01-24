@@ -1,6 +1,6 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
-use crate::graph::{Edge, Graph, GraphNode, Property, Weight};
+use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
 
 use super::{accessor::Accessor, material::Material, GltfEdge, GltfWeight};
 
@@ -11,6 +11,22 @@ pub enum PrimitiveEdge {
     Attribute(Semantic),
     Indices,
     Material,
+}
+
+impl<'a> TryFrom<&'a Edge> for &'a PrimitiveEdge {
+    type Error = ();
+    fn try_from(value: &'a Edge) -> Result<Self, Self::Error> {
+        match value {
+            Edge::Gltf(GltfEdge::Primitive(edge)) => Ok(edge),
+            _ => Err(()),
+        }
+    }
+}
+
+impl From<PrimitiveEdge> for Edge {
+    fn from(edge: PrimitiveEdge) -> Self {
+        Self::Gltf(GltfEdge::Primitive(edge))
+    }
 }
 
 #[derive(Debug)]
@@ -63,7 +79,8 @@ impl From<Primitive> for NodeIndex {
     }
 }
 
-impl GraphNode<PrimitiveWeight> for Primitive {}
+impl GraphNodeWeight<PrimitiveWeight> for Primitive {}
+impl GraphNodeEdges<PrimitiveEdge> for Primitive {}
 impl Property for Primitive {}
 
 impl Primitive {

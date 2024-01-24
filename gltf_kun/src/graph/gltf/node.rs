@@ -1,7 +1,7 @@
 use glam::{Quat, Vec3};
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
-use crate::graph::{Edge, Graph, GraphNode, Property, Weight};
+use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
 
 use super::{mesh::Mesh, GltfEdge, GltfWeight};
 
@@ -9,6 +9,22 @@ use super::{mesh::Mesh, GltfEdge, GltfWeight};
 pub enum NodeEdge {
     Child,
     Mesh,
+}
+
+impl<'a> TryFrom<&'a Edge> for &'a NodeEdge {
+    type Error = ();
+    fn try_from(value: &'a Edge) -> Result<Self, Self::Error> {
+        match value {
+            Edge::Gltf(GltfEdge::Node(edge)) => Ok(edge),
+            _ => Err(()),
+        }
+    }
+}
+
+impl From<NodeEdge> for Edge {
+    fn from(edge: NodeEdge) -> Self {
+        Self::Gltf(GltfEdge::Node(edge))
+    }
 }
 
 #[derive(Debug)]
@@ -69,7 +85,8 @@ impl From<Node> for NodeIndex {
     }
 }
 
-impl GraphNode<NodeWeight> for Node {}
+impl GraphNodeWeight<NodeWeight> for Node {}
+impl GraphNodeEdges<NodeEdge> for Node {}
 impl Property for Node {}
 
 impl Node {
@@ -123,24 +140,10 @@ impl Node {
     }
 
     pub fn mesh(&self, graph: &Graph) -> Option<Mesh> {
-        graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| matches!(edge.weight(), Edge::Gltf(GltfEdge::Node(NodeEdge::Mesh))))
-            .map(|edge| Mesh(edge.target()))
+        self.find_edge_target::<Mesh>(graph, &NodeEdge::Mesh)
     }
-    pub fn set_mesh(&self, graph: &mut Graph, mesh: Option<&Mesh>) {
-        let edge = graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| matches!(edge.weight(), Edge::Gltf(GltfEdge::Node(NodeEdge::Mesh))))
-            .map(|edge| edge.id());
-
-        if let Some(edge) = edge {
-            graph.remove_edge(edge);
-        }
-
-        if let Some(mesh) = mesh {
-            graph.add_edge(self.0, mesh.0, Edge::Gltf(GltfEdge::Node(NodeEdge::Mesh)));
-        }
+    pub fn set_mesh(&self, graph: &mut Graph, mesh: Option<Mesh>) {
+        self.set_edge_target(graph, NodeEdge::Mesh, mesh);
     }
 }
 

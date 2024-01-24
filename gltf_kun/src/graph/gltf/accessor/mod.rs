@@ -1,7 +1,7 @@
-use petgraph::{graph::NodeIndex, visit::EdgeRef};
+use petgraph::graph::NodeIndex;
 use thiserror::Error;
 
-use crate::graph::{Edge, Graph, GraphNode, Property, Weight};
+use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
 
 use self::iter::{AccessorElement, AccessorIter};
 
@@ -20,6 +20,22 @@ pub mod weights;
 #[derive(Debug, PartialEq, Eq)]
 pub enum AccessorEdge {
     Buffer,
+}
+
+impl<'a> TryFrom<&'a Edge> for &'a AccessorEdge {
+    type Error = ();
+    fn try_from(value: &'a Edge) -> Result<Self, Self::Error> {
+        match value {
+            Edge::Gltf(GltfEdge::Accessor(edge)) => Ok(edge),
+            _ => Err(()),
+        }
+    }
+}
+
+impl From<AccessorEdge> for Edge {
+    fn from(edge: AccessorEdge) -> Self {
+        Self::Gltf(GltfEdge::Accessor(edge))
+    }
 }
 
 #[derive(Debug)]
@@ -98,7 +114,8 @@ impl From<Accessor> for NodeIndex {
     }
 }
 
-impl GraphNode<AccessorWeight> for Accessor {}
+impl GraphNodeWeight<AccessorWeight> for Accessor {}
+impl GraphNodeEdges<AccessorEdge> for Accessor {}
 impl Property for Accessor {}
 
 impl Accessor {
@@ -108,38 +125,10 @@ impl Accessor {
     }
 
     pub fn buffer(&self, graph: &Graph) -> Option<Buffer> {
-        graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| {
-                matches!(
-                    edge.weight(),
-                    Edge::Gltf(GltfEdge::Accessor(AccessorEdge::Buffer))
-                )
-            })
-            .map(|edge| Buffer(edge.target()))
+        self.find_edge_target::<Buffer>(graph, &AccessorEdge::Buffer)
     }
-    pub fn set_buffer(&self, graph: &mut Graph, buffer: Option<&Buffer>) {
-        let edge = graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| {
-                matches!(
-                    edge.weight(),
-                    Edge::Gltf(GltfEdge::Accessor(AccessorEdge::Buffer))
-                )
-            })
-            .map(|edge| edge.id());
-
-        if let Some(edge) = edge {
-            graph.remove_edge(edge);
-        }
-
-        if let Some(buffer) = buffer {
-            graph.add_edge(
-                self.0,
-                buffer.0,
-                Edge::Gltf(GltfEdge::Accessor(AccessorEdge::Buffer)),
-            );
-        }
+    pub fn set_buffer(&self, graph: &mut Graph, buffer: Option<Buffer>) {
+        self.set_edge_target(graph, AccessorEdge::Buffer, buffer);
     }
 
     pub fn from_iter(graph: &mut Graph, iter: AccessorIter) -> Self {

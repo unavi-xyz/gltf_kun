@@ -8,7 +8,7 @@ use gltf_kun::graph::{
         node,
         primitive::{self, Semantic},
     },
-    GraphNode,
+    GraphNodeWeight,
 };
 
 use super::{vertex_to_accessor::vertex_to_accessor, CachedMesh, ExportContext};
@@ -103,7 +103,7 @@ fn export_node_mesh(
                     .iter()
                     .all(|handle| cached.bevy_meshes.contains(handle))
         }) {
-            return node.set_mesh(&mut context.graph, Some(&cached.mesh));
+            return node.set_mesh(&mut context.graph, Some(cached.mesh));
         }
 
         // Create new mesh.
@@ -131,7 +131,7 @@ fn export_node_mesh(
 
         context.meshes.push(CachedMesh { mesh, bevy_meshes });
 
-        node.set_mesh(&mut context.graph, Some(&mesh));
+        node.set_mesh(&mut context.graph, Some(mesh));
     }
 
     // Continue down the tree
@@ -189,7 +189,7 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Prim
 
         let accessor = accessor::Accessor::from_iter(&mut context.graph, iter);
 
-        accessor.set_buffer(&mut context.graph, Some(&buffer));
+        accessor.set_buffer(&mut context.graph, Some(buffer));
         context.doc.add_accessor(&mut context.graph, &accessor);
 
         primitive.set_indices(&mut context.graph, Some(&accessor));
@@ -207,7 +207,7 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Prim
             }
         };
 
-        accessor.set_buffer(&mut context.graph, Some(&buffer));
+        accessor.set_buffer(&mut context.graph, Some(buffer));
         context.doc.add_accessor(&mut context.graph, &accessor);
 
         if id == Mesh::ATTRIBUTE_POSITION.id {

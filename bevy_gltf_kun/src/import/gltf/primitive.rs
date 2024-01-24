@@ -18,7 +18,7 @@ use gltf_kun::graph::{
         },
         primitive::{Mode, Primitive, Semantic},
     },
-    GraphNode,
+    GraphNodeWeight,
 };
 use thiserror::Error;
 

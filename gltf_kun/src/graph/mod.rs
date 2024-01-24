@@ -12,7 +12,7 @@ mod graph_node;
 mod property;
 
 pub use byte_node::ByteNode;
-pub use graph_node::GraphNode;
+pub use graph_node::{GraphNodeEdges, GraphNodeWeight};
 pub use petgraph::graph::NodeIndex;
 pub use property::Property;
 

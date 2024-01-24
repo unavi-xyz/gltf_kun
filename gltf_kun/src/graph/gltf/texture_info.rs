@@ -1,12 +1,28 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
 
-use crate::graph::{Edge, Graph, GraphNode, Property, Weight};
+use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
 
 use super::{texture::Texture, GltfEdge, GltfWeight};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum TextureInfoEdge {
     Texture,
+}
+
+impl<'a> TryFrom<&'a Edge> for &'a TextureInfoEdge {
+    type Error = ();
+    fn try_from(value: &'a Edge) -> Result<Self, Self::Error> {
+        match value {
+            Edge::Gltf(GltfEdge::TextureInfo(edge)) => Ok(edge),
+            _ => Err(()),
+        }
+    }
+}
+
+impl From<TextureInfoEdge> for Edge {
+    fn from(edge: TextureInfoEdge) -> Self {
+        Self::Gltf(GltfEdge::TextureInfo(edge))
+    }
 }
 
 #[derive(Debug, Default)]
@@ -50,7 +66,8 @@ impl From<TextureInfo> for NodeIndex {
     }
 }
 
-impl GraphNode<TextureInfoWeight> for TextureInfo {}
+impl GraphNodeWeight<TextureInfoWeight> for TextureInfo {}
+impl GraphNodeEdges<TextureInfoEdge> for TextureInfo {}
 impl Property for TextureInfo {}
 
 impl TextureInfo {

@@ -4,7 +4,7 @@
 //! ## Basic Usage
 //!
 //! ```
-//! use gltf_kun::graph::{Graph, GraphNode, gltf::document::GltfDocument};
+//! use gltf_kun::graph::{Graph, gltf::document::GltfDocument};
 //!
 //! // Create a new graph.
 //! // This is where all the data will be stored.
@@ -18,7 +18,9 @@
 //! // making it cheap to copy and pass around.
 //! let mut scene = doc.create_scene(&mut graph);
 //!
-//! // To read or write data, we need to get its weight.
+//! // To read or write data, we need to get the weight.
+//! use gltf_kun::graph::GraphNodeWeight;
+//!
 //! let weight = scene.get_mut(&mut graph);
 //! weight.name = Some("My Scene".to_string());
 //!
