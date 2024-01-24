@@ -33,7 +33,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
     let mut scene_idxs = BTreeMap::<NodeIndex, usize>::new();
     let mut uris = BTreeMap::<NodeIndex, String>::new();
 
-    if doc.buffers(graph).len() == 0 && doc.accessors(graph).len() > 0 {
+    if doc.buffers(graph).is_empty() && !doc.accessors(graph).is_empty() {
         warn!("No buffers found. Creating new buffer.");
         doc.create_buffer(graph);
     }
@@ -260,7 +260,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
             .collect::<Vec<_>>();
 
         let idx = node_idxs.get(&node.0).unwrap();
-        let node = json.nodes.get_mut(*idx as usize).unwrap();
+        let node = json.nodes.get_mut(*idx).unwrap();
 
         if !children_idxs.is_empty() {
             node.children = Some(children_idxs);
