@@ -170,7 +170,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_motion() {
+    fn motion_serde() {
         let json = PhysicsBodyJson {
             motion: Some(Motion::new(BodyType::Dynamic)),
             trigger: None,

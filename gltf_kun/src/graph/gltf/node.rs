@@ -149,37 +149,22 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_node() {
+    fn children() {
         let mut graph = Graph::default();
-        let mut node = Node::new(&mut graph);
 
-        node.get_mut(&mut graph).name = Some("Test".to_string());
-        assert_eq!(node.get(&graph).name, Some("Test".to_string()));
-
-        node.get_mut(&mut graph).translation = [1.0, 2.0, 3.0].into();
-        assert_eq!(node.get(&graph).translation, [1.0, 2.0, 3.0].into());
-
-        node.get_mut(&mut graph).rotation = Quat::from_xyzw(0.5, 0.5, 0.5, 0.5);
-        assert_eq!(
-            node.get(&graph).rotation,
-            Quat::from_xyzw(0.5, 0.5, 0.5, 0.5)
-        );
-
-        node.get_mut(&mut graph).scale = [1.0, 2.0, 3.0].into();
-        assert_eq!(node.get(&graph).scale, [1.0, 2.0, 3.0].into());
-
+        let node = Node::new(&mut graph);
         let child = Node::new(&mut graph);
+
         node.add_child(&mut graph, &child);
+        assert_eq!(child.parent(&graph), Some(node));
+        assert!(node.parent(&graph).is_none());
+        assert!(child.children(&graph).is_empty());
 
         let children = node.children(&graph);
-        assert_eq!(children.len(), 1);
-        assert_eq!(children[0], child);
-        assert_eq!(child.parent(&graph).unwrap(), node);
-        assert_eq!(node.parent(&graph), None);
-        assert_eq!(child.children(&graph).len(), 0);
+        assert_eq!(children, vec![child]);
 
         node.remove_child(&mut graph, &child);
-        assert_eq!(node.children(&graph).len(), 0);
-        assert_eq!(child.parent(&graph), None);
+        assert!(node.children(&graph).is_empty());
+        assert!(child.parent(&graph).is_none());
     }
 }

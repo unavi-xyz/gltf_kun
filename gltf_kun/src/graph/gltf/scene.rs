@@ -90,22 +90,20 @@ impl Scene {
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
-    fn test_nodes() {
+    fn nodes() {
         let mut graph = Graph::default();
+
         let scene = Scene::new(&mut graph);
-
         let node = Node::new(&mut graph);
-        scene.add_node(&mut graph, &node);
 
+        scene.add_node(&mut graph, &node);
         let nodes = scene.nodes(&graph);
-        assert_eq!(nodes.len(), 1);
-        assert_eq!(nodes[0], node);
+        assert_eq!(nodes, vec![node]);
 
         scene.remove_node(&mut graph, &node);
-        assert_eq!(scene.nodes(&graph).len(), 0);
+        assert!(scene.nodes(&graph).is_empty());
     }
 }

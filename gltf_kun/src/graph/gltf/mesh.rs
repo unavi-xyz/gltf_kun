@@ -105,22 +105,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_mesh() {
+    fn primitives() {
         let mut graph = Graph::new();
-        let mut mesh = Mesh::new(&mut graph);
 
-        mesh.get_mut(&mut graph).name = Some("Test".to_string());
-        assert_eq!(mesh.get(&graph).name, Some("Test".to_string()));
+        let mesh = Mesh::new(&mut graph);
+        let primitive_1 = Primitive::new(&mut graph);
+        let primitive_2 = Primitive::new(&mut graph);
 
-        mesh.get_mut(&mut graph).weights = vec![1.0, 2.0, 3.0];
-        assert_eq!(mesh.get(&graph).weights, vec![1.0, 2.0, 3.0]);
+        mesh.add_primitive(&mut graph, &primitive_1);
+        assert_eq!(mesh.primitives(&graph), vec![primitive_1]);
 
-        let primitive = Primitive::new(&mut graph);
+        mesh.add_primitive(&mut graph, &primitive_2);
+        assert_eq!(mesh.primitives(&graph), vec![primitive_1, primitive_2]);
 
-        mesh.add_primitive(&mut graph, &primitive);
-        assert_eq!(mesh.primitives(&graph), vec![primitive]);
+        mesh.remove_primitive(&mut graph, &primitive_1);
+        assert_eq!(mesh.primitives(&graph), vec![primitive_2]);
 
-        mesh.remove_primitive(&mut graph, &primitive);
-        assert_eq!(mesh.primitives(&graph), vec![]);
+        mesh.remove_primitive(&mut graph, &primitive_2);
+        assert!(mesh.primitives(&graph).is_empty());
     }
 }

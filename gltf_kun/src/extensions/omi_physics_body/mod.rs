@@ -221,13 +221,13 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_default_mass() {
+    fn default_mass() {
         assert!(Mass::default().0 == 1.0);
         assert!(is_default_mass(&Mass::default()));
     }
 
     #[test]
-    fn test_default_quat() {
+    fn default_quat() {
         assert!(Quat::default().0 == [0.0, 0.0, 0.0, 1.0]);
         assert!(is_default_quat(&Quat::default()));
     }

@@ -211,25 +211,33 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_primitive() {
+    fn indices() {
         let mut graph = Graph::new();
-        let mut primitive = Primitive::new(&mut graph);
 
-        primitive.get_mut(&mut graph).mode = Mode::Lines;
-        assert_eq!(primitive.get(&graph).mode, Mode::Lines);
-
+        let primitive = Primitive::new(&mut graph);
         let indices = Accessor::new(&mut graph);
+
         primitive.set_indices(&mut graph, Some(&indices));
         assert_eq!(primitive.indices(&graph), Some(indices));
 
+        primitive.set_indices(&mut graph, None);
+        assert_eq!(primitive.indices(&graph), None);
+    }
+
+    #[test]
+    fn attributes() {
+        let mut graph = Graph::new();
+
+        let primitive = Primitive::new(&mut graph);
         let position = Accessor::new(&mut graph);
+        let normal = Accessor::new(&mut graph);
+
         primitive.set_attribute(&mut graph, &Semantic::Positions, Some(&position));
         assert_eq!(
             primitive.attribute(&graph, &Semantic::Positions),
             Some(position)
         );
 
-        let normal = Accessor::new(&mut graph);
         primitive.set_attribute(&mut graph, &Semantic::Normals, Some(&normal));
         assert_eq!(
             primitive.attribute(&graph, &Semantic::Normals),
@@ -241,8 +249,21 @@ mod tests {
         assert_eq!(primitive.attribute(&graph, &Semantic::Normals), None);
         assert_eq!(primitive.attributes(&graph).len(), 1);
 
+        primitive.set_attribute(&mut graph, &Semantic::Positions, None);
+        assert!(primitive.attribute(&graph, &Semantic::Positions).is_none(),);
+    }
+
+    #[test]
+    fn material() {
+        let mut graph = Graph::new();
+
+        let primitive = Primitive::new(&mut graph);
         let material = Material::new(&mut graph);
+
         primitive.set_material(&mut graph, Some(&material));
         assert_eq!(primitive.material(&graph), Some(material));
+
+        primitive.set_material(&mut graph, None);
+        assert!(primitive.material(&graph).is_none());
     }
 }

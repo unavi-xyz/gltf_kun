@@ -100,7 +100,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_texture() {
+    fn texture() {
         let mut graph = Graph::new();
 
         let texture_info = TextureInfo::new(&mut graph);
@@ -108,5 +108,8 @@ mod tests {
 
         texture_info.set_texture(&mut graph, Some(&texture));
         assert_eq!(texture_info.texture(&graph), Some(texture));
+
+        texture_info.set_texture(&mut graph, None);
+        assert!(texture_info.texture(&graph).is_none());
     }
 }

@@ -136,7 +136,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_sampler() {
+    fn sampler() {
         let mut graph = Graph::new();
 
         let texture = Texture::new(&mut graph);
@@ -144,10 +144,13 @@ mod tests {
 
         texture.set_sampler(&mut graph, Some(&sampler));
         assert_eq!(texture.sampler(&graph), Some(sampler));
+
+        texture.set_sampler(&mut graph, None);
+        assert!(texture.sampler(&graph).is_none());
     }
 
     #[test]
-    fn test_source() {
+    fn source() {
         let mut graph = Graph::new();
 
         let texture = Texture::new(&mut graph);
@@ -155,5 +158,8 @@ mod tests {
 
         texture.set_source(&mut graph, Some(&image));
         assert_eq!(texture.source(&graph), Some(image));
+
+        texture.set_source(&mut graph, None);
+        assert!(texture.source(&graph).is_none());
     }
 }

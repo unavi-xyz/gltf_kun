@@ -99,3 +99,22 @@ impl Image {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn buffer() {
+        let graph = &mut Graph::new();
+
+        let image = Image::new(graph);
+        let buffer = Buffer::new(graph);
+
+        image.set_buffer(graph, Some(&buffer));
+        assert_eq!(image.buffer(graph), Some(buffer));
+
+        image.set_buffer(graph, None);
+        assert_eq!(image.buffer(graph), None);
+    }
+}

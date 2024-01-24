@@ -125,7 +125,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_box() {
+    fn box_serde() {
         let shape = BoxShape {
             size: Size([1.0, 2.0, 3.0]),
         };
@@ -150,7 +150,7 @@ mod tests {
     }
 
     #[test]
-    fn test_sphere() {
+    fn sphere_serde() {
         let shape = SphereShape {
             radius: Radius(1.0),
         };
@@ -175,7 +175,7 @@ mod tests {
     }
 
     #[test]
-    fn test_capsule() {
+    fn capsule_serde() {
         let shape = CapsuleShape {
             radius: Radius(1.0),
             height: Height(2.5),
@@ -201,7 +201,7 @@ mod tests {
     }
 
     #[test]
-    fn test_cylinder() {
+    fn cylinder_serde() {
         let shape = CylinderShape {
             radius: Radius(1.0),
             height: Height(2.5),
@@ -227,7 +227,7 @@ mod tests {
     }
 
     #[test]
-    fn test_default_box() {
+    fn default_box_serde() {
         let shape = Shape {
             typ: "box".to_string(),
             weight: PhysicsShapeWeight::Box(BoxShape::default()),
@@ -239,7 +239,7 @@ mod tests {
     }
 
     #[test]
-    fn test_default_sphere() {
+    fn default_sphere_serde() {
         let shape = Shape {
             typ: "sphere".to_string(),
             weight: PhysicsShapeWeight::Sphere(SphereShape::default()),
@@ -251,7 +251,7 @@ mod tests {
     }
 
     #[test]
-    fn test_default_capsule() {
+    fn default_capsule_serde() {
         let shape = Shape {
             typ: "capsule".to_string(),
             weight: PhysicsShapeWeight::Capsule(CapsuleShape::default()),
@@ -263,7 +263,7 @@ mod tests {
     }
 
     #[test]
-    fn test_default_cylinder() {
+    fn default_cylinder_serde() {
         let shape = Shape {
             typ: "cylinder".to_string(),
             weight: PhysicsShapeWeight::Cylinder(CylinderShape::default()),
