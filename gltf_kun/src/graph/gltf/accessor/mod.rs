@@ -65,6 +65,12 @@ impl Default for AccessorWeight {
     }
 }
 
+impl From<AccessorWeight> for Weight {
+    fn from(weight: AccessorWeight) -> Self {
+        Self::Gltf(GltfWeight::Accessor(weight))
+    }
+}
+
 impl<'a> TryFrom<&'a Weight> for &'a AccessorWeight {
     type Error = ();
     fn try_from(value: &'a Weight) -> Result<Self, Self::Error> {
@@ -119,13 +125,8 @@ impl GraphNodeEdges<AccessorEdge> for Accessor {}
 impl Property for Accessor {}
 
 impl Accessor {
-    pub fn new(graph: &mut Graph) -> Self {
-        let index = graph.add_node(Weight::Gltf(GltfWeight::Accessor(Default::default())));
-        Self(index)
-    }
-
     pub fn buffer(&self, graph: &Graph) -> Option<Buffer> {
-        self.find_edge_target::<Buffer>(graph, &AccessorEdge::Buffer)
+        self.find_edge_target(graph, &AccessorEdge::Buffer)
     }
     pub fn set_buffer(&self, graph: &mut Graph, buffer: Option<Buffer>) {
         self.set_edge_target(graph, AccessorEdge::Buffer, buffer);

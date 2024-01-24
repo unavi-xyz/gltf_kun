@@ -407,15 +407,15 @@ mod tests {
         let mesh = doc.create_mesh(&mut graph);
 
         let primitive = mesh.create_primitive(&mut graph);
-        primitive.set_indices(&mut graph, Some(&accessor));
+        primitive.set_indices(&mut graph, Some(accessor));
 
         let node = doc.create_node(&mut graph);
         node.set_mesh(&mut graph, Some(mesh));
 
         let scene = doc.create_scene(&mut graph);
-        scene.add_node(&mut graph, &node);
+        scene.add_node(&mut graph, node);
 
-        doc.set_default_scene(&mut graph, Some(&scene));
+        doc.set_default_scene(&mut graph, Some(scene));
 
         // Ensure only connected properties are exported
         let _ = Buffer::new(&mut graph);

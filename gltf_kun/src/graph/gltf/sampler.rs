@@ -1,6 +1,6 @@
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{Graph, GraphNodeWeight, Property, Weight};
+use crate::graph::{GraphNodeWeight, Property, Weight};
 
 use super::GltfWeight;
 
@@ -44,6 +44,12 @@ pub enum Wrap {
     Other(usize) = 0,
 }
 
+impl From<SamplerWeight> for Weight {
+    fn from(weight: SamplerWeight) -> Self {
+        Self::Gltf(GltfWeight::Sampler(weight))
+    }
+}
+
 impl<'a> TryFrom<&'a Weight> for &'a SamplerWeight {
     type Error = ();
     fn try_from(value: &'a Weight) -> Result<Self, Self::Error> {
@@ -81,10 +87,3 @@ impl From<Sampler> for NodeIndex {
 
 impl GraphNodeWeight<SamplerWeight> for Sampler {}
 impl Property for Sampler {}
-
-impl Sampler {
-    pub fn new(graph: &mut Graph) -> Self {
-        let index = graph.add_node(Weight::Gltf(GltfWeight::Sampler(Default::default())));
-        Self(index)
-    }
-}

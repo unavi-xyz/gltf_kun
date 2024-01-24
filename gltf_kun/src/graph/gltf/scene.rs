@@ -1,4 +1,4 @@
-use petgraph::{graph::NodeIndex, visit::EdgeRef};
+use petgraph::graph::NodeIndex;
 
 use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
 
@@ -29,6 +29,12 @@ impl From<SceneEdge> for Edge {
 pub struct SceneWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,
+}
+
+impl From<SceneWeight> for Weight {
+    fn from(weight: SceneWeight) -> Self {
+        Self::Gltf(GltfWeight::Scene(weight))
+    }
 }
 
 impl<'a> TryFrom<&'a Weight> for &'a SceneWeight {
@@ -71,37 +77,14 @@ impl GraphNodeEdges<SceneEdge> for Scene {}
 impl Property for Scene {}
 
 impl Scene {
-    pub fn new(graph: &mut Graph) -> Self {
-        let index = graph.add_node(Weight::Gltf(GltfWeight::Scene(SceneWeight::default())));
-        Self(index)
-    }
-
     pub fn nodes(&self, graph: &Graph) -> Vec<Node> {
-        let mut vec = graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .filter_map(|edge| {
-                if let Edge::Gltf(GltfEdge::Scene(SceneEdge::Node)) = edge.weight() {
-                    Some(Node(edge.target()))
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-
-        vec.sort();
-
-        vec
+        self.edge_targets(graph, &SceneEdge::Node)
     }
-    pub fn add_node(&self, graph: &mut Graph, node: &Node) {
-        graph.add_edge(self.0, node.0, Edge::Gltf(GltfEdge::Scene(SceneEdge::Node)));
+    pub fn add_node(&self, graph: &mut Graph, node: Node) {
+        self.add_edge_target(graph, SceneEdge::Node, node);
     }
-    pub fn remove_node(&self, graph: &mut Graph, node: &Node) {
-        let edge = graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| edge.target() == node.0)
-            .expect("Child not found");
-
-        graph.remove_edge(edge.id());
+    pub fn remove_node(&self, graph: &mut Graph, node: Node) {
+        self.remove_edge_target(graph, SceneEdge::Node, node);
     }
 }
 
@@ -116,11 +99,11 @@ mod tests {
         let scene = Scene::new(&mut graph);
         let node = Node::new(&mut graph);
 
-        scene.add_node(&mut graph, &node);
+        scene.add_node(&mut graph, node);
         let nodes = scene.nodes(&graph);
         assert_eq!(nodes, vec![node]);
 
-        scene.remove_node(&mut graph, &node);
+        scene.remove_node(&mut graph, node);
         assert!(scene.nodes(&graph).is_empty());
     }
 }

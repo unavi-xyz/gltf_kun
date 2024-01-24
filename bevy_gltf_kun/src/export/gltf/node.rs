@@ -22,7 +22,7 @@ pub fn export_nodes(
 
         children.iter().for_each(|child| {
             let n = export_node(&mut context, &nodes, *child);
-            scene.add_node(&mut context.graph, &n);
+            scene.add_node(&mut context.graph, n);
         });
     });
 

@@ -1,4 +1,4 @@
-use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
+use petgraph::graph::NodeIndex;
 
 use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
 
@@ -30,6 +30,12 @@ impl From<TextureEdge> for Edge {
 pub struct TextureWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,
+}
+
+impl From<TextureWeight> for Weight {
+    fn from(weight: TextureWeight) -> Self {
+        Self::Gltf(GltfWeight::Texture(weight))
+    }
 }
 
 impl<'a> TryFrom<&'a Weight> for &'a TextureWeight {
@@ -72,51 +78,18 @@ impl GraphNodeEdges<TextureEdge> for Texture {}
 impl Property for Texture {}
 
 impl Texture {
-    pub fn new(graph: &mut Graph) -> Self {
-        let index = graph.add_node(Weight::Gltf(GltfWeight::Texture(Default::default())));
-        Self(index)
-    }
-
     pub fn sampler(&self, graph: &Graph) -> Option<Sampler> {
-        self.find_edge_target::<Sampler>(graph, &TextureEdge::Sampler)
+        self.find_edge_target(graph, &TextureEdge::Sampler)
     }
     pub fn set_sampler(&self, graph: &mut Graph, sampler: Option<Sampler>) {
         self.set_edge_target(graph, TextureEdge::Sampler, sampler);
     }
 
     pub fn source(&self, graph: &Graph) -> Option<Image> {
-        graph
-            .edges_directed(self.0, Direction::Outgoing)
-            .find_map(|edge| {
-                if let Edge::Gltf(GltfEdge::Texture(TextureEdge::Source)) = edge.weight() {
-                    Some(Image(edge.target()))
-                } else {
-                    None
-                }
-            })
+        self.find_edge_target(graph, &TextureEdge::Source)
     }
     pub fn set_source(&self, graph: &mut Graph, source: Option<&Image>) {
-        let edge = graph
-            .edges_directed(self.0, Direction::Outgoing)
-            .find(|edge| {
-                matches!(
-                    edge.weight(),
-                    Edge::Gltf(GltfEdge::Texture(TextureEdge::Source))
-                )
-            })
-            .map(|edge| edge.id());
-
-        if let Some(edge) = edge {
-            graph.remove_edge(edge);
-        }
-
-        if let Some(source) = source {
-            graph.add_edge(
-                self.0,
-                source.0,
-                Edge::Gltf(GltfEdge::Texture(TextureEdge::Source)),
-            );
-        }
+        self.set_edge_target(graph, TextureEdge::Source, source.cloned());
     }
 }
 

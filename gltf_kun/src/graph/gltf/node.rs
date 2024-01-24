@@ -50,6 +50,12 @@ impl Default for NodeWeight {
     }
 }
 
+impl From<NodeWeight> for Weight {
+    fn from(weight: NodeWeight) -> Self {
+        Self::Gltf(GltfWeight::Node(weight))
+    }
+}
+
 impl<'a> TryFrom<&'a Weight> for &'a NodeWeight {
     type Error = ();
     fn try_from(value: &'a Weight) -> Result<Self, Self::Error> {
@@ -90,38 +96,16 @@ impl GraphNodeEdges<NodeEdge> for Node {}
 impl Property for Node {}
 
 impl Node {
-    pub fn new(graph: &mut Graph) -> Self {
-        let index = graph.add_node(Weight::Gltf(GltfWeight::Node(NodeWeight::default())));
-        Self(index)
-    }
-
     pub fn children(&self, graph: &Graph) -> Vec<Node> {
-        let mut vec = graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .filter_map(|edge| {
-                if let Edge::Gltf(GltfEdge::Node(NodeEdge::Child)) = edge.weight() {
-                    Some(Node(edge.target()))
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-
-        vec.sort();
-
-        vec
+        self.edge_targets(graph, &NodeEdge::Child)
     }
     pub fn add_child(&self, graph: &mut Graph, child: &Node) {
-        graph.add_edge(self.0, child.0, Edge::Gltf(GltfEdge::Node(NodeEdge::Child)));
+        self.add_edge_target(graph, NodeEdge::Child, *child);
     }
     pub fn remove_child(&self, graph: &mut Graph, child: &Node) {
-        let edge = graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| edge.target() == child.0)
-            .expect("Child not found");
-
-        graph.remove_edge(edge.id());
+        self.remove_edge_target(graph, NodeEdge::Child, *child);
     }
+
     pub fn parent(&self, graph: &Graph) -> Option<Node> {
         graph
             .edges_directed(self.0, petgraph::Direction::Incoming)
@@ -140,7 +124,7 @@ impl Node {
     }
 
     pub fn mesh(&self, graph: &Graph) -> Option<Mesh> {
-        self.find_edge_target::<Mesh>(graph, &NodeEdge::Mesh)
+        self.find_edge_target(graph, &NodeEdge::Mesh)
     }
     pub fn set_mesh(&self, graph: &mut Graph, mesh: Option<Mesh>) {
         self.set_edge_target(graph, NodeEdge::Mesh, mesh);

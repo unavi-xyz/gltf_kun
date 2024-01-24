@@ -1,6 +1,6 @@
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
+use crate::graph::{Edge, GraphNodeEdges, GraphNodeWeight, Property, Weight};
 
 use super::{GltfEdge, GltfWeight};
 
@@ -54,6 +54,12 @@ pub enum AlphaMode {
     Other(String),
 }
 
+impl From<MaterialWeight> for Weight {
+    fn from(weight: MaterialWeight) -> Self {
+        Self::Gltf(GltfWeight::Material(weight))
+    }
+}
+
 impl<'a> TryFrom<&'a Weight> for &'a MaterialWeight {
     type Error = ();
     fn try_from(value: &'a Weight) -> Result<Self, Self::Error> {
@@ -92,12 +98,3 @@ impl From<Material> for NodeIndex {
 impl GraphNodeWeight<MaterialWeight> for Material {}
 impl GraphNodeEdges<MaterialEdge> for Material {}
 impl Property for Material {}
-
-impl Material {
-    pub fn new(graph: &mut Graph) -> Self {
-        let index = graph.add_node(Weight::Gltf(
-            GltfWeight::Material(MaterialWeight::default()),
-        ));
-        Self(index)
-    }
-}

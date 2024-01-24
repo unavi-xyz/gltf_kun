@@ -159,7 +159,7 @@ pub async fn import(
 
                 if let Some(index) = p.indices {
                     if let Some(accessor) = accessors.get(index.value()) {
-                        primitive.set_indices(graph, Some(accessor));
+                        primitive.set_indices(graph, Some(*accessor));
                     }
                 }
 
@@ -173,7 +173,7 @@ pub async fn import(
                             }
                         };
 
-                        primitive.set_attribute(graph, semantic, Some(accessor));
+                        primitive.set_attribute(graph, semantic, Some(*accessor));
                     }
                 });
             });
@@ -243,7 +243,7 @@ pub async fn import(
 
             s.nodes.iter().for_each(|idx| {
                 if let Some(node) = nodes.get(idx.value()) {
-                    scene.add_node(graph, node);
+                    scene.add_node(graph, *node);
                 }
             });
 
@@ -254,7 +254,7 @@ pub async fn import(
     // Default scene
     if let Some(index) = format.json.scene {
         if let Some(scene) = scenes.get(index.value()) {
-            doc.set_default_scene(graph, Some(scene));
+            doc.set_default_scene(graph, Some(*scene));
         }
     }
 

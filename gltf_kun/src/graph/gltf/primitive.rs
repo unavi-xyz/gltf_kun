@@ -44,6 +44,12 @@ impl Default for PrimitiveWeight {
     }
 }
 
+impl From<PrimitiveWeight> for Weight {
+    fn from(weight: PrimitiveWeight) -> Self {
+        Self::Gltf(GltfWeight::Primitive(weight))
+    }
+}
+
 impl<'a> TryFrom<&'a Weight> for &'a PrimitiveWeight {
     type Error = ();
     fn try_from(value: &'a Weight) -> Result<Self, Self::Error> {
@@ -84,81 +90,18 @@ impl GraphNodeEdges<PrimitiveEdge> for Primitive {}
 impl Property for Primitive {}
 
 impl Primitive {
-    pub fn new(graph: &mut Graph) -> Self {
-        let index = graph.add_node(Weight::Gltf(GltfWeight::Primitive(
-            PrimitiveWeight::default(),
-        )));
-        Self(index)
-    }
-
     pub fn material(&self, graph: &Graph) -> Option<Material> {
-        graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find_map(|edge| {
-                if let Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Material)) = edge.weight() {
-                    Some(Material(edge.target()))
-                } else {
-                    None
-                }
-            })
+        self.find_edge_target(graph, &PrimitiveEdge::Material)
     }
-    pub fn set_material(&self, graph: &mut Graph, material: Option<&Material>) {
-        let edge = graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| {
-                matches!(
-                    edge.weight(),
-                    Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Material))
-                )
-            })
-            .map(|edge| edge.id());
-
-        if let Some(edge) = edge {
-            graph.remove_edge(edge);
-        }
-
-        if let Some(material) = material {
-            graph.add_edge(
-                self.0,
-                material.0,
-                Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Material)),
-            );
-        }
+    pub fn set_material(&self, graph: &mut Graph, material: Option<Material>) {
+        self.set_edge_target(graph, PrimitiveEdge::Material, material);
     }
 
     pub fn indices(&self, graph: &Graph) -> Option<Accessor> {
-        graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find_map(|edge| {
-                if let Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Indices)) = edge.weight() {
-                    Some(Accessor(edge.target()))
-                } else {
-                    None
-                }
-            })
+        self.find_edge_target(graph, &PrimitiveEdge::Indices)
     }
-    pub fn set_indices(&self, graph: &mut Graph, indices: Option<&Accessor>) {
-        let edge = graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| {
-                matches!(
-                    edge.weight(),
-                    Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Indices))
-                )
-            })
-            .map(|edge| edge.id());
-
-        if let Some(edge) = edge {
-            graph.remove_edge(edge);
-        }
-
-        if let Some(indices) = indices {
-            graph.add_edge(
-                self.0,
-                indices.0,
-                Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Indices)),
-            );
-        }
+    pub fn set_indices(&self, graph: &mut Graph, indices: Option<Accessor>) {
+        self.set_edge_target(graph, PrimitiveEdge::Indices, indices);
     }
 
     pub fn attributes(&self, graph: &Graph) -> Vec<(Semantic, Accessor)> {
@@ -176,50 +119,15 @@ impl Primitive {
             .collect()
     }
     pub fn attribute(&self, graph: &Graph, semantic: &Semantic) -> Option<Accessor> {
-        graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find_map(|edge| {
-                if let Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Attribute(edge_semantic))) =
-                    edge.weight()
-                {
-                    if edge_semantic == semantic {
-                        Some(Accessor(edge.target()))
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
-            })
+        self.find_edge_target(graph, &PrimitiveEdge::Attribute(semantic.clone()))
     }
     pub fn set_attribute(
         &self,
         graph: &mut Graph,
         semantic: &Semantic,
-        accessor: Option<&Accessor>,
+        accessor: Option<Accessor>,
     ) {
-        if let Some(accessor) = accessor {
-            graph.add_edge(
-                self.0,
-                accessor.0,
-                Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Attribute(
-                    semantic.clone(),
-                ))),
-            );
-        } else if let Some(edge) = graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| {
-                if let Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Attribute(edge_semantic))) =
-                    edge.weight()
-                {
-                    edge_semantic == semantic
-                } else {
-                    false
-                }
-            })
-        {
-            graph.remove_edge(edge.id());
-        }
+        self.set_edge_target(graph, PrimitiveEdge::Attribute(semantic.clone()), accessor);
     }
 }
 
@@ -234,7 +142,7 @@ mod tests {
         let primitive = Primitive::new(&mut graph);
         let indices = Accessor::new(&mut graph);
 
-        primitive.set_indices(&mut graph, Some(&indices));
+        primitive.set_indices(&mut graph, Some(indices));
         assert_eq!(primitive.indices(&graph), Some(indices));
 
         primitive.set_indices(&mut graph, None);
@@ -249,13 +157,13 @@ mod tests {
         let position = Accessor::new(&mut graph);
         let normal = Accessor::new(&mut graph);
 
-        primitive.set_attribute(&mut graph, &Semantic::Positions, Some(&position));
+        primitive.set_attribute(&mut graph, &Semantic::Positions, Some(position));
         assert_eq!(
             primitive.attribute(&graph, &Semantic::Positions),
             Some(position)
         );
 
-        primitive.set_attribute(&mut graph, &Semantic::Normals, Some(&normal));
+        primitive.set_attribute(&mut graph, &Semantic::Normals, Some(normal));
         assert_eq!(
             primitive.attribute(&graph, &Semantic::Normals),
             Some(normal)
@@ -277,7 +185,7 @@ mod tests {
         let primitive = Primitive::new(&mut graph);
         let material = Material::new(&mut graph);
 
-        primitive.set_material(&mut graph, Some(&material));
+        primitive.set_material(&mut graph, Some(material));
         assert_eq!(primitive.material(&graph), Some(material));
 
         primitive.set_material(&mut graph, None);

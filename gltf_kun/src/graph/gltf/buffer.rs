@@ -1,6 +1,6 @@
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{Graph, GraphNodeWeight, Property, Weight};
+use crate::graph::{GraphNodeWeight, Property, Weight};
 
 use super::GltfWeight;
 
@@ -10,6 +10,12 @@ pub struct BufferWeight {
     pub extras: gltf::json::Extras,
 
     pub uri: Option<String>,
+}
+
+impl From<BufferWeight> for Weight {
+    fn from(weight: BufferWeight) -> Self {
+        Self::Gltf(GltfWeight::Buffer(weight))
+    }
 }
 
 impl<'a> TryFrom<&'a Weight> for &'a BufferWeight {
@@ -49,10 +55,3 @@ impl From<Buffer> for NodeIndex {
 
 impl GraphNodeWeight<BufferWeight> for Buffer {}
 impl Property for Buffer {}
-
-impl Buffer {
-    pub fn new(graph: &mut Graph) -> Self {
-        let index = graph.add_node(Weight::Gltf(GltfWeight::Buffer(Default::default())));
-        Self(index)
-    }
-}

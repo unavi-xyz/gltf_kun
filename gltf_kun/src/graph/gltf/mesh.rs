@@ -1,4 +1,4 @@
-use petgraph::{graph::NodeIndex, visit::EdgeRef};
+use petgraph::graph::NodeIndex;
 
 use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
 
@@ -32,6 +32,12 @@ pub struct MeshWeight {
     pub extras: gltf::json::Extras,
 
     pub weights: Vec<f32>,
+}
+
+impl From<MeshWeight> for Weight {
+    fn from(weight: MeshWeight) -> Self {
+        Self::Gltf(GltfWeight::Mesh(weight))
+    }
 }
 
 impl<'a> TryFrom<&'a Weight> for &'a MeshWeight {
@@ -74,46 +80,17 @@ impl GraphNodeEdges<MeshEdge> for Mesh {}
 impl Property for Mesh {}
 
 impl Mesh {
-    pub fn new(graph: &mut Graph) -> Self {
-        let index = graph.add_node(Weight::Gltf(GltfWeight::Mesh(MeshWeight::default())));
-        Self(index)
-    }
-
     pub fn primitives(&self, graph: &Graph) -> Vec<Primitive> {
-        let mut vec = graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .filter_map(|edge| {
-                if let Edge::Gltf(GltfEdge::Mesh(MeshEdge::Primitive)) = edge.weight() {
-                    Some(Primitive(edge.target()))
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-
-        vec.sort();
-
-        vec
+        self.edge_targets(graph, &MeshEdge::Primitive)
     }
     pub fn add_primitive(&self, graph: &mut Graph, primitive: &Primitive) {
-        graph.add_edge(
-            self.0,
-            primitive.0,
-            Edge::Gltf(GltfEdge::Mesh(MeshEdge::Primitive)),
-        );
+        self.add_edge_target(graph, MeshEdge::Primitive, *primitive);
     }
     pub fn remove_primitive(&self, graph: &mut Graph, primitive: &Primitive) {
-        let edge = graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|edge| edge.target() == primitive.0)
-            .expect("Primitive not found");
-
-        graph.remove_edge(edge.id());
+        self.remove_edge_target(graph, MeshEdge::Primitive, *primitive);
     }
     pub fn create_primitive(&self, graph: &mut Graph) -> Primitive {
-        let primitive = Primitive::new(graph);
-        self.add_primitive(graph, &primitive);
-        primitive
+        self.create_edge_target(graph, MeshEdge::Primitive)
     }
 }
 

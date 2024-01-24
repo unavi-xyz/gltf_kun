@@ -1,4 +1,4 @@
-use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
+use petgraph::graph::NodeIndex;
 
 use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
 
@@ -29,6 +29,12 @@ impl From<TextureInfoEdge> for Edge {
 pub struct TextureInfoWeight {
     pub extras: gltf::json::Extras,
     pub tex_coord: usize,
+}
+
+impl From<TextureInfoWeight> for Weight {
+    fn from(weight: TextureInfoWeight) -> Self {
+        Self::Gltf(GltfWeight::TextureInfo(weight))
+    }
 }
 
 impl<'a> TryFrom<&'a Weight> for &'a TextureInfoWeight {
@@ -71,44 +77,11 @@ impl GraphNodeEdges<TextureInfoEdge> for TextureInfo {}
 impl Property for TextureInfo {}
 
 impl TextureInfo {
-    pub fn new(graph: &mut Graph) -> Self {
-        let index = graph.add_node(Weight::Gltf(GltfWeight::TextureInfo(Default::default())));
-        Self(index)
-    }
-
     pub fn texture(&self, graph: &Graph) -> Option<Texture> {
-        graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find_map(|edge| {
-                if let Edge::Gltf(GltfEdge::TextureInfo(TextureInfoEdge::Texture)) = edge.weight() {
-                    Some(Texture(edge.target()))
-                } else {
-                    None
-                }
-            })
+        self.find_edge_target(graph, &TextureInfoEdge::Texture)
     }
-    pub fn set_texture(&self, graph: &mut Graph, texture: Option<&Texture>) {
-        let edge = graph
-            .edges_directed(self.0, Direction::Outgoing)
-            .find(|edge| {
-                matches!(
-                    edge.weight(),
-                    Edge::Gltf(GltfEdge::TextureInfo(TextureInfoEdge::Texture))
-                )
-            })
-            .map(|edge| edge.id());
-
-        if let Some(edge) = edge {
-            graph.remove_edge(edge);
-        }
-
-        if let Some(texture) = texture {
-            graph.add_edge(
-                self.0,
-                texture.0,
-                Edge::Gltf(GltfEdge::TextureInfo(TextureInfoEdge::Texture)),
-            );
-        }
+    pub fn set_texture(&self, graph: &mut Graph, texture: Option<Texture>) {
+        self.set_edge_target(graph, TextureInfoEdge::Texture, texture);
     }
 }
 
@@ -123,7 +96,7 @@ mod tests {
         let texture_info = TextureInfo::new(&mut graph);
         let texture = Texture::new(&mut graph);
 
-        texture_info.set_texture(&mut graph, Some(&texture));
+        texture_info.set_texture(&mut graph, Some(texture));
         assert_eq!(texture_info.texture(&graph), Some(texture));
 
         texture_info.set_texture(&mut graph, None);

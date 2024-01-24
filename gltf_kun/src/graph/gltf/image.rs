@@ -38,6 +38,12 @@ pub struct ImageWeight {
     pub data: Vec<u8>,
 }
 
+impl From<ImageWeight> for Weight {
+    fn from(weight: ImageWeight) -> Self {
+        Self::Gltf(GltfWeight::Image(weight))
+    }
+}
+
 impl<'a> TryFrom<&'a Weight> for &'a ImageWeight {
     type Error = ();
     fn try_from(value: &'a Weight) -> Result<Self, Self::Error> {
@@ -78,13 +84,8 @@ impl GraphNodeEdges<ImageEdge> for Image {}
 impl Property for Image {}
 
 impl Image {
-    pub fn new(graph: &mut Graph) -> Self {
-        let index = graph.add_node(Weight::Gltf(GltfWeight::Image(Default::default())));
-        Self(index)
-    }
-
     pub fn buffer(&self, graph: &Graph) -> Option<Buffer> {
-        self.find_edge_target::<Buffer>(graph, &ImageEdge::Buffer)
+        self.find_edge_target(graph, &ImageEdge::Buffer)
     }
     pub fn set_buffer(&self, graph: &mut Graph, buffer: Option<Buffer>) {
         self.set_edge_target(graph, ImageEdge::Buffer, buffer);

@@ -22,7 +22,7 @@ pub fn export_scenes(
         if context.target_default_scene == Some(handle.clone()) {
             context
                 .doc
-                .set_default_scene(&mut context.graph, Some(&scene));
+                .set_default_scene(&mut context.graph, Some(scene));
         }
 
         let weight = scene.get_mut(&mut context.graph);
