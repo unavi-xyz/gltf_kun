@@ -40,7 +40,7 @@ where
                     Err(_) => return false,
                 };
 
-                e == &edge
+                e == edge
             })
     }
 
