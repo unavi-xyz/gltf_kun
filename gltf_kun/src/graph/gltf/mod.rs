@@ -1,6 +1,5 @@
 pub mod accessor;
 pub mod buffer;
-pub mod buffer_view;
 pub mod document;
 pub mod image;
 pub mod material;
@@ -16,7 +15,6 @@ pub mod texture_info;
 pub enum GltfWeight {
     Accessor(accessor::AccessorWeight),
     Buffer(buffer::BufferWeight),
-    BufferView(buffer_view::BufferViewWeight),
     Document,
     Image(image::ImageWeight),
     Material(material::MaterialWeight),
@@ -32,7 +30,6 @@ pub enum GltfWeight {
 #[derive(Debug, PartialEq, Eq)]
 pub enum GltfEdge {
     Accessor(accessor::AccessorEdge),
-    BufferView(buffer_view::BufferViewEdge),
     Document(document::DocumentEdge),
     Image(image::ImageEdge),
     Material(material::MaterialEdge),

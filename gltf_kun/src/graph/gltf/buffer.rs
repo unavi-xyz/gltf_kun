@@ -9,10 +9,7 @@ pub struct BufferWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,
 
-    pub byte_length: usize,
     pub uri: Option<String>,
-
-    pub blob: Option<Vec<u8>>,
 }
 
 impl<'a> TryFrom<&'a Weight> for &'a BufferWeight {
@@ -57,28 +54,5 @@ impl Buffer {
     pub fn new(graph: &mut Graph) -> Self {
         let index = graph.add_node(Weight::Gltf(GltfWeight::Buffer(Default::default())));
         Self(index)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_buffer() {
-        let mut graph = Graph::new();
-        let mut buffer = Buffer::new(&mut graph);
-
-        buffer.get_mut(&mut graph).name = Some("Test".to_string());
-        assert_eq!(buffer.get(&graph).name, Some("Test".to_string()));
-
-        buffer.get_mut(&mut graph).byte_length = 4;
-        assert_eq!(buffer.get(&graph).byte_length, 4);
-
-        buffer.get_mut(&mut graph).uri = Some("Test".to_string());
-        assert_eq!(buffer.get(&graph).uri, Some("Test".to_string()));
-
-        buffer.get_mut(&mut graph).blob = Some(vec![0, 1, 2, 3]);
-        assert_eq!(buffer.get(&graph).blob, Some(vec![0, 1, 2, 3]));
     }
 }

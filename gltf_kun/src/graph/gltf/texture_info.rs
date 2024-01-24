@@ -1,8 +1,8 @@
-use petgraph::graph::NodeIndex;
+use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
 
-use crate::graph::{Graph, GraphNode, Property, Weight};
+use crate::graph::{Edge, Graph, GraphNode, Property, Weight};
 
-use super::GltfWeight;
+use super::{texture::Texture, GltfEdge, GltfWeight};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum TextureInfoEdge {
@@ -57,5 +57,56 @@ impl TextureInfo {
     pub fn new(graph: &mut Graph) -> Self {
         let index = graph.add_node(Weight::Gltf(GltfWeight::TextureInfo(Default::default())));
         Self(index)
+    }
+
+    pub fn texture(&self, graph: &Graph) -> Option<Texture> {
+        graph
+            .edges_directed(self.0, petgraph::Direction::Outgoing)
+            .find_map(|edge| {
+                if let Edge::Gltf(GltfEdge::TextureInfo(TextureInfoEdge::Texture)) = edge.weight() {
+                    Some(Texture(edge.target()))
+                } else {
+                    None
+                }
+            })
+    }
+    pub fn set_texture(&self, graph: &mut Graph, texture: Option<&Texture>) {
+        let edge = graph
+            .edges_directed(self.0, Direction::Outgoing)
+            .find(|edge| {
+                matches!(
+                    edge.weight(),
+                    Edge::Gltf(GltfEdge::TextureInfo(TextureInfoEdge::Texture))
+                )
+            })
+            .map(|edge| edge.id());
+
+        if let Some(edge) = edge {
+            graph.remove_edge(edge);
+        }
+
+        if let Some(texture) = texture {
+            graph.add_edge(
+                self.0,
+                texture.0,
+                Edge::Gltf(GltfEdge::TextureInfo(TextureInfoEdge::Texture)),
+            );
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_texture() {
+        let mut graph = Graph::new();
+
+        let texture_info = TextureInfo::new(&mut graph);
+        let texture = Texture::new(&mut graph);
+
+        texture_info.set_texture(&mut graph, Some(&texture));
+        assert_eq!(texture_info.texture(&graph), Some(texture));
     }
 }

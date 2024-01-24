@@ -1,12 +1,12 @@
-use petgraph::graph::NodeIndex;
+use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
-use crate::graph::{Graph, GraphNode, Property, Weight};
+use crate::graph::{gltf::GltfEdge, Edge, Graph, GraphNode, Property, Weight};
 
-use super::GltfWeight;
+use super::{buffer::Buffer, GltfWeight};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ImageEdge {
-    BufferView,
+    Buffer,
 }
 
 #[derive(Debug, Default)]
@@ -14,8 +14,10 @@ pub struct ImageWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,
 
-    pub uri: Option<String>,
     pub mime_type: Option<String>,
+    pub uri: Option<String>,
+
+    pub data: Vec<u8>,
 }
 
 impl<'a> TryFrom<&'a Weight> for &'a ImageWeight {
@@ -60,5 +62,40 @@ impl Image {
     pub fn new(graph: &mut Graph) -> Self {
         let index = graph.add_node(Weight::Gltf(GltfWeight::Image(Default::default())));
         Self(index)
+    }
+
+    pub fn buffer(&self, graph: &Graph) -> Option<Buffer> {
+        graph
+            .edges_directed(self.0, petgraph::Direction::Outgoing)
+            .find(|edge| {
+                matches!(
+                    edge.weight(),
+                    Edge::Gltf(GltfEdge::Image(ImageEdge::Buffer))
+                )
+            })
+            .map(|edge| Buffer(edge.target()))
+    }
+    pub fn set_buffer(&self, graph: &mut Graph, source: Option<&Buffer>) {
+        let edge = graph
+            .edges_directed(self.0, petgraph::Direction::Outgoing)
+            .find(|edge| {
+                matches!(
+                    edge.weight(),
+                    Edge::Gltf(GltfEdge::Image(ImageEdge::Buffer))
+                )
+            })
+            .map(|edge| edge.id());
+
+        if let Some(edge) = edge {
+            graph.remove_edge(edge);
+        }
+
+        if let Some(buffer) = source {
+            graph.add_edge(
+                self.0,
+                buffer.0,
+                Edge::Gltf(GltfEdge::Image(ImageEdge::Buffer)),
+            );
+        }
     }
 }

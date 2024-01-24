@@ -3,15 +3,14 @@ use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
 use crate::graph::{gltf::GltfEdge, Edge, Graph, Property, Weight};
 
 use super::{
-    accessor::Accessor, buffer::Buffer, buffer_view::BufferView, image::Image, material::Material,
-    mesh::Mesh, node::Node, sampler::Sampler, scene::Scene, GltfWeight,
+    accessor::Accessor, buffer::Buffer, image::Image, material::Material, mesh::Mesh, node::Node,
+    sampler::Sampler, scene::Scene, GltfWeight,
 };
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum DocumentEdge {
     Accessor,
     Buffer,
-    BufferView,
     DefaultScene,
     Image,
     Material,
@@ -106,23 +105,6 @@ impl GltfDocument {
             graph,
             DocumentEdge::Accessor,
             GltfWeight::Accessor(Default::default()),
-        )
-    }
-
-    pub fn buffer_views(&self, graph: &Graph) -> Vec<BufferView> {
-        self.all_properties(graph, DocumentEdge::BufferView)
-    }
-    pub fn add_buffer_view(&self, graph: &mut Graph, buffer_view: &BufferView) {
-        self.add_property(graph, DocumentEdge::BufferView, buffer_view.0);
-    }
-    pub fn remove_buffer_view(&self, graph: &mut Graph, buffer_view: &BufferView) {
-        self.remove_property(graph, buffer_view.0);
-    }
-    pub fn create_buffer_view(&self, graph: &mut Graph) -> BufferView {
-        self.create_property(
-            graph,
-            DocumentEdge::BufferView,
-            GltfWeight::BufferView(Default::default()),
         )
     }
 

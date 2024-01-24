@@ -5,7 +5,7 @@ use crate::graph::{Edge, Graph, GraphNode, Property, Weight};
 
 use self::iter::{AccessorElement, AccessorIter};
 
-use super::{buffer::Buffer, buffer_view::BufferView, GltfEdge, GltfWeight};
+use super::{buffer::Buffer, GltfEdge, GltfWeight};
 
 pub use gltf::json::accessor::{ComponentType, Type};
 
@@ -19,7 +19,7 @@ pub mod weights;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum AccessorEdge {
-    BufferView,
+    Buffer,
 }
 
 #[derive(Debug)]
@@ -27,11 +27,11 @@ pub struct AccessorWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,
 
-    pub byte_offset: usize,
     pub component_type: ComponentType,
-    pub count: usize,
     pub element_type: Type,
     pub normalized: bool,
+
+    pub data: Vec<u8>,
 }
 
 impl Default for AccessorWeight {
@@ -40,11 +40,11 @@ impl Default for AccessorWeight {
             name: None,
             extras: None,
 
-            byte_offset: 0,
             component_type: ComponentType::F32,
-            count: 0,
             element_type: Type::Scalar,
             normalized: false,
+
+            data: Vec::new(),
         }
     }
 }
@@ -71,8 +71,6 @@ impl<'a> TryFrom<&'a mut Weight> for &'a mut AccessorWeight {
 
 #[derive(Debug, Error)]
 pub enum GetAccessorSliceError {
-    #[error("Failed to get buffer slice: {0}")]
-    GetBufferViewSliceError(#[from] super::buffer_view::GetBufferViewSliceError),
     #[error("Accessor slice {0}..{1} is out of bounds for buffer view of length {2}")]
     OutOfBounds(usize, usize, usize),
 }
@@ -109,24 +107,24 @@ impl Accessor {
         Self(index)
     }
 
-    pub fn buffer_view(&self, graph: &Graph) -> Option<BufferView> {
+    pub fn buffer(&self, graph: &Graph) -> Option<Buffer> {
         graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .find(|edge| {
                 matches!(
                     edge.weight(),
-                    Edge::Gltf(GltfEdge::Accessor(AccessorEdge::BufferView))
+                    Edge::Gltf(GltfEdge::Accessor(AccessorEdge::Buffer))
                 )
             })
-            .map(|edge| BufferView(edge.target()))
+            .map(|edge| Buffer(edge.target()))
     }
-    pub fn set_buffer_view(&self, graph: &mut Graph, buffer_view: Option<&BufferView>) {
+    pub fn set_buffer(&self, graph: &mut Graph, buffer: Option<&Buffer>) {
         let edge = graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
             .find(|edge| {
                 matches!(
                     edge.weight(),
-                    Edge::Gltf(GltfEdge::Accessor(AccessorEdge::BufferView))
+                    Edge::Gltf(GltfEdge::Accessor(AccessorEdge::Buffer))
                 )
             })
             .map(|edge| edge.id());
@@ -135,120 +133,48 @@ impl Accessor {
             graph.remove_edge(edge);
         }
 
-        if let Some(buffer_view) = buffer_view {
+        if let Some(buffer) = buffer {
             graph.add_edge(
                 self.0,
-                buffer_view.0,
-                Edge::Gltf(GltfEdge::Accessor(AccessorEdge::BufferView)),
+                buffer.0,
+                Edge::Gltf(GltfEdge::Accessor(AccessorEdge::Buffer)),
             );
         }
     }
 
-    pub fn from_iter(graph: &mut Graph, iter: AccessorIter, buffer: Option<Buffer>) -> Self {
-        let mut buffer = buffer.unwrap_or_else(|| Buffer::new(graph));
-        let buffer_weight = buffer.get_mut(graph);
-
-        let iter_byte_length = iter.slice().len();
-        let buffer_view_start = buffer_weight.byte_length;
-        buffer_weight.byte_length += iter_byte_length;
-
-        let blob = buffer_weight.blob.get_or_insert_with(Vec::new);
-        blob.extend_from_slice(iter.slice());
-
-        let mut buffer_view = BufferView::new(graph);
-        buffer_view.set_buffer(graph, Some(&buffer));
-
-        let buffer_view_weight = buffer_view.get_mut(graph);
-        buffer_view_weight.byte_offset = buffer_view_start;
-        buffer_view_weight.byte_length = iter_byte_length;
-
+    pub fn from_iter(graph: &mut Graph, iter: AccessorIter) -> Self {
         let mut accessor = Self::new(graph);
-        accessor.set_buffer_view(graph, Some(&buffer_view));
 
         let accessor_weight = accessor.get_mut(graph);
         accessor_weight.component_type = iter.component_type();
-        accessor_weight.count = iter.count();
         accessor_weight.element_type = iter.element_type();
         accessor_weight.normalized = iter.normalized();
+        accessor_weight.data = iter.slice().to_vec();
 
         accessor
     }
 
-    pub fn iter<'a>(
-        &self,
-        graph: &'a Graph,
-        buffer_view: &'a BufferView,
-        buffer: &'a Buffer,
-    ) -> Result<AccessorIter<'a>, GetAccessorIterError> {
-        let slice = self.slice(graph, buffer_view, buffer)?;
+    pub fn iter<'a>(&self, graph: &'a Graph) -> Result<AccessorIter<'a>, GetAccessorIterError> {
         let weight = self.get(graph);
-
         Ok(AccessorIter::new(
-            slice,
+            &weight.data,
             weight.component_type,
             weight.element_type,
         )?)
     }
 
-    pub fn slice<'a>(
-        &self,
-        graph: &'a Graph,
-        buffer_view: &'a BufferView,
-        buffer: &'a Buffer,
-    ) -> Result<&'a [u8], GetAccessorSliceError> {
-        let slice = buffer_view.slice(graph, buffer)?;
-
-        let weight = self.get(graph);
-        let start = weight.byte_offset;
-        let end = start
-            + weight.count * weight.element_type.multiplicity() * weight.component_type.size();
-
-        if end > slice.len() {
-            return Err(GetAccessorSliceError::OutOfBounds(start, end, slice.len()));
-        }
-
-        Ok(&slice[start..end])
-    }
-
     pub fn calc_max(&self, graph: &Graph) -> Option<AccessorElement> {
-        let buffer_view = self.buffer_view(graph)?;
-        let buffer = buffer_view.buffer(graph)?;
-        let iter = self.iter(graph, &buffer_view, &buffer).ok()?;
+        let iter = self.iter(graph).ok()?;
         Some(iter.max())
     }
 
     pub fn calc_min(&self, graph: &Graph) -> Option<AccessorElement> {
-        let buffer_view = self.buffer_view(graph)?;
-        let buffer = buffer_view.buffer(graph)?;
-        let iter = self.iter(graph, &buffer_view, &buffer).ok()?;
+        let iter = self.iter(graph).ok()?;
         Some(iter.min())
     }
-}
 
-#[cfg(test)]
-mod tests {
-    use tracing_test::traced_test;
-
-    use super::*;
-
-    #[test]
-    #[traced_test]
-    fn test_from_iter() {
-        let mut graph = Graph::new();
-
-        let iter = AccessorIter::new(&[0, 1, 2, 3, 4, 5], ComponentType::U8, Type::Vec2)
-            .expect("Failed to create iter");
-
-        let accessor = Accessor::from_iter(&mut graph, iter, None);
-
-        let buffer_view = accessor
-            .buffer_view(&graph)
-            .expect("Failed to get buffer view");
-        let buffer = buffer_view.buffer(&graph).expect("Failed to get buffer");
-
-        assert_eq!(
-            accessor.slice(&graph, &buffer_view, &buffer).unwrap(),
-            &[0, 1, 2, 3, 4, 5]
-        );
+    pub fn count(&self, graph: &Graph) -> usize {
+        let weight = self.get(graph);
+        weight.data.len() / weight.element_type.multiplicity() / weight.component_type.size()
     }
 }

@@ -1,13 +1,12 @@
+use std::collections::HashMap;
+
 use glam::Quat;
 use gltf::json::{accessor::ComponentType, validation::Checked};
 use thiserror::Error;
 use tracing::{debug, error, warn};
 
 use crate::{
-    graph::{
-        gltf::{buffer_view::Target, document::GltfDocument},
-        Graph, GraphNode,
-    },
+    graph::{gltf::document::GltfDocument, Graph, GraphNode},
     io::resolver::Resolver,
 };
 
@@ -25,15 +24,15 @@ pub async fn import(
 
     // Create buffers
     let mut buffers = Vec::new();
+    let mut buffer_data = HashMap::new();
 
-    for b in format.json.buffers.iter_mut() {
+    for (i, b) in format.json.buffers.iter_mut().enumerate() {
         let mut buffer = doc.create_buffer(graph);
         let weight = buffer.get_mut(graph);
 
         weight.name = b.name.take();
         weight.extras = b.extras.take();
 
-        weight.byte_length = b.byte_length.0 as usize;
         weight.uri = b.uri.take();
 
         if resolver.is_none() && format.resources.len() == 1 {
@@ -41,14 +40,19 @@ pub async fn import(
                 .resources
                 .iter_mut()
                 .find(|_| true)
-                .map(|(k, _)| k.clone())
-                .unwrap();
-            weight.blob = format.resources.remove(&key);
+                .map(|(k, _)| k.clone());
+
+            if let Some(key) = key {
+                let data = format.resources.remove(&key).unwrap();
+                buffer_data.insert(i, data);
+            } else {
+                warn!("No resources provided");
+            }
         } else if let Some(uri) = weight.uri.as_ref() {
             if let Some(resolver) = resolver {
-                if let Ok(blob) = resolver.resolve(uri).await {
-                    debug!("Resolved buffer: {} ({} bytes)", uri, blob.len());
-                    weight.blob = Some(blob);
+                if let Ok(data) = resolver.resolve(uri).await {
+                    debug!("Resolved buffer: {} ({} bytes)", uri, data.len());
+                    buffer_data.insert(i, data);
                 } else {
                     warn!("Failed to resolve URI: {}", uri);
                 }
@@ -60,38 +64,6 @@ pub async fn import(
         buffers.push(buffer);
     }
 
-    // Create buffer views
-    let buffer_views = format
-        .json
-        .buffer_views
-        .iter_mut()
-        .map(|v| {
-            let mut view = doc.create_buffer_view(graph);
-            let weight = view.get_mut(graph);
-
-            weight.name = v.name.take();
-            weight.extras = v.extras.take();
-
-            weight.byte_length = v.byte_length.0 as usize;
-            weight.byte_offset = v.byte_offset.map(|o| o.0).unwrap_or_default() as usize;
-            weight.byte_stride = v.byte_stride.map(|s| s.0);
-
-            weight.target = v.target.and_then(|t| match t {
-                Checked::Valid(target) => Some(match target {
-                    gltf::json::buffer::Target::ArrayBuffer => Target::ArrayBuffer,
-                    gltf::json::buffer::Target::ElementArrayBuffer => Target::ElementArrayBuffer,
-                }),
-                Checked::Invalid => None,
-            });
-
-            if let Some(buffer) = buffers.get(v.buffer.value()) {
-                view.set_buffer(graph, Some(buffer));
-            }
-
-            view
-        })
-        .collect::<Vec<_>>();
-
     // Create accessors
     let accessors = format
         .json
@@ -99,13 +71,12 @@ pub async fn import(
         .iter_mut()
         .map(|a| {
             let mut accessor = doc.create_accessor(graph);
+
             let weight = accessor.get_mut(graph);
 
             weight.name = a.name.take();
             weight.extras = a.extras.take();
 
-            weight.byte_offset = a.byte_offset.map(|o| o.0).unwrap_or_default() as usize;
-            weight.count = a.count.0 as usize;
             weight.normalized = a.normalized;
             weight.component_type = match a.component_type {
                 Checked::Valid(component_type) => component_type.0,
@@ -122,11 +93,41 @@ pub async fn import(
                 }
             };
 
-            if let Some(index) = a.buffer_view {
-                if let Some(buffer_view) = buffer_views.get(index.value()) {
-                    accessor.set_buffer_view(graph, Some(buffer_view));
+            let buffer_view_idx = match a.buffer_view.map(|v| v.value()) {
+                Some(idx) => idx,
+                None => {
+                    warn!("Accessor has no buffer view");
+                    return accessor;
                 }
-            }
+            };
+
+            let buffer_view = &format.json.buffer_views[buffer_view_idx];
+            let buffer_idx = buffer_view.buffer.value();
+
+            let buffer_data = match buffer_data.get(&buffer_idx) {
+                Some(data) => data,
+                None => {
+                    warn!("Buffer has no data");
+                    return accessor;
+                }
+            };
+
+            let view_start = buffer_view
+                .byte_offset
+                .map(|o| o.0 as usize)
+                .unwrap_or_default();
+
+            let accessor_start = a.byte_offset.map(|o| o.0 as usize).unwrap_or_default();
+
+            let item_size = a.component_type.unwrap().0.size() * a.type_.unwrap().multiplicity();
+            let accessor_end = accessor_start + a.count.0 as usize * item_size;
+
+            let start = view_start + accessor_start;
+            let end = view_start + accessor_end;
+
+            let slice = &buffer_data[start..end];
+
+            weight.data = slice.into();
 
             accessor
         })
@@ -366,7 +367,6 @@ mod tests {
         assert_eq!(doc.nodes(&graph).len(), 1);
         assert_eq!(doc.meshes(&graph).len(), 1);
         assert_eq!(doc.buffers(&graph).len(), 1);
-        assert_eq!(doc.buffer_views(&graph).len(), 1);
         assert_eq!(doc.accessors(&graph).len(), 1);
     }
 }

@@ -208,7 +208,6 @@ impl Primitive {
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     #[test]
