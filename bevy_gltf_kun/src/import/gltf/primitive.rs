@@ -116,46 +116,26 @@ fn primitive_label(mesh_label: &str, primitive_index: usize) -> String {
 
 #[derive(Debug, Error)]
 enum ReadIndicesError {
-    #[error("Buffer view not found for indices")]
-    BufferViewNotFound,
-    #[error("Buffer not found for indices")]
-    BufferNotFound,
     #[error("Failed to get accessor slice: {0}")]
     GetAccessorSliceError(#[from] GetAccessorSliceError),
 }
 
 fn read_indices(context: &ImportContext, indices: Accessor) -> Result<Indices, ReadIndicesError> {
-    let buffer_view = match indices.buffer_view(context.graph) {
-        Some(buffer_view) => buffer_view,
-        None => {
-            return Err(ReadIndicesError::BufferViewNotFound);
-        }
-    };
-
-    let buffer = match buffer_view.buffer(context.graph) {
-        Some(buffer) => buffer,
-        None => {
-            return Err(ReadIndicesError::BufferNotFound);
-        }
-    };
-
-    let slice = indices.slice(context.graph, &buffer_view, &buffer)?;
-
     let weight = indices.get(context.graph);
 
     let read = match weight.component_type {
         ComponentType::U8 => ReadIndices::U8(ElementIter::<u8> {
-            slice,
+            slice: &weight.data,
             normalized: weight.normalized,
             _phantom: default(),
         }),
         ComponentType::U16 => ReadIndices::U16(ElementIter::<u16> {
-            slice,
+            slice: &weight.data,
             normalized: weight.normalized,
             _phantom: default(),
         }),
         ComponentType::U32 => ReadIndices::U32(ElementIter::<u32> {
-            slice,
+            slice: &weight.data,
             normalized: weight.normalized,
             _phantom: default(),
         }),
@@ -171,10 +151,6 @@ fn read_indices(context: &ImportContext, indices: Accessor) -> Result<Indices, R
 
 #[derive(Debug, Error)]
 enum AttributeConversionError {
-    #[error("Buffer view not found for attribute {0:?}")]
-    BufferViewNotFound(String),
-    #[error("Buffer not found for attribute {0:?}")]
-    BufferNotFound(String),
     #[error("Failed to get accessor iterator: {0}")]
     GetAccessorIterError(#[from] GetAccessorIterError),
     #[error("Unsupported attribute format: {0:?} {1:?}")]
@@ -206,25 +182,7 @@ fn convert_attribute(
         }
     };
 
-    let buffer_view = match accessor.buffer_view(context.graph) {
-        Some(buffer_view) => buffer_view,
-        None => {
-            return Err(AttributeConversionError::BufferViewNotFound(
-                semantic.to_string(),
-            ));
-        }
-    };
-
-    let buffer = match buffer_view.buffer(context.graph) {
-        Some(buffer) => buffer,
-        None => {
-            return Err(AttributeConversionError::BufferNotFound(
-                semantic.to_string(),
-            ));
-        }
-    };
-
-    let iter = accessor.iter(context.graph, &buffer_view, &buffer)?;
+    let iter = accessor.iter(context.graph)?;
 
     let values = match conversion {
         ConversionMode::Any => convert_any_values(iter)?,

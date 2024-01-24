@@ -156,8 +156,6 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Prim
         return primitive;
     }
 
-    let buffer = context.doc.create_buffer(&mut context.graph);
-
     if let Some(indices) = mesh.indices() {
         let bytes = match indices {
             Indices::U32(indices) => indices
@@ -187,13 +185,7 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Prim
             }
         };
 
-        let accessor = accessor::Accessor::from_iter(&mut context.graph, iter, Some(buffer));
-
-        if let Some(buffer_view) = accessor.buffer_view(&context.graph) {
-            context
-                .doc
-                .add_buffer_view(&mut context.graph, &buffer_view);
-        }
+        let accessor = accessor::Accessor::from_iter(&mut context.graph, iter);
 
         context.doc.add_accessor(&mut context.graph, &accessor);
 
@@ -201,7 +193,7 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Prim
     }
 
     mesh.attributes().for_each(|(id, values)| {
-        let accessor = match vertex_to_accessor(&mut context.graph, values, Some(buffer)) {
+        let accessor = match vertex_to_accessor(&mut context.graph, values) {
             Ok(accessor) => accessor,
             Err(err) => {
                 error!(
@@ -211,12 +203,6 @@ fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Prim
                 return;
             }
         };
-
-        if let Some(buffer_view) = accessor.buffer_view(&context.graph) {
-            context
-                .doc
-                .add_buffer_view(&mut context.graph, &buffer_view);
-        }
 
         context.doc.add_accessor(&mut context.graph, &accessor);
 
