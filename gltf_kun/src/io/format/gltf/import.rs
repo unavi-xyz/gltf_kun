@@ -417,13 +417,13 @@ fn read_view(view: &gltf::json::buffer::View, buffer_data: &[u8]) -> Vec<u8> {
         buffer_data[start..end].to_vec()
     } else {
         let count = view.byte_length.0 as usize / stride;
-        let mut data = Vec::with_capacity(count);
+        let mut data = Vec::with_capacity(view.byte_length.0 as usize);
 
         for i in 0..count {
-            let start = start + i * stride;
-            let end = start + stride;
+            let step_start = start + i * stride;
+            let step_end = step_start + stride;
 
-            data.extend_from_slice(&buffer_data[start..end]);
+            data.extend_from_slice(&buffer_data[step_start..step_end]);
         }
 
         data
@@ -617,6 +617,8 @@ mod tests {
         assert_eq!(doc.scenes(&graph).len(), 1);
         assert_eq!(doc.default_scene(&graph), Some(doc.scenes(&graph)[0]));
         assert_eq!(doc.nodes(&graph).len(), 1);
+        assert_eq!(doc.images(&graph).len(), 1);
+        assert_eq!(doc.materials(&graph).len(), 1);
         assert_eq!(doc.meshes(&graph).len(), 1);
         assert_eq!(doc.buffers(&graph).len(), 1);
         assert_eq!(doc.accessors(&graph).len(), 1);

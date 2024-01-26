@@ -518,7 +518,6 @@ fn export_texture_info(
             return None;
         }
     };
-
     let image_idx = image_idxs.get(&image.0).unwrap();
 
     let weight = info.get(graph);
