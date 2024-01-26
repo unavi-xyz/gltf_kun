@@ -167,8 +167,8 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                 mime_type: mime_type.clone(),
             };
 
-             if let Some(buffer) = image.buffer(graph) {
-                let buffer_view = create_buffer_view(
+            if let Some(buffer) = image.buffer(graph) {
+               let buffer_view = create_buffer_view(
                     &buffer,
                     &buffer_idxs,
                     &mut json.buffers,
@@ -217,7 +217,6 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                 resources.insert(uri.clone(), weight.data);
                 json_img.uri = Some(uri);
             }
-
 
             json_img
         })

@@ -110,7 +110,7 @@ pub async fn import(
             let buffer_view = &format.json.buffer_views[buffer_view_idx];
             let buffer_idx = buffer_view.buffer.value();
 
-            let buffer_data = match buffer_data.get(&buffer_idx) {
+            let data = match buffer_data.get(&buffer_idx) {
                 Some(data) => data,
                 None => {
                     warn!("Buffer has no data");
@@ -118,7 +118,7 @@ pub async fn import(
                 }
             };
 
-            let view = read_view(buffer_view, buffer_data);
+            let view = read_view(buffer_view, data);
 
             if let Some(_sparse) = &a.sparse {
                 error!("Sparse accessors are not supported");
@@ -139,7 +139,10 @@ pub async fn import(
 
     for (i, img) in format.json.images.iter_mut().enumerate() {
         let mut image = images[i];
+
         let weight = image.get_mut(graph);
+        weight.name = img.name.clone();
+        weight.extras = img.extras.clone();
 
         if let Some(uri) = img.uri.as_ref() {
             weight.uri = img.uri.clone();
@@ -158,7 +161,7 @@ pub async fn import(
             let view = &format.json.buffer_views[index.value()];
 
             let buffer_idx = view.buffer.value();
-            let buffer_data = match buffer_data.get(&buffer_idx) {
+            let buf_data = match buffer_data.get(&buffer_idx) {
                 Some(data) => data.as_slice(),
                 None => {
                     warn!("Buffer has no data");
@@ -166,11 +169,11 @@ pub async fn import(
                 }
             };
 
-            weight.data = read_view(view, buffer_data).to_vec();
-        }
+            weight.data = read_view(view, buf_data).to_vec();
 
-        weight.name = img.name.clone();
-        weight.extras = img.extras.clone();
+            let buffer = buffers[buffer_idx];
+            image.set_buffer(graph, Some(buffer));
+        }
     }
 
     // Create materials
