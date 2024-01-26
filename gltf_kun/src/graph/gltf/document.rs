@@ -4,7 +4,7 @@ use crate::graph::{gltf::GltfEdge, Edge, Graph, GraphNodeEdges, Property, Weight
 
 use super::{
     accessor::Accessor, buffer::Buffer, image::Image, material::Material, mesh::Mesh, node::Node,
-    sampler::Sampler, scene::Scene, GltfWeight,
+    scene::Scene, GltfWeight,
 };
 
 #[derive(Debug, PartialEq, Eq)]
@@ -16,7 +16,6 @@ pub enum DocumentEdge {
     Material,
     Mesh,
     Node,
-    Sampler,
     Scene,
 }
 
@@ -143,19 +142,6 @@ impl GltfDocument {
     }
     pub fn create_node(&self, graph: &mut Graph) -> Node {
         self.create_edge_target(graph, DocumentEdge::Node)
-    }
-
-    pub fn samplers(&self, graph: &Graph) -> Vec<Sampler> {
-        self.edge_targets(graph, &DocumentEdge::Sampler)
-    }
-    pub fn add_sampler(&self, graph: &mut Graph, sampler: Sampler) {
-        self.add_edge_target(graph, DocumentEdge::Sampler, sampler);
-    }
-    pub fn remove_sampler(&self, graph: &mut Graph, sampler: Sampler) {
-        self.remove_edge_target(graph, DocumentEdge::Sampler, sampler);
-    }
-    pub fn create_sampler(&self, graph: &mut Graph) -> Sampler {
-        self.create_edge_target(graph, DocumentEdge::Sampler)
     }
 
     pub fn scenes(&self, graph: &Graph) -> Vec<Scene> {

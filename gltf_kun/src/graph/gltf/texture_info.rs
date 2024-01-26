@@ -2,11 +2,11 @@ use petgraph::graph::NodeIndex;
 
 use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
 
-use super::{texture::Texture, GltfEdge, GltfWeight};
+use super::{image::Image, GltfEdge, GltfWeight};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum TextureInfoEdge {
-    Texture,
+    Image,
 }
 
 impl<'a> TryFrom<&'a Edge> for &'a TextureInfoEdge {
@@ -28,7 +28,42 @@ impl From<TextureInfoEdge> for Edge {
 #[derive(Debug, Default)]
 pub struct TextureInfoWeight {
     pub extras: gltf::json::Extras,
+
     pub tex_coord: usize,
+
+    pub mag_filter: Option<MagFilter>,
+    pub min_filter: Option<MinFilter>,
+    pub wrap_s: Option<Wrap>,
+    pub wrap_t: Option<Wrap>,
+}
+
+#[derive(Debug)]
+#[repr(usize)]
+pub enum MagFilter {
+    Nearest = 9728,
+    Linear = 9729,
+    Other(usize) = 0,
+}
+
+#[derive(Debug)]
+#[repr(usize)]
+pub enum MinFilter {
+    Nearest = 9728,
+    Linear = 9729,
+    NearestMipmapNearest = 9984,
+    LinearMipmapNearest = 9985,
+    NearestMipmapLinear = 9986,
+    LinearMipmapLinear = 9987,
+    Other(usize) = 0,
+}
+
+#[derive(Debug)]
+#[repr(usize)]
+pub enum Wrap {
+    ClampToEdge = 33071,
+    MirroredRepeat = 33648,
+    Repeat = 10497,
+    Other(usize) = 0,
 }
 
 impl From<TextureInfoWeight> for Weight {
@@ -77,11 +112,11 @@ impl GraphNodeEdges<TextureInfoEdge> for TextureInfo {}
 impl Property for TextureInfo {}
 
 impl TextureInfo {
-    pub fn texture(&self, graph: &Graph) -> Option<Texture> {
-        self.find_edge_target(graph, &TextureInfoEdge::Texture)
+    pub fn image(&self, graph: &Graph) -> Option<Image> {
+        self.find_edge_target(graph, &TextureInfoEdge::Image)
     }
-    pub fn set_texture(&self, graph: &mut Graph, texture: Option<Texture>) {
-        self.set_edge_target(graph, TextureInfoEdge::Texture, texture);
+    pub fn set_image(&self, graph: &mut Graph, image: Option<Image>) {
+        self.set_edge_target(graph, TextureInfoEdge::Image, image);
     }
 }
 
@@ -90,16 +125,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn texture() {
+    fn image() {
         let mut graph = Graph::new();
 
         let texture_info = TextureInfo::new(&mut graph);
-        let texture = Texture::new(&mut graph);
+        let image = Image::new(&mut graph);
 
-        texture_info.set_texture(&mut graph, Some(texture));
-        assert_eq!(texture_info.texture(&graph), Some(texture));
+        texture_info.set_image(&mut graph, Some(image));
+        assert_eq!(texture_info.image(&graph), Some(image));
 
-        texture_info.set_texture(&mut graph, None);
-        assert!(texture_info.texture(&graph).is_none());
+        texture_info.set_image(&mut graph, None);
+        assert!(texture_info.image(&graph).is_none());
     }
 }
