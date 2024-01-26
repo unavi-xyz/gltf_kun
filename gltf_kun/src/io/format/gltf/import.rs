@@ -6,7 +6,15 @@ use thiserror::Error;
 use tracing::{debug, error, warn};
 
 use crate::{
-    graph::{gltf::document::GltfDocument, Graph, GraphNodeWeight},
+    graph::{
+        gltf::{
+            document::GltfDocument,
+            image::Image,
+            material::AlphaMode,
+            texture_info::{MagFilter, MinFilter, TextureInfo, Wrap},
+        },
+        Graph, GraphNodeWeight,
+    },
     io::resolver::Resolver,
 };
 
@@ -151,10 +159,10 @@ pub async fn import(
 
             let buffer_idx = view.buffer.value();
             let buffer_data = match buffer_data.get(&buffer_idx) {
-                Some(data) => data,
+                Some(data) => data.as_slice(),
                 None => {
                     warn!("Buffer has no data");
-                    continue;
+                    &[]
                 }
             };
 
@@ -169,7 +177,106 @@ pub async fn import(
         images.push(image);
     }
 
-    // TODO: Create materials
+    // Create materials
+    let json_textures = &format.json.textures;
+    let json_samplers = &format.json.samplers;
+
+    let materials = format
+        .json
+        .materials
+        .iter_mut()
+        .map(|m| {
+            let mut material = doc.create_material(graph);
+            let weight = material.get_mut(graph);
+
+            weight.name = m.name.take();
+            weight.extras = m.extras.take();
+
+            weight.alpha_mode = match m.alpha_mode.unwrap() {
+                gltf::json::material::AlphaMode::Opaque => AlphaMode::Opaque,
+                gltf::json::material::AlphaMode::Mask => AlphaMode::Mask,
+                gltf::json::material::AlphaMode::Blend => AlphaMode::Blend,
+            };
+
+            weight.alpha_cutoff = m.alpha_cutoff.map(|c| c.0).unwrap_or_default();
+            weight.double_sided = m.double_sided;
+            weight.base_color_factor = m.pbr_metallic_roughness.base_color_factor.0;
+            weight.emissive_factor = m.emissive_factor.0;
+            weight.metallic_factor = m.pbr_metallic_roughness.metallic_factor.0;
+            weight.roughness_factor = m.pbr_metallic_roughness.roughness_factor.0;
+
+            let base_color_texture_info =
+                m.pbr_metallic_roughness
+                    .base_color_texture
+                    .as_ref()
+                    .map(|t| {
+                        import_texture_info(
+                            t.index.value(),
+                            t.tex_coord as usize,
+                            graph,
+                            json_textures,
+                            json_samplers,
+                            &images,
+                        )
+                    });
+            let emissive_texture_info = m.emissive_texture.as_ref().map(|t| {
+                import_texture_info(
+                    t.index.value(),
+                    t.tex_coord as usize,
+                    graph,
+                    json_textures,
+                    json_samplers,
+                    &images,
+                )
+            });
+            let metallic_roughness_texture_info = m
+                .pbr_metallic_roughness
+                .metallic_roughness_texture
+                .as_ref()
+                .map(|t| {
+                    import_texture_info(
+                        t.index.value(),
+                        t.tex_coord as usize,
+                        graph,
+                        json_textures,
+                        json_samplers,
+                        &images,
+                    )
+                });
+            let normal_texture_info = m.normal_texture.as_ref().map(|t| {
+                let weight = material.get_mut(graph);
+                weight.normal_scale = t.scale;
+                import_texture_info(
+                    t.index.value(),
+                    t.tex_coord as usize,
+                    graph,
+                    json_textures,
+                    json_samplers,
+                    &images,
+                )
+            });
+            let occlusion_texture_info = m.occlusion_texture.as_ref().map(|t| {
+                let weight = material.get_mut(graph);
+                weight.occlusion_strength = t.strength.0;
+                import_texture_info(
+                    t.index.value(),
+                    t.tex_coord as usize,
+                    graph,
+                    json_textures,
+                    json_samplers,
+                    &images,
+                )
+            });
+
+            material.set_base_color_texture_info(graph, base_color_texture_info);
+            material.set_emissive_texture_info(graph, emissive_texture_info);
+            material.set_metallic_roughness_texture_info(graph, metallic_roughness_texture_info);
+            material.set_normal_texture_info(graph, normal_texture_info);
+            material.set_occlusion_texture_info(graph, occlusion_texture_info);
+
+            material
+        })
+        .collect::<Vec<_>>();
 
     // Create meshes
     let meshes = format
@@ -192,6 +299,12 @@ pub async fn import(
                     Checked::Valid(mode) => mode,
                     Checked::Invalid => gltf::mesh::Mode::Triangles,
                 };
+
+                let material = match p.material {
+                    Some(index) => materials.get(index.value()).copied(),
+                    None => None,
+                };
+                primitive.set_material(graph, material);
 
                 if let Some(index) = p.indices {
                     if let Some(accessor) = accessors.get(index.value()) {
@@ -321,15 +434,69 @@ fn read_view(view: &gltf::json::buffer::View, buffer_data: &[u8]) -> Vec<u8> {
     }
 }
 
+fn import_texture_info(
+    index: usize,
+    tex_coord: usize,
+    graph: &mut Graph,
+    textures: &[gltf::json::Texture],
+    samplers: &[gltf::json::texture::Sampler],
+    images: &[Image],
+) -> TextureInfo {
+    let mut texture_info = TextureInfo::new(graph);
+
+    let texture = &textures[index];
+    let image_idx = texture.source.value();
+    let image = images[image_idx];
+    texture_info.set_image(graph, Some(image));
+
+    let weight = texture_info.get_mut(graph);
+    weight.tex_coord = tex_coord;
+
+    if let Some(sampler_idx) = texture.sampler {
+        let sampler_idx = sampler_idx.value();
+        let sampler = &samplers[sampler_idx];
+
+        weight.mag_filter = sampler.mag_filter.map(|f| match f.unwrap() {
+            gltf::json::texture::MagFilter::Nearest => MagFilter::Nearest,
+            gltf::json::texture::MagFilter::Linear => MagFilter::Linear,
+        });
+
+        weight.min_filter = sampler.min_filter.map(|f| match f.unwrap() {
+            gltf::json::texture::MinFilter::Nearest => MinFilter::Nearest,
+            gltf::json::texture::MinFilter::Linear => MinFilter::Linear,
+            gltf::json::texture::MinFilter::NearestMipmapNearest => MinFilter::NearestMipmapNearest,
+            gltf::json::texture::MinFilter::LinearMipmapNearest => MinFilter::LinearMipmapNearest,
+            gltf::json::texture::MinFilter::NearestMipmapLinear => MinFilter::NearestMipmapLinear,
+            gltf::json::texture::MinFilter::LinearMipmapLinear => MinFilter::LinearMipmapLinear,
+        });
+
+        weight.wrap_s = match sampler.wrap_s.unwrap() {
+            gltf::json::texture::WrappingMode::ClampToEdge => Some(Wrap::ClampToEdge),
+            gltf::json::texture::WrappingMode::MirroredRepeat => Some(Wrap::MirroredRepeat),
+            gltf::json::texture::WrappingMode::Repeat => Some(Wrap::Repeat),
+        };
+
+        weight.wrap_t = match sampler.wrap_t.unwrap() {
+            gltf::json::texture::WrappingMode::ClampToEdge => Some(Wrap::ClampToEdge),
+            gltf::json::texture::WrappingMode::MirroredRepeat => Some(Wrap::MirroredRepeat),
+            gltf::json::texture::WrappingMode::Repeat => Some(Wrap::Repeat),
+        };
+    }
+
+    texture_info
+}
+
 #[cfg(test)]
 mod tests {
-    use gltf::json::{self, validation::USize64, Index};
+    use gltf::json::{self, texture::Info, validation::USize64, Index};
+    use tracing_test::traced_test;
 
     use crate::io::resolver::file_resolver::FileResolver;
 
     use super::*;
 
     #[tokio::test]
+    #[traced_test]
     async fn test_import() {
         let mut json = json::Root::default();
 
@@ -369,6 +536,37 @@ mod tests {
             type_: Checked::Valid(json::accessor::Type::Scalar),
         });
 
+        json.images.push(json::image::Image {
+            name: Some("MyImage".to_string()),
+            uri: None,
+            buffer_view: Some(Index::new(0)),
+            mime_type: None,
+            extensions: None,
+            extras: None,
+        });
+
+        json.textures.push(json::texture::Texture {
+            name: Some("MyTexture".to_string()),
+            extensions: None,
+            extras: None,
+            sampler: None,
+            source: Index::new(0),
+        });
+
+        json.materials.push(json::material::Material {
+            name: Some("MyMaterial".to_string()),
+            pbr_metallic_roughness: json::material::PbrMetallicRoughness {
+                base_color_texture: Some(Info {
+                    index: Index::new(0),
+                    tex_coord: 0,
+                    extensions: None,
+                    extras: None,
+                }),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+
         json.meshes.push(json::mesh::Mesh {
             name: Some("MyMesh".to_string()),
             primitives: vec![json::mesh::Primitive {
@@ -376,7 +574,7 @@ mod tests {
                 extensions: None,
                 extras: None,
                 indices: None,
-                material: None,
+                material: Some(Index::new(0)),
                 mode: Checked::Valid(json::mesh::Mode::Triangles),
                 targets: None,
             }],
