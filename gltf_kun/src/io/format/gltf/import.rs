@@ -31,11 +31,11 @@ pub async fn import(
     let doc = GltfDocument::new(graph);
 
     // Create buffers
-    let mut buffers = Vec::new();
+    let buffers = vec![doc.create_buffer(graph); format.json.buffers.len()];
     let mut buffer_data = HashMap::new();
 
     for (i, b) in format.json.buffers.iter_mut().enumerate() {
-        let mut buffer = doc.create_buffer(graph);
+        let mut buffer = buffers[i];
         let weight = buffer.get_mut(graph);
 
         weight.name = b.name.take();
@@ -68,8 +68,6 @@ pub async fn import(
                 warn!("No resolver provided");
             }
         }
-
-        buffers.push(buffer);
     }
 
     // Create accessors
@@ -137,10 +135,10 @@ pub async fn import(
         .collect::<Vec<_>>();
 
     // Create images
-    let mut images = Vec::new();
+    let images = vec![doc.create_image(graph); format.json.images.len()];
 
-    for img in format.json.images.iter_mut() {
-        let mut image = doc.create_image(graph);
+    for (i, img) in format.json.images.iter_mut().enumerate() {
+        let mut image = images[i];
         let weight = image.get_mut(graph);
 
         if let Some(uri) = img.uri.as_ref() {
@@ -173,8 +171,6 @@ pub async fn import(
         weight.extras = img.extras.take();
 
         weight.uri = img.uri.take();
-
-        images.push(image);
     }
 
     // Create materials

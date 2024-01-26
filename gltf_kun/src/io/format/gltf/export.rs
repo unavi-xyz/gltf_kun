@@ -20,6 +20,7 @@ use tracing::warn;
 use crate::graph::{
     gltf::{
         accessor::iter::AccessorElement,
+        buffer::Buffer,
         document::GltfDocument,
         material::AlphaMode,
         texture_info::{MagFilter, MinFilter, TextureInfo, Wrap},
@@ -113,28 +114,16 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                 *buffer
             });
 
-            let buffer_idx = buffer_idxs.get(&buffer.0).unwrap();
-            let buffer_json = json.buffers.get_mut(*buffer_idx).unwrap();
-            let buffer_uri = uris.get(&buffer.0).unwrap();
-            let buffer_resource = resources.get_mut(buffer_uri).unwrap();
-
             let weight = a.get_mut(graph);
-            let byte_length = weight.data.len();
 
-            let buffer_view = gltf::json::buffer::View {
-                extensions: None,
-                extras: None,
-                name: None,
-
-                buffer: Index::new(*buffer_idx as u32),
-                byte_length: byte_length.into(),
-                byte_offset: Some(buffer_json.byte_length),
-                byte_stride: None,
-                target: None, // TODO
-            };
-
-            buffer_json.byte_length = USize64(buffer_json.byte_length.0 + byte_length as u64);
-            buffer_resource.extend(weight.data.iter());
+            let buffer_view = create_buffer_view(
+                &buffer,
+                &buffer_idxs,
+                &mut json.buffers,
+                &uris,
+                &mut resources,
+                &weight.data,
+            );
 
             let buffer_view_idx = json.buffer_views.len();
             json.buffer_views.push(buffer_view);
@@ -173,25 +162,14 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
             }
 
             let buffer_view = image.buffer(graph).map(|buffer| {
-                let buffer_idx = buffer_idxs.get(&buffer.0).unwrap();
-                let buffer_json = json.buffers.get_mut(*buffer_idx).unwrap();
-                let buffer_uri = uris.get(&buffer.0).unwrap();
-                let buffer_resource = resources.get_mut(buffer_uri).unwrap();
-
-                let buffer_view = gltf::json::buffer::View {
-                    extensions: None,
-                    extras: None,
-                    name: None,
-
-                    buffer: Index::new(*buffer_idx as u32),
-                    byte_length: byte_length.into(),
-                    byte_offset: Some(buffer_json.byte_length),
-                    byte_stride: None,
-                    target: None, // TODO
-                };
-
-                buffer_json.byte_length = USize64(buffer_json.byte_length.0 + byte_length as u64);
-                buffer_resource.extend(weight.data.iter());
+                let buffer_view = create_buffer_view(
+                    &buffer,
+                    &buffer_idxs,
+                    &mut json.buffers,
+                    &uris,
+                    &mut resources,
+                    &weight.data,
+                );
 
                 let buffer_view_idx = json.buffer_views.len();
                 json.buffer_views.push(buffer_view);
@@ -200,7 +178,6 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
             });
 
             let weight = image.take(graph);
-
             let mime_type = weight.mime_type.map(MimeType);
 
             let uri = match buffer_view.is_some() {
@@ -500,6 +477,39 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
     // TODO: Create animations
 
     Ok(GltfFormat { json, resources })
+}
+
+fn create_buffer_view(
+    buffer: &Buffer,
+    buffer_idxs: &BTreeMap<NodeIndex, usize>,
+    buffers: &mut Vec<gltf::json::buffer::Buffer>,
+    uris: &BTreeMap<NodeIndex, String>,
+    resources: &mut HashMap<String, Vec<u8>>,
+    data: &[u8],
+) -> gltf::json::buffer::View {
+    let buffer_idx = buffer_idxs.get(&buffer.0).unwrap();
+    let buffer_json = buffers.get_mut(*buffer_idx).unwrap();
+    let buffer_uri = uris.get(&buffer.0).unwrap();
+    let buffer_resource = resources.get_mut(buffer_uri).unwrap();
+
+    let byte_length = data.len();
+
+    let buffer_view = gltf::json::buffer::View {
+        extensions: None,
+        extras: None,
+        name: None,
+
+        buffer: Index::new(*buffer_idx as u32),
+        byte_length: byte_length.into(),
+        byte_offset: Some(buffer_json.byte_length),
+        byte_stride: None,
+        target: None,
+    };
+
+    buffer_json.byte_length = USize64(buffer_json.byte_length.0 + byte_length as u64);
+    buffer_resource.extend(data.iter());
+
+    buffer_view
 }
 
 fn export_texture_info(
