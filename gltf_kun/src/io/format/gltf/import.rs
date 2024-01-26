@@ -120,15 +120,15 @@ pub async fn import(
 
             let view = read_view(buffer_view, buffer_data);
 
+            if let Some(_sparse) = &a.sparse {
+                error!("Sparse accessors are not supported");
+            }
+
             let accessor_start = a.byte_offset.map(|o| o.0 as usize).unwrap_or_default();
-
             let item_size = a.component_type.unwrap().0.size() * a.type_.unwrap().multiplicity();
-            let accessor_end = accessor_start + a.count.0 as usize * item_size;
+            let accessor_end = a.count.0 as usize * item_size;
 
-            let start = accessor_start;
-            let end = accessor_end;
-
-            weight.data = view[start..end].to_vec();
+            weight.data = view[accessor_start..accessor_end].to_vec();
 
             accessor
         })
@@ -142,6 +142,8 @@ pub async fn import(
         let weight = image.get_mut(graph);
 
         if let Some(uri) = img.uri.as_ref() {
+            weight.uri = img.uri.clone();
+
             if let Some(resolver) = resolver {
                 if let Ok(data) = resolver.resolve(uri).await {
                     debug!("Resolved image: {} ({} bytes)", uri, data.len());
@@ -164,13 +166,11 @@ pub async fn import(
                 }
             };
 
-            weight.data = read_view(view, buffer_data);
+            weight.data = read_view(view, buffer_data).to_vec();
         }
 
         weight.name = img.name.clone();
         weight.extras = img.extras.clone();
-
-        weight.uri = img.uri.clone();
     }
 
     // Create materials
@@ -408,26 +408,10 @@ pub async fn import(
     Ok(doc)
 }
 
-fn read_view(view: &gltf::json::buffer::View, buffer_data: &[u8]) -> Vec<u8> {
+fn read_view<'a>(view: &gltf::json::buffer::View, buffer_data: &'a [u8]) -> &'a [u8] {
     let start = view.byte_offset.map(|o| o.0 as usize).unwrap_or_default();
     let end = start + view.byte_length.0 as usize;
-    let stride = view.byte_stride.map(|s| s.0).unwrap_or_default();
-
-    if stride == 0 {
-        buffer_data[start..end].to_vec()
-    } else {
-        let count = view.byte_length.0 as usize / stride;
-        let mut data = Vec::with_capacity(view.byte_length.0 as usize);
-
-        for i in 0..count {
-            let step_start = start + i * stride;
-            let step_end = step_start + stride;
-
-            data.extend_from_slice(&buffer_data[step_start..step_end]);
-        }
-
-        data
-    }
+    &buffer_data[start..end]
 }
 
 fn import_texture_info(

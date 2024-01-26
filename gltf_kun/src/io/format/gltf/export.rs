@@ -154,9 +154,20 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
         .map(|(i, image)| {
             image_idxs.insert(image.0, i);
 
-            let weight = image.get(graph);
+            let weight = image.take(graph);
+            let mime_type = weight.mime_type.map(MimeType);
 
-            let buffer_view = image.buffer(graph).map(|buffer| {
+            let mut json_img = gltf::json::image::Image {
+                extensions: None,
+                extras: weight.extras,
+                name: weight.name,
+
+                uri: None,
+                buffer_view: None,
+                mime_type: mime_type.clone(),
+            };
+
+             if let Some(buffer) = image.buffer(graph) {
                 let buffer_view = create_buffer_view(
                     &buffer,
                     &buffer_idxs,
@@ -169,149 +180,127 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                 let buffer_view_idx = json.buffer_views.len();
                 json.buffer_views.push(buffer_view);
 
-                Index::new(buffer_view_idx as u32)
-            });
-
-            let weight = image.take(graph);
-            let mime_type = weight.mime_type.map(MimeType);
-
-            let uri = match buffer_view.is_some() {
-                true => None,
-                false => {
-                    let uri = weight.uri.unwrap_or_else(|| {
-                        let file_ext = match &mime_type {
-                            Some(MimeType(mime_type)) => match mime_type.as_str() {
-                                "image/jpeg" => ".jpg",
-                                "image/png" => ".png",
-                                "image/webp" => ".webp",
-                                "image/gif" => ".gif",
-                                _ => {
-                                    warn!("No known file extension for mime type: {}", mime_type);
-                                    ""
-                                }
-                            },
-                            None => {
-                                warn!("No mime type for image {}. Exporting image without a file extension.", i);
+                json_img.buffer_view = Some(Index::new(buffer_view_idx as u32));
+            } else {
+                let uri = weight.uri.unwrap_or_else(|| {
+                    let file_ext = match &mime_type {
+                        Some(MimeType(mime_type)) => match mime_type.as_str() {
+                            "image/jpeg" => ".jpg",
+                            "image/png" => ".png",
+                            "image/webp" => ".webp",
+                            "image/gif" => ".gif",
+                            _ => {
+                                warn!("No known file extension for mime type: {}", mime_type);
                                 ""
                             }
-                        };
-
-                        let mut idx = 0;
-
-                        loop {
-                            let without_ext = format!("image_{}", idx);
-                            let uri = format!("{}{}", without_ext, file_ext);
-
-                            if !uris.values().any(|v| v.starts_with(&without_ext)) {
-                                break uri;
-                            }
-
-                            idx += 1;
+                        },
+                        None => {
+                            warn!("No mime type for image {}. Exporting image without a file extension.", i);
+                            ""
                         }
-                    });
+                    };
 
-                    resources.insert(uri.clone(), weight.data);
+                    let mut idx = 0;
 
-                    Some(uri)
-                }
-            };
+                    loop {
+                        let without_ext = format!("image_{}", idx);
+                        let uri = format!("{}{}", without_ext, file_ext);
 
-            gltf::json::image::Image {
-                extensions: None,
-                extras: weight.extras,
-                name: weight.name,
+                        if !uris.values().any(|v| v.starts_with(&without_ext)) {
+                            break uri;
+                        }
 
-                uri,
-                buffer_view,
-                mime_type,
+                        idx += 1;
+                    }
+                });
+
+                resources.insert(uri.clone(), weight.data);
+                json_img.uri = Some(uri);
             }
+
+
+            json_img
         })
         .collect::<Vec<_>>();
 
     // Create materials
-    json.materials =
-        doc.materials(graph)
-            .iter_mut()
-            .enumerate()
-            .map(|(i, material)| {
-                material_idxs.insert(material.0, i);
+    json.materials = doc
+        .materials(graph)
+        .iter_mut()
+        .enumerate()
+        .map(|(i, material)| {
+            material_idxs.insert(material.0, i);
 
-                let weight = material.get(graph);
+            let weight = material.get(graph);
 
-                let base_color_texture = match material.base_color_texture_info(graph) {
-                    Some(info) => export_texture_info(&info, graph, &mut json, &image_idxs),
-                    None => None,
-                };
-                let metallic_roughness_texture =
-                    match material.metallic_roughness_texture_info(graph) {
-                        Some(info) => export_texture_info(&info, graph, &mut json, &image_idxs),
-                        None => None,
-                    };
-                let normal_texture =
-                    match material.normal_texture_info(graph) {
-                        Some(info) => export_texture_info(&info, graph, &mut json, &image_idxs)
-                            .map(|info| NormalTexture {
-                                extras: Default::default(),
-                                extensions: None,
-
-                                index: info.index,
-                                tex_coord: info.tex_coord,
-                                scale: weight.normal_scale,
-                            }),
-                        None => None,
-                    };
-                let occlusion_texture =
-                    match material.occlusion_texture_info(graph) {
-                        Some(info) => export_texture_info(&info, graph, &mut json, &image_idxs)
-                            .map(|info| gltf::json::material::OcclusionTexture {
-                                extras: Default::default(),
-                                extensions: None,
-
-                                index: info.index,
-                                tex_coord: info.tex_coord,
-                                strength: StrengthFactor(weight.occlusion_strength),
-                            }),
-                        None => None,
-                    };
-                let emissive_texture = match material.emissive_texture_info(graph) {
-                    Some(info) => export_texture_info(&info, graph, &mut json, &image_idxs),
-                    None => None,
-                };
-
-                let alpha_mode = match &weight.alpha_mode {
-                    AlphaMode::Opaque => gltf::json::material::AlphaMode::Opaque,
-                    AlphaMode::Mask => gltf::json::material::AlphaMode::Mask,
-                    AlphaMode::Blend => gltf::json::material::AlphaMode::Blend,
-                    AlphaMode::Other(other) => {
-                        warn!("Unknown alpha mode: {}", other);
-                        gltf::json::material::AlphaMode::Opaque
-                    }
-                };
-
-                gltf::json::material::Material {
-                    name: weight.name.clone(),
-                    extras: weight.extras.clone(),
-                    extensions: None,
-
-                    alpha_cutoff: Some(AlphaCutoff(weight.alpha_cutoff)),
-                    alpha_mode: Checked::Valid(alpha_mode),
-                    double_sided: weight.double_sided,
-                    emissive_factor: EmissiveFactor(weight.emissive_factor),
-                    emissive_texture,
-                    normal_texture,
-                    occlusion_texture,
-                    pbr_metallic_roughness: PbrMetallicRoughness {
-                        base_color_factor: PbrBaseColorFactor(weight.base_color_factor),
-                        base_color_texture,
-                        extensions: None,
+            let base_color_texture = material
+                .base_color_texture_info(graph)
+                .and_then(|info| export_texture_info(&info, graph, &mut json, &image_idxs));
+            let metallic_roughness_texture = material
+                .metallic_roughness_texture_info(graph)
+                .and_then(|info| export_texture_info(&info, graph, &mut json, &image_idxs));
+            let normal_texture = material.normal_texture_info(graph).and_then(|info| {
+                export_texture_info(&info, graph, &mut json, &image_idxs).map(|info| {
+                    NormalTexture {
                         extras: Default::default(),
-                        metallic_factor: StrengthFactor(weight.metallic_factor),
-                        metallic_roughness_texture,
-                        roughness_factor: StrengthFactor(weight.roughness_factor),
-                    },
+                        extensions: None,
+
+                        index: info.index,
+                        tex_coord: info.tex_coord,
+                        scale: weight.normal_scale,
+                    }
+                })
+            });
+            let occlusion_texture = material.occlusion_texture_info(graph).and_then(|info| {
+                export_texture_info(&info, graph, &mut json, &image_idxs).map(|info| {
+                    gltf::json::material::OcclusionTexture {
+                        extras: Default::default(),
+                        extensions: None,
+
+                        index: info.index,
+                        tex_coord: info.tex_coord,
+                        strength: StrengthFactor(weight.occlusion_strength),
+                    }
+                })
+            });
+            let emissive_texture = material
+                .emissive_texture_info(graph)
+                .and_then(|info| export_texture_info(&info, graph, &mut json, &image_idxs));
+
+            let alpha_mode = match &weight.alpha_mode {
+                AlphaMode::Opaque => gltf::json::material::AlphaMode::Opaque,
+                AlphaMode::Mask => gltf::json::material::AlphaMode::Mask,
+                AlphaMode::Blend => gltf::json::material::AlphaMode::Blend,
+                AlphaMode::Other(other) => {
+                    warn!("Unknown alpha mode: {}", other);
+                    gltf::json::material::AlphaMode::Opaque
                 }
-            })
-            .collect::<Vec<_>>();
+            };
+
+            gltf::json::material::Material {
+                name: weight.name.clone(),
+                extras: weight.extras.clone(),
+                extensions: None,
+
+                alpha_cutoff: Some(AlphaCutoff(weight.alpha_cutoff)),
+                alpha_mode: Checked::Valid(alpha_mode),
+                double_sided: weight.double_sided,
+                emissive_factor: EmissiveFactor(weight.emissive_factor),
+                emissive_texture,
+                normal_texture,
+                occlusion_texture,
+                pbr_metallic_roughness: PbrMetallicRoughness {
+                    base_color_factor: PbrBaseColorFactor(weight.base_color_factor),
+                    base_color_texture,
+                    extensions: None,
+                    extras: Default::default(),
+                    metallic_factor: StrengthFactor(weight.metallic_factor),
+                    metallic_roughness_texture,
+                    roughness_factor: StrengthFactor(weight.roughness_factor),
+                },
+            }
+        })
+        .collect::<Vec<_>>();
 
     // Create meshes
     json.meshes = doc
