@@ -156,11 +156,6 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 
             let weight = image.get(graph);
 
-            let byte_length = weight.data.len();
-            if byte_length == 0 {
-                warn!("Image {} has no data.", i);
-            }
-
             let buffer_view = image.buffer(graph).map(|buffer| {
                 let buffer_view = create_buffer_view(
                     &buffer,
@@ -482,7 +477,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 fn create_buffer_view(
     buffer: &Buffer,
     buffer_idxs: &BTreeMap<NodeIndex, usize>,
-    buffers: &mut Vec<gltf::json::buffer::Buffer>,
+    buffers: &mut [gltf::json::buffer::Buffer],
     uris: &BTreeMap<NodeIndex, String>,
     resources: &mut HashMap<String, Vec<u8>>,
     data: &[u8],
