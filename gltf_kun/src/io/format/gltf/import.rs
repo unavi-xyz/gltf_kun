@@ -112,26 +112,62 @@ pub async fn import(
                 }
             };
 
-            let view_start = buffer_view
-                .byte_offset
-                .map(|o| o.0 as usize)
-                .unwrap_or_default();
+            let view = read_view(buffer_view, buffer_data);
 
             let accessor_start = a.byte_offset.map(|o| o.0 as usize).unwrap_or_default();
 
             let item_size = a.component_type.unwrap().0.size() * a.type_.unwrap().multiplicity();
             let accessor_end = accessor_start + a.count.0 as usize * item_size;
 
-            let start = view_start + accessor_start;
-            let end = view_start + accessor_end;
+            let start = accessor_start;
+            let end = accessor_end;
 
-            let slice = &buffer_data[start..end];
-
-            weight.data = slice.into();
+            weight.data = view[start..end].to_vec();
 
             accessor
         })
         .collect::<Vec<_>>();
+
+    // Create images
+    let mut images = Vec::new();
+
+    for img in format.json.images.iter_mut() {
+        let mut image = doc.create_image(graph);
+        let weight = image.get_mut(graph);
+
+        if let Some(uri) = img.uri.as_ref() {
+            if let Some(resolver) = resolver {
+                if let Ok(data) = resolver.resolve(uri).await {
+                    debug!("Resolved image: {} ({} bytes)", uri, data.len());
+                    weight.data = data;
+                } else {
+                    warn!("Failed to resolve URI: {}", uri);
+                }
+            } else {
+                warn!("No resolver provided");
+            }
+        } else if let Some(index) = img.buffer_view {
+            let view = &format.json.buffer_views[index.value()];
+
+            let buffer_idx = view.buffer.value();
+            let buffer_data = match buffer_data.get(&buffer_idx) {
+                Some(data) => data,
+                None => {
+                    warn!("Buffer has no data");
+                    continue;
+                }
+            };
+
+            weight.data = read_view(view, buffer_data);
+        }
+
+        weight.name = img.name.take();
+        weight.extras = img.extras.take();
+
+        weight.uri = img.uri.take();
+
+        images.push(image);
+    }
 
     // TODO: Create materials
 
@@ -261,6 +297,28 @@ pub async fn import(
     // TODO: Create animations
 
     Ok(doc)
+}
+
+fn read_view(view: &gltf::json::buffer::View, buffer_data: &[u8]) -> Vec<u8> {
+    let start = view.byte_offset.map(|o| o.0 as usize).unwrap_or_default();
+    let end = start + view.byte_length.0 as usize;
+    let stride = view.byte_stride.map(|s| s.0).unwrap_or_default();
+
+    if stride == 0 {
+        buffer_data[start..end].to_vec()
+    } else {
+        let count = view.byte_length.0 as usize / stride;
+        let mut data = Vec::with_capacity(count);
+
+        for i in 0..count {
+            let start = start + i * stride;
+            let end = start + stride;
+
+            data.extend_from_slice(&buffer_data[start..end]);
+        }
+
+        data
+    }
 }
 
 #[cfg(test)]
