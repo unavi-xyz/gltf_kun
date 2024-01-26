@@ -3,6 +3,11 @@ use std::collections::{BTreeMap, HashMap};
 use glam::Quat;
 use gltf::json::{
     accessor::GenericComponentType,
+    image::MimeType,
+    material::{
+        AlphaCutoff, EmissiveFactor, NormalTexture, PbrBaseColorFactor, PbrMetallicRoughness,
+        StrengthFactor,
+    },
     scene::UnitQuaternion,
     validation::{Checked, USize64},
     Index,
@@ -13,7 +18,12 @@ use thiserror::Error;
 use tracing::warn;
 
 use crate::graph::{
-    gltf::{accessor::iter::AccessorElement, document::GltfDocument},
+    gltf::{
+        accessor::iter::AccessorElement,
+        document::GltfDocument,
+        material::AlphaMode,
+        texture_info::{MagFilter, MinFilter, TextureInfo, Wrap},
+    },
     Graph, GraphNodeWeight,
 };
 
@@ -28,6 +38,8 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 
     let mut accessor_idxs = BTreeMap::<NodeIndex, usize>::new();
     let mut buffer_idxs = BTreeMap::<NodeIndex, usize>::new();
+    let mut image_idxs = BTreeMap::<NodeIndex, usize>::new();
+    let mut material_idxs = BTreeMap::<NodeIndex, usize>::new();
     let mut mesh_idxs = BTreeMap::<NodeIndex, usize>::new();
     let mut node_idxs = BTreeMap::<NodeIndex, usize>::new();
     let mut scene_idxs = BTreeMap::<NodeIndex, usize>::new();
@@ -145,7 +157,191 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
         })
         .collect::<Vec<_>>();
 
-    // TODO: Create materials
+    // Create images
+    json.images = doc
+        .images(graph)
+        .iter_mut()
+        .enumerate()
+        .map(|(i, image)| {
+            image_idxs.insert(image.0, i);
+
+            let weight = image.get(graph);
+
+            let byte_length = weight.data.len();
+            if byte_length == 0 {
+                warn!("Image {} has no data.", i);
+            }
+
+            let buffer_view = image.buffer(graph).map(|buffer| {
+                let buffer_idx = buffer_idxs.get(&buffer.0).unwrap();
+                let buffer_json = json.buffers.get_mut(*buffer_idx).unwrap();
+                let buffer_uri = uris.get(&buffer.0).unwrap();
+                let buffer_resource = resources.get_mut(buffer_uri).unwrap();
+
+                let buffer_view = gltf::json::buffer::View {
+                    extensions: None,
+                    extras: None,
+                    name: None,
+
+                    buffer: Index::new(*buffer_idx as u32),
+                    byte_length: byte_length.into(),
+                    byte_offset: Some(buffer_json.byte_length),
+                    byte_stride: None,
+                    target: None, // TODO
+                };
+
+                buffer_json.byte_length = USize64(buffer_json.byte_length.0 + byte_length as u64);
+                buffer_resource.extend(weight.data.iter());
+
+                let buffer_view_idx = json.buffer_views.len();
+                json.buffer_views.push(buffer_view);
+
+                Index::new(buffer_view_idx as u32)
+            });
+
+            let weight = image.take(graph);
+
+            let mime_type = weight.mime_type.map(MimeType);
+
+            let uri = match buffer_view.is_some() {
+                true => None,
+                false => {
+                    let uri = weight.uri.unwrap_or_else(|| {
+                        let file_ext = match &mime_type {
+                            Some(MimeType(mime_type)) => match mime_type.as_str() {
+                                "image/jpeg" => ".jpg",
+                                "image/png" => ".png",
+                                "image/webp" => ".webp",
+                                "image/gif" => ".gif",
+                                _ => {
+                                    warn!("No known file extension for mime type: {}", mime_type);
+                                    ""
+                                }
+                            },
+                            None => {
+                                warn!("No mime type for image {}. Exporting image without a file extension.", i);
+                                ""
+                            }
+                        };
+
+                        let mut idx = 0;
+
+                        loop {
+                            let without_ext = format!("image_{}", idx);
+                            let uri = format!("{}{}", without_ext, file_ext);
+
+                            if !uris.values().any(|v| v.starts_with(&without_ext)) {
+                                break uri;
+                            }
+
+                            idx += 1;
+                        }
+                    });
+
+                    resources.insert(uri.clone(), weight.data);
+
+                    Some(uri)
+                }
+            };
+
+            gltf::json::image::Image {
+                extensions: None,
+                extras: weight.extras,
+                name: weight.name,
+
+                uri,
+                buffer_view,
+                mime_type,
+            }
+        })
+        .collect::<Vec<_>>();
+
+    // Create materials
+    json.materials =
+        doc.materials(graph)
+            .iter_mut()
+            .enumerate()
+            .map(|(i, material)| {
+                material_idxs.insert(material.0, i);
+
+                let weight = material.get(graph);
+
+                let base_color_texture = match material.base_color_texture_info(graph) {
+                    Some(info) => export_texture_info(&info, graph, &mut json, &image_idxs),
+                    None => None,
+                };
+                let metallic_roughness_texture =
+                    match material.metallic_roughness_texture_info(graph) {
+                        Some(info) => export_texture_info(&info, graph, &mut json, &image_idxs),
+                        None => None,
+                    };
+                let normal_texture =
+                    match material.normal_texture_info(graph) {
+                        Some(info) => export_texture_info(&info, graph, &mut json, &image_idxs)
+                            .map(|info| NormalTexture {
+                                extras: Default::default(),
+                                extensions: None,
+
+                                index: info.index,
+                                tex_coord: info.tex_coord,
+                                scale: weight.normal_scale,
+                            }),
+                        None => None,
+                    };
+                let occlusion_texture =
+                    match material.occlusion_texture_info(graph) {
+                        Some(info) => export_texture_info(&info, graph, &mut json, &image_idxs)
+                            .map(|info| gltf::json::material::OcclusionTexture {
+                                extras: Default::default(),
+                                extensions: None,
+
+                                index: info.index,
+                                tex_coord: info.tex_coord,
+                                strength: StrengthFactor(weight.occlusion_strength),
+                            }),
+                        None => None,
+                    };
+                let emissive_texture = match material.emissive_texture_info(graph) {
+                    Some(info) => export_texture_info(&info, graph, &mut json, &image_idxs),
+                    None => None,
+                };
+
+                let weight = material.get_mut(graph);
+
+                let alpha_mode = match &weight.alpha_mode {
+                    AlphaMode::Opaque => gltf::json::material::AlphaMode::Opaque,
+                    AlphaMode::Mask => gltf::json::material::AlphaMode::Mask,
+                    AlphaMode::Blend => gltf::json::material::AlphaMode::Blend,
+                    AlphaMode::Other(other) => {
+                        warn!("Unknown alpha mode: {}", other);
+                        gltf::json::material::AlphaMode::Opaque
+                    }
+                };
+
+                gltf::json::material::Material {
+                    name: weight.name.clone(),
+                    extras: weight.extras.clone(),
+                    extensions: None,
+
+                    alpha_cutoff: Some(AlphaCutoff(weight.alpha_cutoff)),
+                    alpha_mode: Checked::Valid(alpha_mode),
+                    double_sided: weight.double_sided,
+                    emissive_factor: EmissiveFactor(weight.emissive_factor),
+                    emissive_texture,
+                    normal_texture,
+                    occlusion_texture,
+                    pbr_metallic_roughness: PbrMetallicRoughness {
+                        base_color_factor: PbrBaseColorFactor(weight.base_color_factor),
+                        base_color_texture,
+                        extensions: None,
+                        extras: Default::default(),
+                        metallic_factor: StrengthFactor(weight.metallic_factor),
+                        metallic_roughness_texture,
+                        roughness_factor: StrengthFactor(weight.roughness_factor),
+                    },
+                }
+            })
+            .collect::<Vec<_>>();
 
     // Create meshes
     json.meshes = doc
@@ -306,6 +502,104 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
     Ok(GltfFormat { json, resources })
 }
 
+fn export_texture_info(
+    info: &TextureInfo,
+    graph: &Graph,
+    json: &mut gltf::json::Root,
+    image_idxs: &BTreeMap<NodeIndex, usize>,
+) -> Option<gltf::json::texture::Info> {
+    let image = match info.image(graph) {
+        Some(image) => image,
+        None => {
+            warn!("No image found for texture");
+            return None;
+        }
+    };
+
+    let image_idx = image_idxs.get(&image.0).unwrap();
+
+    let weight = info.get(graph);
+
+    let mag_filter = weight.mag_filter.map(|f| match f {
+        MagFilter::Linear => gltf::json::texture::MagFilter::Linear,
+        MagFilter::Nearest => gltf::json::texture::MagFilter::Nearest,
+        MagFilter::Other(other) => {
+            warn!("Unknown mag filter: {}", other);
+            gltf::json::texture::MagFilter::Linear
+        }
+    });
+
+    let min_filter = weight.min_filter.map(|f| match f {
+        MinFilter::Linear => gltf::json::texture::MinFilter::Linear,
+        MinFilter::Nearest => gltf::json::texture::MinFilter::Nearest,
+        MinFilter::LinearMipmapLinear => gltf::json::texture::MinFilter::LinearMipmapLinear,
+        MinFilter::LinearMipmapNearest => gltf::json::texture::MinFilter::LinearMipmapNearest,
+        MinFilter::NearestMipmapLinear => gltf::json::texture::MinFilter::NearestMipmapLinear,
+        MinFilter::NearestMipmapNearest => gltf::json::texture::MinFilter::NearestMipmapNearest,
+        MinFilter::Other(other) => {
+            warn!("Unknown min filter: {}", other);
+            gltf::json::texture::MinFilter::Linear
+        }
+    });
+
+    let wrap_s = weight
+        .wrap_s
+        .map(|w| match w {
+            Wrap::ClampToEdge => gltf::json::texture::WrappingMode::ClampToEdge,
+            Wrap::MirroredRepeat => gltf::json::texture::WrappingMode::MirroredRepeat,
+            Wrap::Repeat => gltf::json::texture::WrappingMode::Repeat,
+            Wrap::Other(other) => {
+                warn!("Unknown wrap s: {}", other);
+                gltf::json::texture::WrappingMode::ClampToEdge
+            }
+        })
+        .unwrap_or(gltf::json::texture::WrappingMode::ClampToEdge);
+
+    let wrap_t = weight
+        .wrap_t
+        .map(|w| match w {
+            Wrap::ClampToEdge => gltf::json::texture::WrappingMode::ClampToEdge,
+            Wrap::MirroredRepeat => gltf::json::texture::WrappingMode::MirroredRepeat,
+            Wrap::Repeat => gltf::json::texture::WrappingMode::Repeat,
+            Wrap::Other(other) => {
+                warn!("Unknown wrap t: {}", other);
+                gltf::json::texture::WrappingMode::ClampToEdge
+            }
+        })
+        .unwrap_or(gltf::json::texture::WrappingMode::ClampToEdge);
+
+    let sampler_idx = json.samplers.len();
+
+    json.samplers.push(gltf::json::texture::Sampler {
+        extensions: None,
+        extras: Default::default(),
+        name: None,
+
+        mag_filter: mag_filter.map(Checked::Valid),
+        min_filter: min_filter.map(Checked::Valid),
+        wrap_s: Checked::Valid(wrap_s),
+        wrap_t: Checked::Valid(wrap_t),
+    });
+
+    let texture_idx = json.textures.len();
+    json.textures.push(gltf::json::texture::Texture {
+        extensions: None,
+        extras: weight.extras.clone(),
+        name: None,
+
+        sampler: Some(Index::new(sampler_idx as u32)),
+        source: Index::new(*image_idx as u32),
+    });
+
+    Some(gltf::json::texture::Info {
+        extensions: None,
+        extras: Default::default(),
+
+        index: Index::new(texture_idx as u32),
+        tex_coord: weight.tex_coord as u32,
+    })
+}
+
 impl From<AccessorElement> for Value {
     fn from(value: AccessorElement) -> Self {
         match value {
@@ -387,8 +681,8 @@ mod tests {
     use tracing_test::traced_test;
 
     use crate::graph::gltf::{
-        accessor::Accessor, buffer::Buffer, mesh::Mesh, node::Node, primitive::Primitive,
-        scene::Scene,
+        accessor::Accessor, buffer::Buffer, image::Image, material::Material, mesh::Mesh,
+        node::Node, primitive::Primitive, scene::Scene,
     };
 
     use super::*;
@@ -404,10 +698,23 @@ mod tests {
         let accessor = doc.create_accessor(&mut graph);
         accessor.set_buffer(&mut graph, Some(buffer));
 
+        let mut image = doc.create_image(&mut graph);
+        image.set_buffer(&mut graph, Some(buffer));
+
+        let image_weight = image.get_mut(&mut graph);
+        image_weight.data = vec![0, 1, 2, 3];
+
+        let texture = TextureInfo::new(&mut graph);
+        texture.set_image(&mut graph, Some(image));
+
+        let material = doc.create_material(&mut graph);
+        material.set_base_color_texture_info(&mut graph, Some(texture));
+
         let mesh = doc.create_mesh(&mut graph);
 
         let primitive = mesh.create_primitive(&mut graph);
         primitive.set_indices(&mut graph, Some(accessor));
+        primitive.set_material(&mut graph, Some(material));
 
         let node = doc.create_node(&mut graph);
         node.set_mesh(&mut graph, Some(mesh));
@@ -420,6 +727,9 @@ mod tests {
         // Ensure only connected properties are exported
         let _ = Buffer::new(&mut graph);
         let _ = Accessor::new(&mut graph);
+        let _ = Image::new(&mut graph);
+        let _ = TextureInfo::new(&mut graph);
+        let _ = Material::new(&mut graph);
         let _ = Mesh::new(&mut graph);
         let _ = Primitive::new(&mut graph);
         let _ = Node::new(&mut graph);
@@ -428,11 +738,15 @@ mod tests {
         let result = export(&mut graph, &doc).unwrap();
 
         assert_eq!(result.json.accessors.len(), 1);
-        assert_eq!(result.json.buffer_views.len(), 1);
+        assert_eq!(result.json.buffer_views.len(), 2);
         assert_eq!(result.json.buffers.len(), 1);
+        assert_eq!(result.json.images.len(), 1);
+        assert_eq!(result.json.materials.len(), 1);
         assert_eq!(result.json.meshes.len(), 1);
         assert_eq!(result.json.nodes.len(), 1);
+        assert_eq!(result.json.samplers.len(), 1);
         assert_eq!(result.json.scenes.len(), 1);
         assert_eq!(result.json.scene, Some(Index::new(0)));
+        assert_eq!(result.json.textures.len(), 1);
     }
 }

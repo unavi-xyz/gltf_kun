@@ -7,6 +7,7 @@ use super::{texture_info::TextureInfo, GltfEdge, GltfWeight};
 #[derive(Debug, PartialEq, Eq)]
 pub enum MaterialEdge {
     BaseColorTextureInfo,
+    EmissiveTextureInfo,
     MetallicRoughnessTextureInfo,
     NormalTextureInfo,
     OcclusionTextureInfo,
@@ -133,6 +134,13 @@ impl Material {
         self.set_edge_target(graph, MaterialEdge::BaseColorTextureInfo, texture_info);
     }
 
+    pub fn emissive_texture_info(&self, graph: &Graph) -> Option<TextureInfo> {
+        self.find_edge_target(graph, &MaterialEdge::EmissiveTextureInfo)
+    }
+    pub fn set_emissive_texture_info(&self, graph: &mut Graph, texture_info: Option<TextureInfo>) {
+        self.set_edge_target(graph, MaterialEdge::EmissiveTextureInfo, texture_info);
+    }
+
     pub fn metallic_roughness_texture_info(&self, graph: &Graph) -> Option<TextureInfo> {
         self.find_edge_target(graph, &MaterialEdge::MetallicRoughnessTextureInfo)
     }
@@ -179,6 +187,20 @@ mod tests {
 
         material.set_base_color_texture_info(graph, None);
         assert!(material.base_color_texture_info(graph).is_none());
+    }
+
+    #[test]
+    fn emmissive_texture_info() {
+        let graph = &mut Graph::new();
+
+        let material = Material::new(graph);
+        let texture_info = TextureInfo::new(graph);
+
+        material.set_emissive_texture_info(graph, Some(texture_info));
+        assert_eq!(material.emissive_texture_info(graph), Some(texture_info));
+
+        material.set_emissive_texture_info(graph, None);
+        assert!(material.emissive_texture_info(graph).is_none());
     }
 
     #[test]

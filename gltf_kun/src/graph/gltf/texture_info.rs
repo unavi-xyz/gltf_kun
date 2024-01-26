@@ -37,7 +37,7 @@ pub struct TextureInfoWeight {
     pub wrap_t: Option<Wrap>,
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 #[repr(usize)]
 pub enum MagFilter {
     Nearest = 9728,
@@ -45,7 +45,7 @@ pub enum MagFilter {
     Other(usize) = 0,
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 #[repr(usize)]
 pub enum MinFilter {
     Nearest = 9728,
@@ -57,7 +57,7 @@ pub enum MinFilter {
     Other(usize) = 0,
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 #[repr(usize)]
 pub enum Wrap {
     ClampToEdge = 33071,

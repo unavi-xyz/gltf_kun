@@ -29,6 +29,11 @@ where
     fn try_get_mut<'a>(&mut self, graph: &'a mut Graph) -> Option<&'a mut W> {
         graph.node_weight_mut((*self).into())?.try_into().ok()
     }
+
+    fn take(&mut self, graph: &mut Graph) -> W {
+        let weight = self.get_mut(graph);
+        std::mem::take(weight)
+    }
 }
 
 /// A node in the graph with outgoing edges.
