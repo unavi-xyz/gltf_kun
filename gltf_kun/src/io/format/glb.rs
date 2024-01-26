@@ -54,6 +54,8 @@ impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GlbIO<E> {
             return Err(GlbExportError::MultipleBuffers);
         }
 
+        // TODO: Change image URIs to buffer views
+
         let gltf = GltfIO::<E>::export(graph, doc)?;
         let json_bin = serde_json::to_vec(&gltf.json)?;
         let resource = gltf.resources.iter().find(|_| true);
