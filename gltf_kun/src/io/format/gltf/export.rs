@@ -59,11 +59,11 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
         .map(|(i, buffer)| {
             buffer_idxs.insert(buffer.0, i);
 
-            let weight = buffer.get_mut(graph);
-            let name = weight.name.take();
-            let extras = weight.extras.take();
+            let weight = buffer.get(graph);
+            let name = weight.name.clone();
+            let extras = weight.extras.clone();
 
-            let uri = match weight.uri.take() {
+            let uri = match weight.uri.clone() {
                 Some(uri) => uri,
                 None => {
                     let mut idx = 0;
@@ -114,7 +114,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                 *buffer
             });
 
-            let weight = a.get_mut(graph);
+            let weight = a.get(graph);
 
             let buffer_view = create_buffer_view(
                 &buffer,
@@ -130,8 +130,8 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 
             gltf::json::accessor::Accessor {
                 extensions: None,
-                extras: weight.extras.take(),
-                name: weight.name.take(),
+                extras: weight.extras.clone(),
+                name: weight.name.clone(),
 
                 buffer_view: Some(Index::new(buffer_view_idx as u32)),
                 byte_offset: None,
@@ -278,8 +278,6 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                     None => None,
                 };
 
-                let weight = material.get_mut(graph);
-
                 let alpha_mode = match &weight.alpha_mode {
                     AlphaMode::Opaque => gltf::json::material::AlphaMode::Opaque,
                     AlphaMode::Mask => gltf::json::material::AlphaMode::Mask,
@@ -356,11 +354,11 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                 })
                 .collect::<Vec<_>>();
 
-            let weight = mesh.get_mut(graph);
+            let weight = mesh.get(graph);
 
             gltf::json::mesh::Mesh {
-                name: weight.name.take(),
-                extras: weight.extras.take(),
+                name: weight.name.clone(),
+                extras: weight.extras.clone(),
                 extensions: None,
 
                 weights: if weight.weights.is_empty() {
@@ -386,11 +384,11 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                 .and_then(|mesh| mesh_idxs.get(&mesh.0))
                 .map(|idx| Index::new(*idx as u32));
 
-            let weight = node.get_mut(graph);
+            let weight = node.get(graph);
 
             gltf::json::scene::Node {
-                name: weight.name.take(),
-                extras: weight.extras.take(),
+                name: weight.name.clone(),
+                extras: weight.extras.clone(),
                 extensions: None,
 
                 camera: None,
@@ -452,11 +450,11 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                 .map(|idx| Index::new(*idx as u32))
                 .collect::<Vec<_>>();
 
-            let weight = scene.get_mut(graph);
+            let weight = scene.get(graph);
 
             gltf::json::scene::Scene {
-                name: weight.name.take(),
-                extras: weight.extras.take(),
+                name: weight.name.clone(),
+                extras: weight.extras.clone(),
                 extensions: None,
 
                 nodes,

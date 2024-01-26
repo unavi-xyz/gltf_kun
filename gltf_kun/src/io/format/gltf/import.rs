@@ -38,10 +38,10 @@ pub async fn import(
         let mut buffer = buffers[i];
         let weight = buffer.get_mut(graph);
 
-        weight.name = b.name.take();
-        weight.extras = b.extras.take();
+        weight.name = b.name.clone();
+        weight.extras = b.extras.clone();
 
-        weight.uri = b.uri.take();
+        weight.uri = b.uri.clone();
 
         if resolver.is_none() && format.resources.len() == 1 {
             let key = format
@@ -80,8 +80,8 @@ pub async fn import(
 
             let weight = accessor.get_mut(graph);
 
-            weight.name = a.name.take();
-            weight.extras = a.extras.take();
+            weight.name = a.name.clone();
+            weight.extras = a.extras.clone();
 
             weight.normalized = a.normalized;
             weight.component_type = match a.component_type {
@@ -167,10 +167,10 @@ pub async fn import(
             weight.data = read_view(view, buffer_data);
         }
 
-        weight.name = img.name.take();
-        weight.extras = img.extras.take();
+        weight.name = img.name.clone();
+        weight.extras = img.extras.clone();
 
-        weight.uri = img.uri.take();
+        weight.uri = img.uri.clone();
     }
 
     // Create materials
@@ -185,8 +185,8 @@ pub async fn import(
             let mut material = doc.create_material(graph);
             let weight = material.get_mut(graph);
 
-            weight.name = m.name.take();
-            weight.extras = m.extras.take();
+            weight.name = m.name.clone();
+            weight.extras = m.extras.clone();
 
             weight.alpha_mode = match m.alpha_mode.unwrap() {
                 gltf::json::material::AlphaMode::Opaque => AlphaMode::Opaque,
@@ -283,14 +283,14 @@ pub async fn import(
             let mut mesh = doc.create_mesh(graph);
             let weight = mesh.get_mut(graph);
 
-            weight.name = m.name.take();
-            weight.extras = m.extras.take();
+            weight.name = m.name.clone();
+            weight.extras = m.extras.clone();
 
             m.primitives.iter_mut().for_each(|p| {
                 let mut primitive = mesh.create_primitive(graph);
                 let p_weight = primitive.get_mut(graph);
 
-                p_weight.extras = p.extras.take();
+                p_weight.extras = p.extras.clone();
                 p_weight.mode = match p.mode {
                     Checked::Valid(mode) => mode,
                     Checked::Invalid => gltf::mesh::Mode::Triangles,
@@ -336,8 +336,8 @@ pub async fn import(
             let mut node = doc.create_node(graph);
             let weight = node.get_mut(graph);
 
-            weight.name = n.name.take();
-            weight.extras = n.extras.take();
+            weight.name = n.name.clone();
+            weight.extras = n.extras.clone();
 
             weight.translation = n.translation.map(|t| t.into()).unwrap_or_default();
             weight.rotation = n
@@ -383,8 +383,8 @@ pub async fn import(
             let mut scene = doc.create_scene(graph);
             let weight = scene.get_mut(graph);
 
-            weight.name = s.name.take();
-            weight.extras = s.extras.take();
+            weight.name = s.name.clone();
+            weight.extras = s.extras.clone();
 
             s.nodes.iter().for_each(|idx| {
                 if let Some(node) = nodes.get(idx.value()) {
