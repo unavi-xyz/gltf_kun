@@ -19,7 +19,12 @@ let
     LD_LIBRARY_PATH = lib.makeLibraryPath build_inputs;
   };
 in {
-  bevy_gltf_kun =
-    rustPlatform.buildRustPackage (common // { pname = "bevy_gltf_kun"; });
-  gltf_kun = rustPlatform.buildRustPackage (common // { pname = "gltf_kun"; });
+  bevy_gltf_kun = rustPlatform.buildRustPackage (common // {
+    pname = "bevy_gltf_kun";
+    buildAndTestSubdir = "bevy_gltf_kun";
+  });
+  gltf_kun = rustPlatform.buildRustPackage (common // {
+    pname = "gltf_kun";
+    buildAndTestSubdir = "gltf_kun";
+  });
 }
