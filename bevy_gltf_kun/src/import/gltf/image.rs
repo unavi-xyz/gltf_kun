@@ -58,7 +58,7 @@ pub fn import_images<E: BevyImportExtensions<GltfDocument>>(context: &mut Import
             let supported_compressed_formats = CompressedImageFormats::default();
             let mime_type = image_weight.mime_type.as_deref().unwrap_or_default();
 
-            let image = Image::from_buffer(
+            let _image = Image::from_buffer(
                 &image_weight.data,
                 ImageType::MimeType(mime_type),
                 supported_compressed_formats,

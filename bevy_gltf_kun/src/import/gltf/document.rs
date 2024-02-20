@@ -19,7 +19,7 @@ pub struct ImportContext<'a, 'b> {
 pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
 ) -> Result<(), DocumentImportError> {
-    let _ = import_images::<E>(context);
+    import_images::<E>(context);
 
     for material in context.doc.materials(context.graph) {
         if let Ok(handle) = import_material::<E>(context, material) {
