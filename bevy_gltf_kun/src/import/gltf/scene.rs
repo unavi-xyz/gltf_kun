@@ -1,10 +1,13 @@
 use bevy::prelude::*;
 use gltf_kun::graph::{
-    gltf::{self, document::GltfDocument, scene::SceneWeight},
+    gltf::{
+        document::GltfDocument,
+        scene::{self, SceneWeight},
+    },
     GraphNodeWeight,
 };
 
-use crate::import::extensions::BevyImportExtensions;
+use crate::import::{extensions::BevyImportExtensions, util::asset_label};
 
 use super::{
     document::{DocumentImportError, ImportContext},
@@ -13,7 +16,7 @@ use super::{
 
 pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
-    s: gltf::scene::Scene,
+    s: scene::Scene,
 ) -> Result<Handle<Scene>, DocumentImportError> {
     let mut world = World::default();
 
@@ -56,14 +59,9 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
         }
     }
 
-    context.gltf.scenes.insert(index, handle.clone());
-
     Ok(handle)
 }
 
 fn scene_label(index: usize, weight: &SceneWeight) -> String {
-    match weight.name.as_ref() {
-        Some(n) => format!("Scene/{}", n),
-        None => format!("Scene{}", index),
-    }
+    asset_label("Scene", index, weight.name.as_deref())
 }

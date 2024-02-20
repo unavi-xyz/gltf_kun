@@ -11,7 +11,9 @@ use self::{
 };
 
 pub mod document;
+pub mod image;
 pub mod loader;
+pub mod material;
 pub mod mesh;
 pub mod node;
 pub mod primitive;
@@ -35,12 +37,14 @@ impl Plugin for GltfImportPlugin {
 
 #[derive(Asset, Debug, Default, TypePath)]
 pub struct Gltf {
+    pub images: Vec<Handle<Image>>,
+    pub materials: Vec<Handle<StandardMaterial>>,
     pub meshes: Vec<Handle<GltfMesh>>,
     pub nodes: Vec<Handle<GltfNode>>,
     pub scenes: Vec<Handle<Scene>>,
-
     pub default_scene: Option<Handle<Scene>>,
 
+    pub named_materials: HashMap<String, Handle<StandardMaterial>>,
     pub named_meshes: HashMap<String, Handle<GltfMesh>>,
     pub named_nodes: HashMap<String, Handle<GltfNode>>,
     pub named_scenes: HashMap<String, Handle<Scene>>,
@@ -51,9 +55,11 @@ pub struct Gltf {
 impl Gltf {
     pub fn new(graph: &mut Graph, doc: &mut GltfDocument) -> Self {
         Gltf {
+            images: vec![Handle::default(); doc.images(graph).len()],
+            materials: vec![Handle::default(); doc.materials(graph).len()],
+            meshes: vec![Handle::default(); doc.meshes(graph).len()],
             nodes: vec![Handle::default(); doc.nodes(graph).len()],
             scenes: vec![Handle::default(); doc.scenes(graph).len()],
-            meshes: vec![Handle::default(); doc.meshes(graph).len()],
             ..default()
         }
     }

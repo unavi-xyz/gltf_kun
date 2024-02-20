@@ -7,7 +7,7 @@ use gltf_kun::graph::{
     GraphNodeWeight,
 };
 
-use crate::import::extensions::BevyImportExtensions;
+use crate::import::{extensions::BevyImportExtensions, util::asset_label};
 
 use super::{
     document::{DocumentImportError, ImportContext},
@@ -96,8 +96,5 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
 }
 
 fn node_label(index: usize, weight: &NodeWeight) -> String {
-    match weight.name.as_ref() {
-        Some(n) => format!("Node/{}", n),
-        None => format!("Node{}", index),
-    }
+    asset_label("Node", index, weight.name.as_deref())
 }

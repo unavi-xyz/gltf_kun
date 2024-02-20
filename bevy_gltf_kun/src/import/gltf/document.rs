@@ -4,7 +4,7 @@ use thiserror::Error;
 
 use crate::import::extensions::BevyImportExtensions;
 
-use super::{scene::import_scene, Gltf};
+use super::{image::import_images, material::import_material, scene::import_scene, Gltf};
 
 #[derive(Debug, Error)]
 pub enum DocumentImportError {}
@@ -19,13 +19,23 @@ pub struct ImportContext<'a, 'b> {
 pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
 ) -> Result<(), DocumentImportError> {
+    let _ = import_images::<E>(context);
+
+    for material in context.doc.materials(context.graph) {
+        if let Ok(handle) = import_material::<E>(context, material) {
+            context.gltf.materials.push(handle);
+        }
+    }
+
     let default_scene = context.doc.default_scene(context.graph);
 
     for scene in context.doc.scenes(context.graph) {
-        let handle = import_scene::<E>(context, scene)?;
+        if let Ok(handle) = import_scene::<E>(context, scene) {
+            if Some(scene) == default_scene {
+                context.gltf.default_scene = Some(handle.clone());
+            }
 
-        if Some(scene) == default_scene {
-            context.gltf.default_scene = Some(handle);
+            context.gltf.scenes.push(handle);
         }
     }
 

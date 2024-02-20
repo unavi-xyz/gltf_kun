@@ -4,6 +4,8 @@ use gltf_kun::graph::{
     GraphNodeWeight,
 };
 
+use crate::import::util::asset_label;
+
 use super::{
     document::ImportContext,
     primitive::{import_primitive, GltfPrimitive},
@@ -61,8 +63,5 @@ pub fn import_mesh(
 }
 
 fn mesh_label(index: usize, weight: &MeshWeight) -> String {
-    match weight.name.as_ref() {
-        Some(n) => format!("Mesh/{}", n),
-        None => format!("Mesh{}", index),
-    }
+    asset_label("Mesh", index, weight.name.as_deref())
 }
