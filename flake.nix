@@ -99,7 +99,7 @@
       in {
         checks = { inherit gltf_kun cargoClippy cargoDoc; };
 
-        packages = rec {
+        packages = {
           gltf_kun = gltf_kun;
 
           default = pkgs.symlinkJoin {
