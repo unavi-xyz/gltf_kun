@@ -2,6 +2,7 @@ use bevy::{
     prelude::*,
     render::{
         mesh::{Indices, MeshVertexAttribute, VertexAttributeValues},
+        render_asset::RenderAssetUsages,
         render_resource::{PrimitiveTopology, VertexFormat},
     },
 };
@@ -66,7 +67,7 @@ pub fn import_primitive(
         mode => return Err(ImportPrimitiveError::UnsupportedMode(mode)),
     };
 
-    let mut mesh = Mesh::new(topology);
+    let mut mesh = Mesh::new(topology, RenderAssetUsages::default());
 
     for (semantic, accessor) in p.attributes(context.graph) {
         let (attribute, values) = match convert_attribute(context, &semantic, &accessor) {
@@ -82,7 +83,7 @@ pub fn import_primitive(
 
     if let Some(indices) = p.indices(context.graph) {
         match read_indices(context, indices) {
-            Ok(indices) => mesh.set_indices(Some(indices)),
+            Ok(indices) => mesh.insert_indices(indices),
             Err(err) => {
                 warn!("Failed to read indices: {}", err);
             }

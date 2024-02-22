@@ -1,9 +1,9 @@
 use petgraph::graph::DiGraph;
 
 #[derive(Debug)]
-pub enum Weight {}
+pub enum GlxfWeight {}
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum Edge {}
+pub enum GlxfEdge {}
 
-pub type GlxfGraph = DiGraph<Weight, Edge>;
+pub type GlxfGraph = DiGraph<GlxfWeight, GlxfEdge>;

@@ -66,12 +66,13 @@
               wasm-tools
             ] ++ lib.optionals (!pkgs.stdenv.isDarwin)
             (with pkgs; [ alsa-lib alsa-lib.dev ]);
-
         };
 
         commonShell = {
           checks = self.checks.${localSystem};
           packages = with pkgs; [ cargo-watch rust-analyzer ];
+
+          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath commonArgs.buildInputs;
         };
 
         cargoArtifacts =

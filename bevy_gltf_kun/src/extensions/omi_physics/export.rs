@@ -1,10 +1,5 @@
 use bevy::{ecs::system::RunSystemOnce, prelude::*};
-use bevy_xpbd_3d::{
-    components::{
-        AngularVelocity, CenterOfMass, Collider, Inertia, LinearVelocity, Mass, RigidBody,
-    },
-    parry::shape::ShapeType,
-};
+use bevy_xpbd_3d::{parry::shape::ShapeType, prelude::*};
 use gltf_kun::{
     extensions::{
         omi_physics_body::{BodyType, Motion, OMIPhysicsBody},

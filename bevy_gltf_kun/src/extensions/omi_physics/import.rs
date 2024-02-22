@@ -33,7 +33,7 @@ pub fn insert_colliders(mut commands: Commands, mut query: Query<(Entity, &Colli
     for (entity, marker) in query.iter_mut() {
         let collider = match marker {
             ColliderMarker::Cuboid(size) => Collider::cuboid(size[0], size[1], size[2]),
-            ColliderMarker::Sphere(radius) => Collider::ball(*radius),
+            ColliderMarker::Sphere(radius) => Collider::sphere(*radius),
             ColliderMarker::Capsule(radius, height) => Collider::capsule(*radius, *height),
             ColliderMarker::Cylinder(radius, height) => Collider::cylinder(*radius, *height),
         };

@@ -123,45 +123,49 @@ fn spawn_model(
 
 fn export(
     mut export: EventWriter<GltfExport<DefaultExtensions>>,
-    keyboard: Res<Input<KeyCode>>,
+    mut key_events: EventReader<ReceivedCharacter>,
     scene: Query<&Handle<Scene>, With<SceneMarker>>,
 ) {
-    if !keyboard.just_pressed(KeyCode::E) {
-        return;
-    }
-
-    info!("Exporting scene");
-
-    let handle = match scene.get_single() {
-        Ok(handle) => handle,
-        Err(e) => {
-            error!("Failed to get scene: {}", e);
-            return;
+    for event in key_events.read() {
+        if !event.char.eq_ignore_ascii_case("e") {
+            continue;
         }
-    };
 
-    export.send(GltfExport::new(handle.clone()));
+        info!("Exporting scene");
+
+        let handle = match scene.get_single() {
+            Ok(handle) => handle,
+            Err(e) => {
+                error!("Failed to get scene: {}", e);
+                return;
+            }
+        };
+
+        export.send(GltfExport::new(handle.clone()));
+    }
 }
 
 fn reload(
     mut writer: EventWriter<LoadScene>,
-    keyboard: Res<Input<KeyCode>>,
+    mut key_events: EventReader<ReceivedCharacter>,
     exported: Res<ExportedPath>,
     selected: Res<SelectedModel>,
 ) {
-    if !keyboard.just_pressed(KeyCode::R) {
-        return;
+    for event in key_events.read() {
+        if !event.char.eq_ignore_ascii_case("r") {
+            continue;
+        }
+
+        let mut used_path = exported.0.clone();
+
+        if used_path.is_empty() {
+            used_path = selected.0.clone();
+        }
+
+        info!("Reloading scene");
+
+        writer.send(LoadScene(used_path));
     }
-
-    let mut used_path = exported.0.clone();
-
-    if used_path.is_empty() {
-        used_path = selected.0.clone();
-    }
-
-    info!("Reloading scene");
-
-    writer.send(LoadScene(used_path));
 }
 
 fn get_result(

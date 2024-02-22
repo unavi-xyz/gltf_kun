@@ -1,8 +1,11 @@
 use bevy::{
     prelude::*,
-    render::texture::{
-        CompressedImageFormats, ImageAddressMode, ImageFilterMode, ImageSampler,
-        ImageSamplerDescriptor, ImageType,
+    render::{
+        render_asset::RenderAssetUsages,
+        texture::{
+            CompressedImageFormats, ImageAddressMode, ImageFilterMode, ImageSampler,
+            ImageSamplerDescriptor, ImageType,
+        },
     },
     utils::HashSet,
 };
@@ -64,6 +67,7 @@ pub fn import_images<E: BevyImportExtensions<GltfDocument>>(context: &mut Import
                 supported_compressed_formats,
                 is_srgb,
                 ImageSampler::Descriptor(sampler_descriptor),
+                RenderAssetUsages::default(),
             );
         });
 }

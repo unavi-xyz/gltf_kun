@@ -16,18 +16,23 @@ pub use graph_node::{GraphNodeEdges, GraphNodeWeight};
 pub use petgraph::graph::NodeIndex;
 pub use property::Property;
 
+use self::{
+    gltf::{GltfEdge, GltfWeight},
+    glxf::{GlxfEdge, GlxfWeight},
+};
+
 #[derive(Debug)]
 pub enum Weight {
     Bytes(Vec<u8>),
-    Gltf(gltf::GltfWeight),
-    Glxf(glxf::Weight),
+    Gltf(GltfWeight),
+    Glxf(GlxfWeight),
 }
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum Edge {
     Extension(&'static str),
-    Gltf(gltf::GltfEdge),
-    Glxf(glxf::Edge),
+    Gltf(GltfEdge),
+    Glxf(GlxfEdge),
     Other(&'static str),
 }
 
