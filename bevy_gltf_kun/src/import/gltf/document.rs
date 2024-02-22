@@ -1,4 +1,4 @@
-use bevy::{asset::LoadContext, log::info};
+use bevy::asset::LoadContext;
 use gltf_kun::graph::{gltf::document::GltfDocument, Graph};
 use thiserror::Error;
 
