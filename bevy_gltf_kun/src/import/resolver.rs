@@ -8,6 +8,8 @@ pub struct BevyAssetResolver<'a, 'b> {
 
 #[derive(Debug, Error)]
 pub enum BevyAssetResolverError {
+    #[error("Invalid path: {0}")]
+    InvalidPath(String),
     #[error("Failed to read asset: {0}")]
     ReadAssetBytesError(#[from] ReadAssetBytesError),
 }
@@ -16,7 +18,14 @@ impl Resolver for BevyAssetResolver<'_, '_> {
     type Error = BevyAssetResolverError;
 
     async fn resolve(&mut self, uri: &str) -> Result<Vec<u8>, Self::Error> {
-        let buffer_path = self.load_context.path().parent().unwrap().join(uri);
+        let buffer_path = self
+            .load_context
+            .path()
+            .parent()
+            .ok_or(Self::Error::InvalidPath(
+                self.load_context.path().to_string_lossy().to_string(),
+            ))?
+            .join(uri);
         let bytes = self.load_context.read_asset_bytes(buffer_path).await?;
         Ok(bytes)
     }

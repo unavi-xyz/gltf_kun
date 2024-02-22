@@ -40,9 +40,6 @@ fn main() {
         .run();
 }
 
-#[derive(Component)]
-struct SceneMarker;
-
 #[derive(Event)]
 struct LoadModel(String);
 
@@ -186,7 +183,7 @@ fn load_scene(
     loader: Res<Loader>,
     mut commands: Commands,
     mut events: EventReader<LoadScene>,
-    scenes: Query<Entity, With<SceneMarker>>,
+    scenes: Query<Entity, With<Handle<Scene>>>,
 ) {
     for event in events.read() {
         // Despawn previous scene.
@@ -229,14 +226,14 @@ fn load_scene(
             }
         };
 
-        commands.spawn((SceneBundle { scene, ..default() }, SceneMarker));
+        commands.spawn(SceneBundle { scene, ..default() });
     }
 }
 
 fn export(
     mut export: EventWriter<GltfExport<DefaultExtensions>>,
     mut key_events: EventReader<ReceivedCharacter>,
-    scene: Query<&Handle<Scene>, With<SceneMarker>>,
+    scene: Query<&Handle<Scene>>,
 ) {
     for event in key_events.read() {
         if !event.char.eq_ignore_ascii_case("e") {

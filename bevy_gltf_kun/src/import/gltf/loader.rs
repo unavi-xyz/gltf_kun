@@ -2,6 +2,7 @@ use bevy::{
     asset::{
         io::Reader, AssetLoadError, AssetLoader, AsyncReadExt, LoadContext, ReadAssetBytesError,
     },
+    prelude::*,
     utils::BoxedFuture,
 };
 use gltf_kun::{
@@ -60,6 +61,7 @@ where
     type Asset = GltfKun;
     type Settings = ();
     type Error = GltfError;
+
     fn load<'a>(
         &'a self,
         reader: &'a mut Reader,
@@ -131,6 +133,7 @@ where
     type Asset = GltfKun;
     type Settings = ();
     type Error = GlbError;
+
     fn load<'a>(
         &'a self,
         reader: &'a mut Reader,
