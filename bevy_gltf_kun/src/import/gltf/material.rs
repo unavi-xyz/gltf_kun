@@ -1,15 +1,11 @@
 use bevy::{asset::LoadContext, prelude::*};
 use gltf_kun::graph::{
-    gltf::{
-        document::GltfDocument,
-        image,
-        material::{Material, MaterialWeight},
-    },
+    gltf::{self, GltfDocument, Material},
     Graph, GraphNodeWeight,
 };
 use thiserror::Error;
 
-use crate::import::{extensions::BevyImportExtensions, util::asset_label};
+use crate::import::extensions::BevyImportExtensions;
 
 use super::document::ImportContext;
 
@@ -27,7 +23,7 @@ pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
         .position(|x| *x == m)
         .unwrap();
     let weight = m.get(context.graph);
-    let label = material_label(index, weight);
+    let label = material_label(index);
 
     let handle = context
         .load_context
@@ -56,7 +52,7 @@ fn texture_handle(
     doc: &mut GltfDocument,
     graph: &Graph,
     load_context: &mut LoadContext,
-    image: image::Image,
+    image: gltf::image::Image,
 ) -> Handle<Image> {
     let image_index = doc.images(graph).iter().position(|x| *x == image).unwrap();
     let label = texture_label(image_index);
@@ -64,9 +60,9 @@ fn texture_handle(
 }
 
 fn texture_label(index: usize) -> String {
-    asset_label("Texture", index, None)
+    format!("Texture{}", index,)
 }
 
-fn material_label(index: usize, weight: &MaterialWeight) -> String {
-    asset_label("Material", index, weight.name.as_deref())
+fn material_label(index: usize) -> String {
+    format!("Material{}", index)
 }

@@ -11,15 +11,14 @@ use bevy::{
 };
 use gltf_kun::graph::{
     gltf::{
-        document::GltfDocument,
         texture_info::{MagFilter, MinFilter, TextureInfoWeight, Wrap},
-        Image as ImageKun, TextureInfo,
+        GltfDocument, Image as ImageKun, TextureInfo,
     },
     GraphNodeWeight,
 };
 use thiserror::Error;
 
-use crate::import::{extensions::BevyImportExtensions, util::asset_label};
+use crate::import::extensions::BevyImportExtensions;
 
 use super::document::ImportContext;
 
@@ -162,5 +161,5 @@ fn address_mode(value: &Option<Wrap>) -> ImageAddressMode {
 }
 
 fn texture_label(index: usize) -> String {
-    asset_label("Texture", index, None)
+    format!("Texture{}", index)
 }

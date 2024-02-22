@@ -1,5 +1,5 @@
 use bevy::asset::LoadContext;
-use gltf_kun::graph::{gltf::document::GltfDocument, Graph};
+use gltf_kun::graph::{gltf::GltfDocument, Graph};
 use thiserror::Error;
 
 use crate::import::extensions::BevyImportExtensions;

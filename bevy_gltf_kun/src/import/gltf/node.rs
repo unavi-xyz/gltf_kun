@@ -1,13 +1,10 @@
 use bevy::prelude::*;
 use gltf_kun::graph::{
-    gltf::{
-        document::GltfDocument,
-        node::{Node, NodeWeight},
-    },
+    gltf::{GltfDocument, Node},
     GraphNodeWeight,
 };
 
-use crate::import::{extensions::BevyImportExtensions, util::asset_label};
+use crate::import::extensions::BevyImportExtensions;
 
 use super::{
     document::{DocumentImportError, ImportContext},
@@ -34,7 +31,7 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
         .position(|x| x == n)
         .unwrap();
     let weight = n.get_mut(context.graph);
-    let node_label = node_label(index, weight);
+    let node_label = node_label(index);
 
     let has_name = weight.name.is_some();
     let extras = weight.extras.take();
@@ -95,6 +92,6 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
     Ok(handle)
 }
 
-fn node_label(index: usize, weight: &NodeWeight) -> String {
-    asset_label("Node", index, weight.name.as_deref())
+fn node_label(index: usize) -> String {
+    format!("Node{}", index)
 }

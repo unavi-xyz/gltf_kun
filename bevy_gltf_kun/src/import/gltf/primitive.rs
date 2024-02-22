@@ -136,7 +136,7 @@ pub fn import_primitive(
 }
 
 fn primitive_label(mesh_label: &str, primitive_index: usize) -> String {
-    format!("{}/Primitive{}", mesh_label, primitive_index)
+    format!("{}/Primitive{}", mesh_label, primitive_index,)
 }
 
 #[derive(Debug, Error)]

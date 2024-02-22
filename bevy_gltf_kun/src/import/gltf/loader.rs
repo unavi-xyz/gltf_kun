@@ -7,7 +7,7 @@ use bevy::{
 };
 use gltf_kun::{
     extensions::ExtensionsIO,
-    graph::{gltf::document::GltfDocument, Graph},
+    graph::{gltf::GltfDocument, Graph},
     io::format::{
         glb::{GlbIO, GlbImportError},
         gltf::{import::GltfImportError, GltfFormat, GltfIO},

@@ -1,10 +1,5 @@
 use bevy::prelude::*;
-use gltf_kun::graph::{
-    gltf::{self, mesh::MeshWeight},
-    GraphNodeWeight,
-};
-
-use crate::import::util::asset_label;
+use gltf_kun::graph::{gltf, GraphNodeWeight};
 
 use super::{
     document::ImportContext,
@@ -28,8 +23,7 @@ pub fn import_mesh(
         .iter()
         .position(|x| x == m)
         .unwrap();
-    let weight = m.get(context.graph);
-    let mesh_label = mesh_label(index, weight);
+    let mesh_label = mesh_label(index);
 
     let mut primitives = Vec::new();
 
@@ -62,6 +56,6 @@ pub fn import_mesh(
     context.gltf.meshes.insert(index, handle);
 }
 
-fn mesh_label(index: usize, weight: &MeshWeight) -> String {
-    asset_label("Mesh", index, weight.name.as_deref())
+fn mesh_label(index: usize) -> String {
+    format!("Mesh{}", index)
 }
