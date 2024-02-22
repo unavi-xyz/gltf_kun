@@ -29,7 +29,6 @@ use super::document::ImportContext;
 pub struct GltfPrimitive {
     pub extras: Option<Box<serde_json::value::RawValue>>,
     pub material: Option<Handle<StandardMaterial>>,
-    pub material_extras: Option<Box<serde_json::value::RawValue>>,
     pub mesh: Handle<Mesh>,
 }
 
@@ -104,7 +103,6 @@ pub fn import_primitive(
     let primitive = GltfPrimitive {
         extras: weight.extras.take(),
         material: None,
-        material_extras: None,
         mesh,
     };
 

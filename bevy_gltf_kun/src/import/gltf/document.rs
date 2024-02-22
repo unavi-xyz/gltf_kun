@@ -4,22 +4,30 @@ use thiserror::Error;
 
 use crate::import::extensions::BevyImportExtensions;
 
-use super::{image::import_images, material::import_material, scene::import_scene, Gltf};
+use super::{
+    image::{import_images, ImageImportError},
+    material::import_material,
+    scene::import_scene,
+    Gltf,
+};
 
 #[derive(Debug, Error)]
-pub enum DocumentImportError {}
+pub enum DocumentImportError {
+    #[error("Failed to import image: {0}")]
+    Image(#[from] ImageImportError),
+}
 
 pub struct ImportContext<'a, 'b> {
-    pub graph: &'a mut Graph,
     pub doc: &'a mut GltfDocument,
     pub gltf: &'a mut Gltf,
+    pub graph: &'a mut Graph,
     pub load_context: &'a mut LoadContext<'b>,
 }
 
 pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
 ) -> Result<(), DocumentImportError> {
-    import_images::<E>(context);
+    import_images::<E>(context)?;
 
     for material in context.doc.materials(context.graph) {
         if let Ok(handle) = import_material::<E>(context, material) {
