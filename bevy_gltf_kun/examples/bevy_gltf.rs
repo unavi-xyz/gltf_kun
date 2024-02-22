@@ -35,7 +35,13 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(
             Update,
-            (ui, load_model, load_scene, export, reload, get_result),
+            (
+                ui,
+                (load_scene, load_model).chain(),
+                export,
+                reload,
+                get_result,
+            ),
         )
         .run();
 }
@@ -221,9 +227,6 @@ fn load_scene(
                         return;
                     }
                 };
-
-                info!("scenes: {:?}", gltf.scenes);
-                info!("default_scene: {:?}", gltf.default_scene);
 
                 gltf.default_scene.clone().unwrap_or(gltf.scenes[0].clone())
             }
