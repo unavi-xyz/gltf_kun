@@ -37,12 +37,12 @@ impl Plugin for GltfImportPlugin {
 
 #[derive(Asset, Debug, Default, TypePath)]
 pub struct Gltf {
+    pub default_scene: Option<Handle<Scene>>,
     pub images: Vec<Handle<Image>>,
     pub materials: Vec<Handle<StandardMaterial>>,
     pub meshes: Vec<Handle<GltfMesh>>,
     pub nodes: Vec<Handle<GltfNode>>,
     pub scenes: Vec<Handle<Scene>>,
-    pub default_scene: Option<Handle<Scene>>,
 
     pub named_materials: HashMap<String, Handle<StandardMaterial>>,
     pub named_meshes: HashMap<String, Handle<GltfMesh>>,

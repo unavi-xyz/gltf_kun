@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use bevy::prelude::*;
 use export::extensions::BevyExportExtensions;
 use gltf_kun::graph::gltf::document::GltfDocument;
@@ -9,13 +11,13 @@ pub mod extensions;
 pub mod import;
 
 pub struct GltfKunPlugin<E: BevyExportExtensions<GltfDocument>> {
-    _marker: std::marker::PhantomData<E>,
+    _marker: PhantomData<E>,
 }
 
 impl<E: BevyExportExtensions<GltfDocument>> Default for GltfKunPlugin<E> {
     fn default() -> Self {
         Self {
-            _marker: std::marker::PhantomData,
+            _marker: PhantomData,
         }
     }
 }

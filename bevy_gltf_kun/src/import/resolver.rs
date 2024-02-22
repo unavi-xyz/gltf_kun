@@ -8,7 +8,7 @@ pub struct BevyAssetResolver<'a, 'b> {
 
 #[derive(Debug, Error)]
 pub enum BevyAssetResolverError {
-    #[error("failed to read asset: {0}")]
+    #[error("Failed to read asset: {0}")]
     ReadAssetBytesError(#[from] ReadAssetBytesError),
 }
 
