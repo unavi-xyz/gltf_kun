@@ -126,7 +126,7 @@ pub async fn import(
 
             let accessor_start = a.byte_offset.map(|o| o.0 as usize).unwrap_or_default();
             let item_size = a.component_type.unwrap().0.size() * a.type_.unwrap().multiplicity();
-            let accessor_end = a.count.0 as usize * item_size;
+            let accessor_end = accessor_start + (a.count.0 as usize * item_size);
 
             weight.data = view[accessor_start..accessor_end].to_vec();
 
