@@ -77,6 +77,11 @@ pub fn import_primitive(
             }
         };
 
+        if values.is_empty() {
+            warn!("Empty attribute: {}", semantic.to_string());
+            continue;
+        }
+
         mesh.insert_attribute(attribute, values);
     }
 
