@@ -143,6 +143,7 @@ pub async fn import(
         let weight = image.get_mut(graph);
         weight.name = img.name.clone();
         weight.extras = img.extras.clone();
+        weight.mime_type = img.mime_type.clone().map(|m| m.0);
 
         if let Some(uri) = img.uri.as_ref() {
             weight.uri = img.uri.clone();
