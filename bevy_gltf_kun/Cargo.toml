@@ -17,7 +17,7 @@ omi_physics = ["dep:bevy_xpbd_3d", "gltf_kun/omi_physics_body"]
 type_complexity = "allow"
 
 [dependencies]
-bevy = { version = "0.13", default-features = false, features = ["bevy_asset", "bevy_pbr", "bevy_render", "bevy_scene"] }
+bevy = { version = "0.13.0", default-features = false, features = ["bevy_asset", "bevy_pbr", "bevy_render", "bevy_scene"] }
 glam.workspace = true
 gltf_kun = { version = "0.0.6", path = "../gltf_kun" }
 serde_json.workspace = true
@@ -26,29 +26,6 @@ thiserror.workspace = true
 bevy_xpbd_3d = { version = "0.4.2", default-features = false, features = ["3d", "f32", "parry-f32", "debug-plugin", "parallel"], optional = true }
 
 [dev-dependencies]
-bevy = { version = "0.13.0", default-features = false, features = [
-  "android_shared_stdcxx",
-  "animation",
-  "bevy_asset",
-  "bevy_audio",
-  "bevy_core_pipeline",
-  "bevy_gilrs",
-  "bevy_gizmos",
-  "bevy_pbr",
-  "bevy_render",
-  "bevy_scene",
-  "bevy_sprite",
-  "bevy_text",
-  "bevy_ui",
-  "bevy_winit",
-  "default_font",
-  "hdr",
-  "multi-threaded",
-  "png",
-  "tonemapping_luts",
-  "vorbis",
-  "webgl2",
-  "x11"
-]}
+bevy = "0.13.0"
 bevy_egui = "0.25.0"
 bevy_panorbit_camera = "0.14.0"
