@@ -98,16 +98,37 @@ pub fn import_primitive(
         .load_context
         .add_labeled_asset(primitive_label.clone(), mesh);
 
-    parent.spawn(PbrBundle {
-        mesh: context.load_context.get_label_handle(&primitive_label),
-        ..default()
+    let material = p.material(context.graph).map(|m| {
+        let index = context
+            .doc
+            .materials(context.graph)
+            .iter()
+            .position(|x| *x == m)
+            .unwrap();
+        context.gltf.materials[index].clone()
     });
+
+    let primitive_handle = context.load_context.get_label_handle(&primitive_label);
+
+    let pbr = match &material {
+        Some(material) => PbrBundle {
+            mesh: primitive_handle,
+            material: material.clone(),
+            ..default()
+        },
+        None => PbrBundle {
+            mesh: primitive_handle,
+            ..default()
+        },
+    };
+
+    parent.spawn(pbr);
 
     let weight = p.get_mut(context.graph);
 
     let primitive = GltfPrimitive {
         extras: weight.extras.take(),
-        material: None,
+        material,
         mesh,
     };
 
