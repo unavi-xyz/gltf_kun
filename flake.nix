@@ -33,12 +33,7 @@
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
 
         commonArgs = {
-          src = lib.cleanSourceWith {
-            src = ./.;
-            filter = path: type:
-              (lib.hasSuffix ".proto" path) || (lib.hasSuffix ".wit" path)
-              || (craneLib.filterCargoSources path type);
-          };
+          src = lib.cleanSource ./.;
 
           strictDeps = true;
 
