@@ -32,9 +32,8 @@ pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
     let handle = context
         .load_context
         .labeled_asset_scope(label, |load_context| {
-            let base_color_texture = m.base_color_texture_info(context.graph);
-
-            let base_color_texture = base_color_texture
+            let base_color_texture = m
+                .base_color_texture_info(context.graph)
                 .and_then(|info| info.image(context.graph))
                 .map(|image| texture_handle(context.doc, context.graph, load_context, image));
 

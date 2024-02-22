@@ -18,7 +18,7 @@ use crate::import::{extensions::BevyImportExtensions, resolver::BevyAssetResolve
 
 use super::{
     document::{import_gltf_document, DocumentImportError, ImportContext},
-    Gltf,
+    GltfKun,
 };
 
 pub struct GltfLoader<E: BevyImportExtensions<GltfDocument>> {
@@ -57,7 +57,7 @@ where
         + Sync
         + 'static,
 {
-    type Asset = Gltf;
+    type Asset = GltfKun;
     type Settings = ();
     type Error = GltfError;
     fn load<'a>(
@@ -78,7 +78,7 @@ where
             let mut graph = Graph::default();
             let mut doc = GltfIO::<E>::import(&mut graph, format, Some(resolver)).await?;
 
-            let mut gltf = Gltf::new(&mut graph, &mut doc);
+            let mut gltf = GltfKun::new(&mut graph, &mut doc);
 
             let mut context = ImportContext {
                 graph: &mut graph,
@@ -128,7 +128,7 @@ where
         + Sync
         + 'static,
 {
-    type Asset = Gltf;
+    type Asset = GltfKun;
     type Settings = ();
     type Error = GlbError;
     fn load<'a>(
@@ -144,7 +144,7 @@ where
             let mut graph = Graph::default();
             let mut doc = GlbIO::<E>::import_slice(&mut graph, &bytes).await?;
 
-            let mut gltf = Gltf::new(&mut graph, &mut doc);
+            let mut gltf = GltfKun::new(&mut graph, &mut doc);
 
             let mut context = ImportContext {
                 graph: &mut graph,

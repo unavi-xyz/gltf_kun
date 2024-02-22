@@ -23,7 +23,7 @@ pub struct GltfImportPlugin;
 
 impl Plugin for GltfImportPlugin {
     fn build(&self, app: &mut App) {
-        app.init_asset::<Gltf>()
+        app.init_asset::<GltfKun>()
             .init_asset::<GltfNode>()
             .init_asset::<GltfMesh>()
             .register_asset_loader::<GltfLoader<DefaultExtensions>>(
@@ -36,7 +36,7 @@ impl Plugin for GltfImportPlugin {
 }
 
 #[derive(Asset, Debug, Default, TypePath)]
-pub struct Gltf {
+pub struct GltfKun {
     pub default_scene: Option<Handle<Scene>>,
     pub images: Vec<Handle<Image>>,
     pub materials: Vec<Handle<StandardMaterial>>,
@@ -52,9 +52,9 @@ pub struct Gltf {
     pub node_entities: HashMap<Handle<GltfNode>, Entity>,
 }
 
-impl Gltf {
+impl GltfKun {
     pub fn new(graph: &mut Graph, doc: &mut GltfDocument) -> Self {
-        Gltf {
+        GltfKun {
             images: vec![Handle::default(); doc.images(graph).len()],
             materials: vec![Handle::default(); doc.materials(graph).len()],
             meshes: vec![Handle::default(); doc.meshes(graph).len()],

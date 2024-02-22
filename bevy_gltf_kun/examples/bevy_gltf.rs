@@ -1,9 +1,10 @@
-use std::path::Path;
+use std::{fmt::Display, path::Path};
 
-use bevy::{core::FrameCount, prelude::*};
-use bevy_egui::{EguiContexts, EguiPlugin};
+use bevy::{core::FrameCount, gltf::Gltf, prelude::*};
+use bevy_egui::{egui::ComboBox, EguiContexts, EguiPlugin};
 use bevy_gltf_kun::{
     export::gltf::{GltfExport, GltfExportResult},
+    import::gltf::GltfKun,
     GltfKunPlugin,
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
@@ -12,7 +13,7 @@ use gltf_kun::{extensions::DefaultExtensions, io::format::glb::GlbIO};
 const ASSETS_DIR: &str = "../assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
-const MODELS: &[&str] = &["BoxTextured.glb"];
+const MODELS: &[&str] = &["BoxTextured.glb", "BoxTextured/BoxTextured.gltf"];
 
 fn main() {
     App::new()
@@ -26,11 +27,16 @@ fn main() {
             GltfKunPlugin::<DefaultExtensions>::default(),
             PanOrbitCameraPlugin,
         ))
-        .init_resource::<ExportedPath>()
-        .init_resource::<SelectedModel>()
+        .add_event::<LoadModel>()
         .add_event::<LoadScene>()
+        .init_resource::<ExportedPath>()
+        .init_resource::<Loader>()
+        .init_resource::<SelectedModel>()
         .add_systems(Startup, setup)
-        .add_systems(Update, (ui, spawn_model, export, reload, get_result))
+        .add_systems(
+            Update,
+            (ui, load_model, load_scene, export, reload, get_result),
+        )
         .run();
 }
 
@@ -38,15 +44,37 @@ fn main() {
 struct SceneMarker;
 
 #[derive(Event)]
-struct LoadScene(String);
+struct LoadModel(String);
+
+#[derive(Event)]
+struct LoadScene(GltfHandle);
 
 #[derive(Default, Resource)]
 struct SelectedModel(String);
 
 #[derive(Default, Resource)]
+struct Loader(GltfLoader);
+
+#[derive(Default)]
+enum GltfLoader {
+    BevyGltf,
+    #[default]
+    GltfKun,
+}
+
+impl Display for GltfLoader {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            GltfLoader::BevyGltf => write!(f, "bevy_gltf"),
+            GltfLoader::GltfKun => write!(f, "gltf_kun"),
+        }
+    }
+}
+
+#[derive(Default, Resource)]
 struct ExportedPath(String);
 
-fn setup(mut commands: Commands, mut writer: EventWriter<LoadScene>) {
+fn setup(mut commands: Commands, mut writer: EventWriter<LoadModel>) {
     commands.spawn((
         Camera3dBundle {
             transform: Transform::from_xyz(1.0, 2.0, 5.0),
@@ -60,17 +88,18 @@ fn setup(mut commands: Commands, mut writer: EventWriter<LoadScene>) {
         ..default()
     });
 
-    writer.send(LoadScene(MODELS[0].to_string()));
+    writer.send(LoadModel(MODELS[0].to_string()));
 }
 
 fn ui(
     mut contexts: EguiContexts,
-    mut writer: EventWriter<LoadScene>,
-    mut selected: ResMut<SelectedModel>,
     mut exported: ResMut<ExportedPath>,
+    mut loader: ResMut<Loader>,
+    mut selected_model: ResMut<SelectedModel>,
+    mut writer: EventWriter<LoadModel>,
 ) {
-    if selected.0.is_empty() {
-        selected.0 = MODELS[0].to_string();
+    if selected_model.0.is_empty() {
+        selected_model.0 = MODELS[0].to_string();
     }
 
     bevy_egui::egui::Window::new("Controls").show(contexts.ctx_mut(), |ui| {
@@ -81,43 +110,126 @@ fn ui(
 
         ui.separator();
 
-        bevy_egui::egui::ComboBox::from_label("Model")
-            .selected_text(selected.0.as_str())
+        ComboBox::from_label("Loader")
+            .selected_text(loader.0.to_string().as_str())
+            .show_ui(ui, |ui| {
+                for l in [GltfLoader::BevyGltf, GltfLoader::GltfKun] {
+                    if ui
+                        .selectable_label(
+                            l.to_string().as_str() == loader.0.to_string().as_str(),
+                            l.to_string().as_str(),
+                        )
+                        .clicked()
+                    {
+                        *loader = Loader(l);
+                        exported.0.clear();
+                        writer.send(LoadModel(selected_model.0.clone()));
+                    }
+                }
+            });
+
+        ComboBox::from_label("Model")
+            .selected_text(selected_model.0.as_str())
             .show_ui(ui, |ui| {
                 for model in MODELS {
                     if ui
-                        .selectable_label(selected.0.as_str() == *model, *model)
+                        .selectable_label(selected_model.0.as_str() == *model, *model)
                         .clicked()
                     {
-                        selected.0 = model.to_string();
+                        selected_model.0 = model.to_string();
                         exported.0.clear();
-                        writer.send(LoadScene(model.to_string()));
+                        writer.send(LoadModel(model.to_string()));
                     }
                 }
             });
     });
 }
 
-fn spawn_model(
+enum GltfHandle {
+    Bevy(Handle<Gltf>),
+    GltfKun(Handle<GltfKun>),
+}
+
+impl Default for GltfHandle {
+    fn default() -> Self {
+        GltfHandle::GltfKun(Default::default())
+    }
+}
+
+fn load_model(
     asset_server: Res<AssetServer>,
+    loader: Res<Loader>,
+    mut events: EventReader<LoadModel>,
+    mut writer: EventWriter<LoadScene>,
+) {
+    for event in events.read() {
+        info!("Loading model {}", event.0);
+
+        match loader.0 {
+            GltfLoader::BevyGltf => {
+                let handle = asset_server.load::<Gltf>(event.0.clone());
+                let handle = GltfHandle::Bevy(handle.clone());
+                writer.send(LoadScene(handle));
+            }
+            GltfLoader::GltfKun => {
+                let handle = asset_server.load::<GltfKun>(event.0.clone());
+                let handle = GltfHandle::GltfKun(handle.clone());
+                writer.send(LoadScene(handle));
+            }
+        }
+    }
+}
+
+fn load_scene(
+    gltf_assets: Res<Assets<Gltf>>,
+    gltf_kun_assets: Res<Assets<GltfKun>>,
+    loader: Res<Loader>,
     mut commands: Commands,
     mut events: EventReader<LoadScene>,
     scenes: Query<Entity, With<SceneMarker>>,
 ) {
     for event in events.read() {
+        // Despawn previous scene.
         for entity in scenes.iter() {
             commands.entity(entity).despawn_recursive();
         }
 
-        info!("Spawning model {}", event.0);
+        let scene = match loader.0 {
+            GltfLoader::BevyGltf => {
+                let handle = match &event.0 {
+                    GltfHandle::Bevy(handle) => handle,
+                    _ => panic!("Invalid handle"),
+                };
 
-        commands.spawn((
-            SceneBundle {
-                scene: asset_server.load(format!("{}#Scene0", event.0)),
-                ..default()
-            },
-            SceneMarker,
-        ));
+                let gltf = match gltf_assets.get(handle) {
+                    Some(gltf) => gltf,
+                    None => {
+                        error!("Failed to get gltf asset");
+                        return;
+                    }
+                };
+
+                gltf.scenes[0].clone()
+            }
+            GltfLoader::GltfKun => {
+                let handle = match &event.0 {
+                    GltfHandle::GltfKun(handle) => handle,
+                    _ => panic!("Invalid handle"),
+                };
+
+                let gltf = match gltf_kun_assets.get(handle) {
+                    Some(gltf) => gltf,
+                    None => {
+                        error!("Failed to get gltf_kun asset");
+                        return;
+                    }
+                };
+
+                gltf.scenes[0].clone()
+            }
+        };
+
+        commands.spawn((SceneBundle { scene, ..default() }, SceneMarker));
     }
 }
 
@@ -146,7 +258,7 @@ fn export(
 }
 
 fn reload(
-    mut writer: EventWriter<LoadScene>,
+    mut writer: EventWriter<LoadModel>,
     mut key_events: EventReader<ReceivedCharacter>,
     exported: Res<ExportedPath>,
     selected: Res<SelectedModel>,
@@ -164,15 +276,17 @@ fn reload(
 
         info!("Reloading scene");
 
-        writer.send(LoadScene(used_path));
+        writer.send(LoadModel(used_path));
     }
 }
 
+const TEMP_FOLDER: &str = "temp/bevy_gltf";
+
 fn get_result(
-    mut exports: ResMut<Events<GltfExportResult>>,
-    mut writer: EventWriter<LoadScene>,
     frame: Res<FrameCount>,
     mut exported_path: ResMut<ExportedPath>,
+    mut exports: ResMut<Events<GltfExportResult>>,
+    mut writer: EventWriter<LoadModel>,
 ) {
     for mut event in exports.drain() {
         let doc = match event.result {
@@ -210,11 +324,9 @@ fn get_result(
         std::fs::write(full_path, glb.0).expect("Failed to write glb");
 
         // Load glb
-        writer.send(LoadScene(file_path_str));
+        writer.send(LoadModel(file_path_str));
     }
 }
-
-const TEMP_FOLDER: &str = "temp/bevy_gltf";
 
 fn temp_file(frame: u32) -> String {
     format!("model_{}.glb", frame)

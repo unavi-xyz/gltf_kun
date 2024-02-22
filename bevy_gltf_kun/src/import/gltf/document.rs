@@ -8,7 +8,7 @@ use super::{
     image::{import_images, ImageImportError},
     material::import_material,
     scene::import_scene,
-    Gltf,
+    GltfKun,
 };
 
 #[derive(Debug, Error)]
@@ -19,7 +19,7 @@ pub enum DocumentImportError {
 
 pub struct ImportContext<'a, 'b> {
     pub doc: &'a mut GltfDocument,
-    pub gltf: &'a mut Gltf,
+    pub gltf: &'a mut GltfKun,
     pub graph: &'a mut Graph,
     pub load_context: &'a mut LoadContext<'b>,
 }
