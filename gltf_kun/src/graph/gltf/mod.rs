@@ -9,6 +9,17 @@ pub mod primitive;
 pub mod scene;
 pub mod texture_info;
 
+pub use accessor::Accessor;
+pub use buffer::Buffer;
+pub use document::GltfDocument;
+pub use image::Image;
+pub use material::Material;
+pub use mesh::Mesh;
+pub use node::Node;
+pub use primitive::Primitive;
+pub use scene::Scene;
+pub use texture_info::TextureInfo;
+
 #[derive(Debug)]
 pub enum GltfWeight {
     Accessor(accessor::AccessorWeight),

@@ -1,7 +1,7 @@
 use bevy::{ecs::system::RunSystemOnce, prelude::*};
 use gltf_kun::{
     extensions::{omi_physics_body::OMIPhysicsBody, DefaultExtensions},
-    graph::gltf::document::GltfDocument,
+    graph::gltf::GltfDocument,
 };
 
 use super::gltf::ExportContext;

@@ -670,10 +670,7 @@ impl From<AccessorElement> for Value {
 mod tests {
     use tracing_test::traced_test;
 
-    use crate::graph::gltf::{
-        accessor::Accessor, buffer::Buffer, image::Image, material::Material, mesh::Mesh,
-        node::Node, primitive::Primitive, scene::Scene,
-    };
+    use crate::graph::gltf::{Accessor, Buffer, Image, Material, Mesh, Node, Primitive, Scene};
 
     use super::*;
 

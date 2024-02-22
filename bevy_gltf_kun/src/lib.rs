@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use bevy::prelude::*;
 use export::extensions::BevyExportExtensions;
-use gltf_kun::graph::gltf::document::GltfDocument;
+use gltf_kun::graph::gltf::GltfDocument;
 
 #[cfg(feature = "export")]
 pub mod export;
