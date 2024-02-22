@@ -92,19 +92,25 @@
           pname = "doc";
         });
 
+        bevy_gltf_kun = craneLib.buildPackage (commonArgs // {
+          inherit cargoArtifacts;
+          pname = "bevy_gltf_kun";
+        });
+
         gltf_kun = craneLib.buildPackage (commonArgs // {
           inherit cargoArtifacts;
           pname = "gltf_kun";
         });
       in {
-        checks = { inherit gltf_kun cargoClippy cargoDoc; };
+        checks = { inherit gltf_kun bevy_gltf_kun cargoClippy cargoDoc; };
 
         packages = {
+          bevy_gltf_kun = bevy_gltf_kun;
           gltf_kun = gltf_kun;
 
           default = pkgs.symlinkJoin {
             name = "all";
-            paths = [ gltf_kun ];
+            paths = [ bevy_gltf_kun gltf_kun ];
           };
         };
 
