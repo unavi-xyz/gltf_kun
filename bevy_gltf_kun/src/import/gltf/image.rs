@@ -76,7 +76,7 @@ pub fn import_images<E: BevyImportExtensions<GltfDocument>>(
             let label = texture_label(i);
             let texture = load_texture(context, *info, image, &linear_images)?;
             let handle = context.load_context.add_labeled_asset(label, texture);
-            context.gltf.images.push(handle);
+            context.gltf.images.insert(i, handle);
         }
     }
 

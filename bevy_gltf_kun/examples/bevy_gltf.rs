@@ -206,7 +206,7 @@ fn load_scene(
                     }
                 };
 
-                gltf.scenes[0].clone()
+                gltf.default_scene.clone().unwrap_or(gltf.scenes[0].clone())
             }
             GltfLoader::GltfKun => {
                 let handle = match &event.0 {
@@ -222,7 +222,10 @@ fn load_scene(
                     }
                 };
 
-                gltf.scenes[0].clone()
+                info!("scenes: {:?}", gltf.scenes);
+                info!("default_scene: {:?}", gltf.default_scene);
+
+                gltf.default_scene.clone().unwrap_or(gltf.scenes[0].clone())
             }
         };
 

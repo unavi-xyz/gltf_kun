@@ -1,4 +1,4 @@
-use bevy::asset::LoadContext;
+use bevy::{asset::LoadContext, log::info};
 use gltf_kun::graph::{gltf::document::GltfDocument, Graph};
 use thiserror::Error;
 
@@ -29,21 +29,21 @@ pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
 ) -> Result<(), DocumentImportError> {
     import_images::<E>(context)?;
 
-    for material in context.doc.materials(context.graph) {
+    for (i, material) in context.doc.materials(context.graph).into_iter().enumerate() {
         if let Ok(handle) = import_material::<E>(context, material) {
-            context.gltf.materials.push(handle);
+            context.gltf.materials.insert(i, handle);
         }
     }
 
     let default_scene = context.doc.default_scene(context.graph);
 
-    for scene in context.doc.scenes(context.graph) {
+    for (i, scene) in context.doc.scenes(context.graph).into_iter().enumerate() {
         if let Ok(handle) = import_scene::<E>(context, scene) {
             if Some(scene) == default_scene {
                 context.gltf.default_scene = Some(handle.clone());
             }
 
-            context.gltf.scenes.push(handle);
+            context.gltf.scenes.insert(i, handle);
         }
     }
 
