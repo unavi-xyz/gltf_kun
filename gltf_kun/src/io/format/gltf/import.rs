@@ -139,10 +139,10 @@ pub async fn import(
         weight.name = img.name.clone();
         weight.extras = img.extras.clone();
         weight.mime_type = img.mime_type.clone().map(|m| m.0);
+
         if let Some(uri) = img.uri.as_ref() {
             weight.uri = img.uri.clone();
 
-            // If no mime type, guess from the URI
             if weight.mime_type.is_none() {
                 weight.mime_type = guess_mime_type(uri).map(|s| s.to_string())
             }
@@ -191,11 +191,10 @@ pub async fn import(
             weight.name = m.name.clone();
             weight.extras = m.extras.clone();
 
-            weight.alpha_mode = m.alpha_mode.unwrap();
-
             weight.alpha_cutoff = m.alpha_cutoff.unwrap_or_default();
-            weight.double_sided = m.double_sided;
+            weight.alpha_mode = m.alpha_mode.unwrap();
             weight.base_color_factor = m.pbr_metallic_roughness.base_color_factor.0;
+            weight.double_sided = m.double_sided;
             weight.emissive_factor = m.emissive_factor.0;
             weight.metallic_factor = m.pbr_metallic_roughness.metallic_factor.0;
             weight.roughness_factor = m.pbr_metallic_roughness.roughness_factor.0;

@@ -12,13 +12,11 @@ use bevy::{
 use gltf_kun::graph::{
     gltf::{
         texture_info::{MagFilter, MinFilter, TextureInfoWeight, WrappingMode},
-        GltfDocument, Image as ImageKun, TextureInfo,
+        Image as ImageKun, TextureInfo,
     },
     GraphNodeWeight,
 };
 use thiserror::Error;
-
-use crate::import::extensions::BevyImportExtensions;
 
 use super::document::ImportContext;
 
@@ -28,67 +26,39 @@ pub enum ImageImportError {
     Texture(#[from] TextureError),
 }
 
-pub fn import_images<E: BevyImportExtensions<GltfDocument>>(
-    context: &mut ImportContext,
-) -> Result<(), ImageImportError> {
-    let mut linear_images = HashSet::default();
+const DEFAULT_MIME: &str = "image/png";
+
+/// Returns material texture infos and whether they are sRGB or not.
+pub fn get_texture_infos(context: &ImportContext) -> HashSet<(TextureInfo, bool)> {
     let mut texture_infos = HashSet::default();
 
     for m in context.doc.materials(context.graph) {
         if let Some(info) = m.base_color_texture_info(context.graph) {
-            texture_infos.insert(info);
+            texture_infos.insert((info, true));
         }
-
         if let Some(info) = m.emissive_texture_info(context.graph) {
-            texture_infos.insert(info);
+            texture_infos.insert((info, true));
         }
-
         if let Some(info) = m.metallic_roughness_texture_info(context.graph) {
-            texture_infos.insert(info);
-
-            if let Some(image) = info.image(context.graph) {
-                linear_images.insert(image);
-            }
+            texture_infos.insert((info, false));
         }
-
         if let Some(info) = m.normal_texture_info(context.graph) {
-            texture_infos.insert(info);
-
-            if let Some(image) = info.image(context.graph) {
-                linear_images.insert(image);
-            }
+            texture_infos.insert((info, false));
         }
-
         if let Some(info) = m.occlusion_texture_info(context.graph) {
-            texture_infos.insert(info);
-
-            if let Some(image) = info.image(context.graph) {
-                linear_images.insert(image);
-            }
+            texture_infos.insert((info, false));
         }
     }
 
-    for (i, info) in texture_infos.iter().enumerate() {
-        if let Some(image) = info.image(context.graph) {
-            let label = texture_label(i);
-            let texture = load_texture(context, *info, image, &linear_images)?;
-            let handle = context.load_context.add_labeled_asset(label, texture);
-            context.gltf.images.insert(i, handle);
-        }
-    }
-
-    Ok(())
+    texture_infos
 }
-
-const DEFAULT_MIME: &str = "image/png";
 
 pub fn load_texture(
     context: &mut ImportContext,
     info: TextureInfo,
     image: ImageKun,
-    linear_images: &HashSet<ImageKun>,
+    is_srgb: bool,
 ) -> Result<Image, ImageImportError> {
-    let is_srgb = !linear_images.contains(&image);
     let info_weight = info.get(context.graph);
     let sampler_descriptor = sampler_descriptor(info_weight);
 
@@ -176,6 +146,6 @@ fn address_mode(value: &WrappingMode) -> ImageAddressMode {
     }
 }
 
-fn texture_label(index: usize) -> String {
+pub fn texture_label(index: usize) -> String {
     format!("Texture{}", index)
 }
