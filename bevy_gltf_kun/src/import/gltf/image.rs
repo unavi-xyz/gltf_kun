@@ -20,12 +20,6 @@ use thiserror::Error;
 
 use super::document::ImportContext;
 
-#[derive(Debug, Error)]
-pub enum ImageImportError {
-    #[error("Failed to load texture: {0}")]
-    Texture(#[from] TextureError),
-}
-
 const DEFAULT_MIME: &str = "image/png";
 
 /// Returns material texture infos and whether they are sRGB or not.
@@ -53,12 +47,18 @@ pub fn get_texture_infos(context: &ImportContext) -> HashSet<(TextureInfo, bool)
     texture_infos
 }
 
+#[derive(Debug, Error)]
+pub enum TextureLoadError {
+    #[error("Failed to create texture: {0}")]
+    Texture(#[from] TextureError),
+}
+
 pub fn load_texture(
     context: &mut ImportContext,
     info: TextureInfo,
     image: ImageKun,
     is_srgb: bool,
-) -> Result<Image, ImageImportError> {
+) -> Result<Image, TextureLoadError> {
     let info_weight = info.get(context.graph);
     let sampler_descriptor = sampler_descriptor(info_weight);
 

@@ -15,7 +15,7 @@ pub enum MaterialImportError {}
 pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
     m: Material,
-) -> Result<Handle<StandardMaterial>, MaterialImportError> {
+) -> Handle<StandardMaterial> {
     let index = context
         .doc
         .materials(context.graph)
@@ -97,7 +97,7 @@ pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
             }
         });
 
-    Ok(handle)
+    handle
 }
 
 fn texture_handle(

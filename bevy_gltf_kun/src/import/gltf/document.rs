@@ -6,7 +6,7 @@ use thiserror::Error;
 use crate::import::extensions::BevyImportExtensions;
 
 use super::{
-    image::{get_texture_infos, load_texture, texture_label, ImageImportError},
+    image::{get_texture_infos, load_texture, texture_label, TextureLoadError},
     material::import_material,
     scene::import_scene,
     GltfKun,
@@ -14,8 +14,8 @@ use super::{
 
 #[derive(Debug, Error)]
 pub enum DocumentImportError {
-    #[error("Failed to import image: {0}")]
-    Image(#[from] ImageImportError),
+    #[error("Failed to load texture: {0}")]
+    TextureLoad(#[from] TextureLoadError),
 }
 
 pub struct ImportContext<'a, 'b> {
@@ -40,26 +40,21 @@ pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
 
     // Load materials.
     for (i, material) in context.doc.materials(context.graph).into_iter().enumerate() {
-        match import_material::<E>(context, material) {
-            Ok(handle) => context.gltf.materials.insert(i, handle),
-            Err(e) => warn!("Failed to import material: {}", e),
-        };
+        let handle = import_material::<E>(context, material);
+        context.gltf.materials.insert(i, handle);
     }
 
     // Load scenes.
     let default_scene = context.doc.default_scene(context.graph);
 
     for (i, scene) in context.doc.scenes(context.graph).into_iter().enumerate() {
-        match import_scene::<E>(context, scene) {
-            Ok(handle) => {
-                if Some(scene) == default_scene {
-                    context.gltf.default_scene = Some(handle.clone());
-                }
+        let handle = import_scene::<E>(context, scene);
 
-                context.gltf.scenes.insert(i, handle);
-            }
-            Err(e) => warn!("Failed to import scene: {}", e),
+        if Some(scene) == default_scene {
+            context.gltf.default_scene = Some(handle.clone());
         }
+
+        context.gltf.scenes.insert(i, handle);
     }
 
     Ok(())

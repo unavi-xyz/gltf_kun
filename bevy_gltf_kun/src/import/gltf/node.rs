@@ -7,7 +7,7 @@ use gltf_kun::graph::{
 use crate::import::extensions::BevyImportExtensions;
 
 use super::{
-    document::{DocumentImportError, ImportContext},
+    document::ImportContext,
     mesh::{import_mesh, GltfMesh},
 };
 
@@ -23,7 +23,7 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext<'_, '_>,
     builder: &mut WorldChildBuilder,
     n: &mut Node,
-) -> Result<Handle<GltfNode>, DocumentImportError> {
+) -> Handle<GltfNode> {
     let index = context
         .doc
         .nodes(context.graph)
@@ -55,10 +55,8 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
 
     ent.with_children(|parent| {
         n.children(context.graph).iter_mut().for_each(|c| {
-            match import_node::<E>(context, parent, c) {
-                Ok(handle) => children.push(handle),
-                Err(e) => warn!("Failed to import node: {}", e),
-            }
+            let handle = import_node::<E>(context, parent, c);
+            children.push(handle)
         })
     });
 
@@ -77,19 +75,12 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
     context.gltf.node_entities.insert(handle.clone(), ent.id());
 
     if has_name {
-        if context.gltf.named_nodes.contains_key(&node_label) {
-            warn!(
-                "Duplicate node name: {}. May cause issues if using name-based resolution.",
-                node_label
-            );
-        } else {
-            context.gltf.named_nodes.insert(node_label, handle.clone());
-        }
+        context.gltf.named_nodes.insert(node_label, handle.clone());
     }
 
     E::import_node(context, &mut ent, *n);
 
-    Ok(handle)
+    handle
 }
 
 fn node_label(index: usize) -> String {

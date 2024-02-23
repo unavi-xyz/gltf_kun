@@ -9,24 +9,19 @@ use gltf_kun::graph::{
 
 use crate::import::extensions::BevyImportExtensions;
 
-use super::{
-    document::{DocumentImportError, ImportContext},
-    node::import_node,
-};
+use super::{document::ImportContext, node::import_node};
 
 pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
     s: scene::Scene,
-) -> Result<Handle<Scene>, DocumentImportError> {
+) -> Handle<Scene> {
     let mut world = World::default();
 
     world
         .spawn(SpatialBundle::INHERITED_IDENTITY)
         .with_children(|parent| {
             for mut node in s.nodes(context.graph) {
-                if let Err(e) = import_node::<E>(context, parent, &mut node) {
-                    warn!("Failed to import node: {}", e);
-                }
+                import_node::<E>(context, parent, &mut node);
             }
         });
 
@@ -46,20 +41,13 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
         .add_labeled_asset(scene_label.clone(), scene);
 
     if weight.name.is_some() {
-        if context.gltf.named_scenes.contains_key(&scene_label) {
-            warn!(
-                "Duplicate scene name: {}. May cause issues if using name-based resolution.",
-                scene_label
-            );
-        } else {
-            context
-                .gltf
-                .named_scenes
-                .insert(scene_label.clone(), handle.clone());
-        }
+        context
+            .gltf
+            .named_scenes
+            .insert(scene_label.clone(), handle.clone());
     }
 
-    Ok(handle)
+    handle
 }
 
 fn scene_label(index: usize) -> String {
