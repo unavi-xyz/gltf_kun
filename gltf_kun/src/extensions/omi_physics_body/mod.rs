@@ -159,6 +159,13 @@ impl Extension for OMIPhysicsBody {
 }
 
 impl OMIPhysicsBody {
+    pub fn collider_edge_name() -> &'static str {
+        COLLIDER_EDGE
+    }
+    pub fn trigger_edge_name() -> &'static str {
+        TRIGGER_EDGE
+    }
+
     pub fn new(graph: &mut Graph) -> Self {
         let weight = &OMIPhysicsBodyWeight::default();
         let index = graph.add_node(Weight::Bytes(weight.into()));

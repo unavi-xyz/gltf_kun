@@ -11,6 +11,7 @@ edition = "2021"
 [workspace.dependencies]
 bevy = "0.13.0"
 glam = "0.25.0"
+petgraph = { version = "0.6.4", default-features = false, features = ["stable_graph"] }
 serde_json = "1.0.110"
 thiserror = "1.0.56"
 

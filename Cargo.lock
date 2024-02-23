@@ -587,6 +587,7 @@ dependencies = [
  "bevy_xpbd_3d",
  "egui_graphs",
  "gltf_kun",
+ "petgraph",
 ]
 
 [[package]]

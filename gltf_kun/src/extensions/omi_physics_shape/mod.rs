@@ -36,6 +36,10 @@ impl Extension for OMIPhysicsShape {
 }
 
 impl OMIPhysicsShape {
+    pub fn shape_edge_name() -> &'static str {
+        SHAPE_EDGE
+    }
+
     pub fn shapes<'a>(&self, graph: &'a Graph) -> impl Iterator<Item = PhysicsShape> + 'a {
         graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)

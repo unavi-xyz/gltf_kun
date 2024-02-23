@@ -45,11 +45,11 @@ pub struct ExamplePlugin;
 impl Plugin for ExamplePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
-            EguiPlugin,
             GltfKunPlugin::<DefaultExtensions>::default(),
+            EguiPlugin,
             PanOrbitCameraPlugin,
-            PhysicsDebugPlugin::default(),
             PhysicsPlugins::default(),
+            PhysicsDebugPlugin::default(),
         ))
         .add_event::<LoadModel>()
         .add_event::<LoadScene>()
