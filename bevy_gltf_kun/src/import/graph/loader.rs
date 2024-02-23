@@ -70,7 +70,7 @@ where
     }
 
     fn extensions(&self) -> &[&str] {
-        &["gltf", "glb"]
+        &["gltf"]
     }
 }
 

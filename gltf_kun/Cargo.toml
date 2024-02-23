@@ -16,7 +16,7 @@ omi_physics_shape = []
 byteorder = "1.5.0"
 glam.workspace = true
 gltf = { version = "1.4.0", features = ["extensions", "extras"] }
-petgraph = { version = "0.6.4", default-features = false }
+petgraph = { version = "0.6.4", default-features = false, features = ["stable_graph"] }
 serde = { version = "1.0.195", features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true
