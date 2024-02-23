@@ -11,7 +11,7 @@ use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use bevy_xpbd_3d::prelude::*;
 use gltf_kun::{extensions::DefaultExtensions, io::format::glb::GlbIO};
 
-const ASSETS_DIR: &str = "../assets";
+const ASSETS_DIR: &str = "assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
 const MODELS: &[&str] = &[
@@ -25,10 +25,7 @@ fn main() {
         .insert_resource(AssetMetaCheck::Never)
         .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.2)))
         .add_plugins((
-            DefaultPlugins.set(AssetPlugin {
-                file_path: ASSETS_DIR.to_string(),
-                ..default()
-            }),
+            DefaultPlugins,
             EguiPlugin,
             GltfKunPlugin::<DefaultExtensions>::default(),
             PanOrbitCameraPlugin,
