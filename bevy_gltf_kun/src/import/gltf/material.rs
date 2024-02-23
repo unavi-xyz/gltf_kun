@@ -28,7 +28,7 @@ pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
     // TODO: Handle scale inversion
     let is_scale_inverted = false;
 
-    let handle = context
+    context
         .load_context
         .labeled_asset_scope(label, |load_context| {
             let alpha_mode = match &weight.alpha_mode {
@@ -95,9 +95,7 @@ pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
                 perceptual_roughness: weight.roughness_factor,
                 ..default()
             }
-        });
-
-    handle
+        })
 }
 
 fn texture_handle(
