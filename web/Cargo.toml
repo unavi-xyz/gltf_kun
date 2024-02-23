@@ -1,0 +1,15 @@
+[package]
+name = "web"
+publish = false
+version.workspace = true
+license.workspace = true
+repository.workspace = true
+edition.workspace = true
+
+[dependencies]
+bevy = "0.13.0"
+bevy_egui = "0.25.0"
+bevy_gltf_kun = { path = "../bevy_gltf_kun" }
+bevy_panorbit_camera = "0.14.0"
+bevy_xpbd_3d = "0.4.2"
+gltf_kun = { path = "../gltf_kun" }

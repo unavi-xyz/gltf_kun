@@ -661,8 +661,6 @@ name = "bevy_gltf_kun"
 version = "0.0.6"
 dependencies = [
  "bevy",
- "bevy_egui",
- "bevy_panorbit_camera",
  "bevy_xpbd_3d",
  "glam",
  "gltf_kun",
@@ -4148,6 +4146,18 @@ name = "wasm-bindgen-shared"
 version = "0.2.91"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4f186bd2dcf04330886ce82d6f33dd75a7bfcf69ecf5763b89fcde53b6ac9838"
+
+[[package]]
+name = "web"
+version = "0.0.6"
+dependencies = [
+ "bevy",
+ "bevy_egui",
+ "bevy_gltf_kun",
+ "bevy_panorbit_camera",
+ "bevy_xpbd_3d",
+ "gltf_kun",
+]
 
 [[package]]
 name = "web-sys"

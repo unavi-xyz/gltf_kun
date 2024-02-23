@@ -1,6 +1,6 @@
 use std::{fmt::Display, path::Path};
 
-use bevy::{core::FrameCount, gltf::Gltf, prelude::*};
+use bevy::{asset::AssetMetaCheck, core::FrameCount, gltf::Gltf, prelude::*};
 use bevy_egui::{egui::ComboBox, EguiContexts, EguiPlugin};
 use bevy_gltf_kun::{
     export::gltf::{GltfExport, GltfExportResult},
@@ -8,15 +8,21 @@ use bevy_gltf_kun::{
     GltfKunPlugin,
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
+use bevy_xpbd_3d::prelude::*;
 use gltf_kun::{extensions::DefaultExtensions, io::format::glb::GlbIO};
 
 const ASSETS_DIR: &str = "../assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
-const MODELS: &[&str] = &["BoxTextured.glb", "BoxTextured/BoxTextured.gltf"];
+const MODELS: &[&str] = &[
+    "BoxTextured.glb",
+    "BoxTextured/BoxTextured.gltf",
+    "DynamicBox.gltf",
+];
 
 fn main() {
     App::new()
+        .insert_resource(AssetMetaCheck::Never)
         .insert_resource(ClearColor(Color::rgb(0.1, 0.1, 0.2)))
         .add_plugins((
             DefaultPlugins.set(AssetPlugin {
@@ -26,6 +32,8 @@ fn main() {
             EguiPlugin,
             GltfKunPlugin::<DefaultExtensions>::default(),
             PanOrbitCameraPlugin,
+            PhysicsDebugPlugin::default(),
+            PhysicsPlugins::default(),
         ))
         .add_event::<LoadModel>()
         .add_event::<LoadScene>()
@@ -302,32 +310,55 @@ fn get_result(
             Err(e) => panic!("Failed to export to glb: {}", e),
         };
 
-        let temp_dir = Path::new(CARGO_MANIFEST_DIR)
-            .join(ASSETS_DIR)
-            .join(TEMP_FOLDER);
+        #[cfg(target_family = "wasm")]
+        {
+            // Write glb to temp dir
+            let file_path = temp_file(frame.0);
+            let file_path_str = file_path.clone();
+            exported_path.0 = file_path_str.clone();
 
-        // Delete and re-create temp dir
-        if temp_dir.exists() {
-            std::fs::remove_dir_all(temp_dir.clone()).expect("Failed to delete temp directory");
+            info!("Writing glb to {}", file_path);
+
+            let full_path = Path::new(CARGO_MANIFEST_DIR)
+                .join(ASSETS_DIR)
+                .join(file_path);
+
+            let mut file = std::io::BufWriter::new(std::fs::File::create(full_path).unwrap());
+            file.write_all(&glb.0).unwrap();
+
+            // Load glb
+            writer.send(LoadModel(file_path_str));
         }
 
-        std::fs::create_dir_all(temp_dir).expect("Failed to create temp directory");
+        #[cfg(not(target_family = "wasm"))]
+        {
+            let temp_dir = Path::new(CARGO_MANIFEST_DIR)
+                .join(ASSETS_DIR)
+                .join(TEMP_FOLDER);
 
-        // Write glb to temp dir
-        let file_path = Path::new(TEMP_FOLDER).join(temp_file(frame.0));
-        let file_path_str = file_path.to_str().unwrap().to_string();
-        exported_path.0 = file_path_str.clone();
+            // Delete and re-create temp dir
+            if temp_dir.exists() {
+                std::fs::remove_dir_all(temp_dir.clone()).expect("Failed to delete temp directory");
+            }
 
-        info!("Writing glb to {}", file_path.display());
+            std::fs::create_dir_all(temp_dir).expect("Failed to create temp directory");
 
-        let full_path = Path::new(CARGO_MANIFEST_DIR)
-            .join(ASSETS_DIR)
-            .join(file_path);
+            // Write glb to temp dir
+            let file_path = Path::new(TEMP_FOLDER).join(temp_file(frame.0));
+            let file_path_str = file_path.to_str().unwrap().to_string();
+            exported_path.0 = file_path_str.clone();
 
-        std::fs::write(full_path, glb.0).expect("Failed to write glb");
+            info!("Writing glb to {}", file_path.display());
 
-        // Load glb
-        writer.send(LoadModel(file_path_str));
+            let full_path = Path::new(CARGO_MANIFEST_DIR)
+                .join(ASSETS_DIR)
+                .join(file_path);
+
+            std::fs::write(full_path, glb.0).expect("Failed to write glb");
+
+            // Load glb
+            writer.send(LoadModel(file_path_str));
+        }
     }
 }
 

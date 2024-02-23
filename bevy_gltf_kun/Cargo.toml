@@ -23,9 +23,4 @@ gltf_kun = { version = "0.0.6", path = "../gltf_kun" }
 serde_json.workspace = true
 thiserror.workspace = true
 
-bevy_xpbd_3d = { version = "0.4.2", default-features = false, features = ["3d", "f32", "parry-f32", "debug-plugin", "parallel"], optional = true }
-
-[dev-dependencies]
-bevy = "0.13.0"
-bevy_egui = "0.25.0"
-bevy_panorbit_camera = "0.14.0"
+bevy_xpbd_3d = { version = "0.4.2", optional = true }
