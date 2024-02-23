@@ -119,8 +119,8 @@ fn setup(mut commands: Commands, mut writer: EventWriter<LoadModel>) {
         transform: Transform::from_xyz(4.0, 8.0, 3.0),
         cascade_shadow_config: CascadeShadowConfigBuilder {
             num_cascades: 3,
-            maximum_distance: 30.0,
-            first_cascade_far_bound: 5.0,
+            maximum_distance: 100.0,
+            first_cascade_far_bound: 8.0,
             ..default()
         }
         .build(),
