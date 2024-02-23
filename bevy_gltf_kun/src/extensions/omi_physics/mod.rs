@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy_xpbd_3d::components::RigidBody;
 
 #[cfg(feature = "export")]
 pub mod export;
@@ -13,6 +14,7 @@ impl Plugin for OMIPhysicsPlugin {
         {
             app.register_type::<import::ColliderMarker>()
                 .register_type::<import::RigidBodyMarker>()
+                .register_type::<RigidBody>()
                 .add_systems(
                     Update,
                     (import::insert_colliders, import::insert_rigid_bodies),
