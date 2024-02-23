@@ -80,6 +80,8 @@ pub fn import_images<E: BevyImportExtensions<GltfDocument>>(
     Ok(())
 }
 
+const DEFAULT_MIME: &str = "image/png";
+
 pub fn load_texture(
     context: &mut ImportContext,
     info: TextureInfo,
@@ -99,13 +101,19 @@ pub fn load_texture(
             Some(uri) => match uri.split('.').last() {
                 Some(ext) => ImageType::Extension(ext),
                 None => {
-                    warn!("No extension found for image uri, defaulting to image/png.");
-                    ImageType::MimeType("image/png")
+                    warn!(
+                        "No extension found for image uri, defaulting to {}.",
+                        DEFAULT_MIME
+                    );
+                    ImageType::MimeType(DEFAULT_MIME)
                 }
             },
             None => {
-                warn!("No mime type or uri found for image, defaulting to image/png.");
-                ImageType::MimeType("image/png")
+                warn!(
+                    "No mime type or uri found for image, defaulting to {}.",
+                    DEFAULT_MIME
+                );
+                ImageType::MimeType(DEFAULT_MIME)
             }
         },
     };
