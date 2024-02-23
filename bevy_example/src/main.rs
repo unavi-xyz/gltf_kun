@@ -15,9 +15,13 @@ const ASSETS_DIR: &str = "assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
 const MODELS: &[&str] = &[
+    "AlphaBlendModeTest.glb",
     "BoxTextured.glb",
     "BoxTextured/BoxTextured.gltf",
     "DynamicBox.gltf",
+    "TextureCoordinateTest.glb",
+    "TextureSettingsTest.glb",
+    "VertexColorTest.glb",
 ];
 
 fn main() {
