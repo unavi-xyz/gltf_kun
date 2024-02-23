@@ -7,7 +7,7 @@ use super::{
     scene::Scene, GltfWeight,
 };
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum DocumentEdge {
     Accessor,
     Buffer,

@@ -6,7 +6,7 @@ use super::{accessor::Accessor, material::Material, GltfEdge, GltfWeight};
 
 pub use gltf::json::mesh::{Mode, Semantic};
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PrimitiveEdge {
     Attribute(Semantic),
     Indices,
@@ -29,7 +29,7 @@ impl From<PrimitiveEdge> for Edge {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct PrimitiveWeight {
     pub extras: gltf::json::Extras,
     pub mode: Mode,
@@ -175,7 +175,7 @@ mod tests {
         assert_eq!(primitive.attributes(&graph).len(), 1);
 
         primitive.set_attribute(&mut graph, &Semantic::Positions, None);
-        assert!(primitive.attribute(&graph, &Semantic::Positions).is_none(),);
+        assert!(primitive.attribute(&graph, &Semantic::Positions).is_none());
     }
 
     #[test]

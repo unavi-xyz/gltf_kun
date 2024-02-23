@@ -6,7 +6,7 @@ use crate::graph::{
 
 use super::{buffer::Buffer, GltfWeight};
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ImageEdge {
     Buffer,
 }
@@ -27,7 +27,7 @@ impl From<ImageEdge> for Edge {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct ImageWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,

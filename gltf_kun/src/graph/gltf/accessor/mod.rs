@@ -17,7 +17,7 @@ pub mod normalize;
 pub mod tex_coords;
 pub mod weights;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum AccessorEdge {
     Buffer,
 }
@@ -38,7 +38,7 @@ impl From<AccessorEdge> for Edge {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct AccessorWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,

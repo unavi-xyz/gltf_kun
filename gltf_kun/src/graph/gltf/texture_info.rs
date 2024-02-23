@@ -6,7 +6,7 @@ use super::{image::Image, GltfEdge, GltfWeight};
 
 pub use gltf::texture::{MagFilter, MinFilter, WrappingMode};
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TextureInfoEdge {
     Image,
 }
@@ -27,7 +27,7 @@ impl From<TextureInfoEdge> for Edge {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct TextureInfoWeight {
     pub extras: gltf::json::Extras,
 

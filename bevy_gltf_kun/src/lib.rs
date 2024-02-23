@@ -26,8 +26,13 @@ impl<E: BevyExportExtensions<GltfDocument>> Plugin for GltfKunPlugin<E> {
     fn build(&self, app: &mut App) {
         #[cfg(feature = "export")]
         app.add_plugins(export::gltf::GltfExportPlugin::<E>::default());
+
         #[cfg(feature = "import")]
-        app.add_plugins(import::gltf::GltfImportPlugin);
+        app.add_plugins((
+            import::gltf::GltfImportPlugin,
+            import::graph::GraphImportPlugin,
+        ));
+
         app.add_plugins(extensions::ExtensionsPlugin);
     }
 }

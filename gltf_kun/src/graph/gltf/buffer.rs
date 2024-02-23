@@ -4,7 +4,7 @@ use crate::graph::{GraphNodeWeight, Property, Weight};
 
 use super::GltfWeight;
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct BufferWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,

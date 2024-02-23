@@ -121,7 +121,7 @@ fn texture_handle(
 }
 
 fn texture_label(index: usize) -> String {
-    format!("Texture{}", index,)
+    format!("Texture{}", index)
 }
 
 fn material_label(index: usize) -> String {

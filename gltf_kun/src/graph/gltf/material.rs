@@ -6,7 +6,7 @@ use super::{texture_info::TextureInfo, GltfEdge, GltfWeight};
 
 pub use gltf::json::material::{AlphaCutoff, AlphaMode};
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum MaterialEdge {
     BaseColorTextureInfo,
     EmissiveTextureInfo,
@@ -31,7 +31,7 @@ impl From<MaterialEdge> for Edge {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct MaterialWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,

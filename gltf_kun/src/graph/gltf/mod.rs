@@ -20,7 +20,7 @@ pub use primitive::Primitive;
 pub use scene::Scene;
 pub use texture_info::TextureInfo;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum GltfWeight {
     Accessor(accessor::AccessorWeight),
     Buffer(buffer::BufferWeight),
@@ -34,7 +34,7 @@ pub enum GltfWeight {
     TextureInfo(texture_info::TextureInfoWeight),
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GltfEdge {
     Accessor(accessor::AccessorEdge),
     Document(document::DocumentEdge),

@@ -4,7 +4,7 @@ use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weigh
 
 use super::{node::Node, GltfEdge, GltfWeight};
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SceneEdge {
     Node,
 }
@@ -25,7 +25,7 @@ impl From<SceneEdge> for Edge {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Clone, Debug, Default)]
 pub struct SceneWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,

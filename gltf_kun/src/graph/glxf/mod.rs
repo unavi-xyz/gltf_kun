@@ -1,9 +1,9 @@
-use petgraph::graph::DiGraph;
+use petgraph::{stable_graph::StableDiGraph};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum GlxfWeight {}
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug)]
 pub enum GlxfEdge {}
 
-pub type GlxfGraph = DiGraph<GlxfWeight, GlxfEdge>;
+pub type GlxfGraph = StableDiGraph<GlxfWeight, GlxfEdge>;

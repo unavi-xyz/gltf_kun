@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 use bevy::{
     asset::{
         io::Reader, AssetLoadError, AssetLoader, AsyncReadExt, LoadContext, ReadAssetBytesError,
@@ -23,13 +25,13 @@ use super::{
 };
 
 pub struct GltfLoader<E: BevyImportExtensions<GltfDocument>> {
-    pub _marker: std::marker::PhantomData<E>,
+    pub _marker: PhantomData<E>,
 }
 
 impl<E: BevyImportExtensions<GltfDocument>> Default for GltfLoader<E> {
     fn default() -> Self {
         Self {
-            _marker: std::marker::PhantomData,
+            _marker: PhantomData,
         }
     }
 }
@@ -101,13 +103,13 @@ where
 }
 
 pub struct GlbLoader<E: BevyImportExtensions<GltfDocument>> {
-    pub _marker: std::marker::PhantomData<E>,
+    pub _marker: PhantomData<E>,
 }
 
 impl<E: BevyImportExtensions<GltfDocument>> Default for GlbLoader<E> {
     fn default() -> Self {
         Self {
-            _marker: std::marker::PhantomData,
+            _marker: PhantomData,
         }
     }
 }

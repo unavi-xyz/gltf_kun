@@ -42,6 +42,10 @@ enum ConversionMode {
 
 #[derive(Debug, Error)]
 pub enum ImportPrimitiveError {
+    #[error("Failed to convert attribute: {0}")]
+    ConvertAttribute(#[from] AttributeConversionError),
+    #[error("Failed to read indices: {0}")]
+    ReadIndices(#[from] ReadIndicesError),
     #[error("Unsupported primitive mode: {0:?}")]
     UnsupportedMode(Mode),
 }
@@ -69,13 +73,7 @@ pub fn import_primitive(
     let mut mesh = Mesh::new(topology, RenderAssetUsages::default());
 
     for (semantic, accessor) in p.attributes(context.graph) {
-        let (attribute, values) = match convert_attribute(context, &semantic, &accessor) {
-            Ok(a) => a,
-            Err(err) => {
-                warn!("Failed to convert attribute: {}", err);
-                continue;
-            }
-        };
+        let (attribute, values) = convert_attribute(context, &semantic, &accessor)?;
 
         if values.is_empty() {
             warn!("Empty attribute: {}", semantic.to_string());
@@ -85,13 +83,9 @@ pub fn import_primitive(
         mesh.insert_attribute(attribute, values);
     }
 
-    if let Some(indices) = p.indices(context.graph) {
-        match read_indices(context, indices) {
-            Ok(indices) => mesh.insert_indices(indices),
-            Err(err) => {
-                warn!("Failed to read indices: {}", err);
-            }
-        }
+    if let Some(accessor) = p.indices(context.graph) {
+        let indices = read_indices(context, accessor)?;
+        mesh.insert_indices(indices);
     };
 
     let mesh = context
@@ -136,11 +130,11 @@ pub fn import_primitive(
 }
 
 fn primitive_label(mesh_label: &str, primitive_index: usize) -> String {
-    format!("{}/Primitive{}", mesh_label, primitive_index,)
+    format!("{}/Primitive{}", mesh_label, primitive_index)
 }
 
 #[derive(Debug, Error)]
-enum ReadIndicesError {
+pub enum ReadIndicesError {
     #[error("Failed to get accessor slice: {0}")]
     GetAccessorSliceError(#[from] GetAccessorSliceError),
 }
@@ -175,7 +169,7 @@ fn read_indices(context: &ImportContext, indices: Accessor) -> Result<Indices, R
 }
 
 #[derive(Debug, Error)]
-enum AttributeConversionError {
+pub enum AttributeConversionError {
     #[error("Failed to get accessor iterator: {0}")]
     GetAccessorIterError(#[from] GetAccessorIterError),
     #[error("Unsupported attribute format: {0:?} {1:?}")]

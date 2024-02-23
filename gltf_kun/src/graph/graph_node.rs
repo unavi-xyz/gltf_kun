@@ -1,5 +1,5 @@
 use petgraph::{
-    graph::{EdgeReference, NodeIndex},
+    stable_graph::{EdgeReference, NodeIndex},
     visit::EdgeRef,
 };
 
