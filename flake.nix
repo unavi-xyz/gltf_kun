@@ -103,8 +103,8 @@
 
         web = craneLib.buildTrunkPackage (commonArgs // {
           inherit cargoArtifactsWasm;
-          pname = "web";
-          cargoExtraArgs = "-p web --target wasm32-unknown-unknown";
+          pname = "bevy_example";
+          cargoExtraArgs = "-p bevy_example --target wasm32-unknown-unknown";
           trunkExtraBuildArgs = "--public-url gltf_kun";
 
           src = lib.cleanSourceWith {

@@ -1,5 +1,5 @@
 [package]
-name = "web"
+name = "bevy_example"
 publish = false
 version.workspace = true
 license.workspace = true

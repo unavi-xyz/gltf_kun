@@ -57,6 +57,7 @@ struct LoadModel(String);
 #[derive(Event)]
 struct LoadScene(GltfHandle);
 
+#[derive(Clone)]
 enum GltfHandle {
     Bevy(Handle<Gltf>),
     GltfKun(Handle<GltfKun>),
@@ -168,6 +169,9 @@ fn load_model(
     asset_server: Res<AssetServer>,
     loader: Res<Loader>,
     mut events: EventReader<LoadModel>,
+    mut gltf_events: EventReader<AssetEvent<Gltf>>,
+    mut gltf_kun_events: EventReader<AssetEvent<GltfKun>>,
+    mut handle: Local<GltfHandle>,
     mut writer: EventWriter<LoadScene>,
 ) {
     for event in events.read() {
@@ -175,15 +179,29 @@ fn load_model(
 
         match loader.0 {
             GltfLoader::BevyGltf => {
-                let handle = asset_server.load::<Gltf>(event.0.clone());
-                let handle = GltfHandle::Bevy(handle.clone());
-                writer.send(LoadScene(handle));
+                let h = asset_server.load::<Gltf>(event.0.clone());
+                *handle = GltfHandle::Bevy(h);
             }
             GltfLoader::GltfKun => {
-                let handle = asset_server.load::<GltfKun>(event.0.clone());
-                let handle = GltfHandle::GltfKun(handle.clone());
-                writer.send(LoadScene(handle));
+                let h = asset_server.load::<GltfKun>(event.0.clone());
+                *handle = GltfHandle::GltfKun(h);
             }
+        }
+
+        writer.send(LoadScene(handle.clone()));
+    }
+
+    for event in gltf_events.read() {
+        if let AssetEvent::LoadedWithDependencies { .. } = event {
+            info!("Gltf loaded with dependencies");
+            writer.send(LoadScene(handle.clone()));
+        }
+    }
+
+    for event in gltf_kun_events.read() {
+        if let AssetEvent::LoadedWithDependencies { .. } = event {
+            info!("Gltf_kun loaded with dependencies");
+            writer.send(LoadScene(handle.clone()));
         }
     }
 }
