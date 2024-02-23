@@ -162,7 +162,7 @@ fn ui(
     mut graph_settings: ResMut<GraphSet>,
 ) {
     if selected_model.0.is_empty() {
-        selected_model.0 = MODELS[0].to_string();
+        selected_model.0 = MODELS[1].to_string();
     }
 
     bevy_egui::egui::Window::new("Controls").show(contexts.ctx_mut(), |ui| {
