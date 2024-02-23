@@ -1,3 +1,4 @@
+use gltf::json::extensions::material::EmissiveStrengthFactor;
 use petgraph::graph::NodeIndex;
 
 use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
@@ -38,15 +39,13 @@ pub struct MaterialWeight {
 
     pub alpha_cutoff: AlphaCutoff,
     pub alpha_mode: AlphaMode,
+    pub base_color_factor: [f32; 4],
     pub double_sided: bool,
     pub emissive_factor: [f32; 3],
-
-    pub base_color_factor: [f32; 4],
     pub metallic_factor: f32,
-    pub roughness_factor: f32,
-
     pub normal_scale: f32,
     pub occlusion_strength: f32,
+    pub roughness_factor: f32,
 }
 
 impl Default for MaterialWeight {
@@ -57,15 +56,13 @@ impl Default for MaterialWeight {
 
             alpha_cutoff: AlphaCutoff::default(),
             alpha_mode: AlphaMode::default(),
+            base_color_factor: [1.0, 1.0, 1.0, 1.0],
             double_sided: false,
             emissive_factor: [0.0, 0.0, 0.0],
-
-            base_color_factor: [1.0, 1.0, 1.0, 1.0],
             metallic_factor: 1.0,
-            roughness_factor: 1.0,
-
             normal_scale: 1.0,
             occlusion_strength: 1.0,
+            roughness_factor: 1.0,
         }
     }
 }

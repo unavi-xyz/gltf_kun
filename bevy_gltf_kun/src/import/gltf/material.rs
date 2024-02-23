@@ -1,4 +1,4 @@
-use bevy::{asset::LoadContext, prelude::*};
+use bevy::{asset::LoadContext, prelude::*, render::render_resource::Face};
 use gltf_kun::graph::{
     gltf::{material::AlphaMode, GltfDocument, Material, TextureInfo},
     Graph, GraphNodeWeight,
@@ -25,6 +25,9 @@ pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
     let weight = m.get(context.graph);
     let label = material_label(index);
 
+    // TODO: Handle scale inversion
+    let is_scale_inverted = false;
+
     let handle = context
         .load_context
         .labeled_asset_scope(label, |load_context| {
@@ -32,6 +35,14 @@ pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
                 AlphaMode::Blend => bevy::prelude::AlphaMode::Blend,
                 AlphaMode::Mask => bevy::prelude::AlphaMode::Mask(weight.alpha_cutoff.0),
                 AlphaMode::Opaque => bevy::prelude::AlphaMode::Opaque,
+            };
+
+            let cull_mode = if weight.double_sided {
+                None
+            } else if is_scale_inverted {
+                Some(Face::Front)
+            } else {
+                Some(Face::Back)
             };
 
             let base_color_texture = texture_handle(
@@ -73,6 +84,7 @@ pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
                 alpha_mode,
                 base_color: Color::rgba_from_array(weight.base_color_factor),
                 base_color_texture,
+                cull_mode,
                 double_sided: weight.double_sided,
                 emissive: Color::rgb_from_array(weight.emissive_factor),
                 emissive_texture,
@@ -80,6 +92,7 @@ pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
                 metallic_roughness_texture,
                 normal_map_texture,
                 occlusion_texture,
+                perceptual_roughness: weight.roughness_factor,
                 ..default()
             }
         });
