@@ -147,7 +147,7 @@ fn setup(mut commands: Commands, mut writer: EventWriter<LoadModel>) {
         ..default()
     });
 
-    writer.send(LoadModel(MODELS[0].to_string()));
+    writer.send(LoadModel(MODELS[1].to_string()));
 }
 
 #[allow(clippy::too_many_arguments)]
