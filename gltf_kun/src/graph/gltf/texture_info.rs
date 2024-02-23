@@ -4,6 +4,8 @@ use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weigh
 
 use super::{image::Image, GltfEdge, GltfWeight};
 
+pub use gltf::texture::{MagFilter, MinFilter, WrappingMode};
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum TextureInfoEdge {
     Image,
@@ -33,37 +35,8 @@ pub struct TextureInfoWeight {
 
     pub mag_filter: Option<MagFilter>,
     pub min_filter: Option<MinFilter>,
-    pub wrap_s: Option<Wrap>,
-    pub wrap_t: Option<Wrap>,
-}
-
-#[derive(Copy, Clone, Debug)]
-#[repr(usize)]
-pub enum MagFilter {
-    Nearest = 9728,
-    Linear = 9729,
-    Other(usize) = 0,
-}
-
-#[derive(Copy, Clone, Debug)]
-#[repr(usize)]
-pub enum MinFilter {
-    Nearest = 9728,
-    Linear = 9729,
-    NearestMipmapNearest = 9984,
-    LinearMipmapNearest = 9985,
-    NearestMipmapLinear = 9986,
-    LinearMipmapLinear = 9987,
-    Other(usize) = 0,
-}
-
-#[derive(Copy, Clone, Debug)]
-#[repr(usize)]
-pub enum Wrap {
-    ClampToEdge = 33071,
-    MirroredRepeat = 33648,
-    Repeat = 10497,
-    Other(usize) = 0,
+    pub wrap_s: WrappingMode,
+    pub wrap_t: WrappingMode,
 }
 
 impl From<TextureInfoWeight> for Weight {

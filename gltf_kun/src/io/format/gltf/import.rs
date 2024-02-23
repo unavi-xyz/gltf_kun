@@ -7,11 +7,7 @@ use tracing::{debug, error, warn};
 
 use crate::{
     graph::{
-        gltf::{
-            document::GltfDocument,
-            image::Image,
-            texture_info::{MagFilter, MinFilter, TextureInfo, Wrap},
-        },
+        gltf::{document::GltfDocument, image::Image, texture_info::TextureInfo},
         Graph, GraphNodeWeight,
     },
     io::resolver::Resolver,
@@ -439,31 +435,10 @@ fn import_texture_info(
         let sampler_idx = sampler_idx.value();
         let sampler = &samplers[sampler_idx];
 
-        weight.mag_filter = sampler.mag_filter.map(|f| match f.unwrap() {
-            gltf::json::texture::MagFilter::Nearest => MagFilter::Nearest,
-            gltf::json::texture::MagFilter::Linear => MagFilter::Linear,
-        });
-
-        weight.min_filter = sampler.min_filter.map(|f| match f.unwrap() {
-            gltf::json::texture::MinFilter::Nearest => MinFilter::Nearest,
-            gltf::json::texture::MinFilter::Linear => MinFilter::Linear,
-            gltf::json::texture::MinFilter::NearestMipmapNearest => MinFilter::NearestMipmapNearest,
-            gltf::json::texture::MinFilter::LinearMipmapNearest => MinFilter::LinearMipmapNearest,
-            gltf::json::texture::MinFilter::NearestMipmapLinear => MinFilter::NearestMipmapLinear,
-            gltf::json::texture::MinFilter::LinearMipmapLinear => MinFilter::LinearMipmapLinear,
-        });
-
-        weight.wrap_s = match sampler.wrap_s.unwrap() {
-            gltf::json::texture::WrappingMode::ClampToEdge => Some(Wrap::ClampToEdge),
-            gltf::json::texture::WrappingMode::MirroredRepeat => Some(Wrap::MirroredRepeat),
-            gltf::json::texture::WrappingMode::Repeat => Some(Wrap::Repeat),
-        };
-
-        weight.wrap_t = match sampler.wrap_t.unwrap() {
-            gltf::json::texture::WrappingMode::ClampToEdge => Some(Wrap::ClampToEdge),
-            gltf::json::texture::WrappingMode::MirroredRepeat => Some(Wrap::MirroredRepeat),
-            gltf::json::texture::WrappingMode::Repeat => Some(Wrap::Repeat),
-        };
+        weight.mag_filter = sampler.mag_filter.map(|f| f.unwrap());
+        weight.min_filter = sampler.min_filter.map(|f| f.unwrap());
+        weight.wrap_s = sampler.wrap_s.unwrap();
+        weight.wrap_t = sampler.wrap_t.unwrap();
     }
 
     texture_info

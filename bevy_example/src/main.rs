@@ -115,7 +115,7 @@ fn setup(mut commands: Commands, mut writer: EventWriter<LoadModel>) {
             shadows_enabled: true,
             ..default()
         },
-        transform: Transform::from_xyz(4.0, 7.0, 3.0),
+        transform: Transform::from_xyz(4.0, 8.0, 3.0),
         cascade_shadow_config: CascadeShadowConfigBuilder {
             num_cascades: 3,
             maximum_distance: 30.0,

@@ -18,10 +18,8 @@ use tracing::warn;
 
 use crate::graph::{
     gltf::{
-        accessor::iter::AccessorElement,
-        buffer::Buffer,
-        document::GltfDocument,
-        texture_info::{MagFilter, MinFilter, TextureInfo, Wrap},
+        accessor::iter::AccessorElement, buffer::Buffer, document::GltfDocument,
+        texture_info::TextureInfo,
     },
     Graph, GraphNodeWeight,
 };
@@ -497,55 +495,6 @@ fn export_texture_info(
     let image_idx = image_idxs.get(&image.0).unwrap();
 
     let weight = info.get(graph);
-
-    let mag_filter = weight.mag_filter.map(|f| match f {
-        MagFilter::Linear => gltf::json::texture::MagFilter::Linear,
-        MagFilter::Nearest => gltf::json::texture::MagFilter::Nearest,
-        MagFilter::Other(other) => {
-            warn!("Unknown mag filter: {}", other);
-            gltf::json::texture::MagFilter::Linear
-        }
-    });
-
-    let min_filter = weight.min_filter.map(|f| match f {
-        MinFilter::Linear => gltf::json::texture::MinFilter::Linear,
-        MinFilter::Nearest => gltf::json::texture::MinFilter::Nearest,
-        MinFilter::LinearMipmapLinear => gltf::json::texture::MinFilter::LinearMipmapLinear,
-        MinFilter::LinearMipmapNearest => gltf::json::texture::MinFilter::LinearMipmapNearest,
-        MinFilter::NearestMipmapLinear => gltf::json::texture::MinFilter::NearestMipmapLinear,
-        MinFilter::NearestMipmapNearest => gltf::json::texture::MinFilter::NearestMipmapNearest,
-        MinFilter::Other(other) => {
-            warn!("Unknown min filter: {}", other);
-            gltf::json::texture::MinFilter::Linear
-        }
-    });
-
-    let wrap_s = weight
-        .wrap_s
-        .map(|w| match w {
-            Wrap::ClampToEdge => gltf::json::texture::WrappingMode::ClampToEdge,
-            Wrap::MirroredRepeat => gltf::json::texture::WrappingMode::MirroredRepeat,
-            Wrap::Repeat => gltf::json::texture::WrappingMode::Repeat,
-            Wrap::Other(other) => {
-                warn!("Unknown wrap s: {}", other);
-                gltf::json::texture::WrappingMode::ClampToEdge
-            }
-        })
-        .unwrap_or(gltf::json::texture::WrappingMode::ClampToEdge);
-
-    let wrap_t = weight
-        .wrap_t
-        .map(|w| match w {
-            Wrap::ClampToEdge => gltf::json::texture::WrappingMode::ClampToEdge,
-            Wrap::MirroredRepeat => gltf::json::texture::WrappingMode::MirroredRepeat,
-            Wrap::Repeat => gltf::json::texture::WrappingMode::Repeat,
-            Wrap::Other(other) => {
-                warn!("Unknown wrap t: {}", other);
-                gltf::json::texture::WrappingMode::ClampToEdge
-            }
-        })
-        .unwrap_or(gltf::json::texture::WrappingMode::ClampToEdge);
-
     let sampler_idx = json.samplers.len();
 
     json.samplers.push(gltf::json::texture::Sampler {
@@ -553,10 +502,10 @@ fn export_texture_info(
         extras: Default::default(),
         name: None,
 
-        mag_filter: mag_filter.map(Checked::Valid),
-        min_filter: min_filter.map(Checked::Valid),
-        wrap_s: Checked::Valid(wrap_s),
-        wrap_t: Checked::Valid(wrap_t),
+        mag_filter: weight.mag_filter.map(Checked::Valid),
+        min_filter: weight.min_filter.map(Checked::Valid),
+        wrap_s: Checked::Valid(weight.wrap_s),
+        wrap_t: Checked::Valid(weight.wrap_t),
     });
 
     let texture_idx = json.textures.len();

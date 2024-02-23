@@ -11,7 +11,7 @@ use bevy::{
 };
 use gltf_kun::graph::{
     gltf::{
-        texture_info::{MagFilter, MinFilter, TextureInfoWeight, Wrap},
+        texture_info::{MagFilter, MinFilter, TextureInfoWeight, WrappingMode},
         GltfDocument, Image as ImageKun, TextureInfo,
     },
     GraphNodeWeight,
@@ -88,7 +88,7 @@ pub fn load_texture(
 ) -> Result<Image, ImageImportError> {
     let is_srgb = !linear_images.contains(&image);
     let info_weight = info.get(context.graph);
-    let sampler_descriptor = image_sampler(info_weight);
+    let sampler_descriptor = sampler_descriptor(info_weight);
 
     let image_weight = image.get(context.graph);
     let supported_compressed_formats = CompressedImageFormats::default();
@@ -122,7 +122,7 @@ pub fn load_texture(
     Ok(texture)
 }
 
-fn image_sampler(weight: &TextureInfoWeight) -> ImageSamplerDescriptor {
+fn sampler_descriptor(weight: &TextureInfoWeight) -> ImageSamplerDescriptor {
     ImageSamplerDescriptor {
         address_mode_u: address_mode(&weight.wrap_s),
         address_mode_v: address_mode(&weight.wrap_t),
@@ -131,12 +131,8 @@ fn image_sampler(weight: &TextureInfoWeight) -> ImageSamplerDescriptor {
             .map(|filter| match filter {
                 MagFilter::Linear => ImageFilterMode::Linear,
                 MagFilter::Nearest => ImageFilterMode::Nearest,
-                MagFilter::Other(v) => {
-                    warn!("Unsupported texture mag filter: {:?}", v);
-                    ImageFilterMode::default()
-                }
             })
-            .unwrap_or_default(),
+            .unwrap_or(ImageSamplerDescriptor::default().mag_filter),
         min_filter: weight
             .min_filter
             .map(|filter| match filter {
@@ -146,28 +142,29 @@ fn image_sampler(weight: &TextureInfoWeight) -> ImageSamplerDescriptor {
                 MinFilter::Nearest
                 | MinFilter::NearestMipmapLinear
                 | MinFilter::NearestMipmapNearest => ImageFilterMode::Nearest,
-                MinFilter::Other(v) => {
-                    warn!("Unsupported texture min filter: {:?}", v);
-                    ImageFilterMode::default()
-                }
             })
-            .unwrap_or_default(),
+            .unwrap_or(ImageSamplerDescriptor::default().min_filter),
+        mipmap_filter: weight
+            .min_filter
+            .map(|filter| match filter {
+                MinFilter::LinearMipmapLinear | MinFilter::NearestMipmapLinear => {
+                    ImageFilterMode::Linear
+                }
+                MinFilter::Linear
+                | MinFilter::Nearest
+                | MinFilter::LinearMipmapNearest
+                | MinFilter::NearestMipmapNearest => ImageFilterMode::Nearest,
+            })
+            .unwrap_or(ImageSamplerDescriptor::default().mipmap_filter),
         ..default()
     }
 }
 
-fn address_mode(value: &Option<Wrap>) -> ImageAddressMode {
+fn address_mode(value: &WrappingMode) -> ImageAddressMode {
     match value {
-        Some(value) => match value {
-            Wrap::ClampToEdge => ImageAddressMode::ClampToEdge,
-            Wrap::MirroredRepeat => ImageAddressMode::MirrorRepeat,
-            Wrap::Repeat => ImageAddressMode::Repeat,
-            Wrap::Other(v) => {
-                warn!("Unsupported texture wrap mode: {:?}", v);
-                ImageAddressMode::Repeat
-            }
-        },
-        None => ImageAddressMode::Repeat,
+        WrappingMode::ClampToEdge => ImageAddressMode::ClampToEdge,
+        WrappingMode::MirroredRepeat => ImageAddressMode::MirrorRepeat,
+        WrappingMode::Repeat => ImageAddressMode::Repeat,
     }
 }
 
