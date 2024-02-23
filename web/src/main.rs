@@ -60,6 +60,17 @@ struct LoadModel(String);
 #[derive(Event)]
 struct LoadScene(GltfHandle);
 
+enum GltfHandle {
+    Bevy(Handle<Gltf>),
+    GltfKun(Handle<GltfKun>),
+}
+
+impl Default for GltfHandle {
+    fn default() -> Self {
+        GltfHandle::GltfKun(Default::default())
+    }
+}
+
 #[derive(Default, Resource)]
 struct SelectedModel(String);
 
@@ -154,17 +165,6 @@ fn ui(
                 }
             });
     });
-}
-
-enum GltfHandle {
-    Bevy(Handle<Gltf>),
-    GltfKun(Handle<GltfKun>),
-}
-
-impl Default for GltfHandle {
-    fn default() -> Self {
-        GltfHandle::GltfKun(Default::default())
-    }
 }
 
 fn load_model(
@@ -312,22 +312,7 @@ fn get_result(
 
         #[cfg(target_family = "wasm")]
         {
-            // Write glb to temp dir
-            let file_path = temp_file(frame.0);
-            let file_path_str = file_path.clone();
-            exported_path.0 = file_path_str.clone();
-
-            info!("Writing glb to {}", file_path);
-
-            let full_path = Path::new(CARGO_MANIFEST_DIR)
-                .join(ASSETS_DIR)
-                .join(file_path);
-
-            let mut file = std::io::BufWriter::new(std::fs::File::create(full_path).unwrap());
-            file.write_all(&glb.0).unwrap();
-
-            // Load glb
-            writer.send(LoadModel(file_path_str));
+            // TODO
         }
 
         #[cfg(not(target_family = "wasm"))]
