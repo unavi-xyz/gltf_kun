@@ -10,7 +10,6 @@ use crate::{
         gltf::{
             document::GltfDocument,
             image::Image,
-            material::AlphaMode,
             texture_info::{MagFilter, MinFilter, TextureInfo, Wrap},
         },
         Graph, GraphNodeWeight,
@@ -196,13 +195,9 @@ pub async fn import(
             weight.name = m.name.clone();
             weight.extras = m.extras.clone();
 
-            weight.alpha_mode = match m.alpha_mode.unwrap() {
-                gltf::json::material::AlphaMode::Opaque => AlphaMode::Opaque,
-                gltf::json::material::AlphaMode::Mask => AlphaMode::Mask,
-                gltf::json::material::AlphaMode::Blend => AlphaMode::Blend,
-            };
+            weight.alpha_mode = m.alpha_mode.unwrap();
 
-            weight.alpha_cutoff = m.alpha_cutoff.map(|c| c.0).unwrap_or_default();
+            weight.alpha_cutoff = m.alpha_cutoff.unwrap_or_default();
             weight.double_sided = m.double_sided;
             weight.base_color_factor = m.pbr_metallic_roughness.base_color_factor.0;
             weight.emissive_factor = m.emissive_factor.0;

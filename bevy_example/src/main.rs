@@ -1,6 +1,9 @@
 use std::{fmt::Display, path::Path};
 
-use bevy::{asset::AssetMetaCheck, core::FrameCount, gltf::Gltf, prelude::*};
+use bevy::{
+    asset::AssetMetaCheck, core::FrameCount, gltf::Gltf, pbr::CascadeShadowConfigBuilder,
+    prelude::*,
+};
 use bevy_egui::{egui::ComboBox, EguiContexts, EguiPlugin};
 use bevy_gltf_kun::{
     export::gltf::{GltfExport, GltfExportResult},
@@ -108,7 +111,19 @@ fn setup(mut commands: Commands, mut writer: EventWriter<LoadModel>) {
     ));
 
     commands.spawn(DirectionalLightBundle {
+        directional_light: DirectionalLight {
+            shadows_enabled: true,
+            ..default()
+        },
         transform: Transform::from_xyz(4.0, 7.0, 3.0),
+        cascade_shadow_config: CascadeShadowConfigBuilder {
+            num_cascades: 3,
+            maximum_distance: 30.0,
+            first_cascade_far_bound: 5.0,
+            ..default()
+        }
+        .build(),
+
         ..default()
     });
 

@@ -4,6 +4,8 @@ use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weigh
 
 use super::{texture_info::TextureInfo, GltfEdge, GltfWeight};
 
+pub use gltf::json::material::{AlphaCutoff, AlphaMode};
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum MaterialEdge {
     BaseColorTextureInfo,
@@ -34,7 +36,7 @@ pub struct MaterialWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,
 
-    pub alpha_cutoff: f32,
+    pub alpha_cutoff: AlphaCutoff,
     pub alpha_mode: AlphaMode,
     pub double_sided: bool,
     pub emissive_factor: [f32; 3],
@@ -53,8 +55,8 @@ impl Default for MaterialWeight {
             name: None,
             extras: Default::default(),
 
-            alpha_cutoff: 0.5,
-            alpha_mode: Default::default(),
+            alpha_cutoff: AlphaCutoff::default(),
+            alpha_mode: AlphaMode::default(),
             double_sided: false,
             emissive_factor: [0.0, 0.0, 0.0],
 
@@ -66,15 +68,6 @@ impl Default for MaterialWeight {
             occlusion_strength: 1.0,
         }
     }
-}
-
-#[derive(Debug, Default)]
-pub enum AlphaMode {
-    #[default]
-    Opaque,
-    Mask,
-    Blend,
-    Other(String),
 }
 
 impl From<MaterialWeight> for Weight {

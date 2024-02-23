@@ -5,8 +5,7 @@ use gltf::json::{
     accessor::GenericComponentType,
     image::MimeType,
     material::{
-        AlphaCutoff, EmissiveFactor, NormalTexture, PbrBaseColorFactor, PbrMetallicRoughness,
-        StrengthFactor,
+        EmissiveFactor, NormalTexture, PbrBaseColorFactor, PbrMetallicRoughness, StrengthFactor,
     },
     scene::UnitQuaternion,
     validation::{Checked, USize64},
@@ -22,7 +21,6 @@ use crate::graph::{
         accessor::iter::AccessorElement,
         buffer::Buffer,
         document::GltfDocument,
-        material::AlphaMode,
         texture_info::{MagFilter, MinFilter, TextureInfo, Wrap},
     },
     Graph, GraphNodeWeight,
@@ -266,23 +264,13 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                 .emissive_texture_info(graph)
                 .and_then(|info| export_texture_info(&info, graph, &mut json, &image_idxs));
 
-            let alpha_mode = match &weight.alpha_mode {
-                AlphaMode::Opaque => gltf::json::material::AlphaMode::Opaque,
-                AlphaMode::Mask => gltf::json::material::AlphaMode::Mask,
-                AlphaMode::Blend => gltf::json::material::AlphaMode::Blend,
-                AlphaMode::Other(other) => {
-                    warn!("Unknown alpha mode: {}", other);
-                    gltf::json::material::AlphaMode::Opaque
-                }
-            };
-
             gltf::json::material::Material {
                 name: weight.name.clone(),
                 extras: weight.extras.clone(),
                 extensions: None,
 
-                alpha_cutoff: Some(AlphaCutoff(weight.alpha_cutoff)),
-                alpha_mode: Checked::Valid(alpha_mode),
+                alpha_cutoff: Some(weight.alpha_cutoff),
+                alpha_mode: Checked::Valid(weight.alpha_mode),
                 double_sided: weight.double_sided,
                 emissive_factor: EmissiveFactor(weight.emissive_factor),
                 emissive_texture,
