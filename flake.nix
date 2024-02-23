@@ -105,6 +105,7 @@
           inherit cargoArtifactsWasm;
           pname = "web";
           cargoExtraArgs = "-p web --target wasm32-unknown-unknown";
+          trunkExtraBuildArgs = "--public-url gltf_kun";
 
           src = lib.cleanSourceWith {
             src = ./.;
