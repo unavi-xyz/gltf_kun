@@ -1,4 +1,4 @@
-use petgraph::{stable_graph::StableDiGraph};
+use petgraph::stable_graph::StableDiGraph;
 
 #[derive(Clone, Debug)]
 pub enum GlxfWeight {}
