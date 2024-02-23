@@ -1,21 +1,10 @@
 use bevy_gltf_kun::import::graph::GltfGraph;
 use egui_graphs::Graph;
-use gltf_kun::{
-    extensions::{
-        omi_physics_body::OMIPhysicsBody,
-        omi_physics_shape::{
-            physics_shape::{PhysicsShape, PhysicsShapeWeight},
-            OMIPhysicsShape,
-        },
-        Extension,
+use gltf_kun::graph::{
+    gltf::{
+        Accessor, Buffer, GltfDocument, GltfEdge, GltfWeight, Image, Material, Mesh, Node, Scene,
     },
-    graph::{
-        gltf::{
-            Accessor, Buffer, GltfDocument, GltfEdge, GltfWeight, Image, Material, Mesh, Node,
-            Scene,
-        },
-        ByteNode, Edge, Weight,
-    },
+    Edge, Weight,
 };
 use petgraph::{visit::EdgeRef, Direction};
 
@@ -97,49 +86,16 @@ pub fn create_graph(graph: &GltfGraph, settings: GraphSettings) -> Graph<Weight,
 
             Weight::Glxf(_) => "Glxf".to_string(),
             Weight::Bytes(_) => {
-                // Try to find what the bytes represent
                 let extension = g
                     .edges_directed(*idx, Direction::Incoming)
                     .find_map(|edge_idx| {
                         let edge = g.edge_weight(edge_idx.id()).unwrap();
                         match edge.payload() {
                             Edge::Extension(s) => Some(s),
-                            Edge::Other(s) => Some(s),
                             _ => None,
                         }
                     })
-                    .map(|s| s.to_string())
-                    .map(|s| {
-                        if s == OMIPhysicsShape::name() {
-                            let ext = OMIPhysicsBody(*idx);
-                            let ext_weight = ext.read(&graph.0);
-
-                            if let Some(motion) = ext_weight.motion {
-                                return format!("{:?} Physics Body", motion.typ);
-                            }
-
-                            return "Empty Physics Body".to_string();
-                        }
-
-                        if s == OMIPhysicsShape::shape_edge_name()
-                            || s == OMIPhysicsBody::collider_edge_name()
-                            || s == OMIPhysicsBody::trigger_edge_name()
-                        {
-                            let ext = PhysicsShape(*idx);
-                            let ext_weight = ext.read(&graph.0);
-                            let shape = match ext_weight {
-                                PhysicsShapeWeight::Box(_) => "Box",
-                                PhysicsShapeWeight::Capsule(_) => "Capsule",
-                                PhysicsShapeWeight::Convex => "Convex",
-                                PhysicsShapeWeight::Cylinder(_) => "Cylinder",
-                                PhysicsShapeWeight::Sphere(_) => "Sphere",
-                                PhysicsShapeWeight::Trimesh => "Trimesh",
-                            };
-                            return format!("{} Physics Shape", shape);
-                        }
-
-                        s
-                    });
+                    .map(|s| s.to_string());
 
                 extension.unwrap_or("Unknown Bytes".to_string())
             }
