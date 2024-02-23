@@ -204,12 +204,7 @@ fn ui(
         if let Some(graph) = loaded_graph.0.iter_mut().next() {
             let interaction_settings = &SettingsInteraction::new()
                 .with_dragging_enabled(true)
-                .with_node_clicking_enabled(true)
-                .with_node_selection_enabled(true)
-                .with_node_selection_multi_enabled(true)
-                .with_edge_clicking_enabled(true)
-                .with_edge_selection_enabled(true)
-                .with_edge_selection_multi_enabled(true);
+                .with_node_clicking_enabled(true);
 
             let style_settings = &SettingsStyle::new().with_labels_always(true);
 
