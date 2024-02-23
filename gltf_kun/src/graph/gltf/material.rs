@@ -1,4 +1,3 @@
-use gltf::json::extensions::material::EmissiveStrengthFactor;
 use petgraph::graph::NodeIndex;
 
 use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
