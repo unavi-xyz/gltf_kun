@@ -144,9 +144,13 @@ pub async fn import(
         weight.name = img.name.clone();
         weight.extras = img.extras.clone();
         weight.mime_type = img.mime_type.clone().map(|m| m.0);
-
         if let Some(uri) = img.uri.as_ref() {
             weight.uri = img.uri.clone();
+
+            // If no mime type, guess from the URI
+            if weight.mime_type.is_none() {
+                weight.mime_type = guess_mime_type(uri).map(|s| s.to_string())
+            }
 
             if let Some(resolver) = resolver {
                 if let Ok(data) = resolver.resolve(uri).await {
@@ -468,6 +472,24 @@ fn import_texture_info(
     }
 
     texture_info
+}
+
+fn guess_mime_type(uri: &str) -> Option<&'static str> {
+    if uri.ends_with(".png") {
+        Some("image/png")
+    } else if uri.ends_with(".jpg") || uri.ends_with(".jpeg") {
+        Some("image/jpeg")
+    } else if uri.ends_with(".gif") {
+        Some("image/gif")
+    } else if uri.ends_with(".bmp") {
+        Some("image/bmp")
+    } else if uri.ends_with(".tiff") {
+        Some("image/tiff")
+    } else if uri.ends_with(".webp") {
+        Some("image/webp")
+    } else {
+        None
+    }
 }
 
 #[cfg(test)]

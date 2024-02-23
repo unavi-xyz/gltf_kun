@@ -26,8 +26,6 @@ use super::document::ImportContext;
 pub enum ImageImportError {
     #[error("Failed to load texture: {0}")]
     Texture(#[from] TextureError),
-    #[error("Missing mime type")]
-    MissingMimeType,
 }
 
 pub fn import_images<E: BevyImportExtensions<GltfDocument>>(
@@ -94,14 +92,27 @@ pub fn load_texture(
 
     let image_weight = image.get(context.graph);
     let supported_compressed_formats = CompressedImageFormats::default();
-    let mime_type = image_weight
-        .mime_type
-        .as_deref()
-        .ok_or(ImageImportError::MissingMimeType)?;
+
+    let image_type = match image_weight.mime_type.as_deref() {
+        Some(mime_type) => ImageType::MimeType(mime_type),
+        None => match &image_weight.uri {
+            Some(uri) => match uri.split('.').last() {
+                Some(ext) => ImageType::Extension(ext),
+                None => {
+                    warn!("No extension found for image uri, defaulting to image/png.");
+                    ImageType::MimeType("image/png")
+                }
+            },
+            None => {
+                warn!("No mime type or uri found for image, defaulting to image/png.");
+                ImageType::MimeType("image/png")
+            }
+        },
+    };
 
     let texture = Image::from_buffer(
         &image_weight.data,
-        ImageType::MimeType(mime_type),
+        image_type,
         supported_compressed_formats,
         is_srgb,
         ImageSampler::Descriptor(sampler_descriptor),
