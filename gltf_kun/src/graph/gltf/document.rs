@@ -71,6 +71,9 @@ impl GltfDocument {
     pub fn create_accessor(&self, graph: &mut Graph) -> Accessor {
         self.create_edge_target(graph, DocumentEdge::Accessor)
     }
+    pub fn accessor_index(&self, graph: &Graph, accessor: Accessor) -> Option<usize> {
+        self.accessors(graph).iter().position(|a| *a == accessor)
+    }
 
     pub fn buffers(&self, graph: &Graph) -> Vec<Buffer> {
         self.edge_targets(graph, &DocumentEdge::Buffer)
@@ -83,6 +86,9 @@ impl GltfDocument {
     }
     pub fn create_buffer(&self, graph: &mut Graph) -> Buffer {
         self.create_edge_target(graph, DocumentEdge::Buffer)
+    }
+    pub fn buffer_index(&self, graph: &Graph, buffer: Buffer) -> Option<usize> {
+        self.buffers(graph).iter().position(|b| *b == buffer)
     }
 
     pub fn default_scene(&self, graph: &Graph) -> Option<Scene> {
@@ -104,6 +110,9 @@ impl GltfDocument {
     pub fn create_image(&self, graph: &mut Graph) -> Image {
         self.create_edge_target(graph, DocumentEdge::Image)
     }
+    pub fn image_index(&self, graph: &Graph, image: Image) -> Option<usize> {
+        self.images(graph).iter().position(|i| *i == image)
+    }
 
     pub fn materials(&self, graph: &Graph) -> Vec<Material> {
         self.edge_targets(graph, &DocumentEdge::Material)
@@ -116,6 +125,9 @@ impl GltfDocument {
     }
     pub fn create_material(&self, graph: &mut Graph) -> Material {
         self.create_edge_target(graph, DocumentEdge::Material)
+    }
+    pub fn material_index(&self, graph: &Graph, material: Material) -> Option<usize> {
+        self.materials(graph).iter().position(|m| *m == material)
     }
 
     pub fn meshes(&self, graph: &Graph) -> Vec<Mesh> {
@@ -130,6 +142,9 @@ impl GltfDocument {
     pub fn create_mesh(&self, graph: &mut Graph) -> Mesh {
         self.create_edge_target(graph, DocumentEdge::Mesh)
     }
+    pub fn mesh_index(&self, graph: &Graph, mesh: Mesh) -> Option<usize> {
+        self.meshes(graph).iter().position(|m| *m == mesh)
+    }
 
     pub fn nodes(&self, graph: &Graph) -> Vec<Node> {
         self.edge_targets(graph, &DocumentEdge::Node)
@@ -143,6 +158,9 @@ impl GltfDocument {
     pub fn create_node(&self, graph: &mut Graph) -> Node {
         self.create_edge_target(graph, DocumentEdge::Node)
     }
+    pub fn node_index(&self, graph: &Graph, node: Node) -> Option<usize> {
+        self.nodes(graph).iter().position(|n| *n == node)
+    }
 
     pub fn scenes(&self, graph: &Graph) -> Vec<Scene> {
         self.edge_targets(graph, &DocumentEdge::Scene)
@@ -155,5 +173,8 @@ impl GltfDocument {
     }
     pub fn create_scene(&self, graph: &mut Graph) -> Scene {
         self.create_edge_target(graph, DocumentEdge::Scene)
+    }
+    pub fn scene_index(&self, graph: &Graph, scene: Scene) -> Option<usize> {
+        self.scenes(graph).iter().position(|s| *s == scene)
     }
 }
