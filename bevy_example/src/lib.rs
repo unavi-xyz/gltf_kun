@@ -9,12 +9,18 @@ use bevy_gltf_kun::{
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use bevy_xpbd_3d::prelude::*;
-use egui_graphs::{DefaultEdgeShape, DefaultNodeShape, Graph, GraphView};
+use egui_graphs::{
+    DefaultEdgeShape, DefaultNodeShape, Graph, GraphView, SettingsInteraction, SettingsStyle,
+};
 use gltf_kun::{
     extensions::DefaultExtensions,
     graph::{Edge, Weight},
     io::format::glb::GlbIO,
 };
+
+use crate::graph::{create_graph, GraphSettings};
+
+pub mod graph;
 
 const ASSETS_DIR: &str = "assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
@@ -140,6 +146,7 @@ fn setup(mut commands: Commands, mut writer: EventWriter<LoadModel>) {
     writer.send(LoadModel(MODELS[0].to_string()));
 }
 
+#[allow(clippy::too_many_arguments)]
 fn ui(
     mut contexts: EguiContexts,
     mut exported: ResMut<ExportedPath>,
@@ -147,6 +154,7 @@ fn ui(
     mut loader: ResMut<Loader>,
     mut selected_model: ResMut<SelectedModel>,
     mut writer: EventWriter<LoadModel>,
+    mut pan_orbit_camera: Query<&mut PanOrbitCamera>,
 ) {
     if selected_model.0.is_empty() {
         selected_model.0 = MODELS[0].to_string();
@@ -194,16 +202,30 @@ fn ui(
             });
 
         if let Some(graph) = loaded_graph.0.iter_mut().next() {
-            ui.add(&mut GraphView::<
-                _,
-                _,
-                _,
-                _,
-                DefaultNodeShape,
-                DefaultEdgeShape,
-            >::new(graph));
+            let interaction_settings = &SettingsInteraction::new()
+                .with_dragging_enabled(true)
+                .with_node_clicking_enabled(true)
+                .with_node_selection_enabled(true)
+                .with_node_selection_multi_enabled(true)
+                .with_edge_clicking_enabled(true)
+                .with_edge_selection_enabled(true)
+                .with_edge_selection_multi_enabled(true);
+
+            let style_settings = &SettingsStyle::new().with_labels_always(true);
+
+            ui.add(
+                &mut GraphView::<_, _, _, _, DefaultNodeShape, DefaultEdgeShape>::new(graph)
+                    .with_styles(style_settings)
+                    .with_interactions(interaction_settings),
+            );
         }
     });
+
+    let ctx = contexts.ctx_mut();
+
+    for mut orbit in pan_orbit_camera.iter_mut() {
+        orbit.enabled = !ctx.is_pointer_over_area();
+    }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -242,8 +264,9 @@ fn load_model(
     for event in graph_events.read() {
         if let AssetEvent::LoadedWithDependencies { .. } = event {
             info!("Graph loaded");
-
-            let graph = graphs.get(graph_handle.clone()).map(|g| Graph::from(&g.0));
+            let graph = graphs
+                .get(graph_handle.clone())
+                .map(|g| create_graph(g, GraphSettings::default()));
             *loaded_graph = LoadedGraph(graph);
         }
     }
