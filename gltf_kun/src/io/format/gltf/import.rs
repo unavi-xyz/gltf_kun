@@ -338,12 +338,20 @@ pub async fn import(
             weight.name = n.name.clone();
             weight.extras = n.extras.clone();
 
-            weight.translation = n.translation.map(|t| t.into()).unwrap_or_default();
             weight.rotation = n
                 .rotation
                 .map(|r| Quat::from_slice(&r.0))
                 .unwrap_or(Quat::IDENTITY);
+            weight.translation = n.translation.map(|t| t.into()).unwrap_or_default();
             weight.scale = n.scale.map(|s| s.into()).unwrap_or(glam::Vec3::ONE);
+
+            if let Some(matrix) = n.matrix {
+                let matrix = glam::Mat4::from_cols_slice(&matrix);
+                let (scale, rotation, translation) = matrix.to_scale_rotation_translation();
+                weight.rotation = rotation;
+                weight.scale = scale;
+                weight.translation = translation;
+            }
 
             if let Some(index) = n.mesh {
                 if let Some(mesh) = meshes.get(index.value()) {
