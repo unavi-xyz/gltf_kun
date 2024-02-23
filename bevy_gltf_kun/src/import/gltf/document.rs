@@ -6,9 +6,9 @@ use thiserror::Error;
 use crate::import::extensions::BevyImportExtensions;
 
 use super::{
-    image::{get_texture_infos, load_texture, texture_label, TextureLoadError},
     material::import_material,
     scene::import_scene,
+    texture::{get_texture_infos, load_texture, texture_label, TextureLoadError},
     GltfKun,
 };
 

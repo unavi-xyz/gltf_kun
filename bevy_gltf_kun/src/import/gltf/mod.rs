@@ -11,13 +11,13 @@ use self::{
 };
 
 pub mod document;
-pub mod image;
 pub mod loader;
 pub mod material;
 pub mod mesh;
 pub mod node;
 pub mod primitive;
 pub mod scene;
+pub mod texture;
 
 pub struct GltfImportPlugin;
 
