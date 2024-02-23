@@ -9,18 +9,36 @@ use gltf_kun::graph::{
 use petgraph::{visit::EdgeRef, Direction};
 
 pub struct GraphSettings {
-    pub hide_document: bool,
+    pub enable_accessors: bool,
+    pub enable_buffers: bool,
+    pub enable_document: bool,
+    pub enable_images: bool,
+    pub enable_materials: bool,
+    pub enable_meshes: bool,
+    pub enable_nodes: bool,
+    pub enable_scenes: bool,
+    pub enable_primitives: bool,
+    pub enable_texture_infos: bool,
 }
 
 impl Default for GraphSettings {
     fn default() -> Self {
         Self {
-            hide_document: true,
+            enable_accessors: false,
+            enable_buffers: false,
+            enable_document: false,
+            enable_images: true,
+            enable_materials: true,
+            enable_meshes: true,
+            enable_nodes: true,
+            enable_scenes: true,
+            enable_primitives: true,
+            enable_texture_infos: true,
         }
     }
 }
 
-pub fn create_graph(graph: &GltfGraph, settings: GraphSettings) -> Graph<Weight, Edge> {
+pub fn create_graph(graph: &GltfGraph, settings: &GraphSettings) -> Graph<Weight, Edge> {
     let mut egui_graph = Graph::from(&graph.0);
 
     let g = egui_graph.g();
@@ -127,7 +145,7 @@ pub fn create_graph(graph: &GltfGraph, settings: GraphSettings) -> Graph<Weight,
         egui_edge.set_label(label);
     });
 
-    if settings.hide_document {
+    if !settings.enable_document {
         let document_indices = g
             .node_indices()
             .filter(|idx| {
@@ -139,7 +157,151 @@ pub fn create_graph(graph: &GltfGraph, settings: GraphSettings) -> Graph<Weight,
             .collect::<Vec<_>>();
 
         for idx in document_indices {
-            egui_graph.g().remove_node(idx);
+            g.remove_node(idx);
+        }
+    }
+
+    if !settings.enable_accessors {
+        let accessor_indices = g
+            .node_indices()
+            .filter(|idx| {
+                matches!(
+                    g.node_weight(*idx).unwrap().payload(),
+                    Weight::Gltf(GltfWeight::Accessor(_))
+                )
+            })
+            .collect::<Vec<_>>();
+
+        for idx in accessor_indices {
+            g.remove_node(idx);
+        }
+    }
+
+    if !settings.enable_buffers {
+        let buffer_indices = g
+            .node_indices()
+            .filter(|idx| {
+                matches!(
+                    g.node_weight(*idx).unwrap().payload(),
+                    Weight::Gltf(GltfWeight::Buffer(_))
+                )
+            })
+            .collect::<Vec<_>>();
+
+        for idx in buffer_indices {
+            g.remove_node(idx);
+        }
+    }
+
+    if !settings.enable_images {
+        let image_indices = g
+            .node_indices()
+            .filter(|idx| {
+                matches!(
+                    g.node_weight(*idx).unwrap().payload(),
+                    Weight::Gltf(GltfWeight::Image(_))
+                )
+            })
+            .collect::<Vec<_>>();
+
+        for idx in image_indices {
+            g.remove_node(idx);
+        }
+    }
+
+    if !settings.enable_materials {
+        let material_indices = g
+            .node_indices()
+            .filter(|idx| {
+                matches!(
+                    g.node_weight(*idx).unwrap().payload(),
+                    Weight::Gltf(GltfWeight::Material(_))
+                )
+            })
+            .collect::<Vec<_>>();
+
+        for idx in material_indices {
+            g.remove_node(idx);
+        }
+    }
+
+    if !settings.enable_meshes {
+        let mesh_indices = g
+            .node_indices()
+            .filter(|idx| {
+                matches!(
+                    g.node_weight(*idx).unwrap().payload(),
+                    Weight::Gltf(GltfWeight::Mesh(_))
+                )
+            })
+            .collect::<Vec<_>>();
+
+        for idx in mesh_indices {
+            g.remove_node(idx);
+        }
+    }
+
+    if !settings.enable_nodes {
+        let node_indices = g
+            .node_indices()
+            .filter(|idx| {
+                matches!(
+                    g.node_weight(*idx).unwrap().payload(),
+                    Weight::Gltf(GltfWeight::Node(_))
+                )
+            })
+            .collect::<Vec<_>>();
+
+        for idx in node_indices {
+            g.remove_node(idx);
+        }
+    }
+
+    if !settings.enable_scenes {
+        let scene_indices = g
+            .node_indices()
+            .filter(|idx| {
+                matches!(
+                    g.node_weight(*idx).unwrap().payload(),
+                    Weight::Gltf(GltfWeight::Scene(_))
+                )
+            })
+            .collect::<Vec<_>>();
+
+        for idx in scene_indices {
+            g.remove_node(idx);
+        }
+    }
+
+    if !settings.enable_primitives {
+        let primitive_indices = g
+            .node_indices()
+            .filter(|idx| {
+                matches!(
+                    g.node_weight(*idx).unwrap().payload(),
+                    Weight::Gltf(GltfWeight::Primitive(_))
+                )
+            })
+            .collect::<Vec<_>>();
+
+        for idx in primitive_indices {
+            g.remove_node(idx);
+        }
+    }
+
+    if !settings.enable_texture_infos {
+        let texture_info_indices = g
+            .node_indices()
+            .filter(|idx| {
+                matches!(
+                    g.node_weight(*idx).unwrap().payload(),
+                    Weight::Gltf(GltfWeight::TextureInfo(_))
+                )
+            })
+            .collect::<Vec<_>>();
+
+        for idx in texture_info_indices {
+            g.remove_node(idx);
         }
     }
 

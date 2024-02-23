@@ -57,6 +57,7 @@ impl Plugin for ExamplePlugin {
         .init_resource::<LoadedGraph>()
         .init_resource::<Loader>()
         .init_resource::<SelectedModel>()
+        .init_resource::<GraphSet>()
         .add_systems(Startup, setup)
         .add_systems(
             Update,
@@ -117,6 +118,9 @@ struct ExportedPath(String);
 #[derive(Default, Resource)]
 struct LoadedGraph(Option<Graph<Weight, Edge>>);
 
+#[derive(Default, Resource)]
+struct GraphSet(pub GraphSettings);
+
 fn setup(mut commands: Commands, mut writer: EventWriter<LoadModel>) {
     commands.spawn((
         Camera3dBundle {
@@ -155,6 +159,7 @@ fn ui(
     mut selected_model: ResMut<SelectedModel>,
     mut writer: EventWriter<LoadModel>,
     mut pan_orbit_camera: Query<&mut PanOrbitCamera>,
+    mut graph_settings: ResMut<GraphSet>,
 ) {
     if selected_model.0.is_empty() {
         selected_model.0 = MODELS[0].to_string();
@@ -201,6 +206,83 @@ fn ui(
                 }
             });
 
+        ui.separator();
+
+        ui.collapsing("Graph settings", |ui| {
+            if ui
+                .checkbox(&mut graph_settings.0.enable_accessors, "Enable accessors")
+                .clicked()
+            {
+                writer.send(LoadModel(selected_model.0.clone()));
+            }
+
+            if ui
+                .checkbox(&mut graph_settings.0.enable_buffers, "Enable buffers")
+                .clicked()
+            {
+                writer.send(LoadModel(selected_model.0.clone()));
+            }
+
+            if ui
+                .checkbox(&mut graph_settings.0.enable_document, "Enable document")
+                .clicked()
+            {
+                writer.send(LoadModel(selected_model.0.clone()));
+            }
+
+            if ui
+                .checkbox(&mut graph_settings.0.enable_images, "Enable images")
+                .clicked()
+            {
+                writer.send(LoadModel(selected_model.0.clone()));
+            }
+
+            if ui
+                .checkbox(
+                    &mut graph_settings.0.enable_texture_infos,
+                    "Enable texture infos",
+                )
+                .clicked()
+            {
+                writer.send(LoadModel(selected_model.0.clone()));
+            }
+
+            if ui
+                .checkbox(&mut graph_settings.0.enable_materials, "Enable materials")
+                .clicked()
+            {
+                writer.send(LoadModel(selected_model.0.clone()));
+            }
+
+            if ui
+                .checkbox(&mut graph_settings.0.enable_primitives, "Enable primitives")
+                .clicked()
+            {
+                writer.send(LoadModel(selected_model.0.clone()));
+            }
+
+            if ui
+                .checkbox(&mut graph_settings.0.enable_meshes, "Enable meshes")
+                .clicked()
+            {
+                writer.send(LoadModel(selected_model.0.clone()));
+            }
+
+            if ui
+                .checkbox(&mut graph_settings.0.enable_nodes, "Enable nodes")
+                .clicked()
+            {
+                writer.send(LoadModel(selected_model.0.clone()));
+            }
+
+            if ui
+                .checkbox(&mut graph_settings.0.enable_scenes, "Enable scenes")
+                .clicked()
+            {
+                writer.send(LoadModel(selected_model.0.clone()));
+            }
+        });
+
         if let Some(graph) = loaded_graph.0.iter_mut().next() {
             let interaction_settings = &SettingsInteraction::new()
                 .with_dragging_enabled(true)
@@ -226,6 +308,7 @@ fn ui(
 #[allow(clippy::too_many_arguments)]
 fn load_model(
     asset_server: Res<AssetServer>,
+    graph_settings: Res<GraphSet>,
     graphs: Res<Assets<GltfGraph>>,
     loader: Res<Loader>,
     mut events: EventReader<LoadModel>,
@@ -241,6 +324,11 @@ fn load_model(
         info!("Loading model {}", event.0);
 
         *graph_handle = asset_server.load::<GltfGraph>(event.0.clone());
+
+        let graph = graphs
+            .get(graph_handle.clone())
+            .map(|g| create_graph(g, &graph_settings.0));
+        *loaded_graph = LoadedGraph(graph);
 
         *gltf_handle = match loader.0 {
             GltfLoader::BevyGltf => {
@@ -261,7 +349,7 @@ fn load_model(
             info!("Graph loaded");
             let graph = graphs
                 .get(graph_handle.clone())
-                .map(|g| create_graph(g, GraphSettings::default()));
+                .map(|g| create_graph(g, &graph_settings.0));
             *loaded_graph = LoadedGraph(graph);
         }
     }
