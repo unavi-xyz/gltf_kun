@@ -1,4 +1,5 @@
 use bevy::asset::LoadContext;
+use bevy::prelude::*;
 use gltf_kun::graph::{gltf::GltfDocument, Graph};
 use thiserror::Error;
 
@@ -39,21 +40,25 @@ pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
 
     // Load materials.
     for (i, material) in context.doc.materials(context.graph).into_iter().enumerate() {
-        if let Ok(handle) = import_material::<E>(context, material) {
-            context.gltf.materials.insert(i, handle);
-        }
+        match import_material::<E>(context, material) {
+            Ok(handle) => context.gltf.materials.insert(i, handle),
+            Err(e) => warn!("Failed to import material: {}", e),
+        };
     }
 
     // Load scenes.
     let default_scene = context.doc.default_scene(context.graph);
 
     for (i, scene) in context.doc.scenes(context.graph).into_iter().enumerate() {
-        if let Ok(handle) = import_scene::<E>(context, scene) {
-            if Some(scene) == default_scene {
-                context.gltf.default_scene = Some(handle.clone());
-            }
+        match import_scene::<E>(context, scene) {
+            Ok(handle) => {
+                if Some(scene) == default_scene {
+                    context.gltf.default_scene = Some(handle.clone());
+                }
 
-            context.gltf.scenes.insert(i, handle);
+                context.gltf.scenes.insert(i, handle);
+            }
+            Err(e) => warn!("Failed to import scene: {}", e),
         }
     }
 
