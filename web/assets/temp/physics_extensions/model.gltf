@@ -1,1 +1,24 @@
-{"asset":{"version":"2.0"},"buffers":[{"byteLength":0,"uri":"buffer_0.bin"}],"scene":0,"extensions":{"OMI_physics_shape":{"shapes":[{"box":{"size":[1.0,2.0,3.0]},"type":"box"}]}},"extensionsUsed":["OMI_physics_shape","OMI_physics_body"],"images":[{"uri":"image_0"}],"nodes":[{"children":[1],"extensions":{"OMI_physics_body":{"motion":{"type":"dynamic"}}},"name":"DynamicBox"},{"extensions":{"OMI_physics_body":{"collider":{"shape":0}}},"name":"BoxShape"}],"scenes":[{"nodes":[0]}]}
+{
+  "asset": { "version": "2.0" },
+  "buffers": [{ "byteLength": 0, "uri": "buffer_0.bin" }],
+  "scene": 0,
+  "extensions": {
+    "OMI_physics_shape": {
+      "shapes": [{ "box": { "size": [1.0, 2.0, 3.0] }, "type": "box" }]
+    }
+  },
+  "extensionsUsed": ["OMI_physics_shape", "OMI_physics_body"],
+  "images": [{ "uri": "image_0" }],
+  "nodes": [
+    {
+      "children": [1],
+      "extensions": { "OMI_physics_body": { "motion": { "type": "dynamic" } } },
+      "name": "DynamicBox"
+    },
+    {
+      "extensions": { "OMI_physics_body": { "collider": { "shape": 0 } } },
+      "name": "BoxShape"
+    }
+  ],
+  "scenes": [{ "nodes": [0] }]
+}
