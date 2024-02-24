@@ -15,7 +15,7 @@ pub struct GltfMesh {
 pub fn import_mesh(
     context: &mut ImportContext,
     parent: &mut WorldChildBuilder,
-    m: &mut gltf::mesh::Mesh,
+    mut m: gltf::mesh::Mesh,
 ) {
     let index = context.doc.mesh_index(context.graph, m).unwrap();
     let mesh_label = mesh_label(index);

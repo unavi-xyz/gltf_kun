@@ -43,7 +43,7 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
     }
 
     if let Some(ref mut mesh) = n.mesh(context.graph) {
-        ent.with_children(|parent| import_mesh(context, parent, mesh));
+        ent.with_children(|parent| import_mesh(context, parent, *mesh));
     }
 
     let mut children = Vec::new();
