@@ -38,6 +38,7 @@ impl Default for GraphSettings {
     }
 }
 
+/// Converts a [GltfGraph] into an [egui_graphs::Graph], adding labels for nicer display.
 pub fn create_graph(graph: &GltfGraph, settings: &GraphSettings) -> Graph<Weight, Edge> {
     let mut egui_graph = Graph::from(&graph.0);
 
