@@ -178,3 +178,70 @@ impl GltfDocument {
         self.scenes(graph).iter().position(|s| *s == scene)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_index_methods() {
+        let graph = &mut Graph::new();
+        let doc = GltfDocument::new(graph);
+
+        let a = doc.create_accessor(graph);
+        let a_2 = doc.create_accessor(graph);
+        assert_eq!(doc.accessor_index(graph, a), Some(0));
+        assert_eq!(doc.accessor_index(graph, a_2), Some(1));
+        doc.remove_accessor(graph, a);
+        assert_eq!(doc.accessor_index(graph, a), None);
+        assert_eq!(doc.accessor_index(graph, a_2), Some(0));
+
+        let b = doc.create_buffer(graph);
+        let b_2 = doc.create_buffer(graph);
+        assert_eq!(doc.buffer_index(graph, b), Some(0));
+        assert_eq!(doc.buffer_index(graph, b_2), Some(1));
+        doc.remove_buffer(graph, b);
+        assert_eq!(doc.buffer_index(graph, b), None);
+        assert_eq!(doc.buffer_index(graph, b_2), Some(0));
+
+        let i = doc.create_image(graph);
+        let i_2 = doc.create_image(graph);
+        assert_eq!(doc.image_index(graph, i), Some(0));
+        assert_eq!(doc.image_index(graph, i_2), Some(1));
+        doc.remove_image(graph, i);
+        assert_eq!(doc.image_index(graph, i), None);
+        assert_eq!(doc.image_index(graph, i_2), Some(0));
+
+        let m = doc.create_material(graph);
+        let m_2 = doc.create_material(graph);
+        assert_eq!(doc.material_index(graph, m), Some(0));
+        assert_eq!(doc.material_index(graph, m_2), Some(1));
+        doc.remove_material(graph, m);
+        assert_eq!(doc.material_index(graph, m), None);
+        assert_eq!(doc.material_index(graph, m_2), Some(0));
+
+        let me = doc.create_mesh(graph);
+        let me_2 = doc.create_mesh(graph);
+        assert_eq!(doc.mesh_index(graph, me), Some(0));
+        assert_eq!(doc.mesh_index(graph, me_2), Some(1));
+        doc.remove_mesh(graph, me);
+        assert_eq!(doc.mesh_index(graph, me), None);
+        assert_eq!(doc.mesh_index(graph, me_2), Some(0));
+
+        let n = doc.create_node(graph);
+        let n_2 = doc.create_node(graph);
+        assert_eq!(doc.node_index(graph, n), Some(0));
+        assert_eq!(doc.node_index(graph, n_2), Some(1));
+        doc.remove_node(graph, n);
+        assert_eq!(doc.node_index(graph, n), None);
+        assert_eq!(doc.node_index(graph, n_2), Some(0));
+
+        let s = doc.create_scene(graph);
+        let s_2 = doc.create_scene(graph);
+        assert_eq!(doc.scene_index(graph, s), Some(0));
+        assert_eq!(doc.scene_index(graph, s_2), Some(1));
+        doc.remove_scene(graph, s);
+        assert_eq!(doc.scene_index(graph, s), None);
+        assert_eq!(doc.scene_index(graph, s_2), Some(0));
+    }
+}
