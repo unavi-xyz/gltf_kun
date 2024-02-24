@@ -113,7 +113,7 @@ pub async fn import(
                 }
             };
 
-            let view = read_view(buffer_view, data);
+            let view = read_buffer_view(buffer_view, data);
 
             if let Some(_sparse) = &a.sparse {
                 error!("Sparse accessors are not supported");
@@ -169,7 +169,7 @@ pub async fn import(
                 }
             };
 
-            weight.data = read_view(view, buf_data).to_vec();
+            weight.data = read_buffer_view(view, buf_data).to_vec();
 
             let buffer = buffers[buffer_idx];
             image.set_buffer(graph, Some(buffer));
@@ -414,7 +414,7 @@ pub async fn import(
     Ok(doc)
 }
 
-fn read_view<'a>(view: &gltf::json::buffer::View, buffer_data: &'a [u8]) -> &'a [u8] {
+fn read_buffer_view<'a>(view: &gltf::json::buffer::View, buffer_data: &'a [u8]) -> &'a [u8] {
     let start = view.byte_offset.map(|o| o.0 as usize).unwrap_or_default();
     let end = start + view.byte_length.0 as usize;
     &buffer_data[start..end]
