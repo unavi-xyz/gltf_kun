@@ -104,13 +104,8 @@ fn texture_handle(
         None => return None,
     };
 
-    let image = match info.image(graph) {
-        Some(image) => image,
-        None => return None,
-    };
-
-    let image_index = doc.images(graph).iter().position(|x| *x == image).unwrap();
-    let label = texture_label(image_index);
+    let index = doc.texture_index(graph, info)?;
+    let label = texture_label(index);
 
     Some(load_context.get_label_handle(&label))
 }
