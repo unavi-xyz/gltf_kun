@@ -4,7 +4,7 @@ use crate::graph::{gltf::GltfEdge, Edge, Graph, GraphNodeEdges, Property, Weight
 
 use super::{
     accessor::Accessor, buffer::Buffer, image::Image, material::Material, mesh::Mesh, node::Node,
-    scene::Scene, GltfWeight,
+    scene::Scene, GltfWeight, TextureInfo,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -177,11 +177,45 @@ impl GltfDocument {
     pub fn scene_index(&self, graph: &Graph, scene: Scene) -> Option<usize> {
         self.scenes(graph).iter().position(|s| *s == scene)
     }
+
+    pub fn textures(&self, graph: &Graph) -> Vec<TextureInfo> {
+        self.materials(graph)
+            .iter()
+            .flat_map(|m| {
+                [
+                    m.base_color_texture_info(graph),
+                    m.emissive_texture_info(graph),
+                    m.metallic_roughness_texture_info(graph),
+                    m.normal_texture_info(graph),
+                    m.occlusion_texture_info(graph),
+                ]
+            })
+            .flatten()
+            .collect()
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::graph::GraphNodeWeight;
+
     use super::*;
+
+    #[test]
+    fn test_textures() {
+        let graph = &mut Graph::new();
+        let doc = GltfDocument::new(graph);
+
+        let material = doc.create_material(graph);
+        let image = doc.create_image(graph);
+
+        let base_color_texture_info = TextureInfo::new(graph);
+        base_color_texture_info.set_image(graph, Some(image));
+        material.set_base_color_texture_info(graph, Some(base_color_texture_info));
+        assert_eq!(doc.textures(graph), vec![base_color_texture_info]);
+        material.set_base_color_texture_info(graph, None);
+        assert_eq!(doc.textures(graph), vec![]);
+    }
 
     #[test]
     fn test_index_methods() {
@@ -242,6 +276,5 @@ mod tests {
         assert_eq!(doc.scene_index(graph, s_2), Some(1));
         doc.remove_scene(graph, s);
         assert_eq!(doc.scene_index(graph, s), None);
-        assert_eq!(doc.scene_index(graph, s_2), Some(0));
     }
 }

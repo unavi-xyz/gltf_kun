@@ -22,25 +22,18 @@ use super::document::ImportContext;
 
 const DEFAULT_MIME: &str = "image/png";
 
-/// Returns material texture infos and whether they are sRGB or not.
-pub fn get_texture_infos(context: &ImportContext) -> HashSet<(TextureInfo, bool)> {
+pub fn get_linear_textures(context: &ImportContext) -> HashSet<TextureInfo> {
     let mut texture_infos = HashSet::default();
 
     for m in context.doc.materials(context.graph) {
-        if let Some(info) = m.base_color_texture_info(context.graph) {
-            texture_infos.insert((info, true));
-        }
-        if let Some(info) = m.emissive_texture_info(context.graph) {
-            texture_infos.insert((info, true));
-        }
         if let Some(info) = m.metallic_roughness_texture_info(context.graph) {
-            texture_infos.insert((info, false));
+            texture_infos.insert(info);
         }
         if let Some(info) = m.normal_texture_info(context.graph) {
-            texture_infos.insert((info, false));
+            texture_infos.insert(info);
         }
         if let Some(info) = m.occlusion_texture_info(context.graph) {
-            texture_infos.insert((info, false));
+            texture_infos.insert(info);
         }
     }
 

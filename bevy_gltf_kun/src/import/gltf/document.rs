@@ -8,7 +8,7 @@ use crate::import::extensions::BevyImportExtensions;
 use super::{
     material::import_material,
     scene::import_scene,
-    texture::{get_texture_infos, load_texture, texture_label, TextureLoadError},
+    texture::{get_linear_textures, load_texture, texture_label, TextureLoadError},
     GltfKun,
 };
 
@@ -29,9 +29,12 @@ pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
 ) -> Result<(), DocumentImportError> {
     // Load textures.
-    for (i, (info, is_srgb)) in get_texture_infos(context).iter().enumerate() {
-        if let Some(image) = info.image(context.graph) {
-            let texture = load_texture(context, *info, image, *is_srgb)?;
+    let linear_textures = get_linear_textures(context);
+
+    for (i, texture_info) in context.doc.textures(context.graph).iter().enumerate() {
+        if let Some(image) = texture_info.image(context.graph) {
+            let is_srgb = !linear_textures.contains(texture_info);
+            let texture = load_texture(context, *texture_info, image, is_srgb)?;
             let label = texture_label(i);
             let handle = context.load_context.add_labeled_asset(label, texture);
             context.gltf.images.insert(i, handle);
