@@ -26,6 +26,7 @@ const ASSETS_DIR: &str = "assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
 const MODELS: &[&str] = &[
+    "AnimatedCube.gltf",
     "AlphaBlendModeTest.glb",
     "BoxTextured.glb",
     "BoxTextured/BoxTextured.gltf",
@@ -34,7 +35,6 @@ const MODELS: &[&str] = &[
     "OrientationTest.glb",
     "SimpleSkin.gltf",
     "SimpleSparseAccessor.gltf",
-    "SimpleTexture.gltf",
     "TextureCoordinateTest.glb",
     "TextureSettingsTest.glb",
     "VertexColorTest.glb",
@@ -147,7 +147,7 @@ fn setup(mut commands: Commands, mut writer: EventWriter<LoadModel>) {
         ..default()
     });
 
-    writer.send(LoadModel(MODELS[1].to_string()));
+    writer.send(LoadModel(MODELS[0].to_string()));
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -162,7 +162,7 @@ fn ui(
     mut graph_settings: ResMut<GraphSet>,
 ) {
     if selected_model.0.is_empty() {
-        selected_model.0 = MODELS[1].to_string();
+        selected_model.0 = MODELS[0].to_string();
     }
 
     bevy_egui::egui::Window::new("Controls").show(contexts.ctx_mut(), |ui| {
