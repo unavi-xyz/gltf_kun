@@ -193,6 +193,9 @@ impl GltfDocument {
             .flatten()
             .collect()
     }
+    pub fn texture_index(&self, graph: &Graph, texture: TextureInfo) -> Option<usize> {
+        self.textures(graph).iter().position(|t| *t == texture)
+    }
 }
 
 #[cfg(test)]
@@ -213,8 +216,11 @@ mod tests {
         base_color_texture_info.set_image(graph, Some(image));
         material.set_base_color_texture_info(graph, Some(base_color_texture_info));
         assert_eq!(doc.textures(graph), vec![base_color_texture_info]);
+        assert_eq!(doc.texture_index(graph, base_color_texture_info), Some(0));
+
         material.set_base_color_texture_info(graph, None);
         assert_eq!(doc.textures(graph), vec![]);
+        assert_eq!(doc.texture_index(graph, base_color_texture_info), None);
     }
 
     #[test]
