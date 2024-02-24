@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use glam::Quat;
 use gltf::json::{accessor::ComponentType, validation::Checked};
 use thiserror::Error;
@@ -26,17 +24,19 @@ pub async fn import(
     let doc = GltfDocument::new(graph);
 
     // Create buffers
-    let buffers = vec![doc.create_buffer(graph); format.json.buffers.len()];
-    let mut buffer_data = HashMap::new();
+    let mut buffers = Vec::new();
+    let mut buffer_data = Vec::new();
 
-    for (i, b) in format.json.buffers.iter_mut().enumerate() {
-        let mut buffer = buffers[i];
+    for buf in format.json.buffers.iter_mut() {
+        let mut buffer = doc.create_buffer(graph);
         let weight = buffer.get_mut(graph);
 
-        weight.name = b.name.clone();
-        weight.extras = b.extras.clone();
+        weight.name = buf.name.clone();
+        weight.extras = buf.extras.clone();
 
-        weight.uri = b.uri.clone();
+        weight.uri = buf.uri.clone();
+
+        let mut data = None;
 
         if resolver.is_none() && format.resources.len() == 1 {
             let key = format
@@ -46,16 +46,15 @@ pub async fn import(
                 .map(|(k, _)| k.clone());
 
             if let Some(key) = key {
-                let data = format.resources.remove(&key).unwrap();
-                buffer_data.insert(i, data);
+                data = Some(format.resources.remove(&key).unwrap());
             } else {
                 warn!("No resources provided");
             }
         } else if let Some(uri) = weight.uri.as_ref() {
             if let Some(resolver) = resolver {
-                if let Ok(data) = resolver.resolve(uri).await {
-                    debug!("Resolved buffer: {} ({} bytes)", uri, data.len());
-                    buffer_data.insert(i, data);
+                if let Ok(d) = resolver.resolve(uri).await {
+                    debug!("Resolved buffer: {} ({} bytes)", uri, d.len());
+                    data = Some(d);
                 } else {
                     warn!("Failed to resolve URI: {}", uri);
                 }
@@ -63,6 +62,9 @@ pub async fn import(
                 warn!("No resolver provided");
             }
         }
+
+        buffer_data.push(data.unwrap_or_default());
+        buffers.push(buffer);
     }
 
     // Create accessors
@@ -105,7 +107,7 @@ pub async fn import(
             let buffer_view = &format.json.buffer_views[buffer_view_idx];
             let buffer_idx = buffer_view.buffer.value();
 
-            let data = match buffer_data.get(&buffer_idx) {
+            let data = match buffer_data.get(buffer_idx) {
                 Some(data) => data,
                 None => {
                     warn!("Buffer has no data");
@@ -130,10 +132,10 @@ pub async fn import(
         .collect::<Vec<_>>();
 
     // Create images
-    let images = vec![doc.create_image(graph); format.json.images.len()];
+    let mut images = Vec::new();
 
-    for (i, img) in format.json.images.iter_mut().enumerate() {
-        let mut image = images[i];
+    for img in format.json.images.iter_mut() {
+        let mut image = doc.create_image(graph);
 
         let weight = image.get_mut(graph);
         weight.name = img.name.clone();
@@ -161,7 +163,7 @@ pub async fn import(
             let view = &format.json.buffer_views[index.value()];
 
             let buffer_idx = view.buffer.value();
-            let buf_data = match buffer_data.get(&buffer_idx) {
+            let buf_data = match buffer_data.get(buffer_idx) {
                 Some(data) => data.as_slice(),
                 None => {
                     warn!("Buffer has no data");
@@ -174,6 +176,8 @@ pub async fn import(
             let buffer = buffers[buffer_idx];
             image.set_buffer(graph, Some(buffer));
         }
+
+        images.push(image);
     }
 
     // Create materials
