@@ -103,7 +103,8 @@ pub fn create_graph(graph: &GltfGraph, settings: &GraphSettings) -> Graph<Weight
 
             Weight::Gltf(GltfWeight::Document) => "Document".to_string(),
 
-            Weight::Glxf(_) => "Glxf".to_string(),
+            Weight::Glxf(_) => "glXF".to_string(),
+
             Weight::Bytes(_) => {
                 let extension = g
                     .edges_directed(*idx, Direction::Incoming)
@@ -138,9 +139,10 @@ pub fn create_graph(graph: &GltfGraph, settings: &GraphSettings) -> Graph<Weight
             Edge::Gltf(GltfEdge::Primitive(e)) => format!("{:?}", e),
             Edge::Gltf(GltfEdge::TextureInfo(e)) => format!("{:?}", e),
 
+            Edge::Glxf(e) => format!("{:?}", e),
+
             Edge::Extension(s) => s.to_string(),
             Edge::Other(s) => s.to_string(),
-            Edge::Glxf(_) => "Glxf".to_string(),
         };
 
         egui_edge.set_label(label);
