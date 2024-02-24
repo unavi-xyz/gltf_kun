@@ -1,32 +1,31 @@
-use bevy::asset::{LoadContext, ReadAssetBytesError};
-use gltf_kun::io::resolver::Resolver;
-use thiserror::Error;
+use bevy::asset::LoadContext;
+use gltf_kun::io::resolver::{Resolver, ResolverError};
 
 pub struct BevyAssetResolver<'a, 'b> {
     pub load_context: &'a mut LoadContext<'b>,
 }
 
-#[derive(Debug, Error)]
-pub enum BevyAssetResolverError {
-    #[error("Invalid path: {0}")]
-    InvalidPath(String),
-    #[error("Failed to read asset: {0}")]
-    ReadAssetBytesError(#[from] ReadAssetBytesError),
-}
-
 impl Resolver for BevyAssetResolver<'_, '_> {
-    type Error = BevyAssetResolverError;
+    fn resolve(
+        &mut self,
+        uri: &str,
+    ) -> std::pin::Pin<
+        Box<dyn std::future::Future<Output = Result<Vec<u8>, ResolverError>> + Send + '_>,
+    > {
+        let uri = uri.to_string();
 
-    async fn resolve(&mut self, uri: &str) -> Result<Vec<u8>, Self::Error> {
-        let buffer_path = self
-            .load_context
-            .path()
-            .parent()
-            .ok_or(Self::Error::InvalidPath(
-                self.load_context.path().to_string_lossy().to_string(),
-            ))?
-            .join(uri);
-        let bytes = self.load_context.read_asset_bytes(buffer_path).await?;
-        Ok(bytes)
+        Box::pin(async move {
+            let buffer_path = self
+                .load_context
+                .path()
+                .parent()
+                .ok_or(ResolverError::InvalidUri(uri.clone()))?
+                .join(uri);
+
+            self.load_context
+                .read_asset_bytes(buffer_path)
+                .await
+                .map_err(|e| ResolverError::ResolutionError(e.to_string()))
+        })
     }
 }

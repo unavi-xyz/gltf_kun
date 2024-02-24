@@ -8,24 +8,32 @@ use crate::{
         gltf::{document::GltfDocument, image::Image, texture_info::TextureInfo},
         Graph, GraphNodeWeight,
     },
-    io::resolver::Resolver,
+    io::resolver::{DataUriResolver, Resolver},
 };
 
 use super::GltfFormat;
 
 #[derive(Debug, Error)]
-pub enum GltfImportError {}
+pub enum GltfImportError {
+    #[error("Invalid URI: {0}")]
+    InvalidUri(String),
+    #[error("Resolver error: {0}")]
+    ResolverError(String),
+}
 
 pub async fn import(
     graph: &mut Graph,
     format: &mut GltfFormat,
-    resolver: &mut Option<impl Resolver>,
+    resolvers: &mut [&mut dyn Resolver],
 ) -> Result<GltfDocument, GltfImportError> {
     let doc = GltfDocument::new(graph);
 
     // Create buffers
     let mut buffers = Vec::new();
     let mut buffer_data = Vec::new();
+
+    let buffers_len = format.json.buffers.len();
+    let resources_len = format.resources.len();
 
     for buf in format.json.buffers.iter_mut() {
         let mut buffer = doc.create_buffer(graph);
@@ -38,29 +46,18 @@ pub async fn import(
 
         let mut data = None;
 
-        if resolver.is_none() && format.resources.len() == 1 {
+        if buffers_len == 1 && resources_len == 1 {
+            // Assume gltf is a glb, and the buffer is the only resource
             let key = format
                 .resources
                 .iter_mut()
                 .find(|_| true)
-                .map(|(k, _)| k.clone());
+                .map(|(k, _)| k.clone())
+                .unwrap();
 
-            if let Some(key) = key {
-                data = Some(format.resources.remove(&key).unwrap());
-            } else {
-                warn!("No resources provided");
-            }
+            data = Some(format.resources.remove(&key).unwrap());
         } else if let Some(uri) = weight.uri.as_ref() {
-            if let Some(resolver) = resolver {
-                if let Ok(d) = resolver.resolve(uri).await {
-                    debug!("Resolved buffer: {} ({} bytes)", uri, d.len());
-                    data = Some(d);
-                } else {
-                    warn!("Failed to resolve URI: {}", uri);
-                }
-            } else {
-                warn!("No resolver provided");
-            }
+            data = resolve_uri(uri, resolvers).await;
         }
 
         buffer_data.push(data.unwrap_or_default());
@@ -149,15 +146,8 @@ pub async fn import(
                 weight.mime_type = guess_mime_type(uri).map(|s| s.to_string())
             }
 
-            if let Some(resolver) = resolver {
-                if let Ok(data) = resolver.resolve(uri).await {
-                    debug!("Resolved image: {} ({} bytes)", uri, data.len());
-                    weight.data = data;
-                } else {
-                    warn!("Failed to resolve URI: {}", uri);
-                }
-            } else {
-                warn!("No resolver provided");
+            if let Some(data) = resolve_uri(uri, resolvers).await {
+                weight.data = data;
             }
         } else if let Some(index) = img.buffer_view {
             let view = &format.json.buffer_views[index.value()];
@@ -418,6 +408,28 @@ pub async fn import(
     Ok(doc)
 }
 
+async fn resolve_uri(uri: &str, resolvers: &mut [&mut dyn Resolver]) -> Option<Vec<u8>> {
+    debug!("Resolving URI: {}", uri);
+
+    if let Ok(data) = DataUriResolver.resolve(uri).await {
+        return Some(data);
+    }
+
+    for resolver in resolvers {
+        match resolver.resolve(uri).await {
+            Ok(data) => {
+                debug!("Resolved URI: {} ({} bytes)", uri, data.len());
+                return Some(data);
+            }
+            Err(e) => {
+                debug!("Failed to resolve URI: {}", e);
+            }
+        }
+    }
+
+    None
+}
+
 fn read_buffer_view<'a>(view: &gltf::json::buffer::View, buffer_data: &'a [u8]) -> &'a [u8] {
     let start = view.byte_offset.map(|o| o.0 as usize).unwrap_or_default();
     let end = start + view.byte_length.0 as usize;
@@ -477,8 +489,6 @@ fn guess_mime_type(uri: &str) -> Option<&'static str> {
 mod tests {
     use gltf::json::{self, texture::Info, validation::USize64, Index};
     use tracing_test::traced_test;
-
-    use crate::io::resolver::file_resolver::FileResolver;
 
     use super::*;
 
@@ -601,9 +611,7 @@ mod tests {
 
         let mut graph = Graph::new();
 
-        let doc = import(&mut graph, &mut format, &mut None::<FileResolver>)
-            .await
-            .unwrap();
+        let doc = import(&mut graph, &mut format, &mut []).await.unwrap();
 
         assert_eq!(doc.scenes(&graph).len(), 1);
         assert_eq!(doc.default_scene(&graph), Some(doc.scenes(&graph)[0]));

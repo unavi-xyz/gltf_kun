@@ -1,13 +1,27 @@
 //! Provides a way to resolve URIs during import.
 
-use std::error::Error;
+use std::{future::Future, pin::Pin};
 
-pub mod file_resolver;
+use thiserror::Error;
+
+mod data;
+mod file;
+
+pub use data::*;
+pub use file::*;
+
+#[derive(Debug, Error)]
+pub enum ResolverError {
+    #[error("Invalid URI: {0}")]
+    InvalidUri(String),
+    #[error("Failed to resolve URI: {0}")]
+    ResolutionError(String),
+}
 
 /// Resolves a URI.
-pub trait Resolver {
-    type Error: Error + Send + Sync + Sized;
-
-    #[allow(async_fn_in_trait)]
-    async fn resolve(&mut self, uri: &str) -> Result<Vec<u8>, Self::Error>;
+pub trait Resolver: Send + Sync {
+    fn resolve(
+        &mut self,
+        uri: &str,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<u8>, ResolverError>> + Send + '_>>;
 }

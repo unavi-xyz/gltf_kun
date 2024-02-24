@@ -13,6 +13,7 @@ omi_physics_body = ["omi_physics_shape"]
 omi_physics_shape = []
 
 [dependencies]
+base64 = "0.21.7"
 byteorder = "1.5.0"
 glam.workspace = true
 gltf = { version = "1.4.0", features = ["extensions", "extras"] }

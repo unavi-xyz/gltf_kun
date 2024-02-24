@@ -55,13 +55,15 @@ where
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
 
+            let mut graph = Graph::default();
             let format = GltfFormat {
                 json: serde_json::from_slice(&bytes)?,
                 resources: std::collections::HashMap::new(),
             };
-            let resolver = BevyAssetResolver { load_context };
-            let mut graph = Graph::default();
-            GltfIO::<E>::import(&mut graph, format, Some(resolver)).await?;
+
+            let mut resolver = BevyAssetResolver { load_context };
+
+            GltfIO::<E>::import(&mut graph, format, &mut [&mut resolver]).await?;
 
             let graph = GltfGraph(graph);
 
