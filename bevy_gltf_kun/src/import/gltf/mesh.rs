@@ -17,12 +17,7 @@ pub fn import_mesh(
     parent: &mut WorldChildBuilder,
     m: &mut gltf::mesh::Mesh,
 ) {
-    let index = context
-        .doc
-        .meshes(context.graph)
-        .iter()
-        .position(|x| x == m)
-        .unwrap();
+    let index = context.doc.mesh_index(context.graph, m).unwrap();
     let mesh_label = mesh_label(index);
 
     let mut primitives = Vec::new();

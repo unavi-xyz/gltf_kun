@@ -93,12 +93,7 @@ pub fn import_primitive(
         .add_labeled_asset(primitive_label.clone(), mesh);
 
     let material = p.material(context.graph).map(|m| {
-        let index = context
-            .doc
-            .materials(context.graph)
-            .iter()
-            .position(|x| *x == m)
-            .unwrap();
+        let index = context.doc.material_index(context.graph, m).unwrap();
         context.gltf.materials[index].clone()
     });
 

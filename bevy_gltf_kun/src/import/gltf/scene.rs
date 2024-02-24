@@ -27,12 +27,7 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
 
     let scene = Scene { world };
 
-    let index = context
-        .doc
-        .scenes(context.graph)
-        .iter()
-        .position(|x| *x == s)
-        .unwrap();
+    let index = context.doc.scene_index(context.graph, s).unwrap();
     let weight = s.get(context.graph);
     let scene_label = scene_label(index);
 

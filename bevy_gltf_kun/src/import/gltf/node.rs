@@ -24,12 +24,7 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
     builder: &mut WorldChildBuilder,
     n: &mut Node,
 ) -> Handle<GltfNode> {
-    let index = context
-        .doc
-        .nodes(context.graph)
-        .iter()
-        .position(|x| x == n)
-        .unwrap();
+    let index = context.doc.node_index(context.graph, *n).unwrap();
     let weight = n.get_mut(context.graph);
     let node_label = node_label(index);
 

@@ -16,12 +16,7 @@ pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
     m: Material,
 ) -> Handle<StandardMaterial> {
-    let index = context
-        .doc
-        .materials(context.graph)
-        .iter()
-        .position(|x| *x == m)
-        .unwrap();
+    let index = context.doc.material_index(context.graph, m).unwrap();
     let weight = m.get(context.graph);
     let label = material_label(index);
 
