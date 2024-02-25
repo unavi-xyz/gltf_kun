@@ -63,9 +63,9 @@ impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GltfIO<E> {
     pub async fn import(
         graph: &mut Graph,
         mut format: GltfFormat,
-        resolvers: &mut [&mut dyn Resolver],
+        resolver: Option<impl Resolver>,
     ) -> Result<GltfDocument, GltfImportError> {
-        let doc = import::import(graph, &mut format, resolvers).await?;
+        let doc = import::import(graph, &mut format, resolver).await?;
 
         if let Err(e) = E::import(graph, &mut format, &doc) {
             warn!("Failed to import extensions: {}", e);
@@ -85,9 +85,9 @@ impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GltfIO<E> {
         };
 
         let dir = std::path::Path::new(path).parent().unwrap();
-        let mut resolver = FileResolver::new(dir);
+        let resolver = FileResolver::new(dir);
 
-        let doc = Self::import(graph, format, &mut [&mut resolver]).await?;
+        let doc = Self::import(graph, format, Some(resolver)).await?;
 
         Ok(doc)
     }

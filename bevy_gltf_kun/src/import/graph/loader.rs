@@ -61,9 +61,9 @@ where
                 resources: std::collections::HashMap::new(),
             };
 
-            let mut resolver = BevyAssetResolver { load_context };
+            let resolver = BevyAssetResolver { load_context };
 
-            GltfIO::<E>::import(&mut graph, format, &mut [&mut resolver]).await?;
+            GltfIO::<E>::import(&mut graph, format, Some(resolver)).await?;
 
             let graph = GltfGraph(graph);
 

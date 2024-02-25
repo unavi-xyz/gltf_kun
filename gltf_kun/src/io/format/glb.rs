@@ -5,6 +5,7 @@ use thiserror::Error;
 use crate::{
     extensions::ExtensionsIO,
     graph::{gltf::document::GltfDocument, Graph},
+    io::resolver::DataUriResolver,
 };
 
 use super::gltf::{export::GltfExportError, import::GltfImportError, GltfFormat, GltfIO};
@@ -107,7 +108,7 @@ impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GlbIO<E> {
         }
 
         let format = GltfFormat { json, resources };
-        let doc = GltfIO::<E>::import(graph, format, &mut []).await?;
+        let doc = GltfIO::<E>::import(graph, format, None::<DataUriResolver>).await?;
 
         Ok(doc)
     }

@@ -79,9 +79,9 @@ where
                 json: serde_json::from_slice(&bytes)?,
                 resources: std::collections::HashMap::new(),
             };
-            let mut resolver = BevyAssetResolver { load_context };
+            let resolver = BevyAssetResolver { load_context };
 
-            let mut doc = GltfIO::<E>::import(&mut graph, format, &mut [&mut resolver]).await?;
+            let mut doc = GltfIO::<E>::import(&mut graph, format, Some(resolver)).await?;
             let mut gltf = GltfKun::new(&mut graph, &mut doc);
 
             let mut context = ImportContext {

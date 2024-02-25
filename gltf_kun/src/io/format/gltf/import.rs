@@ -24,7 +24,7 @@ pub enum GltfImportError {
 pub async fn import(
     graph: &mut Graph,
     format: &mut GltfFormat,
-    resolvers: &mut [&mut dyn Resolver],
+    mut resolver: Option<impl Resolver>,
 ) -> Result<GltfDocument, GltfImportError> {
     let doc = GltfDocument::new(graph);
 
@@ -57,7 +57,7 @@ pub async fn import(
 
             data = Some(format.resources.remove(&key).unwrap());
         } else if let Some(uri) = weight.uri.as_ref() {
-            data = resolve_uri(uri, resolvers).await;
+            data = resolve_uri(uri, &mut resolver).await;
         }
 
         buffer_data.push(data.unwrap_or_default());
@@ -146,7 +146,7 @@ pub async fn import(
                 weight.mime_type = guess_mime_type(uri).map(|s| s.to_string())
             }
 
-            if let Some(data) = resolve_uri(uri, resolvers).await {
+            if let Some(data) = resolve_uri(uri, &mut resolver).await {
                 weight.data = data;
             }
         } else if let Some(index) = img.buffer_view {
@@ -408,26 +408,32 @@ pub async fn import(
     Ok(doc)
 }
 
-async fn resolve_uri(uri: &str, resolvers: &mut [&mut dyn Resolver]) -> Option<Vec<u8>> {
+async fn resolve_uri(uri: &str, resolver: &mut Option<impl Resolver>) -> Option<Vec<u8>> {
     debug!("Resolving URI: {}", uri);
 
     if let Ok(data) = DataUriResolver.resolve(uri).await {
+        debug!("Resolved data URI: {} ({} bytes)", uri, data.len());
         return Some(data);
     }
 
-    for resolver in resolvers {
-        match resolver.resolve(uri).await {
-            Ok(data) => {
-                debug!("Resolved URI: {} ({} bytes)", uri, data.len());
-                return Some(data);
-            }
-            Err(e) => {
-                debug!("Failed to resolve URI: {}", e);
-            }
+    let resolver = match resolver {
+        Some(r) => r,
+        None => {
+            warn!("No resolver provided");
+            return None;
+        }
+    };
+
+    match resolver.resolve(uri).await {
+        Ok(data) => {
+            debug!("Resolved URI: {} ({} bytes)", uri, data.len());
+            Some(data)
+        }
+        Err(e) => {
+            debug!("Failed to resolve URI: {}", e);
+            None
         }
     }
-
-    None
 }
 
 fn read_buffer_view<'a>(view: &gltf::json::buffer::View, buffer_data: &'a [u8]) -> &'a [u8] {
@@ -611,7 +617,9 @@ mod tests {
 
         let mut graph = Graph::new();
 
-        let doc = import(&mut graph, &mut format, &mut []).await.unwrap();
+        let doc = import(&mut graph, &mut format, None::<DataUriResolver>)
+            .await
+            .unwrap();
 
         assert_eq!(doc.scenes(&graph).len(), 1);
         assert_eq!(doc.default_scene(&graph), Some(doc.scenes(&graph)[0]));

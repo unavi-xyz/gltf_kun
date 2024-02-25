@@ -13,21 +13,15 @@ impl FileResolver {
 }
 
 impl Resolver for FileResolver {
-    fn resolve(
-        &mut self,
-        uri: &str,
-    ) -> std::pin::Pin<Box<dyn std::future::Future<Output = Result<Vec<u8>, ResolverError>> + Send>>
-    {
+    async fn resolve(&mut self, uri: &str) -> Result<Vec<u8>, ResolverError> {
         let path = self.root.join(uri);
 
-        Box::pin(async move {
-            let mut buf = Vec::new();
-            let mut file =
-                File::open(path).map_err(|e| ResolverError::ResolutionError(e.to_string()))?;
-            file.read_to_end(&mut buf)
-                .map_err(|e| ResolverError::ResolutionError(e.to_string()))?;
+        let mut buf = Vec::new();
+        let mut file =
+            File::open(path).map_err(|e| ResolverError::ResolutionError(e.to_string()))?;
+        file.read_to_end(&mut buf)
+            .map_err(|e| ResolverError::ResolutionError(e.to_string()))?;
 
-            Ok(buf)
-        })
+        Ok(buf)
     }
 }
