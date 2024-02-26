@@ -1,4 +1,5 @@
 pub mod accessor;
+pub mod animation;
 pub mod buffer;
 pub mod document;
 pub mod image;
@@ -10,6 +11,7 @@ pub mod scene;
 pub mod texture_info;
 
 pub use accessor::Accessor;
+pub use animation::Animation;
 pub use buffer::Buffer;
 pub use document::GltfDocument;
 pub use image::Image;
@@ -23,6 +25,9 @@ pub use texture_info::TextureInfo;
 #[derive(Clone, Debug)]
 pub enum GltfWeight {
     Accessor(accessor::AccessorWeight),
+    Animation(animation::AnimationWeight),
+    AnimationChannel(animation::AnimationChannelWeight),
+    AnimationSampler(animation::AnimationSamplerWeight),
     Buffer(buffer::BufferWeight),
     Document,
     Image(image::ImageWeight),
@@ -37,6 +42,9 @@ pub enum GltfWeight {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum GltfEdge {
     Accessor(accessor::AccessorEdge),
+    Animation(animation::AnimationEdge),
+    AnimationChannel(animation::AnimationChannelEdge),
+    AnimationSampler(animation::AnimationSamplerEdge),
     Document(document::DocumentEdge),
     Image(image::ImageEdge),
     Material(material::MaterialEdge),

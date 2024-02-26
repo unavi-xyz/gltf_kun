@@ -3,13 +3,13 @@ use petgraph::graph::NodeIndex;
 use crate::graph::{gltf::GltfEdge, Edge, Graph, GraphNodeEdges, Property, Weight};
 
 use super::{
-    accessor::Accessor, buffer::Buffer, image::Image, material::Material, mesh::Mesh, node::Node,
-    scene::Scene, GltfWeight, TextureInfo,
+    Accessor, Animation, Buffer, GltfWeight, Image, Material, Mesh, Node, Scene, TextureInfo,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum DocumentEdge {
     Accessor,
+    Animation,
     Buffer,
     DefaultScene,
     Image,
@@ -73,6 +73,22 @@ impl GltfDocument {
     }
     pub fn accessor_index(&self, graph: &Graph, accessor: Accessor) -> Option<usize> {
         self.accessors(graph).iter().position(|a| *a == accessor)
+    }
+
+    pub fn animations(&self, graph: &Graph) -> Vec<Animation> {
+        self.edge_targets(graph, &DocumentEdge::Animation)
+    }
+    pub fn add_animation(&self, graph: &mut Graph, animation: Animation) {
+        self.add_edge_target(graph, DocumentEdge::Animation, animation);
+    }
+    pub fn remove_animation(&self, graph: &mut Graph, animation: Animation) {
+        self.remove_edge_target(graph, DocumentEdge::Animation, animation);
+    }
+    pub fn create_animation(&self, graph: &mut Graph) -> Animation {
+        self.create_edge_target(graph, DocumentEdge::Animation)
+    }
+    pub fn animation_index(&self, graph: &Graph, animation: Animation) -> Option<usize> {
+        self.animations(graph).iter().position(|a| *a == animation)
     }
 
     pub fn buffers(&self, graph: &Graph) -> Vec<Buffer> {
@@ -224,63 +240,109 @@ mod tests {
     }
 
     #[test]
-    fn test_index_methods() {
+    fn default_scene() {
+        let graph = &mut Graph::new();
+        let doc = GltfDocument::new(graph);
+
+        let scene = doc.create_scene(graph);
+        doc.set_default_scene(graph, Some(scene));
+        assert_eq!(doc.default_scene(graph), Some(scene));
+
+        doc.set_default_scene(graph, None);
+        assert_eq!(doc.default_scene(graph), None);
+    }
+
+    #[test]
+    fn test_property_methods() {
         let graph = &mut Graph::new();
         let doc = GltfDocument::new(graph);
 
         let a = doc.create_accessor(graph);
-        let a_2 = doc.create_accessor(graph);
+        let a_2 = Accessor::new(graph);
+        doc.add_accessor(graph, a_2);
+        assert_eq!(doc.accessors(graph), vec![a, a_2]);
         assert_eq!(doc.accessor_index(graph, a), Some(0));
         assert_eq!(doc.accessor_index(graph, a_2), Some(1));
         doc.remove_accessor(graph, a);
+        assert_eq!(doc.accessors(graph), vec![a_2]);
         assert_eq!(doc.accessor_index(graph, a), None);
         assert_eq!(doc.accessor_index(graph, a_2), Some(0));
 
+        let an = doc.create_animation(graph);
+        let an_2 = Animation::new(graph);
+        doc.add_animation(graph, an_2);
+        assert_eq!(doc.animations(graph), vec![an, an_2]);
+        assert_eq!(doc.animation_index(graph, an), Some(0));
+        assert_eq!(doc.animation_index(graph, an_2), Some(1));
+        doc.remove_animation(graph, an);
+        assert_eq!(doc.animations(graph), vec![an_2]);
+        assert_eq!(doc.animation_index(graph, an), None);
+        assert_eq!(doc.animation_index(graph, an_2), Some(0));
+
         let b = doc.create_buffer(graph);
-        let b_2 = doc.create_buffer(graph);
+        let b_2 = Buffer::new(graph);
+        doc.add_buffer(graph, b_2);
+        assert_eq!(doc.buffers(graph), vec![b, b_2]);
         assert_eq!(doc.buffer_index(graph, b), Some(0));
         assert_eq!(doc.buffer_index(graph, b_2), Some(1));
         doc.remove_buffer(graph, b);
+        assert_eq!(doc.buffers(graph), vec![b_2]);
         assert_eq!(doc.buffer_index(graph, b), None);
         assert_eq!(doc.buffer_index(graph, b_2), Some(0));
 
         let i = doc.create_image(graph);
-        let i_2 = doc.create_image(graph);
+        let i_2 = Image::new(graph);
+        doc.add_image(graph, i_2);
+        assert_eq!(doc.images(graph), vec![i, i_2]);
         assert_eq!(doc.image_index(graph, i), Some(0));
         assert_eq!(doc.image_index(graph, i_2), Some(1));
         doc.remove_image(graph, i);
+        assert_eq!(doc.images(graph), vec![i_2]);
         assert_eq!(doc.image_index(graph, i), None);
         assert_eq!(doc.image_index(graph, i_2), Some(0));
 
         let m = doc.create_material(graph);
-        let m_2 = doc.create_material(graph);
+        let m_2 = Material::new(graph);
+        doc.add_material(graph, m_2);
+        assert_eq!(doc.materials(graph), vec![m, m_2]);
         assert_eq!(doc.material_index(graph, m), Some(0));
         assert_eq!(doc.material_index(graph, m_2), Some(1));
         doc.remove_material(graph, m);
+        assert_eq!(doc.materials(graph), vec![m_2]);
         assert_eq!(doc.material_index(graph, m), None);
         assert_eq!(doc.material_index(graph, m_2), Some(0));
 
         let me = doc.create_mesh(graph);
-        let me_2 = doc.create_mesh(graph);
+        let me_2 = Mesh::new(graph);
+        doc.add_mesh(graph, me_2);
+        assert_eq!(doc.meshes(graph), vec![me, me_2]);
         assert_eq!(doc.mesh_index(graph, me), Some(0));
         assert_eq!(doc.mesh_index(graph, me_2), Some(1));
         doc.remove_mesh(graph, me);
+        assert_eq!(doc.meshes(graph), vec![me_2]);
         assert_eq!(doc.mesh_index(graph, me), None);
         assert_eq!(doc.mesh_index(graph, me_2), Some(0));
 
         let n = doc.create_node(graph);
-        let n_2 = doc.create_node(graph);
+        let n_2 = Node::new(graph);
+        doc.add_node(graph, n_2);
+        assert_eq!(doc.nodes(graph), vec![n, n_2]);
         assert_eq!(doc.node_index(graph, n), Some(0));
         assert_eq!(doc.node_index(graph, n_2), Some(1));
         doc.remove_node(graph, n);
+        assert_eq!(doc.nodes(graph), vec![n_2]);
         assert_eq!(doc.node_index(graph, n), None);
         assert_eq!(doc.node_index(graph, n_2), Some(0));
 
         let s = doc.create_scene(graph);
-        let s_2 = doc.create_scene(graph);
+        let s_2 = Scene::new(graph);
+        doc.add_scene(graph, s_2);
+        assert_eq!(doc.scenes(graph), vec![s, s_2]);
         assert_eq!(doc.scene_index(graph, s), Some(0));
         assert_eq!(doc.scene_index(graph, s_2), Some(1));
         doc.remove_scene(graph, s);
+        assert_eq!(doc.scenes(graph), vec![s_2]);
         assert_eq!(doc.scene_index(graph, s), None);
+        assert_eq!(doc.scene_index(graph, s_2), Some(0));
     }
 }

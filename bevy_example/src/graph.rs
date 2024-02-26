@@ -2,7 +2,8 @@ use bevy_gltf_kun::import::graph::GltfGraph;
 use egui_graphs::Graph;
 use gltf_kun::graph::{
     gltf::{
-        Accessor, Buffer, GltfDocument, GltfEdge, GltfWeight, Image, Material, Mesh, Node, Scene,
+        Accessor, Animation, Buffer, GltfDocument, GltfEdge, GltfWeight, Image, Material, Mesh,
+        Node, Scene,
     },
     Edge, Weight,
 };
@@ -74,6 +75,20 @@ pub fn create_graph(graph: &GltfGraph, settings: &GraphSettings) -> Graph<Weight
                     doc.accessor_index(&graph.0, Accessor(*idx)).unwrap()
                 )
             }),
+            Weight::Gltf(GltfWeight::Animation(a)) => a.name.clone().unwrap_or_else(|| {
+                format!(
+                    "Animation{}",
+                    doc.animation_index(&graph.0, Animation(*idx)).unwrap()
+                )
+            }),
+            Weight::Gltf(GltfWeight::AnimationChannel(c)) => c
+                .name
+                .clone()
+                .unwrap_or_else(|| "AnimationChannel".to_string()),
+            Weight::Gltf(GltfWeight::AnimationSampler(s)) => s
+                .name
+                .clone()
+                .unwrap_or_else(|| "AnimationSampler".to_string()),
             Weight::Gltf(GltfWeight::Buffer(b)) => b.name.clone().unwrap_or_else(|| {
                 format!(
                     "Buffer{}",
@@ -130,13 +145,16 @@ pub fn create_graph(graph: &GltfGraph, settings: &GraphSettings) -> Graph<Weight
 
         let label = match egui_edge.payload() {
             Edge::Gltf(GltfEdge::Accessor(e)) => format!("{:?}", e),
+            Edge::Gltf(GltfEdge::Animation(e)) => format!("{:?}", e),
+            Edge::Gltf(GltfEdge::AnimationChannel(e)) => format!("{:?}", e),
+            Edge::Gltf(GltfEdge::AnimationSampler(e)) => format!("{:?}", e),
+            Edge::Gltf(GltfEdge::Document(e)) => format!("{:?}", e),
             Edge::Gltf(GltfEdge::Image(e)) => format!("{:?}", e),
+            Edge::Gltf(GltfEdge::Material(e)) => format!("{:?}", e),
             Edge::Gltf(GltfEdge::Mesh(e)) => format!("{:?}", e),
             Edge::Gltf(GltfEdge::Node(e)) => format!("{:?}", e),
-            Edge::Gltf(GltfEdge::Scene(e)) => format!("{:?}", e),
-            Edge::Gltf(GltfEdge::Document(e)) => format!("{:?}", e),
-            Edge::Gltf(GltfEdge::Material(e)) => format!("{:?}", e),
             Edge::Gltf(GltfEdge::Primitive(e)) => format!("{:?}", e),
+            Edge::Gltf(GltfEdge::Scene(e)) => format!("{:?}", e),
             Edge::Gltf(GltfEdge::TextureInfo(e)) => format!("{:?}", e),
 
             Edge::Glxf(e) => format!("{:?}", e),
