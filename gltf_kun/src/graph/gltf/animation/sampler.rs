@@ -5,6 +5,8 @@ use crate::graph::{
     Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight,
 };
 
+pub use gltf::animation::Interpolation;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum AnimationSamplerEdge {
     Input,
@@ -29,17 +31,8 @@ impl From<AnimationSamplerEdge> for Edge {
 
 #[derive(Clone, Debug, Default)]
 pub struct AnimationSamplerWeight {
-    pub name: Option<String>,
     pub extras: gltf::json::Extras,
-
     pub interpolation: Option<Interpolation>,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Interpolation {
-    CubicSpline,
-    Linear,
-    Step,
 }
 
 impl From<AnimationSamplerWeight> for Weight {

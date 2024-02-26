@@ -81,14 +81,8 @@ pub fn create_graph(graph: &GltfGraph, settings: &GraphSettings) -> Graph<Weight
                     doc.animation_index(&graph.0, Animation(*idx)).unwrap()
                 )
             }),
-            Weight::Gltf(GltfWeight::AnimationChannel(c)) => c
-                .name
-                .clone()
-                .unwrap_or_else(|| "AnimationChannel".to_string()),
-            Weight::Gltf(GltfWeight::AnimationSampler(s)) => s
-                .name
-                .clone()
-                .unwrap_or_else(|| "AnimationSampler".to_string()),
+            Weight::Gltf(GltfWeight::AnimationChannel(_)) => "AnimationChannel".to_string(),
+            Weight::Gltf(GltfWeight::AnimationSampler(_)) => "AnimationSampler".to_string(),
             Weight::Gltf(GltfWeight::Buffer(b)) => b.name.clone().unwrap_or_else(|| {
                 format!(
                     "Buffer{}",

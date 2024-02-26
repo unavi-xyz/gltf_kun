@@ -5,7 +5,10 @@ use tracing::{debug, error, warn};
 
 use crate::{
     graph::{
-        gltf::{document::GltfDocument, image::Image, texture_info::TextureInfo},
+        gltf::{
+            animation::AnimationSampler, document::GltfDocument, image::Image,
+            texture_info::TextureInfo,
+        },
         Graph, GraphNodeWeight,
     },
     io::resolver::{DataUriResolver, Resolver},
@@ -403,7 +406,51 @@ pub async fn import(
         }
     }
 
-    // TODO: Create animations
+    // Create animtions
+    for a in format.json.animations.iter_mut() {
+        let mut animation = doc.create_animation(graph);
+
+        let weight = animation.get_mut(graph);
+        weight.name = a.name.clone();
+        weight.extras = a.extras.clone();
+
+        let samplers = a
+            .samplers
+            .iter()
+            .map(|s| {
+                let mut sampler = AnimationSampler::new(graph);
+
+                let weight = sampler.get_mut(graph);
+                weight.extras = s.extras.clone();
+                weight.interpolation = Some(s.interpolation.unwrap());
+
+                let input_idx = s.input.value();
+                let input = accessors[input_idx];
+                sampler.set_input(graph, Some(input));
+
+                let output_idx = s.output.value();
+                let output = accessors[output_idx];
+                sampler.set_output(graph, Some(output));
+
+                sampler
+            })
+            .collect::<Vec<_>>();
+
+        a.channels.iter().for_each(|c| {
+            let mut channel = animation.create_channel(graph);
+            let c_weight = channel.get_mut(graph);
+
+            c_weight.extras = c.extras.clone();
+            c_weight.path = c.target.path.unwrap();
+
+            let node = nodes[c.target.node.value()];
+            channel.set_target(graph, Some(node));
+
+            let sampler_idx = c.sampler.value();
+            let sampler = &samplers[sampler_idx];
+            channel.set_sampler(graph, Some(*sampler));
+        });
+    }
 
     Ok(doc)
 }

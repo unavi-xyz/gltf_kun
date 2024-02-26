@@ -7,6 +7,8 @@ use crate::graph::{
 
 use super::{AnimationSampler, GltfWeight};
 
+pub use gltf::animation::Property as TargetPath;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum AnimationChannelEdge {
     Sampler,
@@ -29,21 +31,19 @@ impl From<AnimationChannelEdge> for Edge {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct AnimationChannelWeight {
-    pub name: Option<String>,
     pub extras: gltf::json::Extras,
-
     pub path: TargetPath,
 }
 
-#[derive(Clone, Copy, Default, Debug, PartialEq, Eq)]
-pub enum TargetPath {
-    Rotation,
-    Scale,
-    #[default]
-    Translation,
-    Weights,
+impl Default for AnimationChannelWeight {
+    fn default() -> Self {
+        Self {
+            extras: Default::default(),
+            path: TargetPath::Translation,
+        }
+    }
 }
 
 impl From<AnimationChannelWeight> for Weight {
