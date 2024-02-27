@@ -172,6 +172,7 @@ fn ui(
     bevy_egui::egui::Window::new("Controls").show(contexts.ctx_mut(), |ui| {
         ui.label("Click and drag to orbit camera");
         ui.label("Scroll to zoom camera");
+        #[cfg(not(target_family = "wasm"))]
         ui.label("Press 'e' to test export");
         ui.label("Press 'r' to re-load the scene");
 
