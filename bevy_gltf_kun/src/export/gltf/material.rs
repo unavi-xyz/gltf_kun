@@ -1,0 +1,196 @@
+use bevy::{
+    prelude::*,
+    render::texture::{ImageAddressMode, ImageFilterMode, ImageSampler},
+};
+use gltf_kun::graph::{
+    gltf::{
+        material::{AlphaCutoff, AlphaMode},
+        texture_info::{MagFilter, MinFilter, WrappingMode},
+        TextureInfo,
+    },
+    GraphNodeWeight,
+};
+
+use super::{CachedMaterial, ExportContext};
+
+pub fn export_materials(
+    In(mut context): In<ExportContext>,
+    material_assets: Res<Assets<StandardMaterial>>,
+    materials: Query<(&Handle<StandardMaterial>, Option<&Name>)>,
+    image_assets: Res<Assets<Image>>,
+) -> ExportContext {
+    for mesh in context.doc.meshes(&context.graph) {
+        let cached_mesh = context
+            .meshes
+            .iter()
+            .find(|cached| cached.mesh == mesh)
+            .unwrap();
+
+        let primitives = cached_mesh.primitives.clone();
+
+        for (entity, primitive) in &primitives {
+            let (handle, name) = match materials.get(*entity) {
+                Ok(m) => m,
+                Err(_) => continue,
+            };
+
+            let cached_material = context
+                .materials
+                .iter()
+                .find(|cached| cached.bevy_material == *handle);
+
+            let material = match cached_material {
+                Some(cached) => cached.material,
+                None => {
+                    let standard_material = material_assets.get(handle).unwrap();
+
+                    let mut material = context.doc.create_material(&mut context.graph);
+                    let weight = material.get_mut(&mut context.graph);
+
+                    weight.name = name.map(|n| n.to_string());
+                    weight.double_sided = standard_material.double_sided;
+                    weight.metallic_factor = standard_material.metallic;
+                    weight.roughness_factor = standard_material.perceptual_roughness;
+                    weight.base_color_factor =
+                        standard_material.base_color.rgba_linear_to_vec4().into();
+                    weight.emissive_factor = standard_material.emissive.rgb_linear_to_vec3().into();
+
+                    let alpha_mode = match standard_material.alpha_mode {
+                        bevy::prelude::AlphaMode::Blend => AlphaMode::Blend,
+                        bevy::prelude::AlphaMode::Mask(cutoff) => {
+                            weight.alpha_cutoff = AlphaCutoff(cutoff);
+                            AlphaMode::Mask
+                        }
+                        bevy::prelude::AlphaMode::Opaque => AlphaMode::Opaque,
+                        _ => {
+                            warn!("Unsupported alpha mode: {:?}", standard_material.alpha_mode);
+                            AlphaMode::Opaque
+                        }
+                    };
+                    weight.alpha_mode = alpha_mode;
+
+                    let base_color_texture = export_texture(
+                        &mut context,
+                        &standard_material.base_color_texture,
+                        &image_assets,
+                    );
+                    material.set_base_color_texture_info(&mut context.graph, base_color_texture);
+
+                    let emissive_texture = export_texture(
+                        &mut context,
+                        &standard_material.emissive_texture,
+                        &image_assets,
+                    );
+                    material.set_emissive_texture_info(&mut context.graph, emissive_texture);
+
+                    let metallic_roughness_texture = export_texture(
+                        &mut context,
+                        &standard_material.metallic_roughness_texture,
+                        &image_assets,
+                    );
+                    material.set_metallic_roughness_texture_info(
+                        &mut context.graph,
+                        metallic_roughness_texture,
+                    );
+
+                    let normal_texture = export_texture(
+                        &mut context,
+                        &standard_material.normal_map_texture,
+                        &image_assets,
+                    );
+                    material.set_normal_texture_info(&mut context.graph, normal_texture);
+
+                    let occlusion_texture = export_texture(
+                        &mut context,
+                        &standard_material.occlusion_texture,
+                        &image_assets,
+                    );
+                    material.set_occlusion_texture_info(&mut context.graph, occlusion_texture);
+
+                    context.materials.push(CachedMaterial {
+                        bevy_material: handle.clone(),
+                        entity: *entity,
+                        material,
+                    });
+
+                    material
+                }
+            };
+
+            primitive.set_material(&mut context.graph, Some(material));
+        }
+    }
+
+    context
+}
+
+fn export_texture(
+    context: &mut ExportContext,
+    texture: &Option<Handle<Image>>,
+    image_assets: &Res<Assets<Image>>,
+) -> Option<TextureInfo> {
+    let handle = match texture {
+        Some(handle) => handle,
+        None => return None,
+    };
+
+    let bevy_image = image_assets.get(handle).unwrap();
+
+    let mut image = context.doc.create_image(&mut context.graph);
+    let image_weight = image.get_mut(&mut context.graph);
+    image_weight.data = bevy_image.data.clone();
+
+    // Try to guess the mime type from the data.
+    match image::guess_format(&bevy_image.data) {
+        Ok(format) => {
+            image_weight.mime_type = Some(format.to_mime_type().to_string());
+        }
+        Err(e) => {
+            warn!("Failed to guess mime type for image: {}", e);
+        }
+    }
+
+    let mut info = TextureInfo::new(&mut context.graph);
+    info.set_image(&mut context.graph, Some(image));
+
+    let info_weight = info.get_mut(&mut context.graph);
+
+    match &bevy_image.sampler {
+        ImageSampler::Default => {
+            info_weight.wrap_s = WrappingMode::ClampToEdge;
+            info_weight.wrap_t = WrappingMode::ClampToEdge;
+        }
+        ImageSampler::Descriptor(desc) => {
+            info_weight.wrap_s = address_mode(&desc.address_mode_u);
+            info_weight.wrap_t = address_mode(&desc.address_mode_v);
+
+            info_weight.mag_filter = Some(match desc.mag_filter {
+                ImageFilterMode::Linear => MagFilter::Linear,
+                ImageFilterMode::Nearest => MagFilter::Nearest,
+            });
+
+            info_weight.min_filter = Some(match desc.min_filter {
+                ImageFilterMode::Linear => match desc.mipmap_filter {
+                    ImageFilterMode::Linear => MinFilter::LinearMipmapLinear,
+                    ImageFilterMode::Nearest => MinFilter::LinearMipmapNearest,
+                },
+                ImageFilterMode::Nearest => match desc.mipmap_filter {
+                    ImageFilterMode::Linear => MinFilter::NearestMipmapLinear,
+                    ImageFilterMode::Nearest => MinFilter::NearestMipmapNearest,
+                },
+            });
+        }
+    };
+
+    Some(info)
+}
+
+fn address_mode(value: &ImageAddressMode) -> WrappingMode {
+    match value {
+        ImageAddressMode::ClampToBorder | ImageAddressMode::ClampToEdge => {
+            WrappingMode::ClampToEdge
+        }
+        ImageAddressMode::MirrorRepeat => WrappingMode::MirroredRepeat,
+        ImageAddressMode::Repeat => WrappingMode::Repeat,
+    }
+}

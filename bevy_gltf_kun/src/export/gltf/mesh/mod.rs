@@ -1,12 +1,15 @@
 use bevy::prelude::*;
-use gltf_kun::graph::{gltf::node, GraphNodeWeight};
+use gltf_kun::graph::{
+    gltf::{node, Primitive},
+    GraphNodeWeight,
+};
 
 use self::primitive::export_primitive;
 
 use super::{CachedMesh, ExportContext};
 
-pub mod primitive;
-pub mod vertex_to_accessor;
+mod primitive;
+mod vertex_to_accessor;
 
 pub fn export_meshes(
     In(mut context): In<ExportContext>,
@@ -105,27 +108,30 @@ fn export_node_mesh(
         // Create new mesh.
         let mut mesh = context.doc.create_mesh(&mut context.graph);
 
-        primitive_ents.iter().for_each(|ent| {
-            let (handle, name) = meshes.get(*ent).unwrap();
+        let primitives = primitive_ents
+            .iter()
+            .map(|ent| -> (Entity, Primitive) {
+                let (handle, name) = meshes.get(*ent).unwrap();
 
-            let weight = mesh.get_mut(&mut context.graph);
-            if weight.name.is_none() {
-                weight.name = name.map(|name| name.to_string());
-            }
-
-            let bevy_mesh = match mesh_assets.get(handle) {
-                Some(mesh) => mesh,
-                None => {
-                    error!("Mesh not found: {:?}", handle);
-                    return;
+                let weight = mesh.get_mut(&mut context.graph);
+                if weight.name.is_none() {
+                    weight.name = name.map(|name| name.to_string());
                 }
-            };
 
-            let primitive = export_primitive(context, bevy_mesh);
-            mesh.add_primitive(&mut context.graph, &primitive);
+                let bevy_mesh = mesh_assets.get(handle).unwrap();
+
+                let primitive = export_primitive(context, bevy_mesh);
+                mesh.add_primitive(&mut context.graph, &primitive);
+
+                (*ent, primitive)
+            })
+            .collect::<Vec<_>>();
+
+        context.meshes.push(CachedMesh {
+            bevy_meshes,
+            mesh,
+            primitives,
         });
-
-        context.meshes.push(CachedMesh { mesh, bevy_meshes });
 
         node.set_mesh(&mut context.graph, Some(mesh));
     }

@@ -61,16 +61,26 @@ pub fn load_texture(
     let image_type = match image_weight.mime_type.as_deref() {
         Some(mime_type) => ImageType::MimeType(mime_type),
         None => match &image_weight.uri {
-            Some(uri) => match uri.split('.').last() {
-                Some(ext) => ImageType::Extension(ext),
-                None => {
+            Some(uri) => {
+                if !uri.contains('.') {
                     warn!(
                         "No extension found for image uri, defaulting to {}.",
                         DEFAULT_MIME
                     );
                     ImageType::MimeType(DEFAULT_MIME)
+                } else {
+                    match uri.split('.').last() {
+                        Some(ext) => ImageType::Extension(ext),
+                        None => {
+                            warn!(
+                                "No extension found for image uri, defaulting to {}.",
+                                DEFAULT_MIME
+                            );
+                            ImageType::MimeType(DEFAULT_MIME)
+                        }
+                    }
                 }
-            },
+            }
             None => {
                 warn!(
                     "No mime type or uri found for image, defaulting to {}.",

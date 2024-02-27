@@ -38,17 +38,17 @@ impl<E: BevyImportExtensions<GltfDocument>> Default for GltfLoader<E> {
 
 #[derive(Debug, Error)]
 pub enum GltfError {
-    #[error("failed to load asset from an asset path: {0}")]
+    #[error("Failed to load asset from an asset path: {0}")]
     AssetLoadError(#[from] AssetLoadError),
-    #[error("failed to import into bevy: {0}")]
+    #[error("Failed to import into bevy: {0}")]
     Bevy(#[from] DocumentImportError),
-    #[error("failed to import gltf: {0}")]
+    #[error("Failed to import gltf: {0}")]
     Import(#[from] GltfImportError),
-    #[error("failed to load file: {0}")]
+    #[error("Failed to load file: {0}")]
     Io(#[from] std::io::Error),
-    #[error("failed to read bytes from an asset path: {0}")]
+    #[error("Failed to read bytes from an asset path: {0}")]
     ReadAssetBytesError(#[from] ReadAssetBytesError),
-    #[error("failed to parse gltf: {0}")]
+    #[error("Failed to parse gltf: {0}")]
     SerdeJson(#[from] serde_json::Error),
 }
 
@@ -116,11 +116,11 @@ impl<E: BevyImportExtensions<GltfDocument>> Default for GlbLoader<E> {
 
 #[derive(Debug, Error)]
 pub enum GlbError {
-    #[error("failed to import into bevy: {0}")]
+    #[error("Failed to import into bevy: {0}")]
     Bevy(#[from] DocumentImportError),
-    #[error("failed to import glb: {0}")]
+    #[error("Failed to import glb: {0}")]
     Import(#[from] GlbImportError),
-    #[error("failed to load file: {0}")]
+    #[error("Failed to load file: {0}")]
     Io(#[from] std::io::Error),
 }
 

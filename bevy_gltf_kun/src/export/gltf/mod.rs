@@ -67,6 +67,7 @@ pub struct ExportContext {
     pub target_scenes: Vec<Handle<Scene>>,
     pub target_default_scene: Option<Handle<Scene>>,
 
+    pub materials: Vec<CachedMaterial>,
     pub meshes: Vec<CachedMesh>,
     pub nodes: Vec<CachedNode>,
     pub scenes: Vec<CachedScene>,
@@ -84,6 +85,7 @@ impl ExportContext {
             target_scenes: event.scenes,
             target_default_scene: event.default_scene,
 
+            materials: Vec::new(),
             meshes: Vec::new(),
             nodes: Vec::new(),
             scenes: Vec::new(),
@@ -91,14 +93,20 @@ impl ExportContext {
     }
 }
 
+pub struct CachedMaterial {
+    pub material: gltf::Material,
+    pub entity: Entity,
+    pub bevy_material: Handle<StandardMaterial>,
+}
+
 pub struct CachedMesh {
-    pub mesh: gltf::mesh::Mesh,
-    /// Corresponding Bevy mesh handles used to create this mesh.
+    pub mesh: gltf::Mesh,
+    pub primitives: Vec<(Entity, gltf::Primitive)>,
     pub bevy_meshes: Vec<Handle<Mesh>>,
 }
 
 pub struct CachedNode {
-    pub node: gltf::node::Node,
+    pub node: gltf::Node,
     pub entity: Entity,
 }
 
@@ -128,6 +136,7 @@ pub fn export_gltf<E: BevyExportExtensions<GltfDocument>>(
         scene::export_scenes
             .pipe(node::export_nodes)
             .pipe(mesh::export_meshes)
+            .pipe(material::export_materials)
             .pipe(E::bevy_export)
             .pipe(create_export_result),
     );
