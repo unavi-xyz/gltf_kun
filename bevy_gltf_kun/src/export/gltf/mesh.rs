@@ -57,6 +57,7 @@ fn export_node_mesh(
             return true;
         }
 
+        // Valid child nodes have a mesh.
         let cached = context
             .nodes
             .iter()
@@ -70,7 +71,7 @@ fn export_node_mesh(
         // Child is a valid primitive.
         primitive_ents.push(cached.entity);
 
-        // Remove the node, since it's now a primitive.
+        // Remove the node, since it is now a primitive.
         context.graph.remove_node(cached.node.0);
         context.nodes.retain(|cached| cached.node != *child);
 
