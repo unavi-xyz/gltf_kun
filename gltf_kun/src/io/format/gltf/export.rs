@@ -316,10 +316,15 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                         })
                         .collect::<BTreeMap<_, _>>();
 
+                    let material = p
+                        .material(graph)
+                        .and_then(|material| material_idxs.get(&material.0))
+                        .map(|idx| Index::new(*idx as u32));
+
                     gltf::json::mesh::Primitive {
                         attributes,
                         indices,
-                        material: None,
+                        material,
                         mode: Checked::Valid(weight.mode),
                         targets: None,
                         extensions: None,
