@@ -26,9 +26,7 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
 ) -> Handle<GltfNode> {
     let index = context.doc.node_index(context.graph, *n).unwrap();
     let weight = n.get_mut(context.graph);
-    let node_label = node_label(index);
 
-    let has_name = weight.name.is_some();
     let extras = weight.extras.take();
     let transform = Transform {
         translation: Vec3::from_array(weight.translation.to_array()),
@@ -38,9 +36,8 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
 
     let mut ent = builder.spawn(SpatialBundle::from_transform(transform));
 
-    if let Some(name) = &weight.name {
-        ent.insert(Name::new(name.clone()));
-    }
+    let name = node_name(context, *n);
+    ent.insert(Name::new(name.clone()));
 
     if let Some(ref mut mesh) = n.mesh(context.graph) {
         ent.with_children(|parent| import_mesh(context, parent, *mesh));
@@ -62,20 +59,26 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
         extras,
     };
 
+    let node_label = node_label(index);
     let handle = context
         .load_context
         .add_labeled_asset(node_label.clone(), node);
 
     context.gltf.nodes.insert(index, handle.clone());
     context.gltf.node_entities.insert(handle.clone(), ent.id());
-
-    if has_name {
-        context.gltf.named_nodes.insert(node_label, handle.clone());
-    }
+    context.gltf.named_nodes.insert(name, handle.clone());
 
     E::import_node(context, &mut ent, *n);
 
     handle
+}
+
+pub fn node_name(context: &ImportContext, node: Node) -> String {
+    let weight = node.get(context.graph);
+    weight
+        .name
+        .clone()
+        .unwrap_or_else(|| node_label(context.doc.node_index(context.graph, node).unwrap()))
 }
 
 fn node_label(index: usize) -> String {

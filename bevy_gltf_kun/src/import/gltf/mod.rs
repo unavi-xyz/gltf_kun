@@ -10,6 +10,7 @@ use self::{
     node::GltfNode,
 };
 
+pub mod animation;
 pub mod document;
 pub mod loader;
 pub mod material;
@@ -37,6 +38,7 @@ impl Plugin for GltfImportPlugin {
 
 #[derive(Asset, Debug, Default, TypePath)]
 pub struct GltfKun {
+    pub animations: Vec<Handle<AnimationClip>>,
     pub default_scene: Option<Handle<Scene>>,
     pub images: Vec<Handle<Image>>,
     pub materials: Vec<Handle<StandardMaterial>>,
@@ -44,6 +46,7 @@ pub struct GltfKun {
     pub nodes: Vec<Handle<GltfNode>>,
     pub scenes: Vec<Handle<Scene>>,
 
+    pub named_animations: HashMap<String, Handle<AnimationClip>>,
     pub named_materials: HashMap<String, Handle<StandardMaterial>>,
     pub named_meshes: HashMap<String, Handle<GltfMesh>>,
     pub named_nodes: HashMap<String, Handle<GltfNode>>,

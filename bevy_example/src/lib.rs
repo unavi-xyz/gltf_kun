@@ -1,6 +1,9 @@
 use std::{fmt::Display, path::Path};
 
-use bevy::{core::FrameCount, gltf::Gltf, pbr::CascadeShadowConfigBuilder, prelude::*};
+use bevy::{
+    animation::RepeatAnimation, core::FrameCount, gltf::Gltf, pbr::CascadeShadowConfigBuilder,
+    prelude::*,
+};
 use bevy_egui::{egui::ComboBox, EguiContexts, EguiPlugin};
 use bevy_gltf_kun::{
     export::gltf::{GltfExport, GltfExportResult},
@@ -66,6 +69,7 @@ impl Plugin for ExamplePlugin {
                 (load_scene, load_model).chain(),
                 export,
                 reload,
+                play_animations,
                 get_result,
             ),
         );
@@ -419,6 +423,28 @@ fn load_scene(
         };
 
         commands.spawn(SceneBundle { scene, ..default() });
+    }
+}
+
+fn play_animations(
+    mut players: Query<&mut AnimationPlayer>,
+    gltf_assets: Res<Assets<Gltf>>,
+    gltf_kun_assets: Res<Assets<GltfKun>>,
+) {
+    for mut player in players.iter_mut() {
+        player.set_repeat(RepeatAnimation::Forever);
+
+        for (_, gltf) in gltf_assets.iter() {
+            for clip in gltf.animations.iter() {
+                player.play(clip.clone());
+            }
+        }
+
+        for (_, gltf) in gltf_kun_assets.iter() {
+            for clip in gltf.animations.iter() {
+                player.play(clip.clone());
+            }
+        }
     }
 }
 

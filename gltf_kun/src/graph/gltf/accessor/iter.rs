@@ -4,7 +4,7 @@ use byteorder::{ByteOrder, LE};
 use gltf::json::accessor::{ComponentType, Type};
 use thiserror::Error;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 pub enum AccessorIter<'a> {
     F32(ElementIter<'a, f32>),
     F32x2(ElementIter<'a, [f32; 2]>),

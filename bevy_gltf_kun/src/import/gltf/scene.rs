@@ -1,18 +1,19 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, utils::HashMap};
 use gltf_kun::graph::{
-    gltf::{
-        document::GltfDocument,
-        scene::{self},
-    },
+    gltf::{document::GltfDocument, scene, Node},
     GraphNodeWeight,
 };
 
 use crate::import::extensions::BevyImportExtensions;
 
-use super::{document::ImportContext, node::import_node};
+use super::{
+    document::ImportContext,
+    node::{import_node, node_name},
+};
 
 pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
+    animation_paths: &HashMap<Node, (Node, Vec<Name>)>,
     s: scene::Scene,
 ) -> Handle<Scene> {
     let mut world = World::default();
@@ -24,6 +25,16 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
                 import_node::<E>(context, parent, &mut node);
             }
         });
+
+    for node in s.nodes(context.graph) {
+        if is_animation_root(animation_paths, node) {
+            let name = node_name(context, node);
+            let handle = context.gltf.named_nodes.get(&name).unwrap();
+            let entity = context.gltf.node_entities.get(handle).unwrap();
+
+            world.entity_mut(*entity).insert(AnimationPlayer::default());
+        }
+    }
 
     let scene = Scene { world };
 
@@ -43,6 +54,10 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
     }
 
     handle
+}
+
+fn is_animation_root(paths: &HashMap<Node, (Node, Vec<Name>)>, node: Node) -> bool {
+    paths.iter().any(|(_, (parent, _))| parent == &node)
 }
 
 fn scene_label(index: usize) -> String {
