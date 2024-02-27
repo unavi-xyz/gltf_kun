@@ -466,7 +466,6 @@ async fn resolve_uri(uri: &str, resolver: &mut Option<impl Resolver>) -> Option<
     let resolver = match resolver {
         Some(r) => r,
         None => {
-            warn!("No resolver provided");
             return None;
         }
     };
