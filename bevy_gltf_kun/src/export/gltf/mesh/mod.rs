@@ -1,7 +1,12 @@
 use bevy::prelude::*;
 use gltf_kun::graph::{gltf::node, GraphNodeWeight};
 
-use super::{primitive::export_primitive, CachedMesh, ExportContext};
+use self::primitive::export_primitive;
+
+use super::{CachedMesh, ExportContext};
+
+pub mod primitive;
+pub mod vertex_to_accessor;
 
 pub fn export_meshes(
     In(mut context): In<ExportContext>,

@@ -9,11 +9,10 @@ use thiserror::Error;
 
 use super::extensions::BevyExportExtensions;
 
+pub mod material;
 pub mod mesh;
 pub mod node;
-pub mod primitive;
 pub mod scene;
-pub mod vertex_to_accessor;
 
 pub struct GltfExportPlugin<E: BevyExportExtensions<GltfDocument>> {
     _marker: PhantomData<E>,
