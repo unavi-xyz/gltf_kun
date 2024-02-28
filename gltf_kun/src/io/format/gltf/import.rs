@@ -378,8 +378,6 @@ pub async fn import(
             });
         });
 
-    // TODO: Create skins
-
     // Create scenes
     let scenes = format
         .json
@@ -406,6 +404,36 @@ pub async fn import(
     if let Some(index) = format.json.scene {
         if let Some(scene) = scenes.get(index.value()) {
             doc.set_default_scene(graph, Some(*scene));
+        }
+    }
+
+    // Create skins
+    for s in format.json.skins.iter_mut() {
+        let mut skin = doc.create_skin(graph);
+
+        let weight = skin.get_mut(graph);
+        weight.name = s.name.clone();
+        weight.extras = s.extras.clone();
+
+        if let Some(inverse_bind_matrices) = s.inverse_bind_matrices {
+            if let Some(accessor) = accessors.get(inverse_bind_matrices.value()) {
+                skin.set_inverse_bind_matrices(graph, Some(*accessor));
+            }
+        }
+
+        if let Some(skeleton) = s.skeleton {
+            if let Some(node) = nodes.get(skeleton.value()) {
+                skin.set_skeleton(graph, Some(*node));
+            }
+        }
+
+        for joint in s
+            .joints
+            .iter()
+            .map(|j| j.value())
+            .filter_map(|i| nodes.get(i))
+        {
+            skin.add_joint(graph, joint);
         }
     }
 

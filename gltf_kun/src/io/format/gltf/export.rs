@@ -413,8 +413,6 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
         };
     });
 
-    // TODO: Create skins
-
     // Create scenes
     json.scenes = doc
         .scenes(graph)
@@ -446,6 +444,42 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
     if let Some(scene) = doc.default_scene(graph) {
         json.scene = scene_idxs.get(&scene.0).map(|idx| Index::new(*idx as u32));
     }
+
+    // Create skins
+    json.skins = doc
+        .skins(graph)
+        .iter_mut()
+        .map(|skin| {
+            let weight = skin.get(graph);
+
+            let inverse_bind_matrices = skin
+                .inverse_bind_matrices(graph)
+                .and_then(|accessor| accessor_idxs.get(&accessor.0))
+                .map(|idx| Index::new(*idx as u32));
+
+            let skeleton = skin
+                .skeleton(graph)
+                .and_then(|node| node_idxs.get(&node.0))
+                .map(|idx| Index::new(*idx as u32));
+
+            let joints = skin
+                .joints(graph)
+                .iter()
+                .filter_map(|joint| node_idxs.get(&joint.0))
+                .map(|idx| Index::new(*idx as u32))
+                .collect::<Vec<_>>();
+
+            gltf::json::skin::Skin {
+                name: weight.name.clone(),
+                extras: weight.extras.clone(),
+                extensions: None,
+
+                inverse_bind_matrices,
+                skeleton,
+                joints,
+            }
+        })
+        .collect::<Vec<_>>();
 
     // Create animations
     json.animations =

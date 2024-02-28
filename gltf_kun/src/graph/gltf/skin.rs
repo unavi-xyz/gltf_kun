@@ -30,6 +30,7 @@ impl From<SkinEdge> for Edge {
 #[derive(Clone, Debug, Default)]
 pub struct SkinWeight {
     pub extras: gltf::json::Extras,
+    pub name: Option<String>,
 }
 
 impl From<SkinWeight> for Weight {

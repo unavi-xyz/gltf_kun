@@ -95,9 +95,9 @@ pub fn create_graph(graph: &GltfGraph, settings: &GraphSettings) -> Graph<Weight
             Weight::Gltf(GltfWeight::Scene(s)) => s.name.clone().unwrap_or_else(|| {
                 format!("Scene{}", doc.scene_index(&graph.0, Scene(*idx)).unwrap())
             }),
-            Weight::Gltf(GltfWeight::Skin(_)) => {
+            Weight::Gltf(GltfWeight::Skin(s)) => s.name.clone().unwrap_or_else(|| {
                 format!("Skin{}", doc.skin_index(&graph.0, Skin(*idx)).unwrap())
-            }
+            }),
             Weight::Gltf(GltfWeight::Image(i)) => i.name.clone().unwrap_or_else(|| {
                 format!("Image{}", doc.image_index(&graph.0, Image(*idx)).unwrap())
             }),
