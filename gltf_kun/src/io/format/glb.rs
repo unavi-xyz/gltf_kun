@@ -76,8 +76,13 @@ impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GlbIO<E> {
 
         // Set the buffer for all images to the first buffer.
         for image in doc.images(graph) {
-            let buffer = buffers.first().unwrap();
-            image.set_buffer(graph, Some(*buffer));
+            let buffer = if buffers.is_empty() {
+                doc.create_buffer(graph)
+            } else {
+                *buffers.first().unwrap()
+            };
+
+            image.set_buffer(graph, Some(buffer));
         }
 
         let gltf = GltfIO::<E>::export(graph, doc)?;
@@ -138,5 +143,83 @@ impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GlbIO<E> {
         let doc = GltfIO::<E>::import(graph, format, None::<DataUriResolver>).await?;
 
         Ok(doc)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{extensions::DefaultExtensions, graph::GraphNodeWeight};
+
+    use super::*;
+
+    #[tokio::test]
+    async fn test_multiple_buffers() {
+        let mut graph = Graph::new();
+        let doc = GltfDocument::new(&mut graph);
+
+        doc.create_buffer(&mut graph);
+        doc.create_buffer(&mut graph);
+        doc.create_buffer(&mut graph);
+
+        let glb = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
+        let gltf = GlbIO::<DefaultExtensions>::import_slice(&mut graph, &glb.0)
+            .await
+            .unwrap();
+
+        assert_eq!(gltf.buffers(&graph).len(), 1);
+    }
+
+    #[tokio::test]
+    async fn test_set_image_buffer() {
+        let mut graph = Graph::new();
+        let doc = GltfDocument::new(&mut graph);
+
+        {
+            doc.create_buffer(&mut graph);
+
+            let mut image = doc.create_image(&mut graph);
+            let image_weight = image.get_mut(&mut graph);
+            image_weight.data = vec![0, 1, 2, 3];
+        }
+
+        let glb = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
+        let gltf = GlbIO::<DefaultExtensions>::import_slice(&mut graph, &glb.0)
+            .await
+            .unwrap();
+
+        assert_eq!(gltf.buffers(&graph).len(), 1);
+
+        let buffer = *gltf.buffers(&graph).first().unwrap();
+        let image = *gltf.images(&graph).first().unwrap();
+        assert_eq!(image.buffer(&graph), Some(buffer));
+
+        let image_weight = image.get(&graph);
+        assert_eq!(image_weight.data, vec![0, 1, 2, 3]);
+    }
+
+    #[tokio::test]
+    async fn test_no_buffer() {
+        let mut graph = Graph::new();
+        let doc = GltfDocument::new(&mut graph);
+
+        {
+            let mut image = doc.create_image(&mut graph);
+            let image_weight = image.get_mut(&mut graph);
+            image_weight.data = vec![0, 1, 2, 3];
+        }
+
+        let glb = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
+        let gltf = GlbIO::<DefaultExtensions>::import_slice(&mut graph, &glb.0)
+            .await
+            .unwrap();
+
+        assert_eq!(gltf.buffers(&graph).len(), 1);
+
+        let buffer = *gltf.buffers(&graph).first().unwrap();
+        let image = *gltf.images(&graph).first().unwrap();
+        assert_eq!(image.buffer(&graph), Some(buffer));
+
+        let image_weight = image.get(&graph);
+        assert_eq!(image_weight.data, vec![0, 1, 2, 3]);
     }
 }
