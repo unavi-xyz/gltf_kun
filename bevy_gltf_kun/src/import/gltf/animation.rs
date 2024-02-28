@@ -38,10 +38,9 @@ pub fn import_animation(
         let sampler_weight = sampler.get(context.graph);
 
         let interpolation = match sampler_weight.interpolation {
-            Some(Interpolation::CubicSpline) => bevy::animation::Interpolation::CubicSpline,
-            Some(Interpolation::Linear) => bevy::animation::Interpolation::Linear,
-            Some(Interpolation::Step) => bevy::animation::Interpolation::Step,
-            None => bevy::animation::Interpolation::Linear,
+            Interpolation::CubicSpline => bevy::animation::Interpolation::CubicSpline,
+            Interpolation::Linear => bevy::animation::Interpolation::Linear,
+            Interpolation::Step => bevy::animation::Interpolation::Step,
         };
 
         let input = match sampler.input(context.graph) {

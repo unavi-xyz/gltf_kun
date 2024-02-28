@@ -32,7 +32,7 @@ impl From<AnimationSamplerEdge> for Edge {
 #[derive(Clone, Debug, Default)]
 pub struct AnimationSamplerWeight {
     pub extras: gltf::json::Extras,
-    pub interpolation: Option<Interpolation>,
+    pub interpolation: Interpolation,
 }
 
 impl From<AnimationSamplerWeight> for Weight {

@@ -425,7 +425,7 @@ pub async fn import(
 
                 let weight = sampler.get_mut(graph);
                 weight.extras = s.extras.clone();
-                weight.interpolation = Some(s.interpolation.unwrap());
+                weight.interpolation = s.interpolation.unwrap();
 
                 let input_idx = s.input.value();
                 let input = accessors[input_idx];

@@ -517,7 +517,7 @@ fn get_result(
 
         #[cfg(target_family = "wasm")]
         {
-            // TODO
+            // TODO: Exporting in wasm, not sure how to load exported glb into Bevy.
         }
 
         #[cfg(not(target_family = "wasm"))]

@@ -3,6 +3,7 @@ use std::collections::{BTreeMap, HashMap};
 use glam::Quat;
 use gltf::json::{
     accessor::GenericComponentType,
+    animation::Target,
     image::MimeType,
     material::{
         EmissiveFactor, NormalTexture, PbrBaseColorFactor, PbrMetallicRoughness, StrengthFactor,
@@ -446,7 +447,99 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
         json.scene = scene_idxs.get(&scene.0).map(|idx| Index::new(*idx as u32));
     }
 
-    // TODO: Create animations
+    // Create animations
+    json.animations =
+        doc.animations(graph)
+            .iter_mut()
+            .map(|animation| {
+                let mut samplers = Vec::new();
+
+                let channels = animation
+                    .channels(graph)
+                    .iter()
+                    .filter_map(|c| {
+                        let sampler = match c.sampler(graph) {
+                            Some(sampler) => sampler,
+                            None => {
+                                warn!("No sampler found for animation channel.");
+                                return None;
+                            }
+                        };
+
+                        let sampler_index = samplers
+                            .iter()
+                            .position(|s| *s == sampler)
+                            .unwrap_or_else(|| {
+                                let idx = samplers.len();
+                                samplers.push(sampler);
+                                idx
+                            });
+
+                        let weight = c.get(graph);
+
+                        Some(gltf::json::animation::Channel {
+                            extensions: None,
+                            extras: weight.extras.clone(),
+
+                            sampler: Index::new(sampler_index as u32),
+                            target: Target {
+                                extensions: None,
+                                extras: Default::default(),
+
+                                node: Index::new(0),
+                                path: Checked::Valid(weight.path),
+                            },
+                        })
+                    })
+                    .collect::<Vec<_>>();
+
+                let samplers = samplers
+                    .iter()
+                    .filter_map(|s| {
+                        let input = match s.input(graph) {
+                            Some(input) => input,
+                            None => {
+                                warn!("No input found for animation sampler.");
+                                return None;
+                            }
+                        };
+
+                        let output = match s.output(graph) {
+                            Some(output) => output,
+                            None => {
+                                warn!("No output found for animation sampler.");
+                                return None;
+                            }
+                        };
+
+                        let input_idx = accessor_idxs.get(&input.0).unwrap();
+                        let output_idx = accessor_idxs.get(&output.0).unwrap();
+
+                        let weight = s.get(graph);
+
+                        Some(gltf::json::animation::Sampler {
+                            extensions: None,
+                            extras: weight.extras.clone(),
+
+                            input: Index::new(*input_idx as u32),
+                            interpolation: Checked::Valid(weight.interpolation),
+                            output: Index::new(*output_idx as u32),
+                        })
+                    })
+                    .collect::<Vec<_>>();
+
+                let weight = animation.get(graph);
+
+                gltf::json::animation::Animation {
+                    name: weight.name.clone(),
+                    extras: weight.extras.clone(),
+                    extensions: None,
+
+                    channels,
+                    samplers,
+                }
+            })
+            .collect::<Vec<_>>();
 
     Ok(GltfFormat { json, resources })
 }
