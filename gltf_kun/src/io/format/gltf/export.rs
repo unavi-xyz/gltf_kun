@@ -475,6 +475,16 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                                 idx
                             });
 
+                        let node = match c.target(graph) {
+                            Some(node) => node,
+                            None => {
+                                warn!("No target found for animation channel.");
+                                return None;
+                            }
+                        };
+
+                        let node_idx = node_idxs.get(&node.0).unwrap();
+
                         let weight = c.get(graph);
 
                         Some(gltf::json::animation::Channel {
@@ -486,7 +496,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                                 extensions: None,
                                 extras: Default::default(),
 
-                                node: Index::new(0),
+                                node: Index::new(*node_idx as u32),
                                 path: Checked::Valid(weight.path),
                             },
                         })
