@@ -36,7 +36,14 @@ pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
     let mut animation_paths = HashMap::new();
     for scene in context.doc.scenes(context.graph) {
         for node in scene.nodes(context.graph) {
-            paths_recur(context, Vec::new(), node, &mut animation_paths, node);
+            paths_recur(
+                context.doc,
+                context.graph,
+                Vec::new(),
+                node,
+                &mut animation_paths,
+                node,
+            );
         }
     }
 

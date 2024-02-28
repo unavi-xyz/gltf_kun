@@ -3,9 +3,9 @@ use gltf_kun::graph::{
     gltf::{
         accessor::{iter::AccessorIter, GetAccessorIterError},
         animation::{Interpolation, TargetPath},
-        Animation, Node,
+        Animation, GltfDocument, Node,
     },
-    GraphNodeWeight,
+    Graph, GraphNodeWeight,
 };
 use thiserror::Error;
 
@@ -126,8 +126,8 @@ pub fn import_animation(
             }
         };
 
-        let path = match paths.get(&target) {
-            Some(path) => path,
+        let parts = match paths.get(&target) {
+            Some((_, path)) => path.clone(),
             None => {
                 debug!("Target has no path");
                 continue;
@@ -135,9 +135,7 @@ pub fn import_animation(
         };
 
         clip.add_curve_to_path(
-            EntityPath {
-                parts: path.1.clone(),
-            },
+            EntityPath { parts },
             VariableCurve {
                 interpolation,
                 keyframe_timestamps,
@@ -169,19 +167,20 @@ pub fn import_animation(
 
 /// Get the path of names from the root to the given node.
 pub fn paths_recur(
-    context: &ImportContext,
+    doc: &GltfDocument,
+    graph: &Graph,
     mut current_path: Vec<Name>,
     node: Node,
     paths: &mut HashMap<Node, (Node, Vec<Name>)>,
     root: Node,
 ) {
-    let name = node_name(context, node);
+    let name = node_name(doc, graph, node);
     let name = Name::new(name);
 
     current_path.push(name);
     paths.insert(node, (root, current_path.clone()));
 
-    for child in node.children(context.graph) {
-        paths_recur(context, current_path.clone(), child, paths, root);
+    for child in node.children(graph) {
+        paths_recur(doc, graph, current_path.clone(), child, paths, root);
     }
 }

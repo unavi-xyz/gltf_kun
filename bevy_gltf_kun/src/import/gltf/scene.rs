@@ -28,7 +28,7 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
 
     for node in s.nodes(context.graph) {
         if is_animation_root(animation_paths, node) {
-            let name = node_name(context, node);
+            let name = node_name(context.doc, context.graph, node);
             let handle = context.gltf.named_nodes.get(&name).unwrap();
             let entity = context.gltf.node_entities.get(handle).unwrap();
 

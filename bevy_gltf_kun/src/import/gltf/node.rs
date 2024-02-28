@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use gltf_kun::graph::{
     gltf::{GltfDocument, Node},
-    GraphNodeWeight,
+    Graph, GraphNodeWeight,
 };
 
 use crate::import::extensions::BevyImportExtensions;
@@ -36,11 +36,11 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
 
     let mut ent = builder.spawn(SpatialBundle::from_transform(transform));
 
-    let name = node_name(context, *n);
+    let name = node_name(context.doc, context.graph, *n);
     ent.insert(Name::new(name.clone()));
 
     if let Some(ref mut mesh) = n.mesh(context.graph) {
-        ent.with_children(|parent| import_mesh(context, parent, *mesh));
+        import_mesh(context, &mut ent, *mesh);
     }
 
     let mut children = Vec::new();
@@ -73,14 +73,14 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
     handle
 }
 
-pub fn node_name(context: &ImportContext, node: Node) -> String {
-    let weight = node.get(context.graph);
+pub fn node_name(doc: &GltfDocument, graph: &Graph, node: Node) -> String {
+    let weight = node.get(graph);
     weight
         .name
         .clone()
-        .unwrap_or_else(|| node_label(context.doc.node_index(context.graph, node).unwrap()))
+        .unwrap_or_else(|| node_label(doc.node_index(graph, node).unwrap()))
 }
 
-fn node_label(index: usize) -> String {
+pub fn node_label(index: usize) -> String {
     format!("Node{}", index)
 }

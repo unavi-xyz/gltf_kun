@@ -51,21 +51,21 @@ fn export_node_mesh(
     let mut children = node.children(&context.graph);
 
     children.retain(|child| {
-        // Valid child nodes have no children of their own.
-        if !node.children(&context.graph).is_empty() {
+        // Valid primitives have no children of their own.
+        if !child.children(&context.graph).is_empty() {
             return true;
         }
 
-        // Valid child nodes have no transform.
-        let weight = node.get(&context.graph);
-        if weight.translation != glam::Vec3::ZERO
-            || weight.rotation != glam::Quat::IDENTITY
-            || weight.scale != glam::Vec3::ONE
+        // Valid primitives have no transform.
+        let weight = child.get(&context.graph);
+        if weight.translation != Vec3::ZERO
+            || weight.rotation != Quat::IDENTITY
+            || weight.scale != Vec3::ONE
         {
             return true;
         }
 
-        // Valid child nodes have a mesh.
+        // Valid primitives have a Bevy mesh.
         let cached = context
             .nodes
             .iter()
@@ -79,9 +79,9 @@ fn export_node_mesh(
         // Child is a valid primitive.
         primitive_ents.push(cached.entity);
 
-        // Remove the node, since it is now a primitive.
+        // Remove from nodes, since it is now a primitive.
         context.graph.remove_node(cached.node.0);
-        context.nodes.retain(|cached| cached.node != *child);
+        context.nodes.retain(|c| c.node != *child);
 
         false
     });

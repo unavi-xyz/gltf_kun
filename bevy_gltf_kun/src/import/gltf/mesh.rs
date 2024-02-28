@@ -14,7 +14,7 @@ pub struct GltfMesh {
 
 pub fn import_mesh(
     context: &mut ImportContext,
-    parent: &mut WorldChildBuilder,
+    entity: &mut EntityWorldMut,
     mut m: gltf::mesh::Mesh,
 ) {
     let index = context.doc.mesh_index(context.graph, m).unwrap();
@@ -22,15 +22,17 @@ pub fn import_mesh(
 
     let mut primitives = Vec::new();
 
-    for (i, p) in m.primitives(context.graph).iter_mut().enumerate() {
-        match import_primitive(context, parent, &mesh_label, i, p) {
-            Ok(handle) => primitives.push(handle),
-            Err(e) => {
-                warn!("Failed to import primitive: {}", e);
-                continue;
+    entity.with_children(|parent| {
+        for (i, p) in m.primitives(context.graph).iter_mut().enumerate() {
+            match import_primitive(context, parent, &mesh_label, i, p) {
+                Ok(handle) => primitives.push(handle),
+                Err(e) => {
+                    warn!("Failed to import primitive: {}", e);
+                    continue;
+                }
             }
         }
-    }
+    });
 
     let weight = m.get_mut(context.graph);
 

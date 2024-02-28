@@ -9,6 +9,7 @@ use thiserror::Error;
 
 use super::extensions::BevyExportExtensions;
 
+pub mod animation;
 pub mod material;
 pub mod mesh;
 pub mod node;
@@ -137,6 +138,7 @@ pub fn export_gltf<E: BevyExportExtensions<GltfDocument>>(
             .pipe(node::export_nodes)
             .pipe(mesh::export_meshes)
             .pipe(material::export_materials)
+            .pipe(animation::export_animations)
             .pipe(E::bevy_export)
             .pipe(create_export_result),
     );

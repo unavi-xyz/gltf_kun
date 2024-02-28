@@ -99,7 +99,7 @@ pub fn import_primitive(
 
     let primitive_handle = context.load_context.get_label_handle(&primitive_label);
 
-    let pbr = match &material {
+    let pbr_bundle = match &material {
         Some(material) => PbrBundle {
             mesh: primitive_handle,
             material: material.clone(),
@@ -111,7 +111,7 @@ pub fn import_primitive(
         },
     };
 
-    parent.spawn(pbr);
+    parent.spawn(pbr_bundle);
 
     let weight = p.get_mut(context.graph);
 
