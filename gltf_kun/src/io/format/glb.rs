@@ -1,5 +1,6 @@
 use std::{borrow::Cow, collections::HashMap, path::Path};
 
+use petgraph::{visit::EdgeRef, Direction};
 use thiserror::Error;
 
 use crate::{
@@ -15,9 +16,9 @@ pub struct GlbFormat(pub Vec<u8>);
 
 #[derive(Debug, Error)]
 pub enum ImportFileError {
-    #[error("failed to import gltf: {0}")]
+    #[error("Failed to import gltf: {0}")]
     Import(#[from] GlbImportError),
-    #[error("failed to load file: {0}")]
+    #[error("Failed to load file: {0}")]
     Io(#[from] std::io::Error),
 }
 
@@ -27,47 +28,73 @@ pub struct GlbIO<E: ExtensionsIO<GltfDocument, GltfFormat>> {
 
 #[derive(Debug, Error)]
 pub enum GlbExportError {
-    #[error("failed to export gltf: {0}")]
+    #[error("Failed to export gltf: {0}")]
     Export(#[from] GltfExportError),
-    #[error("failed to export glb: {0}")]
+    #[error("Failed to export glb: {0}")]
     Gltf(#[from] gltf::Error),
-    #[error("glb only supports one buffer")]
+    #[error("Glb only supports one buffer")]
     MultipleBuffers,
-    #[error("failed to serialize json: {0}")]
+    #[error("Failed to serialize json: {0}")]
     SerdeJson(#[from] serde_json::Error),
 }
 
 #[derive(Debug, Error)]
 pub enum GlbImportError {
-    #[error("failed to parse glb: {0}")]
+    #[error("Failed to parse glb: {0}")]
     Gltf(#[from] gltf::Error),
-    #[error("failed to import gltf: {0}")]
+    #[error("Failed to import gltf: {0}")]
     Import(#[from] GltfImportError),
-    #[error("failed to parse json: {0}")]
+    #[error("Failed to parse json: {0}")]
     SerdeJson(#[from] serde_json::Error),
 }
 
 impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GlbIO<E> {
     pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GlbFormat, GlbExportError> {
-        if doc.buffers(graph).len() > 1 {
-            // TODO: Merge multiple buffers into one (maybe using a transform function)
-            return Err(GlbExportError::MultipleBuffers);
+        let buffers = doc.buffers(graph);
+
+        if buffers.len() > 1 {
+            let buffer = buffers.first().unwrap();
+
+            buffers.iter().skip(1).for_each(|b| {
+                // Remove buffer from the document.
+                doc.remove_buffer(graph, *b);
+
+                // Direct all edges to the first buffer.
+                let edges = graph
+                    .edges_directed(b.0, Direction::Incoming)
+                    .map(|edge| (edge.weight().clone(), edge.source()))
+                    .collect::<Vec<_>>();
+
+                for (weight, source) in edges {
+                    graph.add_edge(source, buffer.0, weight);
+                }
+
+                // Remove buffer from the graph.
+                graph.remove_node(b.0);
+            });
         }
 
-        // TODO: Change image URIs to buffer views
+        // Set the buffer for all images to the first buffer.
+        for image in doc.images(graph) {
+            let buffer = buffers.first().unwrap();
+            image.set_buffer(graph, Some(*buffer));
+        }
 
         let gltf = GltfIO::<E>::export(graph, doc)?;
-        let json_bin = serde_json::to_vec(&gltf.json)?;
-        let resource = gltf.resources.iter().find(|_| true);
+
+        let json_bin = gltf.json.to_vec()?;
+        let bin = gltf.resources.values().next();
+
+        let length = json_bin.len() + bin.map(|b| b.len()).unwrap_or(0);
 
         let glb = gltf::Glb {
             header: gltf::binary::Header {
                 magic: *b"glTF",
                 version: 2,
-                length: 0,
+                length: length as u32,
             },
             json: Cow::Owned(json_bin),
-            bin: resource.map(|(_, blob)| blob.into()),
+            bin: bin.map(|b| b.into()),
         };
 
         let bytes = glb.to_vec()?;
@@ -99,12 +126,12 @@ impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GlbIO<E> {
         let mut glb = gltf::Glb::from_slice(&format.0)?;
 
         let json = serde_json::from_slice(&glb.json)?;
-        let blob = glb.bin.take().map(|blob| blob.into_owned());
+        let bin = glb.bin.take().map(|bin| bin.into_owned());
 
         let mut resources = HashMap::new();
 
-        if let Some(blob) = blob {
-            resources.insert("bin".to_string(), blob);
+        if let Some(bin) = bin {
+            resources.insert("bin".to_string(), bin);
         }
 
         let format = GltfFormat { json, resources };

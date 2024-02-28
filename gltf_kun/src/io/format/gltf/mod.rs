@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fs::File, io::BufWriter, path::Path};
 
 use thiserror::Error;
-use tracing::warn;
+use tracing::{info, warn};
 
 use crate::{
     extensions::ExtensionsIO,
@@ -14,7 +14,7 @@ use self::{export::GltfExportError, import::GltfImportError};
 pub mod export;
 pub mod import;
 
-#[derive(Default)]
+#[derive(Debug, Default)]
 pub struct GltfFormat {
     pub json: gltf::json::Root,
     pub resources: HashMap<String, Vec<u8>>,
@@ -24,7 +24,7 @@ impl GltfFormat {
     /// Write the glTF to a file.
     /// Resources will be written to the same directory.
     pub fn write_file(&self, path: &Path) -> Result<(), WriteFileError> {
-        tracing::info!("Writing glTF to file: {:?}", path.as_os_str());
+        info!("Writing glTF to file: {:?}", path.as_os_str());
 
         // Write json file
         let file = File::create(path)?;

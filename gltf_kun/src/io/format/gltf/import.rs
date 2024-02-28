@@ -1,5 +1,5 @@
 use glam::Quat;
-use gltf::json::{accessor::ComponentType, validation::Checked};
+use gltf::json::validation::Checked;
 use thiserror::Error;
 use tracing::{debug, error, warn};
 
@@ -7,7 +7,7 @@ use crate::{
     graph::{
         gltf::{
             animation::AnimationSampler, document::GltfDocument, image::Image,
-            texture_info::TextureInfo,
+            texture_info::TextureInfo, Accessor,
         },
         Graph, GraphNodeWeight,
     },
@@ -22,6 +22,10 @@ pub enum GltfImportError {
     InvalidUri(String),
     #[error("Resolver error: {0}")]
     ResolverError(String),
+    #[error("Invalid accessor: {0}")]
+    InvalidAccessor(String),
+    #[error("Failed to read buffer view: {0}")]
+    ReadBufferView(#[from] ReadBufferViewError),
 }
 
 pub async fn import(
@@ -72,7 +76,7 @@ pub async fn import(
         .json
         .accessors
         .iter_mut()
-        .map(|a| {
+        .map(|a| -> Result<Accessor, GltfImportError> {
             let mut accessor = doc.create_accessor(graph);
 
             let weight = accessor.get_mut(graph);
@@ -84,41 +88,40 @@ pub async fn import(
             weight.component_type = match a.component_type {
                 Checked::Valid(component_type) => component_type.0,
                 Checked::Invalid => {
-                    error!("Invalid accessor component type: {:?}", a.component_type);
-                    ComponentType::U8
+                    return Err(GltfImportError::InvalidAccessor(
+                        "Invalid component type".to_string(),
+                    ));
                 }
             };
             weight.element_type = match a.type_ {
                 Checked::Valid(ty) => ty,
                 Checked::Invalid => {
-                    error!("Invalid accessor type: {:?}", a.type_);
-                    gltf::json::accessor::Type::Scalar
+                    return Err(GltfImportError::InvalidAccessor("Invalid type".to_string()));
                 }
             };
 
-            let buffer_view_idx = match a.buffer_view.map(|v| v.value()) {
-                Some(idx) => idx,
-                None => {
-                    warn!("Accessor has no buffer view");
-                    return accessor;
-                }
-            };
+            let buffer_view_idx =
+                a.buffer_view
+                    .map(|v| v.value())
+                    .ok_or(GltfImportError::InvalidAccessor(
+                        "No buffer view".to_string(),
+                    ))?;
 
             let buffer_view = &format.json.buffer_views[buffer_view_idx];
             let buffer_idx = buffer_view.buffer.value();
 
-            let data = match buffer_data.get(buffer_idx) {
-                Some(data) => data,
-                None => {
-                    warn!("Buffer has no data");
-                    return accessor;
-                }
-            };
+            let data = buffer_data
+                .get(buffer_idx)
+                .ok_or(GltfImportError::InvalidAccessor(
+                    "No buffer data".to_string(),
+                ))?;
 
-            let view = read_buffer_view(buffer_view, data);
+            let view = read_buffer_view(buffer_view, data)?;
 
             if let Some(_sparse) = &a.sparse {
-                error!("Sparse accessors are not supported");
+                return Err(GltfImportError::InvalidAccessor(
+                    "Sparse accessors are not yet supported".to_string(),
+                ));
             }
 
             let accessor_start = a.byte_offset.map(|o| o.0 as usize).unwrap_or_default();
@@ -127,9 +130,9 @@ pub async fn import(
 
             weight.data = view[accessor_start..accessor_end].to_vec();
 
-            accessor
+            Ok(accessor)
         })
-        .collect::<Vec<_>>();
+        .collect::<Result<Vec<_>, _>>()?;
 
     // Create images
     let mut images = Vec::new();
@@ -164,7 +167,7 @@ pub async fn import(
                 }
             };
 
-            weight.data = read_buffer_view(view, buf_data).to_vec();
+            weight.data = read_buffer_view(view, buf_data)?.to_vec();
 
             let buffer = buffers[buffer_idx];
             image.set_buffer(graph, Some(buffer));
@@ -482,10 +485,27 @@ async fn resolve_uri(uri: &str, resolver: &mut Option<impl Resolver>) -> Option<
     }
 }
 
-fn read_buffer_view<'a>(view: &gltf::json::buffer::View, buffer_data: &'a [u8]) -> &'a [u8] {
+#[derive(Debug, Error)]
+pub enum ReadBufferViewError {
+    #[error("Buffer view index {0} exceeds buffer length {1}")]
+    ExceedsBufferLength(usize, usize),
+}
+
+fn read_buffer_view<'a>(
+    view: &gltf::json::buffer::View,
+    buffer_data: &'a [u8],
+) -> Result<&'a [u8], ReadBufferViewError> {
     let start = view.byte_offset.map(|o| o.0 as usize).unwrap_or_default();
     let end = start + view.byte_length.0 as usize;
-    &buffer_data[start..end]
+
+    if end > buffer_data.len() {
+        return Err(ReadBufferViewError::ExceedsBufferLength(
+            end,
+            buffer_data.len(),
+        ));
+    }
+
+    Ok(&buffer_data[start..end])
 }
 
 fn import_texture_info(
