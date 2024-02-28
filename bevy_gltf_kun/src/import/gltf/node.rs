@@ -39,9 +39,16 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
     let name = node_name(context.doc, context.graph, *n);
     ent.insert(Name::new(name.clone()));
 
-    if let Some(ref mut mesh) = n.mesh(context.graph) {
-        import_mesh(context, &mut ent, *mesh);
-    }
+    let mut primitive_entities = Vec::new();
+
+    let mesh = match n.mesh(context.graph) {
+        Some(m) => {
+            let (ents, mesh) = import_mesh(context, &mut ent, m);
+            primitive_entities.extend(ents);
+            Some(mesh)
+        }
+        None => None,
+    };
 
     let mut children = Vec::new();
 
@@ -53,7 +60,7 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
     });
 
     let node = GltfNode {
-        mesh: None,
+        mesh,
         children,
         transform,
         extras,
@@ -65,8 +72,13 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
         .add_labeled_asset(node_label.clone(), node);
 
     context.gltf.nodes.insert(index, handle.clone());
-    context.gltf.node_entities.insert(handle.clone(), ent.id());
     context.gltf.named_nodes.insert(name, handle.clone());
+
+    context.node_entities.insert(handle.clone(), ent.id());
+    context.nodes_handles.insert(*n, handle.clone());
+    context
+        .node_primitive_entities
+        .insert(handle.clone(), primitive_entities);
 
     E::import_node(context, &mut ent, *n);
 

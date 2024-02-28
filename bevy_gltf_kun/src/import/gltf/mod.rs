@@ -18,6 +18,7 @@ pub mod mesh;
 pub mod node;
 pub mod primitive;
 pub mod scene;
+pub mod skin;
 pub mod texture;
 
 pub struct GltfImportPlugin;
@@ -51,8 +52,6 @@ pub struct GltfKun {
     pub named_meshes: HashMap<String, Handle<GltfMesh>>,
     pub named_nodes: HashMap<String, Handle<GltfNode>>,
     pub named_scenes: HashMap<String, Handle<Scene>>,
-
-    pub node_entities: HashMap<Handle<GltfNode>, Entity>,
 }
 
 impl GltfKun {

@@ -1,14 +1,16 @@
-use bevy::prelude::*;
-use bevy::{asset::LoadContext, utils::HashMap};
+use bevy::render::mesh::skinning::SkinnedMeshInverseBindposes;
+use bevy::{asset::LoadContext, prelude::*, utils::HashMap};
+use gltf_kun::graph::gltf::{Node, Skin};
 use gltf_kun::graph::{gltf::GltfDocument, Graph};
 use thiserror::Error;
 
 use crate::import::extensions::BevyImportExtensions;
 
-use super::animation::paths_recur;
+use super::skin::import_skin;
 use super::{
-    animation::{import_animation, AnimationImportError},
+    animation::{import_animation, paths_recur, AnimationImportError},
     material::import_material,
+    node::GltfNode,
     scene::import_scene,
     texture::{get_linear_textures, load_texture, texture_label, TextureLoadError},
     GltfKun,
@@ -27,11 +29,23 @@ pub struct ImportContext<'a, 'b> {
     pub gltf: &'a mut GltfKun,
     pub graph: &'a mut Graph,
     pub load_context: &'a mut LoadContext<'b>,
+
+    pub node_entities: HashMap<Handle<GltfNode>, Entity>,
+    pub node_primitive_entities: HashMap<Handle<GltfNode>, Vec<Entity>>,
+    pub nodes_handles: HashMap<Node, Handle<GltfNode>>,
+    pub skin_matrices: HashMap<Skin, Handle<SkinnedMeshInverseBindposes>>,
 }
 
 pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
 ) -> Result<(), DocumentImportError> {
+    // Load skins.
+    for skin in context.doc.skins(context.graph) {
+        if let Err(e) = import_skin(context, skin) {
+            warn!("Failed to import skin: {}", e);
+        }
+    }
+
     // Load animations.
     let mut animation_paths = HashMap::new();
     for scene in context.doc.scenes(context.graph) {

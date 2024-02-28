@@ -3,7 +3,7 @@ use thiserror::Error;
 
 use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
 
-use self::iter::{AccessorElement, AccessorIter};
+use self::iter::{AccessorElement, AccessorIter, AccessorIterCreateError};
 
 use super::{buffer::Buffer, GltfEdge, GltfWeight};
 
@@ -97,14 +97,6 @@ pub enum GetAccessorSliceError {
     OutOfBounds(usize, usize, usize),
 }
 
-#[derive(Debug, Error)]
-pub enum GetAccessorIterError {
-    #[error("Failed to create accessor iterator: {0}")]
-    CreateError(#[from] iter::AccessorIterCreateError),
-    #[error("Failed to get accessor slice: {0}")]
-    GetSliceError(#[from] GetAccessorSliceError),
-}
-
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Accessor(pub NodeIndex);
 
@@ -144,13 +136,9 @@ impl Accessor {
         accessor
     }
 
-    pub fn iter<'a>(&self, graph: &'a Graph) -> Result<AccessorIter<'a>, GetAccessorIterError> {
+    pub fn iter<'a>(&self, graph: &'a Graph) -> Result<AccessorIter<'a>, AccessorIterCreateError> {
         let weight = self.get(graph);
-        Ok(AccessorIter::new(
-            &weight.data,
-            weight.component_type,
-            weight.element_type,
-        )?)
+        AccessorIter::new(&weight.data, weight.component_type, weight.element_type)
     }
 
     pub fn calc_max(&self, graph: &Graph) -> Option<AccessorElement> {

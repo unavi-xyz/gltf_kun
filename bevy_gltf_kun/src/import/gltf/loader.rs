@@ -5,7 +5,7 @@ use bevy::{
         io::Reader, AssetLoadError, AssetLoader, AsyncReadExt, LoadContext, ReadAssetBytesError,
     },
     prelude::*,
-    utils::BoxedFuture,
+    utils::{BoxedFuture, HashMap},
 };
 use gltf_kun::{
     extensions::ExtensionsIO,
@@ -85,10 +85,14 @@ where
             let mut gltf = GltfKun::new(&mut graph, &mut doc);
 
             let mut context = ImportContext {
-                graph: &mut graph,
                 doc: &mut doc,
                 gltf: &mut gltf,
+                graph: &mut graph,
                 load_context,
+                node_entities: HashMap::default(),
+                node_primitive_entities: HashMap::default(),
+                nodes_handles: HashMap::default(),
+                skin_matrices: HashMap::default(),
             };
 
             import_gltf_document::<E>(&mut context)?;
@@ -152,10 +156,14 @@ where
             let mut gltf = GltfKun::new(&mut graph, &mut doc);
 
             let mut context = ImportContext {
-                graph: &mut graph,
                 doc: &mut doc,
                 gltf: &mut gltf,
+                graph: &mut graph,
                 load_context,
+                node_entities: HashMap::default(),
+                node_primitive_entities: HashMap::default(),
+                nodes_handles: HashMap::default(),
+                skin_matrices: HashMap::default(),
             };
 
             import_gltf_document::<E>(&mut context)?;

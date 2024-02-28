@@ -11,11 +11,11 @@ use gltf_kun::graph::{
         accessor::{
             colors::ReadColors,
             indices::ReadIndices,
-            iter::{AccessorIter, ElementIter},
+            iter::{AccessorIter, AccessorIterCreateError, ElementIter},
             joints::ReadJoints,
             tex_coords::ReadTexCoords,
             weights::ReadWeights,
-            Accessor, ComponentType, GetAccessorIterError, GetAccessorSliceError, Type,
+            Accessor, ComponentType, GetAccessorSliceError, Type,
         },
         primitive::{Mode, Primitive, Semantic},
     },
@@ -56,7 +56,7 @@ pub fn import_primitive(
     mesh_label: &str,
     index: usize,
     p: &mut Primitive,
-) -> Result<GltfPrimitive, ImportPrimitiveError> {
+) -> Result<(Entity, GltfPrimitive), ImportPrimitiveError> {
     let primitive_label = primitive_label(mesh_label, index);
 
     let weight = p.get(context.graph);
@@ -111,7 +111,7 @@ pub fn import_primitive(
         },
     };
 
-    parent.spawn(pbr_bundle);
+    let entity = parent.spawn(pbr_bundle).id();
 
     let weight = p.get_mut(context.graph);
 
@@ -121,7 +121,7 @@ pub fn import_primitive(
         mesh,
     };
 
-    Ok(primitive)
+    Ok((entity, primitive))
 }
 
 fn primitive_label(mesh_label: &str, primitive_index: usize) -> String {
@@ -165,8 +165,8 @@ fn read_indices(context: &ImportContext, indices: Accessor) -> Result<Indices, R
 
 #[derive(Debug, Error)]
 pub enum AttributeConversionError {
-    #[error("Failed to get accessor iterator: {0}")]
-    GetAccessorIterError(#[from] GetAccessorIterError),
+    #[error("Failed to create accessor iterator: {0}")]
+    AccessorIter(#[from] AccessorIterCreateError),
     #[error("Unsupported attribute format: {0:?} {1:?}")]
     UnsupportedAttributeFormat(ComponentType, Type),
     #[error("Unsupported semantic: {0:?}")]

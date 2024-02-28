@@ -10,6 +10,7 @@ pub enum AccessorIter<'a> {
     F32x2(ElementIter<'a, [f32; 2]>),
     F32x3(ElementIter<'a, [f32; 3]>),
     F32x4(ElementIter<'a, [f32; 4]>),
+    F32x16(ElementIter<'a, [f32; 16]>),
     U32(ElementIter<'a, u32>),
     U32x2(ElementIter<'a, [u32; 2]>),
     U32x3(ElementIter<'a, [u32; 3]>),
@@ -61,6 +62,11 @@ impl<'a> AccessorIter<'a> {
                 _phantom: PhantomData,
             })),
             (ComponentType::F32, Type::Vec4) => Ok(AccessorIter::F32x4(ElementIter {
+                slice,
+                normalized: false,
+                _phantom: PhantomData,
+            })),
+            (ComponentType::F32, Type::Mat4) => Ok(AccessorIter::F32x16(ElementIter {
                 slice,
                 normalized: false,
                 _phantom: PhantomData,
@@ -177,7 +183,8 @@ impl<'a> AccessorIter<'a> {
             AccessorIter::F32(_)
             | AccessorIter::F32x2(_)
             | AccessorIter::F32x3(_)
-            | AccessorIter::F32x4(_) => ComponentType::F32,
+            | AccessorIter::F32x4(_)
+            | AccessorIter::F32x16(_) => ComponentType::F32,
             AccessorIter::U32(_)
             | AccessorIter::U32x2(_)
             | AccessorIter::U32x3(_)
@@ -227,6 +234,7 @@ impl<'a> AccessorIter<'a> {
             | AccessorIter::U8x4(_)
             | AccessorIter::I16x4(_)
             | AccessorIter::I8x4(_) => Type::Vec4,
+            AccessorIter::F32x16(_) => Type::Mat4,
         }
     }
 
@@ -236,6 +244,7 @@ impl<'a> AccessorIter<'a> {
             AccessorIter::F32x2(iter) => iter.normalized,
             AccessorIter::F32x3(iter) => iter.normalized,
             AccessorIter::F32x4(iter) => iter.normalized,
+            AccessorIter::F32x16(iter) => iter.normalized,
             AccessorIter::U32(iter) => iter.normalized,
             AccessorIter::U32x2(iter) => iter.normalized,
             AccessorIter::U32x3(iter) => iter.normalized,
@@ -265,6 +274,7 @@ impl<'a> AccessorIter<'a> {
             AccessorIter::F32x2(iter) => iter.slice,
             AccessorIter::F32x3(iter) => iter.slice,
             AccessorIter::F32x4(iter) => iter.slice,
+            AccessorIter::F32x16(iter) => iter.slice,
             AccessorIter::U32(iter) => iter.slice,
             AccessorIter::U32x2(iter) => iter.slice,
             AccessorIter::U32x3(iter) => iter.slice,
@@ -294,6 +304,7 @@ impl<'a> AccessorIter<'a> {
             AccessorIter::F32x2(iter) => iter.count(),
             AccessorIter::F32x3(iter) => iter.count(),
             AccessorIter::F32x4(iter) => iter.count(),
+            AccessorIter::F32x16(iter) => iter.count(),
             AccessorIter::U32(iter) => iter.count(),
             AccessorIter::U32x2(iter) => iter.count(),
             AccessorIter::U32x3(iter) => iter.count(),
@@ -323,6 +334,7 @@ impl<'a> AccessorIter<'a> {
             AccessorIter::F32x2(iter) => iter.gl_max().into(),
             AccessorIter::F32x3(iter) => iter.gl_max().into(),
             AccessorIter::F32x4(iter) => iter.gl_max().into(),
+            AccessorIter::F32x16(iter) => iter.gl_max().into(),
             AccessorIter::U32(iter) => iter.gl_max().into(),
             AccessorIter::U32x2(iter) => iter.gl_max().into(),
             AccessorIter::U32x3(iter) => iter.gl_max().into(),
@@ -352,6 +364,7 @@ impl<'a> AccessorIter<'a> {
             AccessorIter::F32x2(iter) => iter.gl_min().into(),
             AccessorIter::F32x3(iter) => iter.gl_min().into(),
             AccessorIter::F32x4(iter) => iter.gl_min().into(),
+            AccessorIter::F32x16(iter) => iter.gl_min().into(),
             AccessorIter::U32(iter) => iter.gl_min().into(),
             AccessorIter::U32x2(iter) => iter.gl_min().into(),
             AccessorIter::U32x3(iter) => iter.gl_min().into(),
@@ -381,6 +394,7 @@ pub enum AccessorElement {
     F32x2([f32; 2]),
     F32x3([f32; 3]),
     F32x4([f32; 4]),
+    F32x16([f32; 16]),
     U32(u32),
     U32x2([u32; 2]),
     U32x3([u32; 3]),
@@ -421,6 +435,11 @@ impl From<[f32; 3]> for AccessorElement {
 impl From<[f32; 4]> for AccessorElement {
     fn from(value: [f32; 4]) -> Self {
         AccessorElement::F32x4(value)
+    }
+}
+impl From<[f32; 16]> for AccessorElement {
+    fn from(value: [f32; 16]) -> Self {
+        AccessorElement::F32x16(value)
     }
 }
 impl From<u32> for AccessorElement {
@@ -801,6 +820,79 @@ impl<T: Element + Copy> Element for [T; 4] {
             self[1].gl_min(&other[1]),
             self[2].gl_min(&other[2]),
             self[3].gl_min(&other[3]),
+        ]
+    }
+}
+
+impl<T: Element + Copy> Element for [T; 16] {
+    fn component_type() -> ComponentType {
+        T::component_type()
+    }
+
+    fn element_type() -> Type {
+        Type::Mat4
+    }
+    fn from_slice(slice: &[u8]) -> Self {
+        [
+            T::from_slice(slice),
+            T::from_slice(&slice[std::mem::size_of::<T>()..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 2..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 3..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 4..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 5..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 6..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 7..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 8..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 9..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 10..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 11..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 12..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 13..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 14..]),
+            T::from_slice(&slice[std::mem::size_of::<T>() * 15..]),
+        ]
+    }
+    fn zero() -> Self {
+        [T::zero(); 16]
+    }
+    fn gl_max(&self, other: &Self) -> Self {
+        [
+            self[0].gl_max(&other[0]),
+            self[1].gl_max(&other[1]),
+            self[2].gl_max(&other[2]),
+            self[3].gl_max(&other[3]),
+            self[4].gl_max(&other[4]),
+            self[5].gl_max(&other[5]),
+            self[6].gl_max(&other[6]),
+            self[7].gl_max(&other[7]),
+            self[8].gl_max(&other[8]),
+            self[9].gl_max(&other[9]),
+            self[10].gl_max(&other[10]),
+            self[11].gl_max(&other[11]),
+            self[12].gl_max(&other[12]),
+            self[13].gl_max(&other[13]),
+            self[14].gl_max(&other[14]),
+            self[15].gl_max(&other[15]),
+        ]
+    }
+    fn gl_min(&self, other: &Self) -> Self {
+        [
+            self[0].gl_min(&other[0]),
+            self[1].gl_min(&other[1]),
+            self[2].gl_min(&other[2]),
+            self[3].gl_min(&other[3]),
+            self[4].gl_min(&other[4]),
+            self[5].gl_min(&other[5]),
+            self[6].gl_min(&other[6]),
+            self[7].gl_min(&other[7]),
+            self[8].gl_min(&other[8]),
+            self[9].gl_min(&other[9]),
+            self[10].gl_min(&other[10]),
+            self[11].gl_min(&other[11]),
+            self[12].gl_min(&other[12]),
+            self[13].gl_min(&other[13]),
+            self[14].gl_min(&other[14]),
+            self[15].gl_min(&other[15]),
         ]
     }
 }

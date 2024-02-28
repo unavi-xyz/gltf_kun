@@ -1,7 +1,7 @@
 use bevy::{prelude::*, utils::HashMap};
 use gltf_kun::graph::{
     gltf::{
-        accessor::{iter::AccessorIter, GetAccessorIterError},
+        accessor::iter::{AccessorIter, AccessorIterCreateError},
         animation::{Interpolation, TargetPath},
         Animation, GltfDocument, Node,
     },
@@ -13,8 +13,8 @@ use super::{document::ImportContext, node::node_name};
 
 #[derive(Debug, Error)]
 pub enum AnimationImportError {
-    #[error("Failed to get accessor iterator: {0}")]
-    GetAccessorIter(#[from] GetAccessorIterError),
+    #[error("Failed to create accessor iterator: {0}")]
+    AccessorIter(#[from] AccessorIterCreateError),
 }
 
 pub fn import_animation(

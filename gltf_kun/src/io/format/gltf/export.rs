@@ -691,6 +691,12 @@ impl From<AccessorElement> for Value {
                     .map(|v| Number::from_f64(*v as f64).unwrap().into())
                     .collect(),
             ),
+            AccessorElement::F32x16(value) => Value::Array(
+                value
+                    .iter()
+                    .map(|v| Number::from_f64(*v as f64).unwrap().into())
+                    .collect(),
+            ),
             AccessorElement::U32(value) => Value::Number(value.into()),
             AccessorElement::U32x2(value) => {
                 Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
