@@ -3,12 +3,13 @@ use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
 use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
 
-use super::{mesh::Mesh, GltfEdge, GltfWeight};
+use super::{mesh::Mesh, GltfEdge, GltfWeight, Skin};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum NodeEdge {
     Child,
     Mesh,
+    Skin,
 }
 
 impl<'a> TryFrom<&'a Edge> for &'a NodeEdge {
@@ -129,6 +130,13 @@ impl Node {
     pub fn set_mesh(&self, graph: &mut Graph, mesh: Option<Mesh>) {
         self.set_edge_target(graph, NodeEdge::Mesh, mesh);
     }
+
+    pub fn skin(&self, graph: &Graph) -> Option<Skin> {
+        self.find_edge_target(graph, &NodeEdge::Skin)
+    }
+    pub fn set_skin(&self, graph: &mut Graph, skin: Option<Skin>) {
+        self.set_edge_target(graph, NodeEdge::Skin, skin);
+    }
 }
 
 #[cfg(test)]
@@ -167,5 +175,19 @@ mod tests {
 
         node.set_mesh(&mut graph, None);
         assert!(node.mesh(&graph).is_none());
+    }
+
+    #[test]
+    fn skin() {
+        let mut graph = Graph::default();
+
+        let node = Node::new(&mut graph);
+        let skin = Skin::new(&mut graph);
+
+        node.set_skin(&mut graph, Some(skin));
+        assert_eq!(node.skin(&graph), Some(skin));
+
+        node.set_skin(&mut graph, None);
+        assert!(node.skin(&graph).is_none());
     }
 }
