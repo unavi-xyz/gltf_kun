@@ -90,13 +90,12 @@ impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GlbIO<E> {
         let json_bin = gltf.json.to_vec()?;
         let bin = gltf.resources.values().next();
 
-        let length = json_bin.len() + bin.map(|b| b.len()).unwrap_or(0);
-
         let glb = gltf::Glb {
             header: gltf::binary::Header {
                 magic: *b"glTF",
                 version: 2,
-                length: length as u32,
+                // Set automatically when serialized.
+                length: 0,
             },
             json: Cow::Owned(json_bin),
             bin: bin.map(|b| b.into()),
@@ -161,8 +160,8 @@ mod tests {
         doc.create_buffer(&mut graph);
         doc.create_buffer(&mut graph);
 
-        let glb = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
-        let gltf = GlbIO::<DefaultExtensions>::import_slice(&mut graph, &glb.0)
+        let bytes = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
+        let gltf = GlbIO::<DefaultExtensions>::import_slice(&mut graph, &bytes.0)
             .await
             .unwrap();
 
@@ -182,8 +181,8 @@ mod tests {
             image_weight.data = vec![0, 1, 2, 3];
         }
 
-        let glb = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
-        let gltf = GlbIO::<DefaultExtensions>::import_slice(&mut graph, &glb.0)
+        let bytes = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
+        let gltf = GlbIO::<DefaultExtensions>::import_slice(&mut graph, &bytes.0)
             .await
             .unwrap();
 
@@ -208,8 +207,8 @@ mod tests {
             image_weight.data = vec![0, 1, 2, 3];
         }
 
-        let glb = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
-        let gltf = GlbIO::<DefaultExtensions>::import_slice(&mut graph, &glb.0)
+        let bytes = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
+        let gltf = GlbIO::<DefaultExtensions>::import_slice(&mut graph, &bytes.0)
             .await
             .unwrap();
 
@@ -221,5 +220,23 @@ mod tests {
 
         let image_weight = image.get(&graph);
         assert_eq!(image_weight.data, vec![0, 1, 2, 3]);
+    }
+
+    #[tokio::test]
+    async fn test_header_length() {
+        let mut graph = Graph::new();
+        let doc = GltfDocument::new(&mut graph);
+
+        let mut image = doc.create_image(&mut graph);
+        let image_weight = image.get_mut(&mut graph);
+        image_weight.data = vec![0, 1, 2, 3];
+
+        let mut accessor = doc.create_accessor(&mut graph);
+        let accessor_weight = accessor.get_mut(&mut graph);
+        accessor_weight.data = vec![7; 256];
+
+        let bytes = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
+        let glb = gltf::Glb::from_slice(&bytes.0).unwrap();
+        assert_eq!(glb.header.length, glb.to_vec().unwrap().len() as u32);
     }
 }
