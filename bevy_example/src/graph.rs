@@ -3,7 +3,7 @@ use egui_graphs::Graph;
 use gltf_kun::graph::{
     gltf::{
         Accessor, Animation, Buffer, GltfDocument, GltfEdge, GltfWeight, Image, Material, Mesh,
-        Node, Scene,
+        Node, Scene, Skin,
     },
     Edge, Weight,
 };
@@ -95,6 +95,9 @@ pub fn create_graph(graph: &GltfGraph, settings: &GraphSettings) -> Graph<Weight
             Weight::Gltf(GltfWeight::Scene(s)) => s.name.clone().unwrap_or_else(|| {
                 format!("Scene{}", doc.scene_index(&graph.0, Scene(*idx)).unwrap())
             }),
+            Weight::Gltf(GltfWeight::Skin(_)) => {
+                format!("Skin{}", doc.skin_index(&graph.0, Skin(*idx)).unwrap())
+            }
             Weight::Gltf(GltfWeight::Image(i)) => i.name.clone().unwrap_or_else(|| {
                 format!("Image{}", doc.image_index(&graph.0, Image(*idx)).unwrap())
             }),
@@ -149,6 +152,7 @@ pub fn create_graph(graph: &GltfGraph, settings: &GraphSettings) -> Graph<Weight
             Edge::Gltf(GltfEdge::Node(e)) => format!("{:?}", e),
             Edge::Gltf(GltfEdge::Primitive(e)) => format!("{:?}", e),
             Edge::Gltf(GltfEdge::Scene(e)) => format!("{:?}", e),
+            Edge::Gltf(GltfEdge::Skin(e)) => format!("{:?}", e),
             Edge::Gltf(GltfEdge::TextureInfo(e)) => format!("{:?}", e),
 
             Edge::Glxf(e) => format!("{:?}", e),

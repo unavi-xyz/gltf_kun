@@ -8,6 +8,7 @@ pub mod mesh;
 pub mod node;
 pub mod primitive;
 pub mod scene;
+pub mod skin;
 pub mod texture_info;
 
 pub use accessor::Accessor;
@@ -20,6 +21,7 @@ pub use mesh::Mesh;
 pub use node::Node;
 pub use primitive::Primitive;
 pub use scene::Scene;
+pub use skin::Skin;
 pub use texture_info::TextureInfo;
 
 #[derive(Clone, Debug)]
@@ -36,6 +38,7 @@ pub enum GltfWeight {
     Node(node::NodeWeight),
     Primitive(primitive::PrimitiveWeight),
     Scene(scene::SceneWeight),
+    Skin(skin::SkinWeight),
     TextureInfo(texture_info::TextureInfoWeight),
 }
 
@@ -52,5 +55,6 @@ pub enum GltfEdge {
     Node(node::NodeEdge),
     Primitive(primitive::PrimitiveEdge),
     Scene(scene::SceneEdge),
+    Skin(skin::SkinEdge),
     TextureInfo(texture_info::TextureInfoEdge),
 }

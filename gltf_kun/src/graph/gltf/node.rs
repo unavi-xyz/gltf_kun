@@ -154,4 +154,18 @@ mod tests {
         assert!(node.children(&graph).is_empty());
         assert!(child.parent(&graph).is_none());
     }
+
+    #[test]
+    fn mesh() {
+        let mut graph = Graph::default();
+
+        let node = Node::new(&mut graph);
+        let mesh = Mesh::new(&mut graph);
+
+        node.set_mesh(&mut graph, Some(mesh));
+        assert_eq!(node.mesh(&graph), Some(mesh));
+
+        node.set_mesh(&mut graph, None);
+        assert!(node.mesh(&graph).is_none());
+    }
 }

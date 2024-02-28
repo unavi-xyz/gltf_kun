@@ -3,7 +3,7 @@ use petgraph::graph::NodeIndex;
 use crate::graph::{gltf::GltfEdge, Edge, Graph, GraphNodeEdges, Property, Weight};
 
 use super::{
-    Accessor, Animation, Buffer, GltfWeight, Image, Material, Mesh, Node, Scene, TextureInfo,
+    Accessor, Animation, Buffer, GltfWeight, Image, Material, Mesh, Node, Scene, Skin, TextureInfo,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -17,6 +17,7 @@ pub enum DocumentEdge {
     Mesh,
     Node,
     Scene,
+    Skin,
 }
 
 impl<'a> TryFrom<&'a Edge> for &'a DocumentEdge {
@@ -194,6 +195,22 @@ impl GltfDocument {
         self.scenes(graph).iter().position(|s| *s == scene)
     }
 
+    pub fn skins(&self, graph: &Graph) -> Vec<Skin> {
+        self.edge_targets(graph, &DocumentEdge::Skin)
+    }
+    pub fn add_skin(&self, graph: &mut Graph, skin: Skin) {
+        self.add_edge_target(graph, DocumentEdge::Skin, skin);
+    }
+    pub fn remove_skin(&self, graph: &mut Graph, skin: Skin) {
+        self.remove_edge_target(graph, DocumentEdge::Skin, skin);
+    }
+    pub fn create_skin(&self, graph: &mut Graph) -> Skin {
+        self.create_edge_target(graph, DocumentEdge::Skin)
+    }
+    pub fn skin_index(&self, graph: &Graph, skin: Skin) -> Option<usize> {
+        self.skins(graph).iter().position(|s| *s == skin)
+    }
+
     pub fn textures(&self, graph: &Graph) -> Vec<TextureInfo> {
         self.materials(graph)
             .iter()
@@ -344,5 +361,16 @@ mod tests {
         assert_eq!(doc.scenes(graph), vec![s_2]);
         assert_eq!(doc.scene_index(graph, s), None);
         assert_eq!(doc.scene_index(graph, s_2), Some(0));
+
+        let sk = doc.create_skin(graph);
+        let sk_2 = Skin::new(graph);
+        doc.add_skin(graph, sk_2);
+        assert_eq!(doc.skins(graph), vec![sk, sk_2]);
+        assert_eq!(doc.skin_index(graph, sk), Some(0));
+        assert_eq!(doc.skin_index(graph, sk_2), Some(1));
+        doc.remove_skin(graph, sk);
+        assert_eq!(doc.skins(graph), vec![sk_2]);
+        assert_eq!(doc.skin_index(graph, sk), None);
+        assert_eq!(doc.skin_index(graph, sk_2), Some(0));
     }
 }
