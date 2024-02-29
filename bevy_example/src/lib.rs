@@ -36,6 +36,8 @@ const MODELS: &[&str] = &[
     "BoxTexturedNonPowerOfTwo.glb",
     "DynamicBox.gltf",
     "OrientationTest.glb",
+    "RiggedFigure.glb",
+    "RiggedSimple.glb",
     "SimpleSkin.gltf",
     "SimpleSparseAccessor.gltf",
     "TextureCoordinateTest.glb",
