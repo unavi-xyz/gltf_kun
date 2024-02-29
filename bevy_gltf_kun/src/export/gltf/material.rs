@@ -57,8 +57,9 @@ pub fn export_materials(
                     weight.double_sided = standard_material.double_sided;
                     weight.metallic_factor = standard_material.metallic;
                     weight.roughness_factor = standard_material.perceptual_roughness;
-                    weight.base_color_factor = standard_material.base_color.rgba_to_vec4().into();
-                    weight.emissive_factor = standard_material.emissive.rgb_to_vec3().into();
+                    weight.base_color_factor =
+                        standard_material.base_color.rgba_linear_to_vec4().into();
+                    weight.emissive_factor = standard_material.emissive.rgb_linear_to_vec3().into();
 
                     let alpha_mode = match standard_material.alpha_mode {
                         bevy::prelude::AlphaMode::Blend => AlphaMode::Blend,
