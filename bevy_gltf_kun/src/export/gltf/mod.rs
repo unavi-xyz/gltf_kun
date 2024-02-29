@@ -14,6 +14,7 @@ pub mod material;
 pub mod mesh;
 pub mod node;
 pub mod scene;
+pub mod skin;
 
 pub struct GltfExportPlugin<E: BevyExportExtensions<GltfDocument>> {
     _marker: PhantomData<E>,
@@ -31,7 +32,7 @@ impl<E: BevyExportExtensions<GltfDocument>> Plugin for GltfExportPlugin<E> {
     fn build(&self, app: &mut App) {
         app.add_event::<GltfExport<E>>()
             .add_event::<GltfExportResult>()
-            .add_systems(Update, read_event::<E>.pipe(export_gltf));
+            .add_systems(Update, export_gltf::<E>);
     }
 }
 
@@ -117,31 +118,25 @@ pub struct CachedScene {
     pub entity: Entity,
 }
 
-pub fn read_event<E: BevyExportExtensions<GltfDocument>>(
-    mut events: ResMut<Events<GltfExport<E>>>,
-) -> Option<GltfExport<E>> {
-    events.drain().next()
-}
-
-pub fn export_gltf<E: BevyExportExtensions<GltfDocument>>(
-    In(event): In<Option<GltfExport<E>>>,
-    world: &mut World,
-) {
-    let event = match event {
-        Some(event) => event,
+pub fn export_gltf<E: BevyExportExtensions<GltfDocument>>(world: &mut World) {
+    let events = match world.get_resource_mut::<Events<GltfExport<E>>>() {
+        Some(mut events) => events.drain().collect::<Vec<_>>(),
         None => return,
     };
 
-    world.run_system_once_with(
-        ExportContext::new(event),
-        scene::export_scenes
-            .pipe(node::export_nodes)
-            .pipe(mesh::export_meshes)
-            .pipe(material::export_materials)
-            .pipe(animation::export_animations)
-            .pipe(E::bevy_export)
-            .pipe(create_export_result),
-    );
+    for event in events {
+        world.run_system_once_with(
+            ExportContext::new(event),
+            scene::export_scenes
+                .pipe(node::export_nodes)
+                .pipe(mesh::export_meshes)
+                .pipe(material::export_materials)
+                .pipe(animation::export_animations)
+                .pipe(skin::export_skins)
+                .pipe(E::bevy_export)
+                .pipe(create_export_result),
+        );
+    }
 }
 
 pub fn create_export_result(
