@@ -77,11 +77,11 @@ pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
 
             StandardMaterial {
                 alpha_mode,
-                base_color: Color::rgba_from_array(weight.base_color_factor),
+                base_color: Color::rgba_linear_from_array(weight.base_color_factor),
                 base_color_texture,
                 cull_mode,
                 double_sided: weight.double_sided,
-                emissive: Color::rgb_from_array(weight.emissive_factor),
+                emissive: Color::rgb_linear_from_array(weight.emissive_factor),
                 emissive_texture,
                 metallic: weight.metallic_factor,
                 metallic_roughness_texture,
@@ -91,6 +91,27 @@ pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
                 ..default()
             }
         })
+}
+
+const DEFAULT_MATERIAL_LABEL: &str = "gltf_kun_default_material";
+
+pub fn default_material(context: &mut ImportContext) -> Handle<StandardMaterial> {
+    if context
+        .load_context
+        .has_labeled_asset(DEFAULT_MATERIAL_LABEL)
+    {
+        context
+            .load_context
+            .get_label_handle(DEFAULT_MATERIAL_LABEL)
+    } else {
+        context
+            .load_context
+            .labeled_asset_scope(DEFAULT_MATERIAL_LABEL.to_string(), |_| StandardMaterial {
+                metallic: 1.0,
+                perceptual_roughness: 1.0,
+                ..default()
+            })
+    }
 }
 
 fn texture_handle(

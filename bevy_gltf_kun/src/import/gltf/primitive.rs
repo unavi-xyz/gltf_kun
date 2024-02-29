@@ -24,12 +24,12 @@ use gltf_kun::graph::{
 };
 use thiserror::Error;
 
-use super::document::ImportContext;
+use super::{document::ImportContext, material::default_material};
 
 #[derive(Debug)]
 pub struct GltfPrimitive {
     pub extras: Option<Box<serde_json::value::RawValue>>,
-    pub material: Option<Handle<StandardMaterial>>,
+    pub material: Handle<StandardMaterial>,
     pub mesh: Handle<Mesh>,
 }
 
@@ -95,26 +95,21 @@ pub fn import_primitive(
         .load_context
         .add_labeled_asset(primitive_label.clone(), mesh);
 
-    let material = p.material(context.graph).map(|m| {
-        let index = context.doc.material_index(context.graph, m).unwrap();
-        context.gltf.materials[index].clone()
-    });
+    let material = match p.material(context.graph) {
+        Some(m) => {
+            let index = context.doc.material_index(context.graph, m).unwrap();
+            context.gltf.materials[index].clone()
+        }
+        None => default_material(context),
+    };
 
     let primitive_handle = context.load_context.get_label_handle(&primitive_label);
 
-    let pbr_bundle = match &material {
-        Some(material) => PbrBundle {
-            mesh: primitive_handle,
-            material: material.clone(),
-            ..default()
-        },
-        None => PbrBundle {
-            mesh: primitive_handle,
-            ..default()
-        },
-    };
-
-    let mut entity = parent.spawn(pbr_bundle);
+    let mut entity = parent.spawn(PbrBundle {
+        mesh: primitive_handle,
+        material: material.clone(),
+        ..default()
+    });
 
     if let Some(pos) = p.attribute(context.graph, &Semantic::Positions) {
         let max = match pos.calc_max(context.graph) {
