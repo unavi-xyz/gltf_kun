@@ -134,6 +134,8 @@ pub fn import_animation(
             }
         };
 
+        info!("Adding curve to path {:?}", parts);
+
         clip.add_curve_to_path(
             EntityPath { parts },
             VariableCurve {
@@ -169,18 +171,21 @@ pub fn import_animation(
 pub fn paths_recur(
     doc: &GltfDocument,
     graph: &Graph,
-    mut current_path: Vec<Name>,
+    current_path: &[Name],
     node: Node,
     paths: &mut HashMap<Node, (Node, Vec<Name>)>,
     root: Node,
 ) {
+    let mut path = current_path.to_owned();
+
     let name = node_name(doc, graph, node);
     let name = Name::new(name);
 
-    current_path.push(name);
-    paths.insert(node, (root, current_path.clone()));
+    path.push(name);
 
     for child in node.children(graph) {
-        paths_recur(doc, graph, current_path.clone(), child, paths, root);
+        paths_recur(doc, graph, &path, child, paths, root);
     }
+
+    paths.insert(node, (root, path));
 }

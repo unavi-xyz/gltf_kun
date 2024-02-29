@@ -34,8 +34,8 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
             let name = node_name(context.doc, context.graph, node);
             let handle = context.gltf.named_nodes.get(&name).unwrap();
             let entity = context.node_entities.get(handle).unwrap();
-
-            world.entity_mut(*entity).insert(AnimationPlayer::default());
+            let mut entity = world.entity_mut(*entity);
+            entity.insert(AnimationPlayer::default());
         }
     }
 

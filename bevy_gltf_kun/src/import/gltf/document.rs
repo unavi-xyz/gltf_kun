@@ -6,7 +6,7 @@ use thiserror::Error;
 
 use crate::import::extensions::BevyImportExtensions;
 
-use super::skin::import_skin;
+use super::skin::import_skin_matrices;
 use super::{
     animation::{import_animation, paths_recur, AnimationImportError},
     material::import_material,
@@ -41,8 +41,13 @@ pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
 ) -> Result<(), DocumentImportError> {
     // Load skins.
     for skin in context.doc.skins(context.graph) {
-        if let Err(e) = import_skin(context, skin) {
-            warn!("Failed to import skin: {}", e);
+        match import_skin_matrices(context, skin) {
+            Ok(handle) => {
+                context.skin_matrices.insert(skin, handle);
+            }
+            Err(e) => {
+                warn!("Failed to load skin matrices: {}", e);
+            }
         }
     }
 
@@ -53,7 +58,7 @@ pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
             paths_recur(
                 context.doc,
                 context.graph,
-                Vec::new(),
+                &[],
                 node,
                 &mut animation_paths,
                 node,

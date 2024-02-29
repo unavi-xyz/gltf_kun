@@ -10,7 +10,7 @@ pub enum ImportSkinError {
     InvalidAccessor,
 }
 
-pub fn import_skin(
+pub fn import_skin_matrices(
     context: &mut ImportContext,
     skin: Skin,
 ) -> Result<Handle<SkinnedMeshInverseBindposes>, ImportSkinError> {
@@ -25,14 +25,11 @@ pub fn import_skin(
     let matrices = iter.map(|m| Mat4::from_cols_array(&m)).collect::<Vec<_>>();
 
     let index = context.doc.skin_index(context.graph, skin).unwrap();
-    let handle = context.load_context.add_labeled_asset(
+
+    Ok(context.load_context.add_labeled_asset(
         skin_label(index),
         SkinnedMeshInverseBindposes::from(matrices),
-    );
-
-    context.skin_matrices.insert(skin, handle.clone());
-
-    Ok(handle)
+    ))
 }
 
 fn skin_label(index: usize) -> String {

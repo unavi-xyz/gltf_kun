@@ -22,7 +22,7 @@ pub fn export_animations(
             paths_recur(
                 &context.doc,
                 &context.graph,
-                Vec::new(),
+                &[],
                 node,
                 &mut animation_paths,
                 node,
