@@ -1,4 +1,5 @@
 use bevy::render::mesh::skinning::SkinnedMeshInverseBindposes;
+use bevy::utils::HashSet;
 use bevy::{asset::LoadContext, prelude::*, utils::HashMap};
 use gltf_kun::graph::gltf::{Node, Skin};
 use gltf_kun::graph::{gltf::GltfDocument, Graph};
@@ -52,22 +53,18 @@ pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
     }
 
     // Load animations.
-    let mut animation_paths = HashMap::new();
+    let mut paths = HashMap::new();
     for scene in context.doc.scenes(context.graph) {
         for node in scene.nodes(context.graph) {
-            paths_recur(
-                context.doc,
-                context.graph,
-                &[],
-                node,
-                &mut animation_paths,
-                node,
-            );
+            paths_recur(context.doc, context.graph, &[], node, &mut paths, node);
         }
     }
 
+    let mut animation_roots = HashSet::new();
+
     for animation in context.doc.animations(context.graph) {
-        let handle = import_animation(context, &animation_paths, animation)?;
+        let (roots, handle) = import_animation(context, &paths, animation)?;
+        animation_roots.extend(roots);
         context.gltf.animations.push(handle);
     }
 
@@ -94,7 +91,7 @@ pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
     let default_scene = context.doc.default_scene(context.graph);
 
     for (i, scene) in context.doc.scenes(context.graph).into_iter().enumerate() {
-        let handle = import_scene::<E>(context, &animation_paths, scene);
+        let handle = import_scene::<E>(context, &animation_roots, scene);
 
         if Some(scene) == default_scene {
             context.gltf.default_scene = Some(handle.clone());

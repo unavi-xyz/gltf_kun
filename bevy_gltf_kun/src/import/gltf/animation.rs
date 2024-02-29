@@ -1,4 +1,7 @@
-use bevy::{prelude::*, utils::HashMap};
+use bevy::{
+    prelude::*,
+    utils::{HashMap, HashSet},
+};
 use gltf_kun::graph::{
     gltf::{
         accessor::iter::{AccessorIter, AccessorIterCreateError},
@@ -21,8 +24,9 @@ pub fn import_animation(
     context: &mut ImportContext,
     paths: &HashMap<Node, (Node, Vec<Name>)>,
     animation: Animation,
-) -> Result<Handle<AnimationClip>, AnimationImportError> {
+) -> Result<(HashSet<Node>, Handle<AnimationClip>), AnimationImportError> {
     let mut clip = AnimationClip::default();
+    let mut roots = HashSet::new();
 
     for channel in animation.channels(context.graph) {
         let channel_weight = channel.get(context.graph);
@@ -126,16 +130,18 @@ pub fn import_animation(
             }
         };
 
-        let parts = match paths.get(&target) {
-            Some((_, path)) => path.clone(),
+        let path = match paths.get(&target) {
+            Some(path) => path.clone(),
             None => {
                 debug!("Target has no path");
                 continue;
             }
         };
 
+        roots.insert(path.0);
+
         clip.add_curve_to_path(
-            EntityPath { parts },
+            EntityPath { parts: path.1 },
             VariableCurve {
                 interpolation,
                 keyframe_timestamps,
@@ -162,7 +168,7 @@ pub fn import_animation(
             .insert(name.to_string(), handle.clone());
     }
 
-    Ok(handle)
+    Ok((roots, handle))
 }
 
 /// Get the path of names from the root to the given node.

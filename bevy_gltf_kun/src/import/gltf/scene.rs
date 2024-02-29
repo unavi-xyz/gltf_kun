@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::mesh::skinning::SkinnedMesh, utils::HashMap};
+use bevy::{prelude::*, render::mesh::skinning::SkinnedMesh, utils::HashSet};
 use gltf_kun::graph::{
     gltf::{document::GltfDocument, scene, Node},
     GraphNodeWeight,
@@ -16,7 +16,7 @@ const MAX_JOINTS: usize = 256;
 
 pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
-    animation_paths: &HashMap<Node, (Node, Vec<Name>)>,
+    animation_roots: &HashSet<Node>,
     s: scene::Scene,
 ) -> Handle<Scene> {
     let mut world = World::default();
@@ -30,7 +30,7 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
         });
 
     for node in s.nodes(context.graph) {
-        if is_animation_root(animation_paths, node) {
+        if animation_roots.contains(&node) {
             let name = node_name(context.doc, context.graph, node);
             let handle = context.gltf.named_nodes.get(&name).unwrap();
             let entity = context.node_entities.get(handle).unwrap();
@@ -39,8 +39,6 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
         }
 
         if let Some(skin) = node.skin(context.graph) {
-            info!("Found skin for node {:?}", node);
-
             let inverse_bindposes = context.skin_matrices.get(&skin).unwrap();
 
             let joints = skin
@@ -62,10 +60,8 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
 
             let handle = context.nodes_handles.get(&node).unwrap();
             let primitive_ents = context.node_primitive_entities.get(handle).unwrap();
-            info!("Adding skinned mesh to entities {:?}", primitive_ents);
 
             for entity in primitive_ents {
-                info!("Adding skinned mesh to entity {:?}", entity);
                 let mut entity = world.entity_mut(*entity);
                 entity.insert(SkinnedMesh {
                     inverse_bindposes: inverse_bindposes.clone(),
@@ -93,10 +89,6 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
     }
 
     handle
-}
-
-fn is_animation_root(paths: &HashMap<Node, (Node, Vec<Name>)>, node: Node) -> bool {
-    paths.iter().any(|(_, (parent, _))| parent == &node)
 }
 
 fn scene_label(index: usize) -> String {

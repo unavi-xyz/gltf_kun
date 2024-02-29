@@ -115,7 +115,6 @@ pub fn import_primitive(
     };
 
     let mut entity = parent.spawn(pbr_bundle);
-    info!("Spawned primitive PBR entity {:?}", entity.id());
 
     if let Some(pos) = p.attribute(context.graph, &Semantic::Positions) {
         let max = match pos.calc_max(context.graph) {
