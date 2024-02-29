@@ -116,17 +116,30 @@ pub async fn import(
                     "No buffer data".to_string(),
                 ))?;
 
+            let accessor_start = a.byte_offset.map(|o| o.0 as usize).unwrap_or_default();
+            let item_size = a.component_type.unwrap().0.size() * a.type_.unwrap().multiplicity();
+            let accessor_end = accessor_start + (a.count.0 as usize * item_size);
+
+            // Start must be a multiple of the component size
+            if accessor_start > 0 && accessor_start % item_size != 0 {
+                return Err(GltfImportError::InvalidAccessor(
+                    "Accessor start is not a multiple of the component size".to_string(),
+                ));
+            }
+
             let view = read_buffer_view(buffer_view, data)?;
 
-            if let Some(_sparse) = &a.sparse {
+            if a.sparse.is_some() {
                 return Err(GltfImportError::InvalidAccessor(
                     "Sparse accessors are not yet supported".to_string(),
                 ));
             }
 
-            let accessor_start = a.byte_offset.map(|o| o.0 as usize).unwrap_or_default();
-            let item_size = a.component_type.unwrap().0.size() * a.type_.unwrap().multiplicity();
-            let accessor_end = accessor_start + (a.count.0 as usize * item_size);
+            if accessor_end > view.len() {
+                return Err(GltfImportError::InvalidAccessor(
+                    "Accessor exceeds buffer view length".to_string(),
+                ));
+            }
 
             weight.data = view[accessor_start..accessor_end].to_vec();
 
