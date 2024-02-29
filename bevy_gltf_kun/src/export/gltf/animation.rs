@@ -35,16 +35,6 @@ pub fn export_animations(
     // Find clips that have an EntityPath matching one of our nodes.
     for (_, clip) in clips.iter() {
         for node in &nodes {
-            let weight = node.get(&context.graph);
-            let name = match weight.name.as_ref() {
-                Some(name) => name,
-                None => continue,
-            };
-
-            if !clip.compatible_with(&Name::new(name.clone())) {
-                continue;
-            }
-
             let parts = match animation_paths.get(node) {
                 Some((_, path)) => path.clone(),
                 None => {
@@ -57,10 +47,7 @@ pub fn export_animations(
 
             let curves = match clip.get_curves_by_path(&path) {
                 Some(curves) => curves,
-                None => {
-                    warn!("No curves found for path {:?}", path);
-                    continue;
-                }
+                None => continue,
             };
 
             if curves.is_empty() {
