@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fs::File, io::BufWriter, path::Path};
 
 use thiserror::Error;
-use tracing::{info, warn};
+use tracing::{debug, warn};
 
 use crate::{
     extensions::ExtensionsIO,
@@ -20,11 +20,19 @@ pub struct GltfFormat {
     pub resources: HashMap<String, Vec<u8>>,
 }
 
+#[derive(Debug, Error)]
+pub enum WriteFileError {
+    #[error("Failed to write file: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("Failed to serialize json: {0}")]
+    SerdeJson(#[from] serde_json::Error),
+}
+
 impl GltfFormat {
     /// Write the glTF to a file.
     /// Resources will be written to the same directory.
     pub fn write_file(&self, path: &Path) -> Result<(), WriteFileError> {
-        info!("Writing glTF to file: {:?}", path.as_os_str());
+        debug!("Writing glTF to file: {:?}", path.as_os_str());
 
         // Write json file
         let file = File::create(path)?;
@@ -47,6 +55,16 @@ impl GltfFormat {
 
 pub struct GltfIO<E: ExtensionsIO<GltfDocument, GltfFormat>> {
     pub _marker: std::marker::PhantomData<E>,
+}
+
+#[derive(Debug, Error)]
+pub enum ImportFileError {
+    #[error("Failed to import gltf: {0}")]
+    Import(#[from] import::GltfImportError),
+    #[error("Failed to load file: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("Failed to parse json: {0}")]
+    SerdeJson(#[from] serde_json::Error),
 }
 
 impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GltfIO<E> {
@@ -91,22 +109,4 @@ impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GltfIO<E> {
 
         Ok(doc)
     }
-}
-
-#[derive(Debug, Error)]
-pub enum ImportFileError {
-    #[error("failed to import gltf: {0}")]
-    Import(#[from] import::GltfImportError),
-    #[error("failed to load file: {0}")]
-    Io(#[from] std::io::Error),
-    #[error("failed to parse json: {0}")]
-    SerdeJson(#[from] serde_json::Error),
-}
-
-#[derive(Debug, Error)]
-pub enum WriteFileError {
-    #[error("failed to write file: {0}")]
-    Io(#[from] std::io::Error),
-    #[error("failed to serialize json: {0}")]
-    SerdeJson(#[from] serde_json::Error),
 }

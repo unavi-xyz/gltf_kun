@@ -42,7 +42,6 @@ pub fn export_animations(
             };
 
             if !clip.compatible_with(&Name::new(name.clone())) {
-                info!("Clip not compatible with name: {:?}", name);
                 continue;
             }
 

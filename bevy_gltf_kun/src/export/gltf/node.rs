@@ -28,6 +28,8 @@ pub fn export_nodes(
             if transform == &Transform::default() && name.is_none() {
                 // Assume this is an empty root node, and skip it.
                 // This is a bit of a hack, but helps keep consistency between import and export.
+                debug!("Skipping empty root node");
+
                 let grandchildren = match grandchildren {
                     Some(children) => children,
                     None => return,

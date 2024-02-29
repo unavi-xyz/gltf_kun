@@ -37,11 +37,10 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
             let mut entity = world.entity_mut(*entity);
             entity.insert(AnimationPlayer::default());
         }
-    }
 
-    // Load skins.
-    for node in context.doc.nodes(context.graph) {
         if let Some(skin) = node.skin(context.graph) {
+            info!("Found skin for node {:?}", node);
+
             let inverse_bindposes = context.skin_matrices.get(&skin).unwrap();
 
             let joints = skin
@@ -59,13 +58,14 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
                     joints.len(),
                     MAX_JOINTS
                 );
-                continue;
             }
 
             let handle = context.nodes_handles.get(&node).unwrap();
             let primitive_ents = context.node_primitive_entities.get(handle).unwrap();
+            info!("Adding skinned mesh to entities {:?}", primitive_ents);
 
             for entity in primitive_ents {
+                info!("Adding skinned mesh to entity {:?}", entity);
                 let mut entity = world.entity_mut(*entity);
                 entity.insert(SkinnedMesh {
                     inverse_bindposes: inverse_bindposes.clone(),

@@ -1,5 +1,5 @@
 use glam::Quat;
-use gltf::json::validation::Checked;
+use gltf::json::{validation::Checked, Index};
 use thiserror::Error;
 use tracing::{debug, error, warn};
 
@@ -408,7 +408,7 @@ pub async fn import(
     }
 
     // Create skins
-    for s in format.json.skins.iter_mut() {
+    for (i, s) in format.json.skins.iter_mut().enumerate() {
         let mut skin = doc.create_skin(graph);
 
         let weight = skin.get_mut(graph);
@@ -434,6 +434,13 @@ pub async fn import(
             .filter_map(|i| nodes.get(i))
         {
             skin.add_joint(graph, joint);
+        }
+
+        for (j, n) in format.json.nodes.iter().enumerate() {
+            if n.skin == Some(Index::new(i as u32)) {
+                let node = &nodes[j];
+                node.set_skin(graph, Some(skin));
+            }
         }
     }
 

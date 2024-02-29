@@ -134,8 +134,6 @@ pub fn import_animation(
             }
         };
 
-        info!("Adding curve to path {:?}", parts);
-
         clip.add_curve_to_path(
             EntityPath { parts },
             VariableCurve {
