@@ -2,6 +2,7 @@ use bevy::{
     prelude::*,
     render::{
         mesh::{Indices, MeshVertexAttribute, VertexAttributeValues},
+        primitives::Aabb,
         render_asset::RenderAssetUsages,
         render_resource::{PrimitiveTopology, VertexFormat},
     },
@@ -11,7 +12,7 @@ use gltf_kun::graph::{
         accessor::{
             colors::ReadColors,
             indices::ReadIndices,
-            iter::{AccessorIter, AccessorIterCreateError, ElementIter},
+            iter::{AccessorElement, AccessorIter, AccessorIterCreateError, ElementIter},
             joints::ReadJoints,
             tex_coords::ReadTexCoords,
             weights::ReadWeights,
@@ -48,6 +49,8 @@ pub enum ImportPrimitiveError {
     ReadIndices(#[from] ReadIndicesError),
     #[error("Unsupported primitive mode: {0:?}")]
     UnsupportedMode(Mode),
+    #[error("Invalid accessor")]
+    InvalidAccessor,
 }
 
 pub fn import_primitive(
@@ -111,7 +114,21 @@ pub fn import_primitive(
         },
     };
 
-    let entity = parent.spawn(pbr_bundle).id();
+    let mut entity = parent.spawn(pbr_bundle);
+
+    if let Some(pos) = p.attribute(context.graph, &Semantic::Positions) {
+        let max = match pos.calc_max(context.graph) {
+            Some(AccessorElement::F32x3(m)) => m,
+            _ => return Err(ImportPrimitiveError::InvalidAccessor),
+        };
+
+        let min = match pos.calc_min(context.graph) {
+            Some(AccessorElement::F32x3(m)) => m,
+            _ => return Err(ImportPrimitiveError::InvalidAccessor),
+        };
+
+        entity.insert(Aabb::from_min_max(min.into(), max.into()));
+    }
 
     let weight = p.get_mut(context.graph);
 
@@ -121,7 +138,7 @@ pub fn import_primitive(
         mesh,
     };
 
-    Ok((entity, primitive))
+    Ok((entity.id(), primitive))
 }
 
 fn primitive_label(mesh_label: &str, primitive_index: usize) -> String {
