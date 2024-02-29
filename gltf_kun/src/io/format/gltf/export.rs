@@ -41,6 +41,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
     let mut mesh_idxs = BTreeMap::<NodeIndex, usize>::new();
     let mut node_idxs = BTreeMap::<NodeIndex, usize>::new();
     let mut scene_idxs = BTreeMap::<NodeIndex, usize>::new();
+    let mut skin_idxs = BTreeMap::<NodeIndex, usize>::new();
     let mut uris = BTreeMap::<NodeIndex, String>::new();
 
     if doc.buffers(graph).is_empty() && !doc.accessors(graph).is_empty() {
@@ -449,7 +450,10 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
     json.skins = doc
         .skins(graph)
         .iter_mut()
-        .map(|skin| {
+        .enumerate()
+        .map(|(i, skin)| {
+            skin_idxs.insert(skin.0, i);
+
             let weight = skin.get(graph);
 
             let inverse_bind_matrices = skin
@@ -480,6 +484,16 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
             }
         })
         .collect::<Vec<_>>();
+
+    doc.nodes(graph).iter().for_each(|node| {
+        if let Some(skin) = node.skin(graph) {
+            let skin_idx = skin_idxs.get(&skin.0).unwrap();
+            let node_idx = node_idxs.get(&node.0).unwrap();
+
+            let node = json.nodes.get_mut(*node_idx).unwrap();
+            node.skin = Some(Index::new(*skin_idx as u32));
+        }
+    });
 
     // Create animations
     json.animations =

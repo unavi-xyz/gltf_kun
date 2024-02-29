@@ -11,7 +11,6 @@ use super::{
     node::{import_node, node_name},
 };
 
-// Set in bevy_gltf, is this needed?
 const MAX_JOINTS: usize = 256;
 
 pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(

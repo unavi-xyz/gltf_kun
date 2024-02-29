@@ -64,7 +64,7 @@ pub fn export_animations(
             };
 
             if curves.is_empty() {
-                warn!("No curves found for path {:?}", path);
+                warn!("Curves empty for path {:?}", path);
                 continue;
             }
 

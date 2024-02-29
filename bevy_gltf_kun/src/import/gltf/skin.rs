@@ -1,13 +1,23 @@
 use bevy::{prelude::*, render::mesh::skinning::SkinnedMeshInverseBindposes};
-use gltf_kun::graph::gltf::{accessor::iter::AccessorIter, Skin};
+use gltf_kun::graph::gltf::{
+    accessor::{
+        iter::{AccessorIter, AccessorIterCreateError},
+        ComponentType, Type,
+    },
+    Skin,
+};
 use thiserror::Error;
 
 use super::document::ImportContext;
 
 #[derive(Debug, Error)]
 pub enum ImportSkinError {
-    #[error("Invalid accessor")]
-    InvalidAccessor,
+    #[error("Missing inverse bind matrices")]
+    MissingInverseBindMatrices,
+    #[error("Invalid accessor type: {0:?} {1:?}")]
+    InvalidAccessorType(ComponentType, Type),
+    #[error(transparent)]
+    AccessorIterCreate(#[from] AccessorIterCreateError),
 }
 
 pub fn import_skin_matrices(
@@ -17,9 +27,15 @@ pub fn import_skin_matrices(
     let iter = match skin.inverse_bind_matrices(context.graph) {
         Some(accessor) => match accessor.iter(context.graph) {
             Ok(AccessorIter::F32x16(iter)) => iter,
-            _ => return Err(ImportSkinError::InvalidAccessor),
+            Ok(a) => {
+                return Err(ImportSkinError::InvalidAccessorType(
+                    a.component_type(),
+                    a.element_type(),
+                ))
+            }
+            Err(e) => return Err(ImportSkinError::AccessorIterCreate(e)),
         },
-        None => return Err(ImportSkinError::InvalidAccessor),
+        None => return Err(ImportSkinError::MissingInverseBindMatrices),
     };
 
     let matrices = iter.map(|m| Mat4::from_cols_array(&m)).collect::<Vec<_>>();

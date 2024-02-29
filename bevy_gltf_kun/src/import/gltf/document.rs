@@ -19,9 +19,9 @@ use super::{
 
 #[derive(Debug, Error)]
 pub enum DocumentImportError {
-    #[error("Failed to load texture: {0}")]
+    #[error(transparent)]
     TextureLoad(#[from] TextureLoadError),
-    #[error("Failed to load animation: {0}")]
+    #[error(transparent)]
     Animation(#[from] AnimationImportError),
 }
 
