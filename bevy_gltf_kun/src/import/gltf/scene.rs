@@ -29,7 +29,7 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
             }
         });
 
-    for node in s.nodes(context.graph) {
+    for node in context.doc.nodes(context.graph) {
         if animation_roots.contains(&node) {
             let name = node_name(context.doc, context.graph, node);
             let handle = context.gltf.named_nodes.get(&name).unwrap();
