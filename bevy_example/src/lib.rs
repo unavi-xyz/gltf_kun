@@ -29,6 +29,7 @@ const ASSETS_DIR: &str = "assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
 const MODELS: &[&str] = &[
+    "RiggedFigure.glb",
     "AlphaBlendModeTest.glb",
     "AnimatedCube/AnimatedCube.gltf",
     "BoomBox.glb",
@@ -38,9 +39,10 @@ const MODELS: &[&str] = &[
     "BoxTexturedNonPowerOfTwo.glb",
     "DynamicBox.gltf",
     "InterpolationTest.glb",
+    "MultiUVTest.glb",
+    "NegativeScaleTest.glb",
     "OrientationTest.glb",
     "RecursiveSkeletons.glb",
-    "RiggedFigure.glb",
     "RiggedSimple.glb",
     "SimpleSkin.gltf",
     "SimpleSparseAccessor.gltf",
