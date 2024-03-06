@@ -105,7 +105,7 @@ mod tests {
 
     #[test]
     fn channels() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
         let animation = Animation::new(&mut graph);
 
         let channel = animation.create_channel(&mut graph);

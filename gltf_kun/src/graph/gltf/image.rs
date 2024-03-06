@@ -98,7 +98,7 @@ mod tests {
 
     #[test]
     fn buffer() {
-        let graph = &mut Graph::new();
+        let graph = &mut Graph::default();
 
         let image = Image::new(graph);
         let buffer = Buffer::new(graph);

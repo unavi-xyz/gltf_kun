@@ -239,7 +239,7 @@ mod tests {
 
     #[test]
     fn test_textures() {
-        let graph = &mut Graph::new();
+        let graph = &mut Graph::default();
         let doc = GltfDocument::new(graph);
 
         let material = doc.create_material(graph);
@@ -258,7 +258,7 @@ mod tests {
 
     #[test]
     fn default_scene() {
-        let graph = &mut Graph::new();
+        let graph = &mut Graph::default();
         let doc = GltfDocument::new(graph);
 
         let scene = doc.create_scene(graph);
@@ -271,7 +271,7 @@ mod tests {
 
     #[test]
     fn test_property_methods() {
-        let graph = &mut Graph::new();
+        let graph = &mut Graph::default();
         let doc = GltfDocument::new(graph);
 
         let a = doc.create_accessor(graph);

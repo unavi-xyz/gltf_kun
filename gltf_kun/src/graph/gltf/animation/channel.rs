@@ -113,7 +113,7 @@ mod tests {
 
     #[test]
     fn sampler() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
         let channel = AnimationChannel::new(&mut graph);
 
         let sampler = AnimationSampler::new(&mut graph);
@@ -126,7 +126,7 @@ mod tests {
 
     #[test]
     fn target() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
         let channel = AnimationChannel::new(&mut graph);
 
         let target = Node::new(&mut graph);

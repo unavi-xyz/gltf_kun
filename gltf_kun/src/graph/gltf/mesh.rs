@@ -100,7 +100,7 @@ mod tests {
 
     #[test]
     fn primitives() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
 
         let mesh = Mesh::new(&mut graph);
         let primitive_1 = Primitive::new(&mut graph);

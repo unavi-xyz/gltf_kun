@@ -153,7 +153,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_multiple_buffers() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
         let doc = GltfDocument::new(&mut graph);
 
         doc.create_buffer(&mut graph);
@@ -170,7 +170,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_set_image_buffer() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
         let doc = GltfDocument::new(&mut graph);
 
         {
@@ -198,7 +198,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_no_buffer() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
         let doc = GltfDocument::new(&mut graph);
 
         {
@@ -224,7 +224,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_header_length() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
         let doc = GltfDocument::new(&mut graph);
 
         let mut image = doc.create_image(&mut graph);

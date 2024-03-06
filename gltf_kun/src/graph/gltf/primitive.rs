@@ -137,7 +137,7 @@ mod tests {
 
     #[test]
     fn indices() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
 
         let primitive = Primitive::new(&mut graph);
         let indices = Accessor::new(&mut graph);
@@ -151,7 +151,7 @@ mod tests {
 
     #[test]
     fn attributes() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
 
         let primitive = Primitive::new(&mut graph);
         let position = Accessor::new(&mut graph);
@@ -180,7 +180,7 @@ mod tests {
 
     #[test]
     fn material() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
 
         let primitive = Primitive::new(&mut graph);
         let material = Material::new(&mut graph);

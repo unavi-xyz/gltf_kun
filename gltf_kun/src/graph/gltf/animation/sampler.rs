@@ -102,7 +102,7 @@ mod tests {
 
     #[test]
     fn input() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
         let sampler = AnimationSampler::new(&mut graph);
 
         let accessor = Accessor::new(&mut graph);
@@ -115,7 +115,7 @@ mod tests {
 
     #[test]
     fn output() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
         let sampler = AnimationSampler::new(&mut graph);
 
         let accessor = Accessor::new(&mut graph);

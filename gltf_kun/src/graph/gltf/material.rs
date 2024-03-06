@@ -166,7 +166,7 @@ mod tests {
 
     #[test]
     fn base_color_texture_info() {
-        let graph = &mut Graph::new();
+        let graph = &mut Graph::default();
 
         let material = Material::new(graph);
         let texture_info = TextureInfo::new(graph);
@@ -180,7 +180,7 @@ mod tests {
 
     #[test]
     fn emmissive_texture_info() {
-        let graph = &mut Graph::new();
+        let graph = &mut Graph::default();
 
         let material = Material::new(graph);
         let texture_info = TextureInfo::new(graph);
@@ -194,7 +194,7 @@ mod tests {
 
     #[test]
     fn metallic_roughness_texture_info() {
-        let graph = &mut Graph::new();
+        let graph = &mut Graph::default();
 
         let material = Material::new(graph);
         let texture_info = TextureInfo::new(graph);
@@ -211,7 +211,7 @@ mod tests {
 
     #[test]
     fn normal_texture_info() {
-        let graph = &mut Graph::new();
+        let graph = &mut Graph::default();
 
         let material = Material::new(graph);
         let texture_info = TextureInfo::new(graph);
@@ -225,7 +225,7 @@ mod tests {
 
     #[test]
     fn occlusion_texture_info() {
-        let graph = &mut Graph::new();
+        let graph = &mut Graph::default();
 
         let material = Material::new(graph);
         let texture_info = TextureInfo::new(graph);

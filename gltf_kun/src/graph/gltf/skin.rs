@@ -115,7 +115,7 @@ mod tests {
 
     #[test]
     fn inverse_bind_matrices() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
         let doc = GltfDocument::new(&mut graph);
 
         let skin = doc.create_skin(&mut graph);
@@ -130,7 +130,7 @@ mod tests {
 
     #[test]
     fn joints() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
         let doc = GltfDocument::new(&mut graph);
 
         let skin = doc.create_skin(&mut graph);
@@ -149,7 +149,7 @@ mod tests {
 
     #[test]
     fn skeleton() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
         let doc = GltfDocument::new(&mut graph);
 
         let skin = doc.create_skin(&mut graph);

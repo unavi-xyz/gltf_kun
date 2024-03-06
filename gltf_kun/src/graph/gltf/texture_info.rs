@@ -99,7 +99,7 @@ mod tests {
 
     #[test]
     fn image() {
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
 
         let texture_info = TextureInfo::new(&mut graph);
         let image = Image::new(&mut graph);

@@ -6,15 +6,13 @@
 //! ```
 //! use gltf_kun::graph::{Graph, GraphNodeWeight, gltf::document::GltfDocument};
 //!
-//! // Create a new graph.
-//! // This is where all the data will be stored.
 //! let mut graph = Graph::default();
 //!
 //! // Create a new glTF document within the graph.
 //! let doc = GltfDocument::new(&mut graph);
 //!
 //! // Create a new scene.
-//! // This "scene" variable is just a wrapper around a u32 index into the graph,
+//! // This `scene` variable is just a wrapper around a u32 index into the graph,
 //! // making it cheap to copy and pass around.
 //! let mut scene = doc.create_scene(&mut graph);
 //!

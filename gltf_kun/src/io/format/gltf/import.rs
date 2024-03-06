@@ -765,7 +765,7 @@ mod tests {
             ..Default::default()
         };
 
-        let mut graph = Graph::new();
+        let mut graph = Graph::default();
 
         let doc = import(&mut graph, &mut format, None::<DataUriResolver>)
             .await
