@@ -1,7 +1,7 @@
 //! Graph-based [glTF](https://github.com/KhronosGroup/glTF) processing library.
 //! Uses [petgraph](https://crates.io/crates/petgraph) to create a traversable graph of the glTF document.
 //!
-//! ## Basic Usage
+//! ## Usage
 //!
 //! ```
 //! use gltf_kun::graph::{Graph, GraphNodeWeight, gltf::document::GltfDocument};
