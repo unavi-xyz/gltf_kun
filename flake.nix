@@ -66,9 +66,9 @@
 
         commonShell = {
           checks = self.checks.${localSystem};
-          packages = with pkgs; [ cargo-watch rust-analyzer ];
+          packages = with pkgs; [ cargo-rdme cargo-watch rust-analyzer ];
 
-          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath commonArgs.buildInputs;
+          LD_LIBRARY_PATH = (pkgs.lib.makeLibraryPath commonArgs.buildInputs);
         };
 
         cargoArtifacts =
@@ -118,6 +118,14 @@
         });
       in {
         checks = { inherit gltf_kun bevy_gltf_kun web cargoClippy cargoDoc; };
+
+        apps = {
+          generate-readme = flake-utils.lib.mkApp {
+            drv = pkgs.writeShellScriptBin "generate-readme" ''
+              cd gltf_kun && cargo rdme
+            '';
+          };
+        };
 
         packages = {
           bevy_gltf_kun = bevy_gltf_kun;
