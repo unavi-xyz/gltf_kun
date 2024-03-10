@@ -200,7 +200,7 @@ pub enum AttributeConversionError {
     #[error("Unsupported semantic: {0:?}")]
     UnsupportedSemantic(Semantic),
     #[error("Wrong format for attribute {0:?} (expected {1:?}, got {2:?})")]
-    WrongFormat(String, VertexFormat, String, VertexFormat),
+    WrongFormat(String, VertexFormat, VertexFormat),
 }
 
 fn convert_attribute(
@@ -209,13 +209,13 @@ fn convert_attribute(
     accessor: &Accessor,
 ) -> Result<(MeshVertexAttribute, VertexAttributeValues), AttributeConversionError> {
     let (attribute, conversion) = match semantic {
+        Semantic::Colors(0) => (Mesh::ATTRIBUTE_COLOR, ConversionMode::Rgba),
+        Semantic::Joints(0) => (Mesh::ATTRIBUTE_JOINT_INDEX, ConversionMode::JointIndex),
         Semantic::Normals => (Mesh::ATTRIBUTE_NORMAL, ConversionMode::Any),
         Semantic::Positions => (Mesh::ATTRIBUTE_POSITION, ConversionMode::Any),
         Semantic::Tangents => (Mesh::ATTRIBUTE_TANGENT, ConversionMode::Any),
-        Semantic::Colors(0) => (Mesh::ATTRIBUTE_COLOR, ConversionMode::Rgba),
         Semantic::TexCoords(0) => (Mesh::ATTRIBUTE_UV_0, ConversionMode::TexCoord),
         Semantic::TexCoords(1) => (Mesh::ATTRIBUTE_UV_1, ConversionMode::TexCoord),
-        Semantic::Joints(0) => (Mesh::ATTRIBUTE_JOINT_INDEX, ConversionMode::JointIndex),
         Semantic::Weights(0) => (Mesh::ATTRIBUTE_JOINT_WEIGHT, ConversionMode::JointWeight),
         _ => {
             return Err(AttributeConversionError::UnsupportedSemantic(
@@ -228,9 +228,9 @@ fn convert_attribute(
 
     let values = match conversion {
         ConversionMode::Any => convert_any_values(iter)?,
-        ConversionMode::Rgba => convert_rgba_values(iter)?,
         ConversionMode::JointIndex => convert_joint_index_values(iter)?,
         ConversionMode::JointWeight => convert_joint_weight_values(iter)?,
+        ConversionMode::Rgba => convert_rgba_values(iter)?,
         ConversionMode::TexCoord => convert_tex_coord_values(iter)?,
     };
 
@@ -241,9 +241,8 @@ fn convert_attribute(
     } else {
         Err(AttributeConversionError::WrongFormat(
             semantic.to_string(),
-            format,
-            attribute.name.to_string(),
             attribute.format,
+            format,
         ))
     }
 }
