@@ -12,6 +12,7 @@ default = ["export", "import", "omi_physics"]
 export = []
 import = []
 omi_physics = ["dep:bevy_xpbd_3d", "gltf_kun/omi_physics_body"]
+register_extensions = []
 
 [lints.clippy]
 type_complexity = "allow"
@@ -20,8 +21,8 @@ type_complexity = "allow"
 bevy = { version = "0.13.0", default-features = false, features = ["animation", "bevy_asset", "bevy_scene", "bevy_pbr"] }
 glam.workspace = true
 gltf_kun.workspace = true
+image = "0.24.9"
 serde_json.workspace = true
 thiserror.workspace = true
 
 bevy_xpbd_3d = { version = "0.4.2", optional = true }
-image = "0.24.9"

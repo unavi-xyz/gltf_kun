@@ -104,7 +104,14 @@ where
     }
 
     fn extensions(&self) -> &[&str] {
-        &["gltf"]
+        #[cfg(feature = "register_extensions")]
+        {
+            &["gltf"]
+        }
+        #[cfg(not(feature = "register_extensions"))]
+        {
+            &[]
+        }
     }
 }
 
@@ -177,6 +184,13 @@ where
     }
 
     fn extensions(&self) -> &[&str] {
-        &["glb"]
+        #[cfg(feature = "register_extensions")]
+        {
+            &["glb"]
+        }
+        #[cfg(not(feature = "register_extensions"))]
+        {
+            &[]
+        }
     }
 }
