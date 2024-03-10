@@ -506,13 +506,9 @@ pub async fn import(
             }
         }
 
-        for joint in s
-            .joints
-            .iter()
-            .map(|j| j.value())
-            .filter_map(|i| nodes.get(i))
-        {
-            skin.add_joint(graph, joint);
+        for (j, joint_idx) in s.joints.iter().enumerate() {
+            let joint_node = nodes.get(joint_idx.value()).unwrap();
+            skin.add_joint(graph, joint_node, j);
         }
 
         for (j, n) in format.json.nodes.iter().enumerate() {

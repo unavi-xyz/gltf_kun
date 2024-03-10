@@ -1,4 +1,4 @@
-use petgraph::graph::NodeIndex;
+use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
 
 use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
 
@@ -7,7 +7,7 @@ use super::{Accessor, GltfEdge, GltfWeight, Node};
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SkinEdge {
     InverseBindMatrices,
-    Joint,
+    Joint(usize),
     Skeleton,
 }
 
@@ -87,16 +87,49 @@ impl Skin {
     }
 
     pub fn joints(&self, graph: &Graph) -> Vec<Node> {
-        self.edge_targets(graph, &SkinEdge::Joint)
+        let mut joints = graph
+            .edges_directed(self.0, Direction::Outgoing)
+            .filter_map(|edge_ref| {
+                let edge: &SkinEdge = match edge_ref.weight().try_into() {
+                    Ok(edge) => edge,
+                    Err(_) => return None,
+                };
+
+                match edge {
+                    SkinEdge::Joint(i) => Some((i, Node::from(edge_ref.target()))),
+                    _ => None,
+                }
+            })
+            .collect::<Vec<_>>();
+
+        joints.sort_by_key(|(i, _)| *i);
+
+        joints.into_iter().map(|(_, node)| node).collect()
     }
-    pub fn add_joint(&self, graph: &mut Graph, node: &Node) {
-        self.add_edge_target(graph, SkinEdge::Joint, *node);
+    pub fn add_joint(&self, graph: &mut Graph, node: &Node, index: usize) {
+        self.add_edge_target(graph, SkinEdge::Joint(index), *node);
     }
     pub fn remove_joint(&self, graph: &mut Graph, node: &Node) {
-        self.remove_edge_target(graph, SkinEdge::Joint, *node);
+        let target_idx: NodeIndex = (*node).into();
+
+        let found_edge = graph
+            .edges_directed(self.0, Direction::Outgoing)
+            .filter(|edge_ref| {
+                let edge: &SkinEdge = match edge_ref.weight().try_into() {
+                    Ok(edge) => edge,
+                    Err(_) => return false,
+                };
+
+                matches!(edge, SkinEdge::Joint(_))
+            })
+            .find(|edge_ref| edge_ref.target() == target_idx);
+
+        if let Some(found_edge) = found_edge {
+            graph.remove_edge(found_edge.id());
+        }
     }
-    pub fn create_joint(&self, graph: &mut Graph) -> Node {
-        self.create_edge_target(graph, SkinEdge::Joint)
+    pub fn create_joint(&self, graph: &mut Graph, index: usize) -> Node {
+        self.create_edge_target(graph, SkinEdge::Joint(index))
     }
 
     pub fn skeleton(&self, graph: &Graph) -> Option<Node> {
@@ -137,10 +170,10 @@ mod tests {
         let node_1 = doc.create_node(&mut graph);
         let node_2 = doc.create_node(&mut graph);
 
-        skin.add_joint(&mut graph, &node_1);
+        skin.add_joint(&mut graph, &node_1, 0);
         assert_eq!(skin.joints(&graph), vec![node_1]);
 
-        skin.add_joint(&mut graph, &node_2);
+        skin.add_joint(&mut graph, &node_2, 1);
         assert_eq!(skin.joints(&graph), vec![node_1, node_2]);
 
         skin.remove_joint(&mut graph, &node_1);

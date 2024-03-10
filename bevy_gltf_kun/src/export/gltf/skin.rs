@@ -25,8 +25,9 @@ pub fn export_skins(
         mesh.joints
             .iter()
             .filter_map(|joint| context.nodes.iter().find(|n| n.entity == *joint))
-            .for_each(|cached| {
-                skin.add_joint(&mut context.graph, &cached.node);
+            .enumerate()
+            .for_each(|(i, cached)| {
+                skin.add_joint(&mut context.graph, &cached.node, i);
             });
 
         let inverse_bindposes_handle = &mesh.inverse_bindposes;
