@@ -297,17 +297,24 @@ fn ui(
         });
 
         if let Some(graph) = loaded_graph.0.iter_mut().next() {
-            let interaction_settings = &SettingsInteraction::new()
-                .with_dragging_enabled(true)
-                .with_node_clicking_enabled(true);
+            let node_count = graph.nodes_iter().count();
+            info!("Graph has {} nodes", node_count);
 
-            let style_settings = &SettingsStyle::new().with_labels_always(true);
+            if node_count > 100 {
+                ui.label("Graph is too large to display.");
+            } else {
+                let interaction_settings = &SettingsInteraction::new()
+                    .with_dragging_enabled(true)
+                    .with_node_clicking_enabled(true);
 
-            ui.add(
-                &mut GraphView::<_, _, _, _, DefaultNodeShape, DefaultEdgeShape>::new(graph)
-                    .with_styles(style_settings)
-                    .with_interactions(interaction_settings),
-            );
+                let style_settings = &SettingsStyle::new().with_labels_always(true);
+
+                ui.add(
+                    &mut GraphView::<_, _, _, _, DefaultNodeShape, DefaultEdgeShape>::new(graph)
+                        .with_styles(style_settings)
+                        .with_interactions(interaction_settings),
+                );
+            }
         }
     });
 
@@ -363,6 +370,7 @@ fn load_model(
             let graph = graphs
                 .get(graph_handle.clone())
                 .map(|g| create_graph(g, &graph_settings.0));
+
             *loaded_graph = LoadedGraph(graph);
         }
     }
