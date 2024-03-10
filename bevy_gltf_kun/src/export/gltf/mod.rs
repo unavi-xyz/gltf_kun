@@ -16,6 +16,7 @@ pub mod node;
 pub mod scene;
 pub mod skin;
 
+/// Adds the ability to export Bevy scenes to glTF.
 pub struct GltfExportPlugin<E: BevyExportExtensions<GltfDocument>> {
     _marker: PhantomData<E>,
 }

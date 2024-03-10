@@ -6,9 +6,9 @@ use bevy::{
 };
 use bevy_egui::{egui::ComboBox, EguiContexts, EguiPlugin};
 use bevy_gltf_kun::{
-    export::gltf::{GltfExport, GltfExportResult},
+    export::gltf::{GltfExport, GltfExportPlugin, GltfExportResult},
+    extensions::ExtensionsPlugin,
     import::{gltf::GltfKun, graph::GltfGraph},
-    GltfKunPlugin,
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use bevy_xpbd_3d::prelude::*;
@@ -57,7 +57,8 @@ pub struct ExamplePlugin;
 impl Plugin for ExamplePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
-            GltfKunPlugin::<DefaultExtensions>::default(),
+            GltfExportPlugin::<DefaultExtensions>::default(),
+            ExtensionsPlugin,
             EguiPlugin,
             PanOrbitCameraPlugin,
             PhysicsPlugins::default(),

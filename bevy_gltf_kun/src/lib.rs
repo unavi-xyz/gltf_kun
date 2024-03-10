@@ -1,38 +1,5 @@
-use std::marker::PhantomData;
-
-use bevy::prelude::*;
-use export::extensions::BevyExportExtensions;
-use gltf_kun::graph::gltf::GltfDocument;
-
 #[cfg(feature = "export")]
 pub mod export;
 pub mod extensions;
 #[cfg(feature = "import")]
 pub mod import;
-
-pub struct GltfKunPlugin<E: BevyExportExtensions<GltfDocument>> {
-    _marker: PhantomData<E>,
-}
-
-impl<E: BevyExportExtensions<GltfDocument>> Default for GltfKunPlugin<E> {
-    fn default() -> Self {
-        Self {
-            _marker: PhantomData,
-        }
-    }
-}
-
-impl<E: BevyExportExtensions<GltfDocument>> Plugin for GltfKunPlugin<E> {
-    fn build(&self, app: &mut App) {
-        #[cfg(feature = "export")]
-        app.add_plugins(export::gltf::GltfExportPlugin::<E>::default());
-
-        #[cfg(feature = "import")]
-        app.add_plugins((
-            import::gltf::GltfImportPlugin,
-            import::graph::GraphImportPlugin,
-        ));
-
-        app.add_plugins(extensions::ExtensionsPlugin);
-    }
-}
