@@ -10,6 +10,8 @@ edition.workspace = true
 [features]
 default = []
 omi_physics = []
+vrm_0 = []
+vrm_1 = []
 
 [dependencies]
 base64 = "0.22.0"

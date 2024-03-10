@@ -9,6 +9,6 @@ pub struct ExtensionsPlugin;
 impl Plugin for ExtensionsPlugin {
     fn build(&self, app: &mut App) {
         #[cfg(feature = "omi_physics")]
-        app.add_plugins(omi_physics::OMIPhysicsPlugin);
+        app.add_plugins(omi_physics::OmiPhysicsPlugin);
     }
 }

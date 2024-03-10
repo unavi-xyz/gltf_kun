@@ -2,12 +2,12 @@ use bevy::{ecs::system::RunSystemOnce, prelude::*};
 use bevy_xpbd_3d::{parry::shape::ShapeType, prelude::*};
 use gltf_kun::{
     extensions::{
-        omi_physics_body::{BodyType, Motion, OMIPhysicsBody},
+        omi_physics_body::{BodyType, Motion, OmiPhysicsBody},
         omi_physics_shape::{
             physics_shape::{
                 BoxShape, CapsuleShape, Height, PhysicsShapeWeight, Radius, Size, SphereShape,
             },
-            OMIPhysicsShape,
+            OmiPhysicsShape,
         },
     },
     graph::{ByteNode, Property},
@@ -15,7 +15,7 @@ use gltf_kun::{
 
 use crate::export::{extensions::BevyExtensionExport, gltf::ExportContext};
 
-impl BevyExtensionExport for OMIPhysicsBody {
+impl BevyExtensionExport for OmiPhysicsBody {
     fn bevy_export(In(context): In<ExportContext>, world: &mut World) -> ExportContext {
         world.run_system_once_with(context, export_physics_bodies)
     }
@@ -41,18 +41,18 @@ pub fn export_physics_bodies(
             continue;
         }
 
-        let mut ext = match cached.node.get_extension::<OMIPhysicsBody>(&context.graph) {
+        let mut ext = match cached.node.get_extension::<OmiPhysicsBody>(&context.graph) {
             Some(ext) => ext,
             None => cached
                 .node
-                .create_extension::<OMIPhysicsBody>(&mut context.graph),
+                .create_extension::<OmiPhysicsBody>(&mut context.graph),
         };
 
-        let shapes_ext = match context.doc.get_extension::<OMIPhysicsShape>(&context.graph) {
+        let shapes_ext = match context.doc.get_extension::<OmiPhysicsShape>(&context.graph) {
             Some(ext) => ext,
             None => context
                 .doc
-                .create_extension::<OMIPhysicsShape>(&mut context.graph),
+                .create_extension::<OmiPhysicsShape>(&mut context.graph),
         };
 
         if let Ok(body) = body {

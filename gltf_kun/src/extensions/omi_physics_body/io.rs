@@ -4,12 +4,12 @@ use serde::{Deserialize, Serialize};
 use tracing::warn;
 
 use crate::{
-    extensions::{omi_physics_shape::OMIPhysicsShape, ExtensionExport, ExtensionImport},
+    extensions::{omi_physics_shape::OmiPhysicsShape, ExtensionExport, ExtensionImport},
     graph::{gltf::document::GltfDocument, ByteNode, Property},
     io::format::gltf::GltfFormat,
 };
 
-use super::{Motion, OMIPhysicsBody, OMIPhysicsBodyWeight, EXTENSION_NAME};
+use super::{Motion, OmiPhysicsBody, OmiPhysicsBodyWeight, EXTENSION_NAME};
 
 #[derive(Debug, Deserialize, PartialEq, Serialize)]
 pub struct PhysicsBodyJson {
@@ -26,7 +26,7 @@ pub struct ShapeRefJson {
     pub shape: isize,
 }
 
-impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsBody {
+impl ExtensionExport<GltfDocument, GltfFormat> for OmiPhysicsBody {
     fn export(
         graph: &mut crate::graph::Graph,
         doc: &GltfDocument,
@@ -54,7 +54,7 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsBody {
                 let collider = ext
                     .collider(graph)
                     .iter()
-                    .filter_map(|s| doc.get_extension::<OMIPhysicsShape>(graph).map(|e| (e, s)))
+                    .filter_map(|s| doc.get_extension::<OmiPhysicsShape>(graph).map(|e| (e, s)))
                     .find_map(|(e, s)| e.shapes(graph).position(|x| x == *s))
                     .map(|shape| ShapeRefJson {
                         shape: shape as isize,
@@ -63,7 +63,7 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsBody {
                 let trigger = ext
                     .trigger(graph)
                     .iter()
-                    .filter_map(|s| doc.get_extension::<OMIPhysicsShape>(graph).map(|e| (e, s)))
+                    .filter_map(|s| doc.get_extension::<OmiPhysicsShape>(graph).map(|e| (e, s)))
                     .find_map(|(e, s)| e.shapes(graph).position(|x| x == *s))
                     .map(|shape| ShapeRefJson {
                         shape: shape as isize,
@@ -91,7 +91,7 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsBody {
     }
 }
 
-impl ExtensionImport<GltfDocument, GltfFormat> for OMIPhysicsBody {
+impl ExtensionImport<GltfDocument, GltfFormat> for OmiPhysicsBody {
     fn import(
         graph: &mut crate::graph::Graph,
         format: &mut GltfFormat,
@@ -116,7 +116,7 @@ impl ExtensionImport<GltfDocument, GltfFormat> for OMIPhysicsBody {
 
                 // Motion
                 if let Some(motion) = json.motion {
-                    let weight = OMIPhysicsBodyWeight {
+                    let weight = OmiPhysicsBodyWeight {
                         motion: Some(motion),
                     };
                     ext.write(graph, &weight);
@@ -126,7 +126,7 @@ impl ExtensionImport<GltfDocument, GltfFormat> for OMIPhysicsBody {
                     return;
                 }
 
-                let omi_physics_shapes = match doc.get_extension::<OMIPhysicsShape>(graph) {
+                let omi_physics_shapes = match doc.get_extension::<OmiPhysicsShape>(graph) {
                     Some(ext) => ext,
                     None => {
                         warn!("OMI_physics_shape extension not found");
@@ -165,7 +165,7 @@ impl ExtensionImport<GltfDocument, GltfFormat> for OMIPhysicsBody {
 
 #[cfg(test)]
 mod tests {
-    use crate::extensions::omi_physics_body::{BodyType, Motion};
+    use crate::extensions::omi_physics_body::weight::{BodyType, Motion};
 
     use super::*;
 

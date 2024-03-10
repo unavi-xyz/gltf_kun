@@ -17,7 +17,7 @@ impl BevyExportExtensions<GltfDocument> for DefaultExtensions {
         {
             world.run_system_once_with(
                 context,
-                gltf_kun::extensions::omi_physics_body::OMIPhysicsBody::bevy_export,
+                gltf_kun::extensions::omi_physics_body::OmiPhysicsBody::bevy_export,
             )
         }
     }

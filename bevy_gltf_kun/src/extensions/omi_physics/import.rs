@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_xpbd_3d::prelude::*;
 use gltf_kun::{
     extensions::{
-        omi_physics_body::{BodyType, OMIPhysicsBody},
+        omi_physics_body::{BodyType, OmiPhysicsBody},
         omi_physics_shape::physics_shape::{
             BoxShape, CapsuleShape, CylinderShape, PhysicsShapeWeight, SphereShape,
         },
@@ -101,7 +101,7 @@ pub enum RigidBodyType {
     Kinematic,
 }
 
-impl NodeExtensionImport<GltfDocument> for OMIPhysicsBody {
+impl NodeExtensionImport<GltfDocument> for OmiPhysicsBody {
     fn import_node(context: &mut ImportContext, entity: &mut EntityWorldMut, ext: Self) {
         if let Some(collider) = ext.collider(context.graph) {
             let weight = collider.read(context.graph);

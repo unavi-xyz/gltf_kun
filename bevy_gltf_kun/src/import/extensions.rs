@@ -27,7 +27,7 @@ impl BevyImportExtensions<GltfDocument> for DefaultExtensions {
     fn import_node(context: &mut ImportContext, entity: &mut EntityWorldMut, node: Node) {
         #[cfg(feature = "omi_physics")]
         {
-            gltf_kun::extensions::omi_physics_body::OMIPhysicsBody::maybe_import_node(
+            gltf_kun::extensions::omi_physics_body::OmiPhysicsBody::maybe_import_node(
                 context, entity, node,
             )
         }

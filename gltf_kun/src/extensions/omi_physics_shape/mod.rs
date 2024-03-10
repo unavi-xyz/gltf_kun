@@ -15,27 +15,27 @@ pub const EXTENSION_NAME: &str = "OMI_physics_shape";
 pub const SHAPE_EDGE: &str = "OMI_physics_shape/shape";
 
 #[derive(Copy, Clone, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct OMIPhysicsShape(pub NodeIndex);
+pub struct OmiPhysicsShape(pub NodeIndex);
 
-impl From<NodeIndex> for OMIPhysicsShape {
+impl From<NodeIndex> for OmiPhysicsShape {
     fn from(index: NodeIndex) -> Self {
         Self(index)
     }
 }
 
-impl From<OMIPhysicsShape> for NodeIndex {
-    fn from(physics_shape: OMIPhysicsShape) -> Self {
+impl From<OmiPhysicsShape> for NodeIndex {
+    fn from(physics_shape: OmiPhysicsShape) -> Self {
         physics_shape.0
     }
 }
 
-impl Extension for OMIPhysicsShape {
+impl Extension for OmiPhysicsShape {
     fn name() -> &'static str {
         EXTENSION_NAME
     }
 }
 
-impl OMIPhysicsShape {
+impl OmiPhysicsShape {
     pub fn shape_edge_name() -> &'static str {
         SHAPE_EDGE
     }

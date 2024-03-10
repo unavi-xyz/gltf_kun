@@ -2,10 +2,10 @@ use std::path::Path;
 
 use gltf_kun::{
     extensions::{
-        omi_physics_body::{BodyType, OMIPhysicsBody},
+        omi_physics_body::{BodyType, OmiPhysicsBody},
         omi_physics_shape::{
             physics_shape::{BoxShape, PhysicsShapeWeight, Size},
-            OMIPhysicsShape,
+            OmiPhysicsShape,
         },
         DefaultExtensions, Extension,
     },
@@ -53,7 +53,7 @@ async fn main() {
 
 fn validate_doc(graph: &Graph, doc: &GltfDocument) {
     let shape_ext = doc
-        .get_extension::<OMIPhysicsShape>(graph)
+        .get_extension::<OmiPhysicsShape>(graph)
         .expect("OMI_physics_shape extension not found");
 
     assert_eq!(shape_ext.shapes(graph).count(), 1);
@@ -68,7 +68,7 @@ fn validate_doc(graph: &Graph, doc: &GltfDocument) {
 
     for (i, node) in doc.nodes(graph).iter().enumerate() {
         let body_ext = node
-            .get_extension::<OMIPhysicsBody>(graph)
+            .get_extension::<OmiPhysicsBody>(graph)
             .expect("OMI_physics_body extension not found");
 
         if i == 0 {
@@ -92,13 +92,13 @@ fn validate_json(json: &serde_json::Value) {
 
     assert!(
         extensions_used.contains(&serde_json::Value::String(
-            OMIPhysicsBody::name().to_string()
+            OmiPhysicsBody::name().to_string()
         )),
         "OMI_physics_body extension not found in extensionsUsed"
     );
     assert!(
         extensions_used.contains(&serde_json::Value::String(
-            OMIPhysicsShape::name().to_string()
+            OmiPhysicsShape::name().to_string()
         )),
         "OMI_physics_shape extension not found in extensionsUsed"
     );

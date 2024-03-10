@@ -6,7 +6,7 @@ use crate::{
     io::format::gltf::GltfFormat,
 };
 
-use super::{physics_shape::PhysicsShapeWeight, OMIPhysicsShape, EXTENSION_NAME};
+use super::{physics_shape::PhysicsShapeWeight, OmiPhysicsShape, EXTENSION_NAME};
 
 #[derive(Debug, Deserialize, Serialize)]
 struct RootExtension {
@@ -47,7 +47,7 @@ impl From<PhysicsShapeWeight> for Shape {
     }
 }
 
-impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsShape {
+impl ExtensionExport<GltfDocument, GltfFormat> for OmiPhysicsShape {
     fn export(
         graph: &mut Graph,
         doc: &GltfDocument,
@@ -85,7 +85,7 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OMIPhysicsShape {
     }
 }
 
-impl ExtensionImport<GltfDocument, GltfFormat> for OMIPhysicsShape {
+impl ExtensionImport<GltfDocument, GltfFormat> for OmiPhysicsShape {
     fn import(
         graph: &mut Graph,
         format: &mut GltfFormat,

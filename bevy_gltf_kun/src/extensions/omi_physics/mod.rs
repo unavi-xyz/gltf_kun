@@ -5,9 +5,9 @@ pub mod export;
 #[cfg(feature = "import")]
 pub mod import;
 
-pub struct OMIPhysicsPlugin;
+pub struct OmiPhysicsPlugin;
 
-impl Plugin for OMIPhysicsPlugin {
+impl Plugin for OmiPhysicsPlugin {
     fn build(&self, app: &mut App) {
         #[cfg(feature = "import")]
         {
