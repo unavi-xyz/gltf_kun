@@ -583,7 +583,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_example"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "bevy",
  "bevy_egui",
@@ -677,7 +677,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_gltf_kun"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "bevy",
  "bevy_xpbd_3d",
@@ -2184,7 +2184,7 @@ dependencies = [
 
 [[package]]
 name = "gltf_kun"
-version = "0.0.6"
+version = "0.0.7"
 dependencies = [
  "base64 0.22.0",
  "byteorder",
