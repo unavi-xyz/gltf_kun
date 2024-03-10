@@ -22,17 +22,20 @@ pub fn import_mesh<E: BevyImportExtensions<GltfDocument>>(
     entity: &mut EntityWorldMut,
     mut m: gltf::mesh::Mesh,
     is_scale_inverted: bool,
-) -> (Vec<Entity>, Handle<GltfMesh>) {
+) -> (Vec<Entity>, Handle<GltfMesh>, Option<Vec<f32>>) {
     let index = context.doc.mesh_index(context.graph, m).unwrap();
     let mesh_label = mesh_label(index);
 
     let mut primitive_entities = Vec::new();
     let mut primitives = Vec::new();
 
+    let mut morph_weights = None;
+
     entity.with_children(|parent| {
         for (i, p) in m.primitives(context.graph).iter_mut().enumerate() {
-            match import_primitive::<E>(context, parent, is_scale_inverted, &mesh_label, i, p) {
-                Ok((ent, handle)) => {
+            match import_primitive::<E>(context, parent, is_scale_inverted, m, &mesh_label, i, p) {
+                Ok((ent, handle, weights)) => {
+                    morph_weights = weights;
                     primitive_entities.push(ent);
                     primitives.push(handle)
                 }
@@ -62,9 +65,9 @@ pub fn import_mesh<E: BevyImportExtensions<GltfDocument>>(
 
     context.gltf.meshes.insert(index, handle.clone());
 
-    (primitive_entities, handle)
+    (primitive_entities, handle, morph_weights)
 }
 
-fn mesh_label(index: usize) -> String {
+pub fn mesh_label(index: usize) -> String {
     format!("Mesh{}", index)
 }

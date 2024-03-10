@@ -1,7 +1,10 @@
 use bevy::{
     prelude::*,
     render::{
-        mesh::{Indices, MeshVertexAttribute, VertexAttributeValues},
+        mesh::{
+            morph::{MeshMorphWeights, MorphAttributes, MorphBuildError, MorphTargetImage},
+            Indices, MeshVertexAttribute, VertexAttributeValues,
+        },
         primitives::Aabb,
         render_asset::RenderAssetUsages,
         render_resource::{PrimitiveTopology, VertexFormat},
@@ -18,10 +21,10 @@ use gltf_kun::graph::{
             weights::ReadWeights,
             Accessor, ComponentType, GetAccessorSliceError, Type,
         },
-        primitive::{Mode, Primitive, Semantic},
+        primitive::{Mode, MorphTarget, Primitive, Semantic},
         GltfDocument,
     },
-    GraphNodeWeight,
+    Graph, GraphNodeWeight,
 };
 use thiserror::Error;
 
@@ -57,16 +60,19 @@ pub enum ImportPrimitiveError {
     UnsupportedMode(Mode),
     #[error("Invalid accessor")]
     InvalidAccessor,
+    #[error("Failed to build morph target: {0}")]
+    MorphBuildError(#[from] MorphBuildError),
 }
 
 pub fn import_primitive<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
     parent: &mut WorldChildBuilder,
     is_scale_inverted: bool,
+    mesh: gltf_kun::graph::gltf::Mesh,
     mesh_label: &str,
     index: usize,
     p: &mut Primitive,
-) -> Result<(Entity, GltfPrimitive), ImportPrimitiveError> {
+) -> Result<(Entity, GltfPrimitive, Option<Vec<f32>>), ImportPrimitiveError> {
     let primitive_label = primitive_label(mesh_label, index);
 
     let weight = p.get(context.graph);
@@ -80,7 +86,7 @@ pub fn import_primitive<E: BevyImportExtensions<GltfDocument>>(
         mode => return Err(ImportPrimitiveError::UnsupportedMode(mode)),
     };
 
-    let mut mesh = Mesh::new(topology, RenderAssetUsages::default());
+    let mut bevy_mesh = Mesh::new(topology, RenderAssetUsages::default());
 
     for (semantic, accessor) in p.attributes(context.graph) {
         let (attribute, values) = convert_attribute(context, &semantic, &accessor)?;
@@ -90,12 +96,12 @@ pub fn import_primitive<E: BevyImportExtensions<GltfDocument>>(
             continue;
         }
 
-        mesh.insert_attribute(attribute, values);
+        bevy_mesh.insert_attribute(attribute, values);
     }
 
     if let Some(accessor) = p.indices(context.graph) {
         let indices = read_indices(context, accessor)?;
-        mesh.insert_indices(indices);
+        bevy_mesh.insert_indices(indices);
     };
 
     let material = match p.material(context.graph) {
@@ -137,13 +143,16 @@ pub fn import_primitive<E: BevyImportExtensions<GltfDocument>>(
         entity.insert(Aabb::from_min_max(min.into(), max.into()));
     }
 
-    if mesh.attribute(Mesh::ATTRIBUTE_NORMAL).is_none()
-        && matches!(mesh.primitive_topology(), PrimitiveTopology::TriangleList)
+    if bevy_mesh.attribute(Mesh::ATTRIBUTE_NORMAL).is_none()
+        && matches!(
+            bevy_mesh.primitive_topology(),
+            PrimitiveTopology::TriangleList
+        )
     {
-        let vertex_count_before = mesh.count_vertices();
-        mesh.duplicate_vertices();
-        mesh.compute_flat_normals();
-        let vertex_count_after = mesh.count_vertices();
+        let vertex_count_before = bevy_mesh.count_vertices();
+        bevy_mesh.duplicate_vertices();
+        bevy_mesh.compute_flat_normals();
+        let vertex_count_after = bevy_mesh.count_vertices();
 
         if vertex_count_before != vertex_count_after {
             debug!("Missing vertex normals in indexed geometry, computing them as flat. Vertex count increased from {} to {}", vertex_count_before, vertex_count_after);
@@ -152,15 +161,15 @@ pub fn import_primitive<E: BevyImportExtensions<GltfDocument>>(
         }
     }
 
-    if mesh.attribute(Mesh::ATTRIBUTE_TANGENT).is_none()
-        && mesh.attribute(Mesh::ATTRIBUTE_NORMAL).is_some()
+    if bevy_mesh.attribute(Mesh::ATTRIBUTE_TANGENT).is_none()
+        && bevy_mesh.attribute(Mesh::ATTRIBUTE_NORMAL).is_some()
         && p.material(context.graph)
             .and_then(|m| m.normal_texture_info(context.graph))
             .is_some()
     {
         debug!("Missing vertex tangents, computing them using the mikktspace algorithm");
 
-        if let Err(err) = mesh.generate_tangents() {
+        if let Err(err) = bevy_mesh.generate_tangents() {
             warn!(
                 "Failed to generate vertex tangents using the mikktspace algorithm: {:?}",
                 err
@@ -168,9 +177,46 @@ pub fn import_primitive<E: BevyImportExtensions<GltfDocument>>(
         }
     }
 
+    let morph_targets = p.morph_targets(context.graph);
+    let target_count = morph_targets.len();
+
+    let mut morph_weights = None;
+
+    if target_count > 0 {
+        let mesh_weight = mesh.get(context.graph);
+
+        let weights = if mesh_weight.weights.is_empty() {
+            vec![0.0; target_count]
+        } else {
+            mesh_weight.weights.clone()
+        };
+
+        morph_weights = Some(weights.clone());
+
+        entity.insert(MeshMorphWeights::new(weights).unwrap());
+
+        let targets_iter = morph_targets
+            .iter()
+            .map(|target| morph_targets_iter(context.graph, *target));
+
+        let morph_target_image = MorphTargetImage::new(
+            targets_iter,
+            bevy_mesh.count_vertices(),
+            RenderAssetUsages::default(),
+        )?;
+
+        let morph_targets_label = morph_targets_label(&primitive_label);
+
+        let handle = context
+            .load_context
+            .add_labeled_asset(morph_targets_label, morph_target_image.0);
+
+        bevy_mesh.set_morph_targets(handle);
+    }
+
     let mesh_label = context
         .load_context
-        .add_labeled_asset(primitive_label.clone(), mesh);
+        .add_labeled_asset(primitive_label.clone(), bevy_mesh);
 
     let weight = p.get_mut(context.graph);
 
@@ -180,11 +226,15 @@ pub fn import_primitive<E: BevyImportExtensions<GltfDocument>>(
         mesh: mesh_label,
     };
 
-    Ok((entity.id(), primitive))
+    Ok((entity.id(), primitive, morph_weights))
 }
 
-fn primitive_label(mesh_label: &str, primitive_index: usize) -> String {
+pub fn primitive_label(mesh_label: &str, primitive_index: usize) -> String {
     format!("{}/Primitive{}", mesh_label, primitive_index)
+}
+
+fn morph_targets_label(primitive_label: &str) -> String {
+    format!("{}/MorphTargets", primitive_label)
 }
 
 #[derive(Debug, Error)]
@@ -417,5 +467,73 @@ fn convert_tex_coord_values(
             ReadTexCoords::U16(iter).into_f32().collect(),
         )),
         (iter, _) => convert_any_values(iter),
+    }
+}
+
+fn morph_targets_iter(graph: &Graph, target: MorphTarget) -> MorphTargetsIter {
+    let positions = target
+        .attribute(graph, &Semantic::Positions)
+        .map(|a| a.iter(graph).unwrap())
+        .map(|i| match i {
+            AccessorIter::F32x3(i) => i,
+            _ => panic!("Invalid accessor type"),
+        });
+
+    let normals = target
+        .attribute(graph, &Semantic::Normals)
+        .map(|a| a.iter(graph).unwrap())
+        .map(|i| match i {
+            AccessorIter::F32x3(i) => i,
+            _ => panic!("Invalid accessor type"),
+        });
+
+    let tangents = target
+        .attribute(graph, &Semantic::Tangents)
+        .map(|a| a.iter(graph).unwrap())
+        .map(|i| match i {
+            AccessorIter::F32x3(i) => i,
+            _ => panic!("Invalid accessor type"),
+        });
+
+    MorphTargetsIter {
+        positions,
+        normals,
+        tangents,
+    }
+}
+
+struct MorphTargetsIter<'a> {
+    positions: Option<ElementIter<'a, [f32; 3]>>,
+    normals: Option<ElementIter<'a, [f32; 3]>>,
+    tangents: Option<ElementIter<'a, [f32; 3]>>,
+}
+
+impl<'a> Iterator for MorphTargetsIter<'a> {
+    type Item = MorphAttributes;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let position = self.positions.as_mut().and_then(|p| p.next());
+        let normal = self.normals.as_mut().and_then(|n| n.next());
+        let tangent = self.tangents.as_mut().and_then(|t| t.next());
+
+        if position.is_none() && normal.is_none() && tangent.is_none() {
+            return None;
+        }
+
+        Some(MorphAttributes {
+            position: position.map(|p| p.into()).unwrap_or(Vec3::ZERO),
+            normal: normal.map(|n| n.into()).unwrap_or(Vec3::ZERO),
+            tangent: tangent.map(|t| t.into()).unwrap_or(Vec3::ZERO),
+        })
+    }
+}
+
+impl ExactSizeIterator for MorphTargetsIter<'_> {
+    fn len(&self) -> usize {
+        let positions = self.positions.as_ref().map(|p| p.count()).unwrap_or(0);
+        let normals = self.normals.as_ref().map(|n| n.count()).unwrap_or(0);
+        let tangents = self.tangents.as_ref().map(|t| t.count()).unwrap_or(0);
+
+        positions.max(normals).max(tangents)
     }
 }

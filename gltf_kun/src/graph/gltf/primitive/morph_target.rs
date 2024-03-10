@@ -1,8 +1,9 @@
 use gltf::Semantic;
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
+use thiserror::Error;
 
 use crate::graph::{
-    gltf::{Accessor, GltfEdge},
+    gltf::{accessor::iter::AccessorIterCreateError, Accessor, GltfEdge},
     Edge, Graph, GraphNodeEdges, Property,
 };
 
@@ -75,4 +76,10 @@ impl MorphTarget {
             accessor,
         );
     }
+}
+
+#[derive(Debug, Error)]
+pub enum MorphTargetIterError {
+    #[error(transparent)]
+    AccessorIterCreateError(#[from] AccessorIterCreateError),
 }

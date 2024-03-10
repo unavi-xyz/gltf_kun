@@ -1,14 +1,16 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, render::mesh::morph::MorphBuildError};
 use gltf_kun::graph::{
     gltf::{GltfDocument, Node},
     Graph, GraphNodeWeight,
 };
+use thiserror::Error;
 
 use crate::import::extensions::BevyImportExtensions;
 
 use super::{
     document::ImportContext,
-    mesh::{import_mesh, GltfMesh},
+    mesh::{import_mesh, mesh_label, GltfMesh},
+    primitive::primitive_label,
 };
 
 #[derive(Asset, Debug, TypePath)]
@@ -19,12 +21,18 @@ pub struct GltfNode {
     pub extras: Option<Box<serde_json::value::RawValue>>,
 }
 
+#[derive(Debug, Error)]
+pub enum ImportNodeError {
+    #[error(transparent)]
+    MorphBuildEror(#[from] MorphBuildError),
+}
+
 pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext<'_, '_>,
     builder: &mut WorldChildBuilder,
     parent_world_transform: &Transform,
     n: &mut Node,
-) -> Handle<GltfNode> {
+) -> Result<Handle<GltfNode>, ImportNodeError> {
     let index = context.doc.node_index(context.graph, *n).unwrap();
     let weight = n.get_mut(context.graph);
 
@@ -47,8 +55,20 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
 
     let mesh = match n.mesh(context.graph) {
         Some(m) => {
-            let (ents, mesh) = import_mesh::<E>(context, &mut ent, m, is_scale_inverted);
+            let (ents, mesh, morph_weights) =
+                import_mesh::<E>(context, &mut ent, m, is_scale_inverted);
+
             primitive_entities.extend(ents);
+
+            if let Some(weights) = morph_weights {
+                let mesh_index = context.doc.mesh_index(context.graph, m).unwrap();
+                let m_label = mesh_label(mesh_index);
+                let p_label = primitive_label(&m_label, 0);
+                let first_mesh = context.load_context.get_label_handle(p_label);
+                let morph_weights = MorphWeights::new(weights, Some(first_mesh))?;
+                ent.insert(morph_weights);
+            }
+
             Some(mesh)
         }
         None => None,
@@ -57,17 +77,22 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
     let mut children = Vec::new();
 
     ent.with_children(|parent| {
-        n.children(context.graph).iter_mut().for_each(|c| {
-            let handle = import_node::<E>(context, parent, &world_transform, c);
-            children.push(handle)
-        })
+        for c in n.children(context.graph).iter_mut() {
+            match import_node::<E>(context, parent, &world_transform, c) {
+                Ok(handle) => children.push(handle),
+                Err(e) => {
+                    warn!("Failed to import node: {}", e);
+                    continue;
+                }
+            }
+        }
     });
 
     let node = GltfNode {
-        mesh,
         children,
-        transform,
         extras,
+        mesh,
+        transform,
     };
 
     let node_label = node_label(index);
@@ -86,7 +111,7 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
 
     E::import_node(context, &mut ent, *n);
 
-    handle
+    Ok(handle)
 }
 
 pub fn node_name(doc: &GltfDocument, graph: &Graph, node: Node) -> String {
