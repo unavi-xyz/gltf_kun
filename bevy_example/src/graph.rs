@@ -110,6 +110,7 @@ pub fn create_graph(graph: &GltfGraph, settings: &GraphSettings) -> Graph<Weight
             Weight::Gltf(GltfWeight::Mesh(m)) => m.name.clone().unwrap_or_else(|| {
                 format!("Mesh{}", doc.mesh_index(&graph.0, Mesh(*idx)).unwrap())
             }),
+            Weight::Gltf(GltfWeight::MorphTarget) => "MorphTarget".to_string(),
             Weight::Gltf(GltfWeight::Primitive(_)) => "Primitive".to_string(),
             Weight::Gltf(GltfWeight::TextureInfo(_)) => "TextureInfo".to_string(),
 
@@ -149,6 +150,7 @@ pub fn create_graph(graph: &GltfGraph, settings: &GraphSettings) -> Graph<Weight
             Edge::Gltf(GltfEdge::Image(e)) => format!("{:?}", e),
             Edge::Gltf(GltfEdge::Material(e)) => format!("{:?}", e),
             Edge::Gltf(GltfEdge::Mesh(e)) => format!("{:?}", e),
+            Edge::Gltf(GltfEdge::MorphTarget(e)) => format!("{:?}", e),
             Edge::Gltf(GltfEdge::Node(e)) => format!("{:?}", e),
             Edge::Gltf(GltfEdge::Primitive(e)) => format!("{:?}", e),
             Edge::Gltf(GltfEdge::Scene(e)) => format!("{:?}", e),

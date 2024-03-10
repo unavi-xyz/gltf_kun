@@ -29,6 +29,7 @@ const ASSETS_DIR: &str = "assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 
 const MODELS: &[&str] = &[
+    "AnimatedMorphCube.glb",
     "AlphaBlendModeTest.glb",
     "AnimatedCube/AnimatedCube.gltf",
     "BoomBox.glb",

@@ -1,4 +1,4 @@
-use petgraph::{graph::NodeIndex, visit::EdgeRef};
+use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
 
 use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
 
@@ -6,11 +6,16 @@ use super::{accessor::Accessor, material::Material, GltfEdge, GltfWeight};
 
 pub use gltf::json::mesh::{Mode, Semantic};
 
+mod morph_target;
+
+pub use morph_target::*;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum PrimitiveEdge {
     Attribute(Semantic),
     Indices,
     Material,
+    MorphTarget(usize),
 }
 
 impl<'a> TryFrom<&'a Edge> for &'a PrimitiveEdge {
@@ -90,20 +95,6 @@ impl GraphNodeEdges<PrimitiveEdge> for Primitive {}
 impl Property for Primitive {}
 
 impl Primitive {
-    pub fn material(&self, graph: &Graph) -> Option<Material> {
-        self.find_edge_target(graph, &PrimitiveEdge::Material)
-    }
-    pub fn set_material(&self, graph: &mut Graph, material: Option<Material>) {
-        self.set_edge_target(graph, PrimitiveEdge::Material, material);
-    }
-
-    pub fn indices(&self, graph: &Graph) -> Option<Accessor> {
-        self.find_edge_target(graph, &PrimitiveEdge::Indices)
-    }
-    pub fn set_indices(&self, graph: &mut Graph, indices: Option<Accessor>) {
-        self.set_edge_target(graph, PrimitiveEdge::Indices, indices);
-    }
-
     pub fn attributes(&self, graph: &Graph) -> Vec<(Semantic, Accessor)> {
         graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
@@ -128,6 +119,70 @@ impl Primitive {
         accessor: Option<Accessor>,
     ) {
         self.set_edge_target(graph, PrimitiveEdge::Attribute(semantic.clone()), accessor);
+    }
+
+    pub fn indices(&self, graph: &Graph) -> Option<Accessor> {
+        self.find_edge_target(graph, &PrimitiveEdge::Indices)
+    }
+    pub fn set_indices(&self, graph: &mut Graph, indices: Option<Accessor>) {
+        self.set_edge_target(graph, PrimitiveEdge::Indices, indices);
+    }
+
+    pub fn material(&self, graph: &Graph) -> Option<Material> {
+        self.find_edge_target(graph, &PrimitiveEdge::Material)
+    }
+    pub fn set_material(&self, graph: &mut Graph, material: Option<Material>) {
+        self.set_edge_target(graph, PrimitiveEdge::Material, material);
+    }
+
+    pub fn morph_targets(&self, graph: &Graph) -> Vec<MorphTarget> {
+        let mut morph_targets = graph
+            .edges_directed(self.0, Direction::Outgoing)
+            .filter_map(|edge_ref| {
+                let edge: &PrimitiveEdge = match edge_ref.weight().try_into() {
+                    Ok(edge) => edge,
+                    Err(_) => return None,
+                };
+
+                match edge {
+                    PrimitiveEdge::MorphTarget(i) => {
+                        Some((i, MorphTarget::from(edge_ref.target())))
+                    }
+                    _ => None,
+                }
+            })
+            .collect::<Vec<_>>();
+
+        morph_targets.sort_by_key(|(i, _)| *i);
+
+        morph_targets.into_iter().map(|(_, node)| node).collect()
+    }
+    pub fn add_morph_target(&self, graph: &mut Graph, node: &MorphTarget, index: usize) {
+        self.add_edge_target(graph, PrimitiveEdge::MorphTarget(index), *node);
+    }
+    pub fn remove_morph_target(&self, graph: &mut Graph, node: &MorphTarget) {
+        let target_idx: NodeIndex = (*node).into();
+
+        let found_edge = graph
+            .edges_directed(self.0, Direction::Outgoing)
+            .filter(|edge_ref| {
+                let edge: &PrimitiveEdge = match edge_ref.weight().try_into() {
+                    Ok(edge) => edge,
+                    Err(_) => return false,
+                };
+
+                matches!(edge, PrimitiveEdge::MorphTarget(_))
+            })
+            .find(|edge_ref| edge_ref.target() == target_idx);
+
+        if let Some(found_edge) = found_edge {
+            graph.remove_edge(found_edge.id());
+        }
+    }
+    pub fn create_morph_target(&self, graph: &mut Graph, index: usize) -> MorphTarget {
+        let idx = graph.add_node(Weight::Gltf(GltfWeight::MorphTarget));
+        self.add_edge_target(graph, PrimitiveEdge::MorphTarget(index), idx);
+        MorphTarget(idx)
     }
 }
 

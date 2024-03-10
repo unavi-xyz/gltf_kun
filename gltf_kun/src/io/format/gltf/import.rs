@@ -1,5 +1,8 @@
 use glam::Quat;
-use gltf::json::{validation::Checked, Index};
+use gltf::{
+    json::{validation::Checked, Index},
+    Semantic,
+};
 use thiserror::Error;
 use tracing::{debug, error, warn};
 
@@ -360,10 +363,14 @@ pub async fn import(
             let mut mesh = doc.create_mesh(graph);
             let weight = mesh.get_mut(graph);
 
-            weight.name = m.name.clone();
             weight.extras = m.extras.clone();
+            weight.name = m.name.clone();
 
-            m.primitives.iter_mut().for_each(|p| {
+            if let Some(weights) = &m.weights {
+                weight.weights = weights.clone();
+            }
+
+            for p in m.primitives.iter() {
                 let mut primitive = mesh.create_primitive(graph);
                 let p_weight = primitive.get_mut(graph);
 
@@ -385,20 +392,41 @@ pub async fn import(
                     }
                 }
 
-                p.attributes.iter().for_each(|(k, v)| {
+                for (k, v) in p.attributes.iter() {
                     if let Some(accessor) = accessors.get(v.value()) {
                         let semantic = match k {
                             Checked::Valid(semantic) => semantic,
                             Checked::Invalid => {
                                 warn!("Invalid attribute semantic: {:?}", k);
-                                return;
+                                break;
                             }
                         };
 
                         primitive.set_attribute(graph, semantic, Some(*accessor));
                     }
-                });
-            });
+                }
+
+                if let Some(targets) = &p.targets {
+                    for (i, target) in targets.iter().enumerate() {
+                        let morph_target = primitive.create_morph_target(graph, i);
+
+                        if let Some(positions_idx) = target.positions {
+                            let accessor = accessors.get(positions_idx.value()).copied();
+                            morph_target.set_attribute(graph, &Semantic::Positions, accessor);
+                        }
+
+                        if let Some(normals_idx) = target.normals {
+                            let accessor = accessors.get(normals_idx.value()).copied();
+                            morph_target.set_attribute(graph, &Semantic::Normals, accessor);
+                        }
+
+                        if let Some(tangents_idx) = target.tangents {
+                            let accessor = accessors.get(tangents_idx.value()).copied();
+                            morph_target.set_attribute(graph, &Semantic::Tangents, accessor);
+                        }
+                    }
+                }
+            }
 
             mesh
         })
@@ -429,6 +457,10 @@ pub async fn import(
                 weight.rotation = rotation;
                 weight.scale = scale;
                 weight.translation = translation;
+            }
+
+            if let Some(weights) = &n.weights {
+                weight.weights = weights.clone();
             }
 
             if let Some(index) = n.mesh {

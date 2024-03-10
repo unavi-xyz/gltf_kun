@@ -392,7 +392,11 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                 } else {
                     Some(weight.translation.into())
                 },
-                weights: None,
+                weights: if weight.weights.is_empty() {
+                    None
+                } else {
+                    Some(weight.weights.clone())
+                },
             }
         })
         .collect::<Vec<_>>();

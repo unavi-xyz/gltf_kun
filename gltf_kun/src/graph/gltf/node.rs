@@ -33,9 +33,10 @@ pub struct NodeWeight {
     pub name: Option<String>,
     pub extras: gltf::json::Extras,
 
-    pub translation: Vec3,
     pub rotation: Quat,
     pub scale: Vec3,
+    pub translation: Vec3,
+    pub weights: Vec<f32>,
 }
 
 impl Default for NodeWeight {
@@ -44,9 +45,10 @@ impl Default for NodeWeight {
             name: None,
             extras: None,
 
-            translation: Vec3::ZERO,
             rotation: Quat::IDENTITY,
             scale: Vec3::ONE,
+            translation: Vec3::ZERO,
+            weights: Vec::new(),
         }
     }
 }
