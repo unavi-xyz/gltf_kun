@@ -94,6 +94,8 @@ pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
 const DEFAULT_MATERIAL_LABEL: &str = "MaterialDefault";
 
 pub fn default_material(context: &mut ImportContext) -> Handle<StandardMaterial> {
+    info!("Using default material");
+
     if context
         .load_context
         .has_labeled_asset(DEFAULT_MATERIAL_LABEL)

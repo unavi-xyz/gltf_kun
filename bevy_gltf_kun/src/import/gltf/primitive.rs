@@ -98,10 +98,6 @@ pub fn import_primitive<E: BevyImportExtensions<GltfDocument>>(
         mesh.insert_indices(indices);
     };
 
-    let mesh = context
-        .load_context
-        .add_labeled_asset(primitive_label.clone(), mesh);
-
     let material = match p.material(context.graph) {
         Some(m) => {
             if let Some(material) = context.materials.get(&(m, is_scale_inverted)) {
@@ -141,12 +137,47 @@ pub fn import_primitive<E: BevyImportExtensions<GltfDocument>>(
         entity.insert(Aabb::from_min_max(min.into(), max.into()));
     }
 
+    if mesh.attribute(Mesh::ATTRIBUTE_NORMAL).is_none()
+        && matches!(mesh.primitive_topology(), PrimitiveTopology::TriangleList)
+    {
+        let vertex_count_before = mesh.count_vertices();
+        mesh.duplicate_vertices();
+        mesh.compute_flat_normals();
+        let vertex_count_after = mesh.count_vertices();
+
+        if vertex_count_before != vertex_count_after {
+            debug!("Missing vertex normals in indexed geometry, computing them as flat. Vertex count increased from {} to {}", vertex_count_before, vertex_count_after);
+        } else {
+            debug!("Missing vertex normals in indexed geometry, computing them as flat.");
+        }
+    }
+
+    if mesh.attribute(Mesh::ATTRIBUTE_TANGENT).is_none()
+        && mesh.attribute(Mesh::ATTRIBUTE_NORMAL).is_some()
+        && p.material(context.graph)
+            .and_then(|m| m.normal_texture_info(context.graph))
+            .is_some()
+    {
+        debug!("Missing vertex tangents, computing them using the mikktspace algorithm");
+
+        if let Err(err) = mesh.generate_tangents() {
+            warn!(
+                "Failed to generate vertex tangents using the mikktspace algorithm: {:?}",
+                err
+            );
+        }
+    }
+
+    let mesh_label = context
+        .load_context
+        .add_labeled_asset(primitive_label.clone(), mesh);
+
     let weight = p.get_mut(context.graph);
 
     let primitive = GltfPrimitive {
         extras: weight.extras.take(),
         material,
-        mesh,
+        mesh: mesh_label,
     };
 
     Ok((entity.id(), primitive))
