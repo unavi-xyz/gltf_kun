@@ -299,7 +299,6 @@ fn ui(
 
         if let Some(graph) = loaded_graph.0.iter_mut().next() {
             let node_count = graph.nodes_iter().count();
-            info!("Graph has {} nodes", node_count);
 
             if node_count > 100 {
                 ui.label("Graph is too large to display.");
