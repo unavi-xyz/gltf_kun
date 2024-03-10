@@ -2,7 +2,10 @@ use petgraph::graph::NodeIndex;
 
 use super::Extension;
 
-pub mod weight;
+pub mod io;
+mod weight;
+
+pub use weight::*;
 
 pub const EXTENSION_NAME: &str = "VRM";
 

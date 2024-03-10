@@ -8,12 +8,12 @@ impl From<&Vec<u8>> for VrmWeight {
         if bytes.is_empty() {
             return Self::default();
         }
-        serde_json::from_slice(bytes).expect("Failed to deserialize physics body weight")
+        serde_json::from_slice(bytes).expect("Failed to deserialize weight")
     }
 }
 
 impl From<&VrmWeight> for Vec<u8> {
     fn from(value: &VrmWeight) -> Self {
-        serde_json::to_vec(value).expect("Failed to serialize physics body weight")
+        serde_json::to_vec(value).expect("Failed to serialize weight")
     }
 }
