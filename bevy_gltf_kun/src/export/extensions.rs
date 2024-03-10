@@ -1,8 +1,5 @@
 use bevy::{ecs::system::RunSystemOnce, prelude::*};
-use gltf_kun::{
-    extensions::{omi_physics_body::OMIPhysicsBody, DefaultExtensions},
-    graph::gltf::GltfDocument,
-};
+use gltf_kun::{extensions::DefaultExtensions, graph::gltf::GltfDocument};
 
 use super::gltf::ExportContext;
 
@@ -16,6 +13,12 @@ pub trait BevyExportExtensions<D>: Send + Sync + 'static {
 
 impl BevyExportExtensions<GltfDocument> for DefaultExtensions {
     fn bevy_export(In(context): In<ExportContext>, world: &mut World) -> ExportContext {
-        world.run_system_once_with(context, OMIPhysicsBody::bevy_export)
+        #[cfg(feature = "omi_physics")]
+        {
+            world.run_system_once_with(
+                context,
+                gltf_kun::extensions::omi_physics_body::OMIPhysicsBody::bevy_export,
+            )
+        }
     }
 }
