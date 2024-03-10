@@ -1,8 +1,5 @@
 use glam::Quat;
-use gltf::json::{
-    validation::{Checked, Validate},
-    Index,
-};
+use gltf::json::{validation::Checked, Index};
 use thiserror::Error;
 use tracing::{debug, error, warn};
 
