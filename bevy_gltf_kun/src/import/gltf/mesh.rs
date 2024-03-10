@@ -1,5 +1,10 @@
 use bevy::prelude::*;
-use gltf_kun::graph::{gltf, GraphNodeWeight};
+use gltf_kun::graph::{
+    gltf::{self, GltfDocument},
+    GraphNodeWeight,
+};
+
+use crate::import::extensions::BevyImportExtensions;
 
 use super::{
     document::ImportContext,
@@ -12,10 +17,11 @@ pub struct GltfMesh {
     pub extras: Option<Box<serde_json::value::RawValue>>,
 }
 
-pub fn import_mesh(
+pub fn import_mesh<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
     entity: &mut EntityWorldMut,
     mut m: gltf::mesh::Mesh,
+    is_scale_inverted: bool,
 ) -> (Vec<Entity>, Handle<GltfMesh>) {
     let index = context.doc.mesh_index(context.graph, m).unwrap();
     let mesh_label = mesh_label(index);
@@ -25,7 +31,7 @@ pub fn import_mesh(
 
     entity.with_children(|parent| {
         for (i, p) in m.primitives(context.graph).iter_mut().enumerate() {
-            match import_primitive(context, parent, &mesh_label, i, p) {
+            match import_primitive::<E>(context, parent, is_scale_inverted, &mesh_label, i, p) {
                 Ok((ent, handle)) => {
                     primitive_entities.push(ent);
                     primitives.push(handle)

@@ -22,6 +22,7 @@ pub struct GltfNode {
 pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext<'_, '_>,
     builder: &mut WorldChildBuilder,
+    parent_world_transform: &Transform,
     n: &mut Node,
 ) -> Handle<GltfNode> {
     let index = context.doc.node_index(context.graph, *n).unwrap();
@@ -34,6 +35,9 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
         scale: Vec3::from_array(weight.scale.to_array()),
     };
 
+    let world_transform = *parent_world_transform * transform;
+    let is_scale_inverted = world_transform.scale.is_negative_bitmask().count_ones() & 1 == 1;
+
     let mut ent = builder.spawn(SpatialBundle::from_transform(transform));
 
     let name = node_name(context.doc, context.graph, *n);
@@ -43,7 +47,7 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
 
     let mesh = match n.mesh(context.graph) {
         Some(m) => {
-            let (ents, mesh) = import_mesh(context, &mut ent, m);
+            let (ents, mesh) = import_mesh::<E>(context, &mut ent, m, is_scale_inverted);
             primitive_entities.extend(ents);
             Some(mesh)
         }
@@ -54,7 +58,7 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
 
     ent.with_children(|parent| {
         n.children(context.graph).iter_mut().for_each(|c| {
-            let handle = import_node::<E>(context, parent, c);
+            let handle = import_node::<E>(context, parent, &world_transform, c);
             children.push(handle)
         })
     });

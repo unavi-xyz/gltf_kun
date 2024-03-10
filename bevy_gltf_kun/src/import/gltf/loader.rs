@@ -89,6 +89,8 @@ where
                 gltf: &mut gltf,
                 graph: &mut graph,
                 load_context,
+
+                materials: HashMap::default(),
                 node_entities: HashMap::default(),
                 node_primitive_entities: HashMap::default(),
                 nodes_handles: HashMap::default(),
@@ -160,6 +162,8 @@ where
                 gltf: &mut gltf,
                 graph: &mut graph,
                 load_context,
+
+                materials: HashMap::default(),
                 node_entities: HashMap::default(),
                 node_primitive_entities: HashMap::default(),
                 nodes_handles: HashMap::default(),

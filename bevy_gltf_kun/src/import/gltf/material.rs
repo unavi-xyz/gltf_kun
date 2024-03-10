@@ -15,13 +15,11 @@ pub enum MaterialImportError {}
 pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
     m: Material,
+    is_scale_inverted: bool,
 ) -> Handle<StandardMaterial> {
     let index = context.doc.material_index(context.graph, m).unwrap();
     let weight = m.get(context.graph);
-    let label = material_label(index);
-
-    // TODO: Handle scale inversion
-    let is_scale_inverted = false;
+    let label = material_label(index, is_scale_inverted);
 
     context
         .load_context
@@ -93,7 +91,7 @@ pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
         })
 }
 
-const DEFAULT_MATERIAL_LABEL: &str = "gltf_kun_default_material";
+const DEFAULT_MATERIAL_LABEL: &str = "MaterialDefault";
 
 pub fn default_material(context: &mut ImportContext) -> Handle<StandardMaterial> {
     if context
@@ -135,6 +133,10 @@ fn texture_label(index: usize) -> String {
     format!("Texture{}", index)
 }
 
-fn material_label(index: usize) -> String {
-    format!("Material{}", index)
+fn material_label(index: usize, is_scale_inverted: bool) -> String {
+    if is_scale_inverted {
+        format!("Material{}(inverted)", index)
+    } else {
+        format!("Material{}", index)
+    }
 }

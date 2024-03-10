@@ -19,12 +19,18 @@ use gltf_kun::graph::{
             Accessor, ComponentType, GetAccessorSliceError, Type,
         },
         primitive::{Mode, Primitive, Semantic},
+        GltfDocument,
     },
     GraphNodeWeight,
 };
 use thiserror::Error;
 
-use super::{document::ImportContext, material::default_material};
+use crate::import::extensions::BevyImportExtensions;
+
+use super::{
+    document::ImportContext,
+    material::{default_material, import_material},
+};
 
 #[derive(Debug)]
 pub struct GltfPrimitive {
@@ -53,9 +59,10 @@ pub enum ImportPrimitiveError {
     InvalidAccessor,
 }
 
-pub fn import_primitive(
+pub fn import_primitive<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
     parent: &mut WorldChildBuilder,
+    is_scale_inverted: bool,
     mesh_label: &str,
     index: usize,
     p: &mut Primitive,
@@ -97,8 +104,17 @@ pub fn import_primitive(
 
     let material = match p.material(context.graph) {
         Some(m) => {
-            let index = context.doc.material_index(context.graph, m).unwrap();
-            context.gltf.materials[index].clone()
+            if let Some(material) = context.materials.get(&(m, is_scale_inverted)) {
+                material.clone()
+            } else {
+                let material = import_material::<E>(context, m, is_scale_inverted);
+
+                context
+                    .materials
+                    .insert((m, is_scale_inverted), material.clone());
+
+                material
+            }
         }
         None => default_material(context),
     };

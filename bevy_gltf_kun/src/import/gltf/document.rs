@@ -1,7 +1,7 @@
 use bevy::render::mesh::skinning::SkinnedMeshInverseBindposes;
 use bevy::utils::HashSet;
 use bevy::{asset::LoadContext, prelude::*, utils::HashMap};
-use gltf_kun::graph::gltf::{Node, Skin};
+use gltf_kun::graph::gltf::{Material, Node, Skin};
 use gltf_kun::graph::{gltf::GltfDocument, Graph};
 use thiserror::Error;
 
@@ -10,7 +10,6 @@ use crate::import::extensions::BevyImportExtensions;
 use super::skin::import_skin_matrices;
 use super::{
     animation::{import_animation, paths_recur, AnimationImportError},
-    material::import_material,
     node::GltfNode,
     scene::import_scene,
     texture::{get_linear_textures, load_texture, texture_label, TextureLoadError},
@@ -35,6 +34,7 @@ pub struct ImportContext<'a, 'b> {
     pub node_primitive_entities: HashMap<Handle<GltfNode>, Vec<Entity>>,
     pub nodes_handles: HashMap<Node, Handle<GltfNode>>,
     pub skin_matrices: HashMap<Skin, Handle<SkinnedMeshInverseBindposes>>,
+    pub materials: HashMap<(Material, bool), Handle<StandardMaterial>>,
 }
 
 pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
@@ -79,12 +79,6 @@ pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
             let handle = context.load_context.add_labeled_asset(label, texture);
             context.gltf.images.insert(i, handle);
         }
-    }
-
-    // Load materials.
-    for (i, material) in context.doc.materials(context.graph).into_iter().enumerate() {
-        let handle = import_material::<E>(context, material);
-        context.gltf.materials.insert(i, handle);
     }
 
     // Load scenes.
