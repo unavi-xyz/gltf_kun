@@ -26,7 +26,7 @@ pub fn vertex_to_accessor(
                 .iter()
                 .flat_map(|v| v.to_le_bytes())
                 .collect::<Vec<u8>>();
-            let iter = AccessorIter::new(&bytes, ComponentType::F32, Type::Scalar)?;
+            let iter = AccessorIter::new(&bytes, ComponentType::F32, Type::Scalar, false)?;
             Ok(Accessor::from_iter(graph, iter))
         }
         VertexAttributeValues::Float32x2(values) => {
@@ -35,7 +35,7 @@ pub fn vertex_to_accessor(
                 .flat_map(|v| v.map(|v| v.to_le_bytes()))
                 .flatten()
                 .collect::<Vec<u8>>();
-            let iter = AccessorIter::new(&bytes, ComponentType::F32, Type::Vec2)?;
+            let iter = AccessorIter::new(&bytes, ComponentType::F32, Type::Vec2, false)?;
             Ok(Accessor::from_iter(graph, iter))
         }
         VertexAttributeValues::Float32x3(values) => {
@@ -44,7 +44,7 @@ pub fn vertex_to_accessor(
                 .flat_map(|v| v.map(|v| v.to_le_bytes()))
                 .flatten()
                 .collect::<Vec<u8>>();
-            let iter = AccessorIter::new(&bytes, ComponentType::F32, Type::Vec3)?;
+            let iter = AccessorIter::new(&bytes, ComponentType::F32, Type::Vec3, false)?;
             Ok(Accessor::from_iter(graph, iter))
         }
         VertexAttributeValues::Float32x4(values) => {
@@ -53,7 +53,7 @@ pub fn vertex_to_accessor(
                 .flat_map(|v| v.map(|v| v.to_le_bytes()))
                 .flatten()
                 .collect::<Vec<u8>>();
-            let iter = AccessorIter::new(&bytes, ComponentType::F32, Type::Vec4)?;
+            let iter = AccessorIter::new(&bytes, ComponentType::F32, Type::Vec4, false)?;
             Ok(Accessor::from_iter(graph, iter))
         }
         VertexAttributeValues::Uint32(values) => {
@@ -61,7 +61,7 @@ pub fn vertex_to_accessor(
                 .iter()
                 .flat_map(|v| v.to_le_bytes())
                 .collect::<Vec<u8>>();
-            let iter = AccessorIter::new(&bytes, ComponentType::U32, Type::Scalar)?;
+            let iter = AccessorIter::new(&bytes, ComponentType::U32, Type::Scalar, false)?;
             Ok(Accessor::from_iter(graph, iter))
         }
         VertexAttributeValues::Uint32x2(values) => {
@@ -70,7 +70,7 @@ pub fn vertex_to_accessor(
                 .flat_map(|v| v.map(|v| v.to_le_bytes()))
                 .flatten()
                 .collect::<Vec<u8>>();
-            let iter = AccessorIter::new(&bytes, ComponentType::U32, Type::Vec2)?;
+            let iter = AccessorIter::new(&bytes, ComponentType::U32, Type::Vec2, false)?;
             Ok(Accessor::from_iter(graph, iter))
         }
         VertexAttributeValues::Uint32x3(values) => {
@@ -79,7 +79,7 @@ pub fn vertex_to_accessor(
                 .flat_map(|v| v.map(|v| v.to_le_bytes()))
                 .flatten()
                 .collect::<Vec<u8>>();
-            let iter = AccessorIter::new(&bytes, ComponentType::U32, Type::Vec3)?;
+            let iter = AccessorIter::new(&bytes, ComponentType::U32, Type::Vec3, false)?;
             Ok(Accessor::from_iter(graph, iter))
         }
         VertexAttributeValues::Uint32x4(values) => {
@@ -88,7 +88,7 @@ pub fn vertex_to_accessor(
                 .flat_map(|v| v.map(|v| v.to_le_bytes()))
                 .flatten()
                 .collect::<Vec<u8>>();
-            let iter = AccessorIter::new(&bytes, ComponentType::U32, Type::Vec4)?;
+            let iter = AccessorIter::new(&bytes, ComponentType::U32, Type::Vec4, false)?;
             Ok(Accessor::from_iter(graph, iter))
         }
         VertexAttributeValues::Uint16x2(values) => {
@@ -97,7 +97,7 @@ pub fn vertex_to_accessor(
                 .flat_map(|v| v.map(|v| v.to_le_bytes()))
                 .flatten()
                 .collect::<Vec<u8>>();
-            let iter = AccessorIter::new(&bytes, ComponentType::U16, Type::Vec2)?;
+            let iter = AccessorIter::new(&bytes, ComponentType::U16, Type::Vec2, false)?;
             Ok(Accessor::from_iter(graph, iter))
         }
         VertexAttributeValues::Uint16x4(values) => {
@@ -106,7 +106,7 @@ pub fn vertex_to_accessor(
                 .flat_map(|v| v.map(|v| v.to_le_bytes()))
                 .flatten()
                 .collect::<Vec<u8>>();
-            let iter = AccessorIter::new(&bytes, ComponentType::U16, Type::Vec4)?;
+            let iter = AccessorIter::new(&bytes, ComponentType::U16, Type::Vec4, false)?;
             Ok(Accessor::from_iter(graph, iter))
         }
         VertexAttributeValues::Uint8x2(values) => {
@@ -115,7 +115,7 @@ pub fn vertex_to_accessor(
                 .flat_map(|v| v.map(|v| v.to_le_bytes()))
                 .flatten()
                 .collect::<Vec<u8>>();
-            let iter = AccessorIter::new(&bytes, ComponentType::U8, Type::Vec2)?;
+            let iter = AccessorIter::new(&bytes, ComponentType::U8, Type::Vec2, false)?;
             Ok(Accessor::from_iter(graph, iter))
         }
         VertexAttributeValues::Uint8x4(values) => {
@@ -124,7 +124,7 @@ pub fn vertex_to_accessor(
                 .flat_map(|v| v.map(|v| v.to_le_bytes()))
                 .flatten()
                 .collect::<Vec<u8>>();
-            let iter = AccessorIter::new(&bytes, ComponentType::U8, Type::Vec4)?;
+            let iter = AccessorIter::new(&bytes, ComponentType::U8, Type::Vec4, false)?;
             Ok(Accessor::from_iter(graph, iter))
         }
         VertexAttributeValues::Sint16x2(values) => {
@@ -133,7 +133,7 @@ pub fn vertex_to_accessor(
                 .flat_map(|v| v.map(|v| v.to_le_bytes()))
                 .flatten()
                 .collect::<Vec<u8>>();
-            let iter = AccessorIter::new(&bytes, ComponentType::I16, Type::Vec2)?;
+            let iter = AccessorIter::new(&bytes, ComponentType::I16, Type::Vec2, false)?;
             Ok(Accessor::from_iter(graph, iter))
         }
         VertexAttributeValues::Sint16x4(values) => {
@@ -142,7 +142,7 @@ pub fn vertex_to_accessor(
                 .flat_map(|v| v.map(|v| v.to_le_bytes()))
                 .flatten()
                 .collect::<Vec<u8>>();
-            let iter = AccessorIter::new(&bytes, ComponentType::I16, Type::Vec4)?;
+            let iter = AccessorIter::new(&bytes, ComponentType::I16, Type::Vec4, false)?;
             Ok(Accessor::from_iter(graph, iter))
         }
         VertexAttributeValues::Sint8x2(values) => {
@@ -151,7 +151,7 @@ pub fn vertex_to_accessor(
                 .flat_map(|v| v.map(|v| v.to_le_bytes()))
                 .flatten()
                 .collect::<Vec<u8>>();
-            let iter = AccessorIter::new(&bytes, ComponentType::I8, Type::Vec2)?;
+            let iter = AccessorIter::new(&bytes, ComponentType::I8, Type::Vec2, false)?;
             Ok(Accessor::from_iter(graph, iter))
         }
         VertexAttributeValues::Sint8x4(values) => {
@@ -160,7 +160,7 @@ pub fn vertex_to_accessor(
                 .flat_map(|v| v.map(|v| v.to_le_bytes()))
                 .flatten()
                 .collect::<Vec<u8>>();
-            let iter = AccessorIter::new(&bytes, ComponentType::I8, Type::Vec4)?;
+            let iter = AccessorIter::new(&bytes, ComponentType::I8, Type::Vec4, false)?;
             Ok(Accessor::from_iter(graph, iter))
         }
         v => Err(VertexToAccessorError::UnsupportedVertexAttributeType(

@@ -138,7 +138,12 @@ impl Accessor {
 
     pub fn iter<'a>(&self, graph: &'a Graph) -> Result<AccessorIter<'a>, AccessorIterCreateError> {
         let weight = self.get(graph);
-        AccessorIter::new(&weight.data, weight.component_type, weight.element_type)
+        AccessorIter::new(
+            &weight.data,
+            weight.component_type,
+            weight.element_type,
+            weight.normalized,
+        )
     }
 
     pub fn calc_max(&self, graph: &Graph) -> Option<AccessorElement> {

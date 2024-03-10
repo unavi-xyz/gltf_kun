@@ -44,10 +44,10 @@ pub fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::
 
         let iter = match indices {
             Indices::U32(_) => {
-                AccessorIter::new(bytes.as_slice(), ComponentType::U32, Type::Scalar)
+                AccessorIter::new(bytes.as_slice(), ComponentType::U32, Type::Scalar, false)
             }
             Indices::U16(_) => {
-                AccessorIter::new(bytes.as_slice(), ComponentType::U16, Type::Scalar)
+                AccessorIter::new(bytes.as_slice(), ComponentType::U16, Type::Scalar, false)
             }
         };
 
