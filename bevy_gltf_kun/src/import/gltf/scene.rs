@@ -24,7 +24,10 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
         .spawn(SpatialBundle::INHERITED_IDENTITY)
         .with_children(|parent| {
             for mut node in s.nodes(context.graph) {
-                import_node::<E>(context, parent, &Transform::default(), &mut node);
+                if let Err(e) = import_node::<E>(context, parent, &Transform::default(), &mut node)
+                {
+                    warn!("Failed to import node: {}", e);
+                }
             }
         });
 
