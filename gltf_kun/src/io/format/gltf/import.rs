@@ -1,5 +1,8 @@
 use glam::Quat;
-use gltf::json::{validation::Checked, Index};
+use gltf::json::{
+    validation::{Checked, Validate},
+    Index,
+};
 use thiserror::Error;
 use tracing::{debug, error, warn};
 
@@ -74,61 +77,144 @@ pub async fn import(
     }
 
     // Create accessors
-    let accessors = format
-        .json
-        .accessors
-        .iter_mut()
-        .map(|a| -> Result<Accessor, GltfImportError> {
-            let mut accessor = doc.create_accessor(graph);
+    let accessors =
+        format
+            .json
+            .accessors
+            .iter_mut()
+            .map(|a| -> Result<Accessor, GltfImportError> {
+                let mut accessor = doc.create_accessor(graph);
 
-            let weight = accessor.get_mut(graph);
+                let weight = accessor.get_mut(graph);
 
-            weight.name = a.name.clone();
-            weight.extras = a.extras.clone();
+                weight.name = a.name.clone();
+                weight.extras = a.extras.clone();
 
-            weight.normalized = a.normalized;
-            weight.component_type = match a.component_type {
-                Checked::Valid(component_type) => component_type.0,
-                Checked::Invalid => {
-                    return Err(GltfImportError::InvalidAccessor(
-                        "Invalid component type".to_string(),
-                    ));
+                weight.normalized = a.normalized;
+                weight.component_type = match a.component_type {
+                    Checked::Valid(component_type) => component_type.0,
+                    Checked::Invalid => {
+                        return Err(GltfImportError::InvalidAccessor(
+                            "Invalid component type".to_string(),
+                        ));
+                    }
+                };
+                weight.element_type = match a.type_ {
+                    Checked::Valid(ty) => ty,
+                    Checked::Invalid => {
+                        return Err(GltfImportError::InvalidAccessor("Invalid type".to_string()));
+                    }
+                };
+
+                let buffer_view_idx = a.buffer_view.map(|v| v.value());
+
+                if let Some(sparse) = &a.sparse {
+                    let item_size = accessor_item_size(a)
+                        .map_err(|e| GltfImportError::InvalidAccessor(e.to_string()))?;
+
+                    let mut base = match buffer_view_idx {
+                        Some(idx) => {
+                            let view = &format.json.buffer_views[idx];
+                            let buffer_idx = view.buffer.value();
+
+                            let data = buffer_data.get(buffer_idx).ok_or(
+                                GltfImportError::InvalidAccessor("No buffer data".to_string()),
+                            )?;
+
+                            let slice = read_buffer_view(view, data)?;
+
+                            slice.to_vec()
+                        }
+                        None => {
+                            let array_len = item_size * a.count.0 as usize;
+                            vec![0; array_len]
+                        }
+                    };
+
+                    let indices_view_idx = sparse.indices.buffer_view.value();
+                    let indices_offset = sparse.indices.byte_offset.0;
+                    let indices_component_type = match sparse.indices.component_type {
+                        Checked::Valid(component_type) => component_type.0,
+                        Checked::Invalid => {
+                            return Err(GltfImportError::InvalidAccessor(
+                                "Invalid component type".to_string(),
+                            ));
+                        }
+                    };
+
+                    let indices_view = &format.json.buffer_views[indices_view_idx];
+                    let indices_buffer_idx = indices_view.buffer.value();
+
+                    let indices_data = buffer_data.get(indices_buffer_idx).ok_or(
+                        GltfImportError::InvalidAccessor("No buffer data".to_string()),
+                    )?;
+
+                    let indices = read_buffer_view(indices_view, indices_data)?;
+                    let indices = &indices[indices_offset as usize..];
+
+                    let values_view_idx = sparse.values.buffer_view.value();
+                    let values_offset = sparse.values.byte_offset.0;
+
+                    let values_view = &format.json.buffer_views[values_view_idx];
+                    let values_buffer_idx = values_view.buffer.value();
+
+                    let values_data = buffer_data.get(values_buffer_idx).ok_or(
+                        GltfImportError::InvalidAccessor("No buffer data".to_string()),
+                    )?;
+
+                    let values = read_buffer_view(values_view, values_data)?;
+                    let values = &values[values_offset as usize..];
+
+                    for (i, index) in indices
+                        .chunks_exact(indices_component_type.size())
+                        .enumerate()
+                    {
+                        let index = match indices_component_type {
+                            gltf::json::accessor::ComponentType::U8 => index[0] as usize,
+                            gltf::json::accessor::ComponentType::U16 => {
+                                u16::from_le_bytes([index[0], index[1]]) as usize
+                            }
+                            gltf::json::accessor::ComponentType::U32 => {
+                                u32::from_le_bytes([index[0], index[1], index[2], index[3]])
+                                    as usize
+                            }
+                            _ => {
+                                return Err(GltfImportError::InvalidAccessor(
+                                    "Invalid component type".to_string(),
+                                ));
+                            }
+                        };
+
+                        let value = &values[i * item_size..(i + 1) * item_size];
+
+                        base.splice(
+                            index * item_size..(index + 1) * item_size,
+                            value.iter().cloned(),
+                        );
+                    }
+
+                    weight.data = base;
+                } else {
+                    let buffer_view_idx = buffer_view_idx.ok_or(
+                        GltfImportError::InvalidAccessor("No buffer view".to_string()),
+                    )?;
+
+                    let buffer_view = &format.json.buffer_views[buffer_view_idx];
+                    let buffer_idx = buffer_view.buffer.value();
+
+                    let data =
+                        buffer_data
+                            .get(buffer_idx)
+                            .ok_or(GltfImportError::InvalidAccessor(
+                                "No buffer data".to_string(),
+                            ))?;
+
+                    weight.data = read_accessor(a, buffer_view, data)?;
                 }
-            };
-            weight.element_type = match a.type_ {
-                Checked::Valid(ty) => ty,
-                Checked::Invalid => {
-                    return Err(GltfImportError::InvalidAccessor("Invalid type".to_string()));
-                }
-            };
 
-            let buffer_view_idx =
-                a.buffer_view
-                    .map(|v| v.value())
-                    .ok_or(GltfImportError::InvalidAccessor(
-                        "No buffer view".to_string(),
-                    ))?;
-
-            let buffer_view = &format.json.buffer_views[buffer_view_idx];
-            let buffer_idx = buffer_view.buffer.value();
-
-            let data = buffer_data
-                .get(buffer_idx)
-                .ok_or(GltfImportError::InvalidAccessor(
-                    "No buffer data".to_string(),
-                ))?;
-
-            if a.sparse.is_some() {
-                return Err(GltfImportError::InvalidAccessor(
-                    "Sparse accessors are not yet supported".to_string(),
-                ));
-            }
-
-            weight.data = read_accessor(a, buffer_view, data)?;
-
-            Ok(accessor)
-        })
-        .collect::<Result<Vec<_>, _>>()?;
+                Ok(accessor)
+            })
+            .collect::<Result<Vec<_>, _>>()?;
 
     // Create images
     let mut images = Vec::new();
@@ -540,11 +626,35 @@ fn read_buffer_view<'a>(
 }
 
 #[derive(Debug, Error)]
+pub enum ItemSizeError {
+    #[error("Invalid component type")]
+    InvalidComponentType,
+    #[error("Invalid element type")]
+    InvalidElementType,
+}
+
+fn accessor_item_size(accessor: &gltf::json::Accessor) -> Result<usize, ItemSizeError> {
+    let component_size = match accessor.component_type {
+        Checked::Valid(component_type) => component_type.0.size(),
+        Checked::Invalid => return Err(ItemSizeError::InvalidComponentType),
+    };
+
+    let element_size = match accessor.type_ {
+        Checked::Valid(ty) => ty.multiplicity(),
+        Checked::Invalid => return Err(ItemSizeError::InvalidElementType),
+    };
+
+    Ok(component_size * element_size)
+}
+
+#[derive(Debug, Error)]
 pub enum ReadAccessorError {
     #[error("Accessor index {0} exceeds buffer view length {1}")]
     ExceedsBufferViewLength(usize, usize),
     #[error(transparent)]
     ReadBufferViewError(#[from] ReadBufferViewError),
+    #[error(transparent)]
+    ItemSizeError(#[from] ItemSizeError),
 }
 
 fn read_accessor(
@@ -561,9 +671,7 @@ fn read_accessor(
         .map(|o| o.0 as usize)
         .unwrap_or_default();
 
-    let component_size = accessor.component_type.unwrap().0.size();
-    let element_size = accessor.type_.unwrap().multiplicity();
-    let item_size = component_size * element_size;
+    let item_size = accessor_item_size(accessor)?;
 
     let count = accessor.count.0 as usize;
     let mut end = start + (count * item_size);
