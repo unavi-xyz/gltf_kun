@@ -8,9 +8,8 @@ repository.workspace = true
 edition.workspace = true
 
 [features]
-default = ["omi_physics_body", "omi_physics_shape"]
-omi_physics_body = ["omi_physics_shape"]
-omi_physics_shape = []
+default = ["omi_physics"]
+omi_physics = []
 
 [dependencies]
 base64 = "0.22.0"

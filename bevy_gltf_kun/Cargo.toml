@@ -7,15 +7,15 @@ license.workspace = true
 repository.workspace = true
 edition.workspace = true
 
+[lints.clippy]
+type_complexity = "allow"
+
 [features]
 default = ["export", "import", "omi_physics"]
 export = []
 import = []
-omi_physics = ["dep:bevy_xpbd_3d", "gltf_kun/omi_physics_body"]
+omi_physics = ["dep:bevy_xpbd_3d", "gltf_kun/omi_physics"]
 register_extensions = []
-
-[lints.clippy]
-type_complexity = "allow"
 
 [dependencies]
 bevy = { version = "0.13.0", default-features = false, features = ["animation", "bevy_asset", "bevy_scene", "bevy_pbr"] }
