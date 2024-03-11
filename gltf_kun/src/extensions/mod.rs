@@ -16,14 +16,6 @@ pub mod omi_physics_body;
 #[cfg(feature = "omi_physics")]
 pub mod omi_physics_shape;
 
-#[cfg(feature = "vrm_0")]
-pub mod vrm;
-
-#[cfg(feature = "vrm_1")]
-pub mod vrmc_materials_mtoon;
-#[cfg(feature = "vrm_1")]
-pub mod vrmc_vrm;
-
 pub trait Extension: Copy + Sized + Into<NodeIndex> + From<NodeIndex> {
     fn name() -> &'static str;
 
