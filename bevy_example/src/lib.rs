@@ -8,10 +8,7 @@ use bevy_egui::{egui::ComboBox, EguiContexts, EguiPlugin};
 use bevy_gltf_kun::{
     export::gltf::{GltfExport, GltfExportPlugin, GltfExportResult},
     extensions::ExtensionsPlugin,
-    import::{
-        gltf::{GltfImportPlugin, GltfKun},
-        graph::GltfGraph,
-    },
+    import::gltf::{GltfImportPlugin, GltfKun},
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use bevy_xpbd_3d::prelude::*;
@@ -23,8 +20,9 @@ use gltf_kun::{
     graph::{Edge, Weight},
     io::format::glb::GlbExport,
 };
+use graph::create_graph;
 
-use crate::graph::{create_graph, GraphSettings};
+use crate::graph::GraphSettings;
 
 pub mod graph;
 
@@ -71,7 +69,7 @@ impl Plugin for ExamplePlugin {
         .add_event::<LoadModel>()
         .add_event::<LoadScene>()
         .init_resource::<ExportedPath>()
-        .init_resource::<LoadedGraph>()
+        .init_resource::<LoadedKun>()
         .init_resource::<Loader>()
         .init_resource::<SelectedModel>()
         .init_resource::<GraphSet>()
@@ -134,7 +132,7 @@ impl Display for GltfLoader {
 struct ExportedPath(String);
 
 #[derive(Default, Resource)]
-struct LoadedGraph(Option<Graph<Weight, Edge>>);
+struct LoadedKun(Option<Handle<GltfKun>>);
 
 #[derive(Default, Resource)]
 struct GraphSet(pub GraphSettings);
@@ -170,14 +168,17 @@ fn setup(mut commands: Commands, mut writer: EventWriter<LoadModel>) {
 
 #[allow(clippy::too_many_arguments)]
 fn ui(
+    gltf_kuns: Res<Assets<GltfKun>>,
+    loaded_kun: ResMut<LoadedKun>,
     mut contexts: EguiContexts,
     mut exported: ResMut<ExportedPath>,
-    mut loaded_graph: ResMut<LoadedGraph>,
+    mut graph_settings: ResMut<GraphSet>,
+    mut loaded_graph: Local<Option<Graph<Weight, Edge>>>,
+    mut graph_handle: Local<Option<Handle<GltfKun>>>,
     mut loader: ResMut<Loader>,
+    mut pan_orbit_camera: Query<&mut PanOrbitCamera>,
     mut selected_model: ResMut<SelectedModel>,
     mut writer: EventWriter<LoadModel>,
-    mut pan_orbit_camera: Query<&mut PanOrbitCamera>,
-    mut graph_settings: ResMut<GraphSet>,
 ) {
     if selected_model.0.is_empty() {
         selected_model.0 = MODELS[0].to_string();
@@ -302,7 +303,22 @@ fn ui(
             }
         });
 
-        if let Some(graph) = loaded_graph.0.iter_mut().next() {
+        // Create egui graph from gltf_kun asset
+        if let Some(handle) = loaded_kun.0.as_ref() {
+            if graph_handle.as_ref() != Some(handle) {
+                if let Some(gltf) = gltf_kuns.get(handle) {
+                    let graph = create_graph(gltf, &graph_settings.0);
+
+                    info!("Egui graph created");
+
+                    *loaded_graph = Some(graph);
+                    *graph_handle = Some(handle.clone());
+                }
+            }
+        }
+
+        // Display egui graph
+        if let Some(graph) = loaded_graph.as_mut() {
             let node_count = graph.nodes_iter().count();
 
             if node_count > 100 {
@@ -333,51 +349,31 @@ fn ui(
 #[allow(clippy::too_many_arguments)]
 fn load_model(
     asset_server: Res<AssetServer>,
-    graph_settings: Res<GraphSet>,
-    graphs: Res<Assets<GltfGraph>>,
     loader: Res<Loader>,
     mut events: EventReader<LoadModel>,
     mut gltf_events: EventReader<AssetEvent<Gltf>>,
     mut gltf_handle: Local<GltfHandle>,
     mut gltf_kun_events: EventReader<AssetEvent<GltfKun>>,
-    mut graph_events: EventReader<AssetEvent<GltfGraph>>,
-    mut graph_handle: Local<Handle<GltfGraph>>,
-    mut loaded_graph: ResMut<LoadedGraph>,
+    mut loaded_kun: ResMut<LoadedKun>,
     mut writer: EventWriter<LoadScene>,
 ) {
     for event in events.read() {
         info!("Loading model {}", event.0);
 
-        *graph_handle = asset_server.load::<GltfGraph>(event.0.clone());
-
-        let graph = graphs
-            .get(graph_handle.clone())
-            .map(|g| create_graph(g, &graph_settings.0));
-        *loaded_graph = LoadedGraph(graph);
-
         *gltf_handle = match loader.0 {
             GltfLoader::BevyGltf => {
                 let h = asset_server.load::<Gltf>(event.0.clone());
+                loaded_kun.0 = None;
                 GltfHandle::Bevy(h)
             }
             GltfLoader::GltfKun => {
                 let h = asset_server.load::<GltfKun>(event.0.clone());
+                loaded_kun.0 = Some(h.clone());
                 GltfHandle::GltfKun(h)
             }
         };
 
         writer.send(LoadScene(gltf_handle.clone()));
-    }
-
-    for event in graph_events.read() {
-        if let AssetEvent::LoadedWithDependencies { .. } = event {
-            info!("Graph loaded");
-            let graph = graphs
-                .get(graph_handle.clone())
-                .map(|g| create_graph(g, &graph_settings.0));
-
-            *loaded_graph = LoadedGraph(graph);
-        }
     }
 
     for event in gltf_events.read() {

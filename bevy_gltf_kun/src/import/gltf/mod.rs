@@ -7,11 +7,7 @@ use gltf_kun::{
     io::format::gltf::GltfFormat,
 };
 
-use self::{
-    loader::{GlbLoader, GltfLoader},
-    mesh::GltfMesh,
-    node::GltfNode,
-};
+use self::{loader::GltfLoader, mesh::GltfMesh, node::GltfNode};
 
 use super::extensions::BevyImportExtensions;
 
@@ -51,13 +47,14 @@ where
         app.init_asset::<GltfKun>()
             .init_asset::<GltfNode>()
             .init_asset::<GltfMesh>()
-            .register_asset_loader::<GltfLoader<E>>(GltfLoader::<E>::default())
-            .register_asset_loader::<GlbLoader<E>>(GlbLoader::<E>::default());
+            .register_asset_loader::<GltfLoader<E>>(GltfLoader::<E>::default());
     }
 }
 
 #[derive(Asset, Debug, Default, TypePath)]
 pub struct GltfKun {
+    pub graph: Graph,
+
     pub animations: Vec<Handle<AnimationClip>>,
     pub default_scene: Option<Handle<Scene>>,
     pub images: Vec<Handle<Image>>,

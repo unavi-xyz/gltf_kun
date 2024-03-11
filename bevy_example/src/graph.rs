@@ -1,4 +1,4 @@
-use bevy_gltf_kun::import::graph::GltfGraph;
+use bevy_gltf_kun::import::gltf::GltfKun;
 use egui_graphs::Graph;
 use gltf_kun::graph::{
     gltf::{
@@ -39,9 +39,11 @@ impl Default for GraphSettings {
     }
 }
 
-/// Converts a [GltfGraph] into an [egui_graphs::Graph], adding labels for nicer display.
-pub fn create_graph(graph: &GltfGraph, settings: &GraphSettings) -> Graph<Weight, Edge> {
-    let mut egui_graph = Graph::from(&graph.0);
+/// Converts a [GltfKun] asset into an [egui_graphs::Graph], adding labels for nicer display.
+pub fn create_graph(gltf: &GltfKun, settings: &GraphSettings) -> Graph<Weight, Edge> {
+    let graph = &gltf.graph;
+
+    let mut egui_graph = Graph::from(graph);
 
     let g = egui_graph.g();
 
@@ -68,71 +70,69 @@ pub fn create_graph(graph: &GltfGraph, settings: &GraphSettings) -> Graph<Weight
     node_indices.iter().for_each(|idx| {
         let egui_node = g.node_weight_mut(*idx).unwrap();
 
-        let label = match egui_node.payload() {
-            Weight::Gltf(GltfWeight::Accessor(a)) => a.name.clone().unwrap_or_else(|| {
-                format!(
-                    "Accessor{}",
-                    doc.accessor_index(&graph.0, Accessor(*idx)).unwrap()
-                )
-            }),
-            Weight::Gltf(GltfWeight::Animation(a)) => a.name.clone().unwrap_or_else(|| {
-                format!(
-                    "Animation{}",
-                    doc.animation_index(&graph.0, Animation(*idx)).unwrap()
-                )
-            }),
-            Weight::Gltf(GltfWeight::AnimationChannel(_)) => "AnimationChannel".to_string(),
-            Weight::Gltf(GltfWeight::AnimationSampler(_)) => "AnimationSampler".to_string(),
-            Weight::Gltf(GltfWeight::Buffer(b)) => b.name.clone().unwrap_or_else(|| {
-                format!(
-                    "Buffer{}",
-                    doc.buffer_index(&graph.0, Buffer(*idx)).unwrap()
-                )
-            }),
-            Weight::Gltf(GltfWeight::Node(n)) => n.name.clone().unwrap_or_else(|| {
-                format!("Node{}", doc.node_index(&graph.0, Node(*idx)).unwrap())
-            }),
-            Weight::Gltf(GltfWeight::Scene(s)) => s.name.clone().unwrap_or_else(|| {
-                format!("Scene{}", doc.scene_index(&graph.0, Scene(*idx)).unwrap())
-            }),
-            Weight::Gltf(GltfWeight::Skin(s)) => s.name.clone().unwrap_or_else(|| {
-                format!("Skin{}", doc.skin_index(&graph.0, Skin(*idx)).unwrap())
-            }),
-            Weight::Gltf(GltfWeight::Image(i)) => i.name.clone().unwrap_or_else(|| {
-                format!("Image{}", doc.image_index(&graph.0, Image(*idx)).unwrap())
-            }),
-            Weight::Gltf(GltfWeight::Material(m)) => m.name.clone().unwrap_or_else(|| {
-                format!(
-                    "Material{}",
-                    doc.material_index(&graph.0, Material(*idx)).unwrap()
-                )
-            }),
-            Weight::Gltf(GltfWeight::Mesh(m)) => m.name.clone().unwrap_or_else(|| {
-                format!("Mesh{}", doc.mesh_index(&graph.0, Mesh(*idx)).unwrap())
-            }),
-            Weight::Gltf(GltfWeight::MorphTarget) => "MorphTarget".to_string(),
-            Weight::Gltf(GltfWeight::Primitive(_)) => "Primitive".to_string(),
-            Weight::Gltf(GltfWeight::TextureInfo(_)) => "TextureInfo".to_string(),
+        let label =
+            match egui_node.payload() {
+                Weight::Gltf(GltfWeight::Accessor(a)) => a.name.clone().unwrap_or_else(|| {
+                    format!(
+                        "Accessor{}",
+                        doc.accessor_index(graph, Accessor(*idx)).unwrap()
+                    )
+                }),
+                Weight::Gltf(GltfWeight::Animation(a)) => a.name.clone().unwrap_or_else(|| {
+                    format!(
+                        "Animation{}",
+                        doc.animation_index(graph, Animation(*idx)).unwrap()
+                    )
+                }),
+                Weight::Gltf(GltfWeight::AnimationChannel(_)) => "AnimationChannel".to_string(),
+                Weight::Gltf(GltfWeight::AnimationSampler(_)) => "AnimationSampler".to_string(),
+                Weight::Gltf(GltfWeight::Buffer(b)) => b.name.clone().unwrap_or_else(|| {
+                    format!("Buffer{}", doc.buffer_index(graph, Buffer(*idx)).unwrap())
+                }),
+                Weight::Gltf(GltfWeight::Node(n)) => n.name.clone().unwrap_or_else(|| {
+                    format!("Node{}", doc.node_index(graph, Node(*idx)).unwrap())
+                }),
+                Weight::Gltf(GltfWeight::Scene(s)) => s.name.clone().unwrap_or_else(|| {
+                    format!("Scene{}", doc.scene_index(graph, Scene(*idx)).unwrap())
+                }),
+                Weight::Gltf(GltfWeight::Skin(s)) => s.name.clone().unwrap_or_else(|| {
+                    format!("Skin{}", doc.skin_index(graph, Skin(*idx)).unwrap())
+                }),
+                Weight::Gltf(GltfWeight::Image(i)) => i.name.clone().unwrap_or_else(|| {
+                    format!("Image{}", doc.image_index(graph, Image(*idx)).unwrap())
+                }),
+                Weight::Gltf(GltfWeight::Material(m)) => m.name.clone().unwrap_or_else(|| {
+                    format!(
+                        "Material{}",
+                        doc.material_index(graph, Material(*idx)).unwrap()
+                    )
+                }),
+                Weight::Gltf(GltfWeight::Mesh(m)) => m.name.clone().unwrap_or_else(|| {
+                    format!("Mesh{}", doc.mesh_index(graph, Mesh(*idx)).unwrap())
+                }),
+                Weight::Gltf(GltfWeight::MorphTarget) => "MorphTarget".to_string(),
+                Weight::Gltf(GltfWeight::Primitive(_)) => "Primitive".to_string(),
+                Weight::Gltf(GltfWeight::TextureInfo(_)) => "TextureInfo".to_string(),
 
-            Weight::Gltf(GltfWeight::Document) => "Document".to_string(),
+                Weight::Gltf(GltfWeight::Document) => "Document".to_string(),
 
-            Weight::Glxf(_) => "glXF".to_string(),
+                Weight::Glxf(_) => "glXF".to_string(),
 
-            Weight::Bytes(_) => {
-                let extension = g
-                    .edges_directed(*idx, Direction::Incoming)
-                    .find_map(|edge_idx| {
-                        let edge = g.edge_weight(edge_idx.id()).unwrap();
-                        match edge.payload() {
-                            Edge::Extension(s) => Some(s),
-                            _ => None,
-                        }
-                    })
-                    .map(|s| s.to_string());
+                Weight::Bytes(_) => {
+                    let extension = g
+                        .edges_directed(*idx, Direction::Incoming)
+                        .find_map(|edge_idx| {
+                            let edge = g.edge_weight(edge_idx.id()).unwrap();
+                            match edge.payload() {
+                                Edge::Extension(s) => Some(s),
+                                _ => None,
+                            }
+                        })
+                        .map(|s| s.to_string());
 
-                extension.unwrap_or("Unknown Bytes".to_string())
-            }
-        };
+                    extension.unwrap_or("Unknown Bytes".to_string())
+                }
+            };
 
         let egui_node = g.node_weight_mut(*idx).unwrap();
         egui_node.set_label(label);
