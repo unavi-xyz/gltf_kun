@@ -4,12 +4,14 @@ use petgraph::{visit::EdgeRef, Direction};
 use thiserror::Error;
 
 use crate::{
-    extensions::ExtensionsIO,
+    extensions::{ExtensionExport, ExtensionImport},
     graph::{gltf::document::GltfDocument, Graph},
     io::resolver::DataUriResolver,
 };
 
-use super::gltf::{export::GltfExportError, import::GltfImportError, GltfFormat, GltfIO};
+use super::gltf::{
+    export::GltfExportError, import::GltfImportError, GltfExport, GltfFormat, GltfImport,
+};
 
 #[derive(Default)]
 pub struct GlbFormat(pub Vec<u8>);
@@ -22,7 +24,17 @@ pub enum ImportFileError {
     Io(#[from] std::io::Error),
 }
 
-pub struct GlbIO<E: ExtensionsIO<GltfDocument, GltfFormat>> {
+pub struct GlbExport<E>
+where
+    E: ExtensionExport<GltfDocument, GltfFormat>,
+{
+    pub _marker: std::marker::PhantomData<E>,
+}
+
+pub struct GlbImport<E>
+where
+    E: ExtensionImport<GltfDocument, GltfFormat>,
+{
     pub _marker: std::marker::PhantomData<E>,
 }
 
@@ -48,7 +60,10 @@ pub enum GlbImportError {
     SerdeJson(#[from] serde_json::Error),
 }
 
-impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GlbIO<E> {
+impl<E> GlbExport<E>
+where
+    E: ExtensionExport<GltfDocument, GltfFormat>,
+{
     pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GlbFormat, GlbExportError> {
         let buffers = doc.buffers(graph);
 
@@ -85,7 +100,7 @@ impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GlbIO<E> {
             image.set_buffer(graph, Some(buffer));
         }
 
-        let gltf = GltfIO::<E>::export(graph, doc)?;
+        let gltf = GltfExport::<E>::export(graph, doc)?;
 
         let json_bin = gltf.json.to_vec()?;
         let bin = gltf.resources.values().next();
@@ -105,7 +120,12 @@ impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GlbIO<E> {
 
         Ok(GlbFormat(bytes))
     }
+}
 
+impl<E> GlbImport<E>
+where
+    E: ExtensionImport<GltfDocument, GltfFormat>,
+{
     pub async fn import_slice(
         graph: &mut Graph,
         bytes: &[u8],
@@ -139,7 +159,7 @@ impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GlbIO<E> {
         }
 
         let format = GltfFormat { json, resources };
-        let doc = GltfIO::<E>::import(graph, format, None::<DataUriResolver>).await?;
+        let doc = GltfImport::<E>::import(graph, format, None::<DataUriResolver>).await?;
 
         Ok(doc)
     }
@@ -160,8 +180,8 @@ mod tests {
         doc.create_buffer(&mut graph);
         doc.create_buffer(&mut graph);
 
-        let bytes = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
-        let gltf = GlbIO::<DefaultExtensions>::import_slice(&mut graph, &bytes.0)
+        let bytes = GlbExport::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
+        let gltf = GlbImport::<DefaultExtensions>::import_slice(&mut graph, &bytes.0)
             .await
             .unwrap();
 
@@ -181,8 +201,8 @@ mod tests {
             image_weight.data = vec![0, 1, 2, 3];
         }
 
-        let bytes = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
-        let gltf = GlbIO::<DefaultExtensions>::import_slice(&mut graph, &bytes.0)
+        let bytes = GlbExport::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
+        let gltf = GlbImport::<DefaultExtensions>::import_slice(&mut graph, &bytes.0)
             .await
             .unwrap();
 
@@ -207,8 +227,8 @@ mod tests {
             image_weight.data = vec![0, 1, 2, 3];
         }
 
-        let bytes = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
-        let gltf = GlbIO::<DefaultExtensions>::import_slice(&mut graph, &bytes.0)
+        let bytes = GlbExport::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
+        let gltf = GlbImport::<DefaultExtensions>::import_slice(&mut graph, &bytes.0)
             .await
             .unwrap();
 
@@ -235,7 +255,7 @@ mod tests {
         let accessor_weight = accessor.get_mut(&mut graph);
         accessor_weight.data = vec![7; 256];
 
-        let bytes = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
+        let bytes = GlbExport::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
         let glb = gltf::Glb::from_slice(&bytes.0).unwrap();
         assert_eq!(glb.header.length, glb.to_vec().unwrap().len() as u32);
     }

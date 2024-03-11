@@ -4,7 +4,7 @@ use thiserror::Error;
 use tracing::{debug, warn};
 
 use crate::{
-    extensions::ExtensionsIO,
+    extensions::{ExtensionExport, ExtensionImport},
     graph::{gltf::document::GltfDocument, Graph},
     io::resolver::{FileResolver, Resolver},
 };
@@ -53,7 +53,17 @@ impl GltfFormat {
     }
 }
 
-pub struct GltfIO<E: ExtensionsIO<GltfDocument, GltfFormat>> {
+pub struct GltfExport<E>
+where
+    E: ExtensionExport<GltfDocument, GltfFormat>,
+{
+    pub _marker: std::marker::PhantomData<E>,
+}
+
+pub struct GltfImport<E>
+where
+    E: ExtensionImport<GltfDocument, GltfFormat>,
+{
     pub _marker: std::marker::PhantomData<E>,
 }
 
@@ -67,7 +77,10 @@ pub enum ImportFileError {
     SerdeJson(#[from] serde_json::Error),
 }
 
-impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GltfIO<E> {
+impl<E> GltfExport<E>
+where
+    E: ExtensionExport<GltfDocument, GltfFormat>,
+{
     pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfExportError> {
         let mut format = export::export(graph, doc)?;
 
@@ -77,7 +90,12 @@ impl<E: ExtensionsIO<GltfDocument, GltfFormat>> GltfIO<E> {
 
         Ok(format)
     }
+}
 
+impl<E> GltfImport<E>
+where
+    E: ExtensionImport<GltfDocument, GltfFormat>,
+{
     pub async fn import(
         graph: &mut Graph,
         mut format: GltfFormat,

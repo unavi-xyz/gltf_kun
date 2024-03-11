@@ -1,6 +1,10 @@
 use std::path::Path;
 
-use gltf_kun::{extensions::DefaultExtensions, graph::Graph, io::format::glb::GlbIO};
+use gltf_kun::{
+    extensions::DefaultExtensions,
+    graph::Graph,
+    io::format::glb::{GlbExport, GlbImport},
+};
 use tracing_test::traced_test;
 
 const ASSETS_DIR: &str = "../assets";
@@ -15,10 +19,11 @@ async fn main() {
 
     // Import / export
     let mut graph = Graph::default();
-    let doc = GlbIO::<DefaultExtensions>::import_file(&mut graph, &path)
+    let doc = GlbImport::<DefaultExtensions>::import_file(&mut graph, &path)
         .await
         .expect("Failed to import glb");
-    let out = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).expect("Failed to export glb");
+    let out =
+        GlbExport::<DefaultExtensions>::export(&mut graph, &doc).expect("Failed to export glb");
     let bytes = out.0.clone();
 
     assert!(!bytes.is_empty());
@@ -34,10 +39,11 @@ async fn main() {
 
     // Import / export written file
     let mut graph = Graph::default();
-    let doc = GlbIO::<DefaultExtensions>::import_file(&mut graph, &path)
+    let doc = GlbImport::<DefaultExtensions>::import_file(&mut graph, &path)
         .await
         .expect("Failed to import glb");
-    let out = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).expect("Failed to export glb");
+    let out =
+        GlbExport::<DefaultExtensions>::export(&mut graph, &doc).expect("Failed to export glb");
     let bytes2 = out.0.clone();
 
     assert_eq!(bytes.len(), bytes2.len()); // Gives a better error message

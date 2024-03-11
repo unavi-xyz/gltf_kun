@@ -8,11 +8,11 @@ use bevy::{
     utils::{BoxedFuture, HashMap},
 };
 use gltf_kun::{
-    extensions::ExtensionsIO,
+    extensions::ExtensionImport,
     graph::{gltf::GltfDocument, Graph},
     io::format::{
-        glb::{GlbIO, GlbImportError},
-        gltf::{import::GltfImportError, GltfFormat, GltfIO},
+        glb::{GlbImport, GlbImportError},
+        gltf::{import::GltfImportError, GltfFormat, GltfImport},
     },
 };
 use thiserror::Error;
@@ -54,7 +54,7 @@ pub enum GltfError {
 
 impl<E> AssetLoader for GltfLoader<E>
 where
-    E: ExtensionsIO<GltfDocument, GltfFormat>
+    E: ExtensionImport<GltfDocument, GltfFormat>
         + BevyImportExtensions<GltfDocument>
         + Send
         + Sync
@@ -81,7 +81,7 @@ where
             };
             let resolver = BevyAssetResolver { load_context };
 
-            let mut doc = GltfIO::<E>::import(&mut graph, format, Some(resolver)).await?;
+            let mut doc = GltfImport::<E>::import(&mut graph, format, Some(resolver)).await?;
             let mut gltf = GltfKun::new(&mut graph, &mut doc);
 
             let mut context = ImportContext {
@@ -139,7 +139,7 @@ pub enum GlbError {
 
 impl<E> AssetLoader for GlbLoader<E>
 where
-    E: ExtensionsIO<GltfDocument, GltfFormat>
+    E: ExtensionImport<GltfDocument, GltfFormat>
         + BevyImportExtensions<GltfDocument>
         + Send
         + Sync
@@ -160,7 +160,7 @@ where
             reader.read_to_end(&mut bytes).await?;
 
             let mut graph = Graph::default();
-            let mut doc = GlbIO::<E>::import_slice(&mut graph, &bytes).await?;
+            let mut doc = GlbImport::<E>::import_slice(&mut graph, &bytes).await?;
 
             let mut gltf = GltfKun::new(&mut graph, &mut doc);
 

@@ -18,7 +18,7 @@ use egui_graphs::{
 use gltf_kun::{
     extensions::DefaultExtensions,
     graph::{Edge, Weight},
-    io::format::glb::GlbIO,
+    io::format::glb::GlbExport,
 };
 
 use crate::graph::{create_graph, GraphSettings};
@@ -527,7 +527,7 @@ fn get_result(
             Err(e) => panic!("Failed to export from Bevy: {}", e),
         };
 
-        let glb = match GlbIO::<DefaultExtensions>::export(&mut event.graph, &doc) {
+        let glb = match GlbExport::<DefaultExtensions>::export(&mut event.graph, &doc) {
             Ok(glb) => glb,
             Err(e) => panic!("Failed to export to glb: {}", e),
         };

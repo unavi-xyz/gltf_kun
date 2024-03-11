@@ -10,7 +10,7 @@ use gltf_kun::{
         DefaultExtensions, Extension,
     },
     graph::{gltf::document::GltfDocument, ByteNode, Graph, Property},
-    io::format::gltf::GltfIO,
+    io::format::gltf::{GltfExport, GltfImport},
 };
 use tracing_test::traced_test;
 
@@ -26,14 +26,15 @@ async fn main() {
 
     // Import
     let mut graph = Graph::default();
-    let doc = GltfIO::<DefaultExtensions>::import_file(&mut graph, &path)
+    let doc = GltfImport::<DefaultExtensions>::import_file(&mut graph, &path)
         .await
         .expect("Failed to import glTF");
 
     validate_doc(&graph, &doc);
 
     // Export to file
-    let out = GltfIO::<DefaultExtensions>::export(&mut graph, &doc).expect("Failed to export glTF");
+    let out =
+        GltfExport::<DefaultExtensions>::export(&mut graph, &doc).expect("Failed to export glTF");
 
     let json = serde_json::to_value(&out.json).expect("Failed to serialize glTF");
     validate_json(&json);
@@ -44,7 +45,7 @@ async fn main() {
 
     // Import written file
     let mut graph = Graph::default();
-    let doc = GltfIO::<DefaultExtensions>::import_file(&mut graph, &path)
+    let doc = GltfImport::<DefaultExtensions>::import_file(&mut graph, &path)
         .await
         .expect("Failed to import glTF");
 

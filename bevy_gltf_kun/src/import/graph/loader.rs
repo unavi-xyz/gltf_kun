@@ -5,11 +5,11 @@ use bevy::{
     utils::BoxedFuture,
 };
 use gltf_kun::{
-    extensions::ExtensionsIO,
+    extensions::ExtensionImport,
     graph::{gltf::GltfDocument, Graph},
     io::format::{
-        glb::GlbIO,
-        gltf::{GltfFormat, GltfIO},
+        glb::{GlbImport},
+        gltf::{GltfFormat, GltfImport},
     },
 };
 
@@ -35,7 +35,7 @@ impl<E: BevyImportExtensions<GltfDocument>> Default for GltfGraphLoader<E> {
 
 impl<E> AssetLoader for GltfGraphLoader<E>
 where
-    E: ExtensionsIO<GltfDocument, GltfFormat>
+    E: ExtensionImport<GltfDocument, GltfFormat>
         + BevyImportExtensions<GltfDocument>
         + Send
         + Sync
@@ -63,7 +63,7 @@ where
 
             let resolver = BevyAssetResolver { load_context };
 
-            GltfIO::<E>::import(&mut graph, format, Some(resolver)).await?;
+            GltfImport::<E>::import(&mut graph, format, Some(resolver)).await?;
 
             let graph = GltfGraph(graph);
 
@@ -90,7 +90,7 @@ impl<E: BevyImportExtensions<GltfDocument>> Default for GlbGraphLoader<E> {
 
 impl<E> AssetLoader for GlbGraphLoader<E>
 where
-    E: ExtensionsIO<GltfDocument, GltfFormat>
+    E: ExtensionImport<GltfDocument, GltfFormat>
         + BevyImportExtensions<GltfDocument>
         + Send
         + Sync
@@ -111,7 +111,7 @@ where
             reader.read_to_end(&mut bytes).await?;
 
             let mut graph = Graph::default();
-            GlbIO::<E>::import_slice(&mut graph, &bytes).await?;
+            GlbImport::<E>::import_slice(&mut graph, &bytes).await?;
 
             let graph = GltfGraph(graph);
 

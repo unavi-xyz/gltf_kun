@@ -1,6 +1,10 @@
 use std::path::Path;
 
-use gltf_kun::{extensions::DefaultExtensions, graph::Graph, io::format::gltf::GltfIO};
+use gltf_kun::{
+    extensions::DefaultExtensions,
+    graph::Graph,
+    io::format::gltf::{GltfExport, GltfImport},
+};
 use tracing::debug;
 use tracing_test::traced_test;
 
@@ -16,10 +20,11 @@ async fn main() {
 
     // Import / export
     let mut graph = Graph::default();
-    let doc = GltfIO::<DefaultExtensions>::import_file(&mut graph, &path)
+    let doc = GltfImport::<DefaultExtensions>::import_file(&mut graph, &path)
         .await
         .expect("Failed to import glTF");
-    let out = GltfIO::<DefaultExtensions>::export(&mut graph, &doc).expect("Failed to export glTF");
+    let out =
+        GltfExport::<DefaultExtensions>::export(&mut graph, &doc).expect("Failed to export glTF");
     let json = serde_json::to_string(&out.json).expect("Failed to serialize json");
 
     debug!(
@@ -37,10 +42,11 @@ async fn main() {
 
     // Import / export written file
     let mut graph = Graph::default();
-    let doc = GltfIO::<DefaultExtensions>::import_file(&mut graph, &path)
+    let doc = GltfImport::<DefaultExtensions>::import_file(&mut graph, &path)
         .await
         .expect("Failed to import glTF");
-    let out = GltfIO::<DefaultExtensions>::export(&mut graph, &doc).expect("Failed to export glTF");
+    let out =
+        GltfExport::<DefaultExtensions>::export(&mut graph, &doc).expect("Failed to export glTF");
     let json2 = serde_json::to_string(&out.json).expect("Failed to serialize json");
 
     assert_eq!(json, json2);

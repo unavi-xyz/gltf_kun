@@ -30,10 +30,10 @@
 //!     println!("Scene name: {:?}", weight.name);
 //! });
 //!
-//! use gltf_kun::{extensions::DefaultExtensions, io::format::glb::GlbIO};
+//! use gltf_kun::{extensions::DefaultExtensions, io::format::glb::GlbExport};
 //!
 //! // Export the document to a GLB byte array.
-//! let glb = GlbIO::<DefaultExtensions>::export(&mut graph, &doc).ok();
+//! let glb = GlbExport::<DefaultExtensions>::export(&mut graph, &doc).ok();
 //! ```
 
 pub mod extensions;
