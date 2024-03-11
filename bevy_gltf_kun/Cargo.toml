@@ -21,7 +21,7 @@ register_extensions = []
 bevy = { version = "0.13.0", default-features = false, features = ["animation", "bevy_asset", "bevy_scene", "bevy_pbr"] }
 glam.workspace = true
 gltf_kun.workspace = true
-image = "0.24.9"
+image = "0.25.0"
 serde_json.workspace = true
 thiserror.workspace = true
 

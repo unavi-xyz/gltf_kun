@@ -16,7 +16,7 @@ use gltf_kun::graph::{
     },
     GraphNodeWeight,
 };
-use image::{codecs::png::PngEncoder, ColorType, ImageEncoder};
+use image::{codecs::png::PngEncoder, ExtendedColorType, ImageEncoder};
 use thiserror::Error;
 
 use super::{CachedMaterial, ExportContext};
@@ -226,14 +226,19 @@ fn convert_image(bevy_image: &Image) -> Result<(String, Vec<u8>), ConvertImageEr
                 _phantom: PhantomData,
             };
             let data = iter.map(|v| (v + 127) as u8).collect::<Vec<_>>();
-            convert_png(&data, desc.size.width, desc.size.height, ColorType::Rgba8)
+            convert_png(
+                &data,
+                desc.size.width,
+                desc.size.height,
+                ExtendedColorType::Rgba8,
+            )
         }
         TextureFormat::Rgba8Uint | TextureFormat::Rgba8Unorm | TextureFormat::Rgba8UnormSrgb => {
             convert_png(
                 &bevy_image.data,
                 desc.size.width,
                 desc.size.height,
-                ColorType::Rgba8,
+                ExtendedColorType::Rgba8,
             )
         }
 
@@ -248,7 +253,7 @@ fn convert_png(
     data: &[u8],
     width: u32,
     height: u32,
-    color_type: ColorType,
+    color_type: ExtendedColorType,
 ) -> Result<(String, Vec<u8>), ConvertImageError> {
     let mut out = Vec::new();
     let encoder = PngEncoder::new(&mut out);
