@@ -8,7 +8,9 @@ use self::physics_shape::{PhysicsShape, PhysicsShapeWeight};
 
 use super::Extension;
 
-pub mod io;
+pub mod export;
+pub mod import;
+pub mod json;
 pub mod physics_shape;
 
 pub const EXTENSION_NAME: &str = "OMI_physics_shape";

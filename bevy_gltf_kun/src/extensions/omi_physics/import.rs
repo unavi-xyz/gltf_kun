@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_xpbd_3d::prelude::*;
 use gltf_kun::{
     extensions::{
-        omi_physics_body::{BodyType, OmiPhysicsBody},
+        omi_physics_body::{weight::BodyType, OmiPhysicsBody},
         omi_physics_shape::physics_shape::{
             BoxShape, CapsuleShape, CylinderShape, PhysicsShapeWeight, SphereShape,
         },

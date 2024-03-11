@@ -6,12 +6,14 @@ use serde::{Deserialize, Serialize};
 
 use crate::graph::{ByteNode, Graph, OtherEdgeHelpers};
 
+use self::weight::OmiPhysicsBodyWeight;
+
 use super::{omi_physics_shape::physics_shape::PhysicsShape, Extension};
 
-pub mod io;
-mod weight;
-
-pub use weight::*;
+pub mod export;
+pub mod import;
+pub mod json;
+pub mod weight;
 
 pub const EXTENSION_NAME: &str = "OMI_physics_body";
 

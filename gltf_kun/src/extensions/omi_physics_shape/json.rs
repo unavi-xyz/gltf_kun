@@ -1,22 +1,16 @@
 use serde::{Deserialize, Serialize};
 
-use crate::{
-    extensions::{ExtensionExport, ExtensionImport},
-    graph::{gltf::document::GltfDocument, ByteNode, Graph, Property},
-    io::format::gltf::GltfFormat,
-};
-
-use super::{physics_shape::PhysicsShapeWeight, OmiPhysicsShape, EXTENSION_NAME};
+use super::physics_shape::PhysicsShapeWeight;
 
 #[derive(Debug, Deserialize, Serialize)]
-struct RootExtension {
-    shapes: Vec<Shape>,
+pub struct RootExtension {
+    pub shapes: Vec<Shape>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct Shape {
+pub struct Shape {
     #[serde(rename = "type", skip_deserializing)]
-    typ: String,
+    pub typ: String,
     #[serde(
         alias = "box",
         alias = "sphere",
@@ -26,7 +20,7 @@ struct Shape {
         alias = "trimesh",
         flatten
     )]
-    weight: PhysicsShapeWeight,
+    pub weight: PhysicsShapeWeight,
 }
 
 impl From<PhysicsShapeWeight> for Shape {
@@ -44,75 +38,6 @@ impl From<PhysicsShapeWeight> for Shape {
             typ: typ.to_string(),
             weight,
         }
-    }
-}
-
-impl ExtensionExport<GltfDocument, GltfFormat> for OmiPhysicsShape {
-    fn export(
-        graph: &mut Graph,
-        doc: &GltfDocument,
-        format: &mut GltfFormat,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let ext = match doc.get_extension::<Self>(graph) {
-            Some(ext) => ext,
-            None => return Ok(()),
-        };
-
-        let shapes = ext
-            .shapes(graph)
-            .map(|shape| shape.read(graph).into())
-            .collect::<Vec<_>>();
-
-        if shapes.is_empty() {
-            return Ok(());
-        }
-
-        let root_extension = RootExtension { shapes };
-
-        let extensions = format
-            .json
-            .extensions
-            .get_or_insert(gltf::json::extensions::Root::default());
-
-        extensions.others.insert(
-            EXTENSION_NAME.to_string(),
-            serde_json::to_value(root_extension)?,
-        );
-
-        format.json.extensions_used.push(EXTENSION_NAME.to_string());
-
-        Ok(())
-    }
-}
-
-impl ExtensionImport<GltfDocument, GltfFormat> for OmiPhysicsShape {
-    fn import(
-        graph: &mut Graph,
-        format: &mut GltfFormat,
-        doc: &GltfDocument,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        let extensions = match &format.json.extensions {
-            Some(extensions) => extensions,
-            None => return Ok(()),
-        };
-
-        let value = match extensions.others.get(EXTENSION_NAME) {
-            Some(extension) => extension,
-            None => return Ok(()),
-        };
-
-        let root_extension = serde_json::from_value::<RootExtension>(value.clone())?;
-
-        let ext = match doc.get_extension::<Self>(graph) {
-            Some(ext) => ext,
-            None => doc.create_extension::<Self>(graph),
-        };
-
-        root_extension.shapes.iter().for_each(|shape| {
-            ext.create_shape(graph, &shape.weight);
-        });
-
-        Ok(())
     }
 }
 

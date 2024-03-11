@@ -2,7 +2,7 @@ use std::path::Path;
 
 use gltf_kun::{
     extensions::{
-        omi_physics_body::{BodyType, OmiPhysicsBody},
+        omi_physics_body::{weight::BodyType, OmiPhysicsBody},
         omi_physics_shape::{
             physics_shape::{BoxShape, PhysicsShapeWeight, Size},
             OmiPhysicsShape,

@@ -2,7 +2,10 @@ use bevy::{ecs::system::RunSystemOnce, prelude::*};
 use bevy_xpbd_3d::{parry::shape::ShapeType, prelude::*};
 use gltf_kun::{
     extensions::{
-        omi_physics_body::{BodyType, Motion, OmiPhysicsBody},
+        omi_physics_body::{
+            weight::{BodyType, Motion},
+            OmiPhysicsBody,
+        },
         omi_physics_shape::{
             physics_shape::{
                 BoxShape, CapsuleShape, Height, PhysicsShapeWeight, Radius, Size, SphereShape,
