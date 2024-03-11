@@ -8,7 +8,7 @@ use gltf_kun::{
     extensions::ExtensionImport,
     graph::{gltf::GltfDocument, Graph},
     io::format::{
-        glb::{GlbImport},
+        glb::GlbImport,
         gltf::{GltfFormat, GltfImport},
     },
 };
