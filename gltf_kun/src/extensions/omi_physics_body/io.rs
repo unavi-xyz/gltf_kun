@@ -112,7 +112,7 @@ impl ExtensionImport<GltfDocument, GltfFormat> for OmiPhysicsBody {
             .for_each(|(i, json)| {
                 let nodes = doc.nodes(graph);
                 let node = nodes.get(i).expect("Node index out of bounds");
-                let mut ext = node.create_extension::<Self>(graph);
+                let ext = node.create_extension::<Self>(graph);
 
                 // Motion
                 if let Some(motion) = json.motion {
@@ -142,7 +142,7 @@ impl ExtensionImport<GltfDocument, GltfFormat> for OmiPhysicsBody {
                             .nth(idx)
                             .expect("Collider index out of bounds");
 
-                        ext.set_collider(graph, Some(&shape));
+                        ext.set_collider(graph, Some(shape));
                     }
                 }
 
@@ -154,7 +154,7 @@ impl ExtensionImport<GltfDocument, GltfFormat> for OmiPhysicsBody {
                             .nth(idx)
                             .expect("Trigger index out of bounds");
 
-                        ext.set_trigger(graph, Some(&shape));
+                        ext.set_trigger(graph, Some(shape));
                     }
                 }
             });

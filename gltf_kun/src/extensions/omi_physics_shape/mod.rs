@@ -1,8 +1,8 @@
 //! [OMI_physics_shape](https://github.com/omigroup/gltf-extensions/tree/main/extensions/2.0/OMI_physics_shape) extension.
 
-use petgraph::{graph::NodeIndex, visit::EdgeRef};
+use petgraph::graph::NodeIndex;
 
-use crate::graph::{Edge, Graph};
+use crate::graph::{Graph, OtherEdgeHelpers};
 
 use self::physics_shape::{PhysicsShape, PhysicsShapeWeight};
 
@@ -29,6 +29,8 @@ impl From<OmiPhysicsShape> for NodeIndex {
     }
 }
 
+impl OtherEdgeHelpers for OmiPhysicsShape {}
+
 impl Extension for OmiPhysicsShape {
     fn name() -> &'static str {
         EXTENSION_NAME
@@ -36,35 +38,18 @@ impl Extension for OmiPhysicsShape {
 }
 
 impl OmiPhysicsShape {
-    pub fn shape_edge_name() -> &'static str {
-        SHAPE_EDGE
-    }
-
     pub fn shapes<'a>(&self, graph: &'a Graph) -> impl Iterator<Item = PhysicsShape> + 'a {
-        graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .filter(|e| matches!(e.weight(), Edge::Other(SHAPE_EDGE)))
-            .map(|e| PhysicsShape(e.target()))
+        self.find_properties(graph, SHAPE_EDGE)
     }
-    pub fn add_shape(&self, graph: &mut Graph, shape: &PhysicsShape) {
-        graph.add_edge(self.0, shape.0, Edge::Other(SHAPE_EDGE));
+    pub fn add_shape(&self, graph: &mut Graph, shape: PhysicsShape) {
+        self.add_property(graph, SHAPE_EDGE.to_string(), shape);
     }
-    pub fn remove_shape(&self, graph: &mut Graph, shape: &PhysicsShape) {
-        let edge = graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
-            .find(|e| match e.weight() {
-                Edge::Other(SHAPE_EDGE) => e.target() == shape.0,
-                _ => false,
-            })
-            .map(|e| e.id());
-
-        if let Some(edge) = edge {
-            graph.remove_edge(edge);
-        }
+    pub fn remove_shape(&self, graph: &mut Graph, shape: PhysicsShape) {
+        self.remove_property(graph, SHAPE_EDGE, shape);
     }
     pub fn create_shape(&self, graph: &mut Graph, weight: &PhysicsShapeWeight) -> PhysicsShape {
         let shape = PhysicsShape::new(graph, weight);
-        self.add_shape(graph, &shape);
+        self.add_shape(graph, shape);
         shape
     }
 }

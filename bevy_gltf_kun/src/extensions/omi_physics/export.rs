@@ -41,7 +41,7 @@ pub fn export_physics_bodies(
             continue;
         }
 
-        let mut ext = match cached.node.get_extension::<OmiPhysicsBody>(&context.graph) {
+        let ext = match cached.node.get_extension::<OmiPhysicsBody>(&context.graph) {
             Some(ext) => ext,
             None => cached
                 .node
@@ -118,7 +118,7 @@ pub fn export_physics_bodies(
             };
 
             let collider_shape = shapes_ext.create_shape(&mut context.graph, &shape_weight);
-            ext.set_collider(&mut context.graph, Some(&collider_shape));
+            ext.set_collider(&mut context.graph, Some(collider_shape));
         };
     }
 
