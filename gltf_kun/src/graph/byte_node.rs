@@ -9,11 +9,6 @@ where
     for<'a> T: From<&'a Vec<u8>>,
     for<'a> &'a T: Into<Vec<u8>>,
 {
-    fn new(graph: &mut Graph, weight: &T) -> Self {
-        let index = graph.add_node(Weight::Bytes(weight.into()));
-        Self::from(index)
-    }
-
     /// Reads the weight from the graph.
     fn read(self, graph: &Graph) -> T {
         match &graph[self.into()] {
