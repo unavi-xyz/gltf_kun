@@ -1,7 +1,10 @@
+use std::marker::PhantomData;
+
 use bevy::{prelude::*, utils::HashMap};
 use gltf_kun::{
-    extensions::DefaultExtensions,
+    extensions::ExtensionImport,
     graph::{gltf::document::GltfDocument, Graph},
+    io::format::gltf::GltfFormat,
 };
 
 use self::{
@@ -9,6 +12,8 @@ use self::{
     mesh::GltfMesh,
     node::GltfNode,
 };
+
+use super::extensions::BevyImportExtensions;
 
 pub mod animation;
 pub mod document;
@@ -21,19 +26,33 @@ pub mod scene;
 pub mod skin;
 pub mod texture;
 
-pub struct GltfImportPlugin;
+/// Adds the ability to import glTF files.
+pub struct GltfImportPlugin<E: BevyImportExtensions<GltfDocument> + Send + Sync> {
+    _marker: PhantomData<E>,
+}
 
-impl Plugin for GltfImportPlugin {
+impl<E: BevyImportExtensions<GltfDocument> + Send + Sync> Default for GltfImportPlugin<E> {
+    fn default() -> Self {
+        Self {
+            _marker: PhantomData,
+        }
+    }
+}
+
+impl<E> Plugin for GltfImportPlugin<E>
+where
+    E: BevyImportExtensions<GltfDocument>
+        + ExtensionImport<GltfDocument, GltfFormat>
+        + Send
+        + Sync
+        + 'static,
+{
     fn build(&self, app: &mut App) {
         app.init_asset::<GltfKun>()
             .init_asset::<GltfNode>()
             .init_asset::<GltfMesh>()
-            .register_asset_loader::<GltfLoader<DefaultExtensions>>(
-                GltfLoader::<DefaultExtensions>::default(),
-            )
-            .register_asset_loader::<GlbLoader<DefaultExtensions>>(
-                GlbLoader::<DefaultExtensions>::default(),
-            );
+            .register_asset_loader::<GltfLoader<E>>(GltfLoader::<E>::default())
+            .register_asset_loader::<GlbLoader<E>>(GlbLoader::<E>::default());
     }
 }
 
