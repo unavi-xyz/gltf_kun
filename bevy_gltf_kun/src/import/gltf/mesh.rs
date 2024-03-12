@@ -4,8 +4,6 @@ use gltf_kun::graph::{
     GraphNodeWeight,
 };
 
-
-
 use super::{
     document::ImportContext,
     primitive::{import_primitive, GltfPrimitive},

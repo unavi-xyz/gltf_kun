@@ -27,8 +27,6 @@ use gltf_kun::graph::{
 };
 use thiserror::Error;
 
-
-
 use super::{
     document::ImportContext,
     material::{default_material, import_material},
