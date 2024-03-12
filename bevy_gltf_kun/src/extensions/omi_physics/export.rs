@@ -13,7 +13,7 @@ use gltf_kun::{
             OmiPhysicsShape,
         },
     },
-    graph::{ByteNode, Property},
+    graph::{ByteNode, Extensions},
 };
 
 use crate::export::{extensions::BevyExtensionExport, gltf::ExportContext};

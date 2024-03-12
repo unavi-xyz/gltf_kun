@@ -12,8 +12,6 @@ use gltf_kun::{
 
 use crate::import::{extensions::NodeExtensionImport, gltf::document::ImportContext};
 
-/// Mark a collider to be added to the entity after asset loading.
-/// This is needed because `Collider` doesn't implement `Reflect`.
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub enum ColliderMarker {
@@ -68,8 +66,6 @@ pub fn insert_rigid_bodies(mut commands: Commands, mut query: Query<(Entity, &Ri
     }
 }
 
-/// Mark a rigid body to be added to the entity after asset loading.
-/// While not necessary on its own, we want to spawn in the rigid body and collider at the same time.
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub struct RigidBodyMarker {

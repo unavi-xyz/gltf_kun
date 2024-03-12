@@ -1,7 +1,7 @@
 use petgraph::graph::NodeIndex;
 use thiserror::Error;
 
-use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
+use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 
 use self::iter::{AccessorElement, AccessorIter, AccessorIterCreateError};
 
@@ -114,7 +114,7 @@ impl From<Accessor> for NodeIndex {
 
 impl GraphNodeWeight<AccessorWeight> for Accessor {}
 impl GraphNodeEdges<AccessorEdge> for Accessor {}
-impl Property for Accessor {}
+impl Extensions for Accessor {}
 
 impl Accessor {
     pub fn buffer(&self, graph: &Graph) -> Option<Buffer> {

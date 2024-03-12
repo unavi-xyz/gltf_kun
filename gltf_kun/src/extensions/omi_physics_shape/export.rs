@@ -1,6 +1,6 @@
 use crate::{
     extensions::ExtensionExport,
-    graph::{gltf::document::GltfDocument, ByteNode, Graph, Property},
+    graph::{gltf::document::GltfDocument, ByteNode, Extensions, Graph},
     io::format::gltf::GltfFormat,
 };
 

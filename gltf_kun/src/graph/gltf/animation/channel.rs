@@ -2,7 +2,7 @@ use petgraph::graph::NodeIndex;
 
 use crate::graph::{
     gltf::{GltfEdge, Node},
-    Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight,
+    Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight,
 };
 
 use super::{AnimationSampler, GltfWeight};
@@ -89,7 +89,7 @@ impl From<AnimationChannel> for NodeIndex {
 
 impl GraphNodeWeight<AnimationChannelWeight> for AnimationChannel {}
 impl GraphNodeEdges<AnimationChannelEdge> for AnimationChannel {}
-impl Property for AnimationChannel {}
+impl Extensions for AnimationChannel {}
 
 impl AnimationChannel {
     pub fn sampler(&self, graph: &Graph) -> Option<AnimationSampler> {

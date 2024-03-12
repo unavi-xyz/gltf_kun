@@ -1,6 +1,6 @@
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{GraphNodeWeight, Property, Weight};
+use crate::graph::{Extensions, GraphNodeWeight, Weight};
 
 use super::GltfWeight;
 
@@ -54,4 +54,4 @@ impl From<Buffer> for NodeIndex {
 }
 
 impl GraphNodeWeight<BufferWeight> for Buffer {}
-impl Property for Buffer {}
+impl Extensions for Buffer {}

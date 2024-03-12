@@ -1,6 +1,6 @@
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
+use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 
 use super::{primitive::Primitive, GltfEdge, GltfWeight};
 
@@ -77,7 +77,7 @@ impl From<Mesh> for NodeIndex {
 
 impl GraphNodeWeight<MeshWeight> for Mesh {}
 impl GraphNodeEdges<MeshEdge> for Mesh {}
-impl Property for Mesh {}
+impl Extensions for Mesh {}
 
 impl Mesh {
     pub fn primitives(&self, graph: &Graph) -> Vec<Primitive> {

@@ -4,7 +4,7 @@ use tracing::warn;
 
 use crate::{
     extensions::{omi_physics_shape::OmiPhysicsShape, ExtensionImport},
-    graph::{gltf::document::GltfDocument, ByteNode, Property},
+    graph::{gltf::document::GltfDocument, ByteNode, Extensions},
     io::format::gltf::GltfFormat,
 };
 

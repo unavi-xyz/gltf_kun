@@ -2,7 +2,7 @@ use petgraph::graph::NodeIndex;
 
 use crate::graph::{
     gltf::{Accessor, GltfEdge, GltfWeight},
-    Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight,
+    Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight,
 };
 
 pub use gltf::animation::Interpolation;
@@ -78,7 +78,7 @@ impl From<AnimationSampler> for NodeIndex {
 
 impl GraphNodeWeight<AnimationSamplerWeight> for AnimationSampler {}
 impl GraphNodeEdges<AnimationSamplerEdge> for AnimationSampler {}
-impl Property for AnimationSampler {}
+impl Extensions for AnimationSampler {}
 
 impl AnimationSampler {
     pub fn input(&self, graph: &Graph) -> Option<Accessor> {

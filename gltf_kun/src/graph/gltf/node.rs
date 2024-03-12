@@ -1,7 +1,7 @@
 use glam::{Quat, Vec3};
 use petgraph::{graph::NodeIndex, visit::EdgeRef};
 
-use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
+use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 
 use super::{mesh::Mesh, GltfEdge, GltfWeight, Skin};
 
@@ -96,7 +96,7 @@ impl From<Node> for NodeIndex {
 
 impl GraphNodeWeight<NodeWeight> for Node {}
 impl GraphNodeEdges<NodeEdge> for Node {}
-impl Property for Node {}
+impl Extensions for Node {}
 
 impl Node {
     pub fn children(&self, graph: &Graph) -> Vec<Node> {

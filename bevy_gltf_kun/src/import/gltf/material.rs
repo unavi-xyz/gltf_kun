@@ -5,14 +5,14 @@ use gltf_kun::graph::{
 };
 use thiserror::Error;
 
-use crate::import::extensions::BevyImportExtensions;
+
 
 use super::document::ImportContext;
 
 #[derive(Debug, Error)]
 pub enum MaterialImportError {}
 
-pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
+pub fn import_material(
     context: &mut ImportContext,
     m: Material,
     is_scale_inverted: bool,

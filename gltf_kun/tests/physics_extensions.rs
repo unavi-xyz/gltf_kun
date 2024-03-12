@@ -9,7 +9,7 @@ use gltf_kun::{
         },
         DefaultExtensions, Extension,
     },
-    graph::{gltf::document::GltfDocument, ByteNode, Graph, Property},
+    graph::{gltf::document::GltfDocument, ByteNode, Extensions, Graph},
     io::format::gltf::{GltfExport, GltfImport},
 };
 use tracing_test::traced_test;

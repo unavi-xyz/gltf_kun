@@ -1,6 +1,6 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
 
-use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
+use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 
 use super::{accessor::Accessor, material::Material, GltfEdge, GltfWeight};
 
@@ -92,7 +92,7 @@ impl From<Primitive> for NodeIndex {
 
 impl GraphNodeWeight<PrimitiveWeight> for Primitive {}
 impl GraphNodeEdges<PrimitiveEdge> for Primitive {}
-impl Property for Primitive {}
+impl Extensions for Primitive {}
 
 impl Primitive {
     pub fn attributes(&self, graph: &Graph) -> Vec<(Semantic, Accessor)> {

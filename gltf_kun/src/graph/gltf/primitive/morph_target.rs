@@ -4,7 +4,7 @@ use thiserror::Error;
 
 use crate::graph::{
     gltf::{accessor::iter::AccessorIterCreateError, Accessor, GltfEdge},
-    Edge, Graph, GraphNodeEdges, Property,
+    Edge, Extensions, Graph, GraphNodeEdges,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -44,7 +44,7 @@ impl From<MorphTarget> for NodeIndex {
 }
 
 impl GraphNodeEdges<MorphTargetEdge> for MorphTarget {}
-impl Property for MorphTarget {}
+impl Extensions for MorphTarget {}
 
 impl MorphTarget {
     pub fn attributes(&self, graph: &Graph) -> Vec<(Semantic, Accessor)> {

@@ -16,7 +16,7 @@ pub use byte_node::ByteNode;
 pub use graph_node::{GraphNodeEdges, GraphNodeWeight};
 pub use other_edge::OtherEdgeHelpers;
 pub use petgraph::stable_graph::NodeIndex;
-pub use property::Property;
+pub use property::Extensions;
 
 use self::{
     gltf::{GltfEdge, GltfWeight},

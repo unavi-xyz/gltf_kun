@@ -1,6 +1,6 @@
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{gltf::GltfEdge, Edge, Graph, GraphNodeEdges, Property, Weight};
+use crate::graph::{gltf::GltfEdge, Edge, Extensions, Graph, GraphNodeEdges, Weight};
 
 use super::{
     Accessor, Animation, Buffer, GltfWeight, Image, Material, Mesh, Node, Scene, Skin, TextureInfo,
@@ -52,7 +52,7 @@ impl From<GltfDocument> for NodeIndex {
 }
 
 impl GraphNodeEdges<DocumentEdge> for GltfDocument {}
-impl Property for GltfDocument {}
+impl Extensions for GltfDocument {}
 
 impl GltfDocument {
     pub fn new(graph: &mut Graph) -> Self {

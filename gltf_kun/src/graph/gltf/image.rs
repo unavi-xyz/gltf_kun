@@ -1,7 +1,7 @@
 use petgraph::graph::NodeIndex;
 
 use crate::graph::{
-    gltf::GltfEdge, Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight,
+    gltf::GltfEdge, Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight,
 };
 
 use super::{buffer::Buffer, GltfWeight};
@@ -81,7 +81,7 @@ impl From<Image> for NodeIndex {
 
 impl GraphNodeWeight<ImageWeight> for Image {}
 impl GraphNodeEdges<ImageEdge> for Image {}
-impl Property for Image {}
+impl Extensions for Image {}
 
 impl Image {
     pub fn buffer(&self, graph: &Graph) -> Option<Buffer> {

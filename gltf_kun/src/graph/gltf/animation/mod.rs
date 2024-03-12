@@ -1,7 +1,7 @@
 use petgraph::graph::NodeIndex;
 
 use crate::graph::{
-    gltf::GltfEdge, Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight,
+    gltf::GltfEdge, Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight,
 };
 
 use super::GltfWeight;
@@ -82,7 +82,7 @@ impl From<Animation> for NodeIndex {
 
 impl GraphNodeWeight<AnimationWeight> for Animation {}
 impl GraphNodeEdges<AnimationEdge> for Animation {}
-impl Property for Animation {}
+impl Extensions for Animation {}
 
 impl Animation {
     pub fn channels(&self, graph: &Graph) -> Vec<AnimationChannel> {

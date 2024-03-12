@@ -1,6 +1,6 @@
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
+use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 
 use super::{image::Image, GltfEdge, GltfWeight};
 
@@ -82,7 +82,7 @@ impl From<TextureInfo> for NodeIndex {
 
 impl GraphNodeWeight<TextureInfoWeight> for TextureInfo {}
 impl GraphNodeEdges<TextureInfoEdge> for TextureInfo {}
-impl Property for TextureInfo {}
+impl Extensions for TextureInfo {}
 
 impl TextureInfo {
     pub fn image(&self, graph: &Graph) -> Option<Image> {

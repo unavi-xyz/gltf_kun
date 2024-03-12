@@ -1,6 +1,6 @@
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
+use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 
 use super::{node::Node, GltfEdge, GltfWeight};
 
@@ -74,7 +74,7 @@ impl From<Scene> for NodeIndex {
 
 impl GraphNodeWeight<SceneWeight> for Scene {}
 impl GraphNodeEdges<SceneEdge> for Scene {}
-impl Property for Scene {}
+impl Extensions for Scene {}
 
 impl Scene {
     pub fn nodes(&self, graph: &Graph) -> Vec<Node> {

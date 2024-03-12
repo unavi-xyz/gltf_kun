@@ -1,6 +1,6 @@
 use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
 
-use crate::graph::{Edge, Graph, GraphNodeEdges, GraphNodeWeight, Property, Weight};
+use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 
 use super::{Accessor, GltfEdge, GltfWeight, Node};
 
@@ -76,7 +76,7 @@ impl From<Skin> for NodeIndex {
 
 impl GraphNodeWeight<SkinWeight> for Skin {}
 impl GraphNodeEdges<SkinEdge> for Skin {}
-impl Property for Skin {}
+impl Extensions for Skin {}
 
 impl Skin {
     pub fn inverse_bind_matrices(&self, graph: &Graph) -> Option<Accessor> {

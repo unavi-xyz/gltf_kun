@@ -94,5 +94,8 @@ pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
         context.gltf.scenes.insert(i, handle);
     }
 
+    // Load extensions.
+    E::import_root(context);
+
     Ok(())
 }
