@@ -11,8 +11,8 @@ use gltf_kun::graph::{
     gltf::{
         accessor::iter::ElementIter,
         material::{AlphaCutoff, AlphaMode},
-        texture_info::{MagFilter, MinFilter, WrappingMode},
-        TextureInfo,
+        texture::{MagFilter, MinFilter, WrappingMode},
+        Texture,
     },
     GraphNodeWeight,
 };
@@ -80,21 +80,21 @@ pub fn export_materials(
                         &standard_material.base_color_texture,
                         &image_assets,
                     );
-                    material.set_base_color_texture_info(&mut context.graph, base_color_texture);
+                    material.set_base_color_texture(&mut context.graph, base_color_texture);
 
                     let emissive_texture = export_texture(
                         &mut context,
                         &standard_material.emissive_texture,
                         &image_assets,
                     );
-                    material.set_emissive_texture_info(&mut context.graph, emissive_texture);
+                    material.set_emissive_texture(&mut context.graph, emissive_texture);
 
                     let metallic_roughness_texture = export_texture(
                         &mut context,
                         &standard_material.metallic_roughness_texture,
                         &image_assets,
                     );
-                    material.set_metallic_roughness_texture_info(
+                    material.set_metallic_roughness_texture(
                         &mut context.graph,
                         metallic_roughness_texture,
                     );
@@ -104,14 +104,14 @@ pub fn export_materials(
                         &standard_material.normal_map_texture,
                         &image_assets,
                     );
-                    material.set_normal_texture_info(&mut context.graph, normal_texture);
+                    material.set_normal_texture(&mut context.graph, normal_texture);
 
                     let occlusion_texture = export_texture(
                         &mut context,
                         &standard_material.occlusion_texture,
                         &image_assets,
                     );
-                    material.set_occlusion_texture_info(&mut context.graph, occlusion_texture);
+                    material.set_occlusion_texture(&mut context.graph, occlusion_texture);
 
                     context.materials.push(CachedMaterial {
                         bevy_material: handle.clone(),
@@ -134,7 +134,7 @@ fn export_texture(
     context: &mut ExportContext,
     texture: &Option<Handle<Image>>,
     image_assets: &Res<Assets<Image>>,
-) -> Option<TextureInfo> {
+) -> Option<Texture> {
     let handle = match texture {
         Some(handle) => handle,
         None => return None,
@@ -160,7 +160,7 @@ fn export_texture(
     image_weight.mime_type = Some(mime);
     image_weight.data = data;
 
-    let mut info = TextureInfo::new(&mut context.graph);
+    let mut info = Texture::new(&mut context.graph);
     info.set_image(&mut context.graph, Some(image));
 
     let info_weight = info.get_mut(&mut context.graph);

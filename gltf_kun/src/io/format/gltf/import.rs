@@ -8,10 +8,7 @@ use tracing::{debug, error, warn};
 
 use crate::{
     graph::{
-        gltf::{
-            animation::AnimationSampler, document::GltfDocument, image::Image,
-            texture_info::TextureInfo, Accessor,
-        },
+        gltf::{animation::AnimationSampler, document::GltfDocument, Accessor},
         Graph, GraphNodeWeight,
     },
     io::resolver::{DataUriResolver, Resolver},
@@ -258,10 +255,38 @@ pub async fn import(
         images.push(image);
     }
 
-    // Create materials
-    let json_textures = &format.json.textures;
-    let json_samplers = &format.json.samplers;
+    // Create textures
+    let textures = format
+        .json
+        .textures
+        .iter_mut()
+        .map(|t| {
+            let mut texture = doc.create_texture(graph);
+            let weight = texture.get_mut(graph);
 
+            weight.name = t.name.clone();
+            weight.extras = t.extras.clone();
+
+            let source = t.source.value();
+            let image = images.get(source).copied();
+            texture.set_image(graph, image);
+
+            if let Some(sampler) = t.sampler {
+                let weight = texture.get_mut(graph);
+                let sampler = sampler.value();
+                let sampler = &format.json.samplers[sampler];
+
+                weight.mag_filter = sampler.mag_filter.map(|f| f.unwrap());
+                weight.min_filter = sampler.min_filter.map(|f| f.unwrap());
+                weight.wrap_s = sampler.wrap_s.unwrap();
+                weight.wrap_t = sampler.wrap_t.unwrap();
+            }
+
+            texture
+        })
+        .collect::<Vec<_>>();
+
+    // Create materials
     let materials = format
         .json
         .materials
@@ -281,74 +306,47 @@ pub async fn import(
             weight.metallic_factor = m.pbr_metallic_roughness.metallic_factor.0;
             weight.roughness_factor = m.pbr_metallic_roughness.roughness_factor.0;
 
-            let base_color_texture_info =
-                m.pbr_metallic_roughness
-                    .base_color_texture
-                    .as_ref()
-                    .map(|t| {
-                        import_texture_info(
-                            t.index.value(),
-                            t.tex_coord as usize,
-                            graph,
-                            json_textures,
-                            json_samplers,
-                            &images,
-                        )
-                    });
-            let emissive_texture_info = m.emissive_texture.as_ref().map(|t| {
-                import_texture_info(
-                    t.index.value(),
-                    t.tex_coord as usize,
-                    graph,
-                    json_textures,
-                    json_samplers,
-                    &images,
-                )
+            let base_color_texture = m
+                .pbr_metallic_roughness
+                .base_color_texture
+                .as_ref()
+                .and_then(|t| {
+                    let weight = material.get_mut(graph);
+                    weight.base_color_tex_coord = t.tex_coord as usize;
+                    textures.get(t.index.value()).copied()
+                });
+            let emissive_texture = m.emissive_texture.as_ref().and_then(|t| {
+                let weight = material.get_mut(graph);
+                weight.emissive_tex_coord = t.tex_coord as usize;
+                textures.get(t.index.value()).copied()
             });
-            let metallic_roughness_texture_info = m
+            let metallic_roughness_texture = m
                 .pbr_metallic_roughness
                 .metallic_roughness_texture
                 .as_ref()
-                .map(|t| {
-                    import_texture_info(
-                        t.index.value(),
-                        t.tex_coord as usize,
-                        graph,
-                        json_textures,
-                        json_samplers,
-                        &images,
-                    )
+                .and_then(|t| {
+                    let weight = material.get_mut(graph);
+                    weight.metallic_roughness_tex_coord = t.tex_coord as usize;
+                    textures.get(t.index.value()).copied()
                 });
-            let normal_texture_info = m.normal_texture.as_ref().map(|t| {
+            let normal_texture = m.normal_texture.as_ref().and_then(|t| {
                 let weight = material.get_mut(graph);
                 weight.normal_scale = t.scale;
-                import_texture_info(
-                    t.index.value(),
-                    t.tex_coord as usize,
-                    graph,
-                    json_textures,
-                    json_samplers,
-                    &images,
-                )
+                weight.normal_tex_coord = t.tex_coord as usize;
+                textures.get(t.index.value()).copied()
             });
-            let occlusion_texture_info = m.occlusion_texture.as_ref().map(|t| {
+            let occlusion_texture = m.occlusion_texture.as_ref().and_then(|t| {
                 let weight = material.get_mut(graph);
                 weight.occlusion_strength = t.strength.0;
-                import_texture_info(
-                    t.index.value(),
-                    t.tex_coord as usize,
-                    graph,
-                    json_textures,
-                    json_samplers,
-                    &images,
-                )
+                weight.occlusion_tex_coord = t.tex_coord as usize;
+                textures.get(t.index.value()).copied()
             });
 
-            material.set_base_color_texture_info(graph, base_color_texture_info);
-            material.set_emissive_texture_info(graph, emissive_texture_info);
-            material.set_metallic_roughness_texture_info(graph, metallic_roughness_texture_info);
-            material.set_normal_texture_info(graph, normal_texture_info);
-            material.set_occlusion_texture_info(graph, occlusion_texture_info);
+            material.set_base_color_texture(graph, base_color_texture);
+            material.set_emissive_texture(graph, emissive_texture);
+            material.set_metallic_roughness_texture(graph, metallic_roughness_texture);
+            material.set_normal_texture(graph, normal_texture);
+            material.set_occlusion_texture(graph, occlusion_texture);
 
             material
         })
@@ -723,37 +721,6 @@ fn read_accessor(
     }
 
     Ok(data)
-}
-
-fn import_texture_info(
-    index: usize,
-    tex_coord: usize,
-    graph: &mut Graph,
-    textures: &[gltf::json::Texture],
-    samplers: &[gltf::json::texture::Sampler],
-    images: &[Image],
-) -> TextureInfo {
-    let mut texture_info = TextureInfo::new(graph);
-
-    let texture = &textures[index];
-    let image_idx = texture.source.value();
-    let image = images[image_idx];
-    texture_info.set_image(graph, Some(image));
-
-    let weight = texture_info.get_mut(graph);
-    weight.tex_coord = tex_coord;
-
-    if let Some(sampler_idx) = texture.sampler {
-        let sampler_idx = sampler_idx.value();
-        let sampler = &samplers[sampler_idx];
-
-        weight.mag_filter = sampler.mag_filter.map(|f| f.unwrap());
-        weight.min_filter = sampler.min_filter.map(|f| f.unwrap());
-        weight.wrap_s = sampler.wrap_s.unwrap();
-        weight.wrap_t = sampler.wrap_t.unwrap();
-    }
-
-    texture_info
 }
 
 fn guess_mime_type(uri: &str) -> Option<&'static str> {

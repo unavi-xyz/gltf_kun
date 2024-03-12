@@ -9,7 +9,7 @@ pub mod node;
 pub mod primitive;
 pub mod scene;
 pub mod skin;
-pub mod texture_info;
+pub mod texture;
 
 pub use accessor::Accessor;
 pub use animation::Animation;
@@ -22,7 +22,7 @@ pub use node::Node;
 pub use primitive::Primitive;
 pub use scene::Scene;
 pub use skin::Skin;
-pub use texture_info::TextureInfo;
+pub use texture::Texture;
 
 #[derive(Clone, Debug)]
 pub enum GltfWeight {
@@ -40,7 +40,7 @@ pub enum GltfWeight {
     Primitive(primitive::PrimitiveWeight),
     Scene(scene::SceneWeight),
     Skin(skin::SkinWeight),
-    TextureInfo(texture_info::TextureInfoWeight),
+    Texture(texture::TextureWeight),
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -58,5 +58,5 @@ pub enum GltfEdge {
     Primitive(primitive::PrimitiveEdge),
     Scene(scene::SceneEdge),
     Skin(skin::SkinEdge),
-    TextureInfo(texture_info::TextureInfoEdge),
+    Texture(texture::TextureEdge),
 }

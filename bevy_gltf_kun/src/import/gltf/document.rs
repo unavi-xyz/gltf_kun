@@ -71,10 +71,10 @@ pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
     // Load textures.
     let linear_textures = get_linear_textures(context);
 
-    for (i, texture_info) in context.doc.textures(context.graph).iter().enumerate() {
-        if let Some(image) = texture_info.image(context.graph) {
-            let is_srgb = !linear_textures.contains(texture_info);
-            let texture = load_texture(context, *texture_info, image, is_srgb)?;
+    for (i, texture) in context.doc.textures(context.graph).iter().enumerate() {
+        if let Some(image) = texture.image(context.graph) {
+            let is_srgb = !linear_textures.contains(texture);
+            let texture = load_texture(context, *texture, image, is_srgb)?;
             let label = texture_label(i);
             let handle = context.load_context.add_labeled_asset(label, texture);
             context.gltf.images.insert(i, handle);

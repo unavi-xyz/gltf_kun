@@ -161,7 +161,7 @@ pub fn import_primitive(
     if bevy_mesh.attribute(Mesh::ATTRIBUTE_TANGENT).is_none()
         && bevy_mesh.attribute(Mesh::ATTRIBUTE_NORMAL).is_some()
         && p.material(context.graph)
-            .and_then(|m| m.normal_texture_info(context.graph))
+            .and_then(|m| m.normal_texture(context.graph))
             .is_some()
     {
         debug!("Missing vertex tangents, computing them using the mikktspace algorithm");

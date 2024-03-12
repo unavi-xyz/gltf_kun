@@ -2,17 +2,17 @@ use petgraph::graph::NodeIndex;
 
 use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 
-use super::{texture_info::TextureInfo, GltfEdge, GltfWeight};
+use super::{GltfEdge, GltfWeight, Texture};
 
 pub use gltf::json::material::{AlphaCutoff, AlphaMode};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum MaterialEdge {
-    BaseColorTextureInfo,
-    EmissiveTextureInfo,
-    MetallicRoughnessTextureInfo,
-    NormalTextureInfo,
-    OcclusionTextureInfo,
+    BaseColorTexture,
+    EmissiveTexture,
+    MetallicRoughnessTexture,
+    NormalTexture,
+    OcclusionTexture,
 }
 
 impl<'a> TryFrom<&'a Edge> for &'a MaterialEdge {
@@ -45,6 +45,12 @@ pub struct MaterialWeight {
     pub normal_scale: f32,
     pub occlusion_strength: f32,
     pub roughness_factor: f32,
+
+    pub base_color_tex_coord: usize,
+    pub emissive_tex_coord: usize,
+    pub metallic_roughness_tex_coord: usize,
+    pub normal_tex_coord: usize,
+    pub occlusion_tex_coord: usize,
 }
 
 impl Default for MaterialWeight {
@@ -62,6 +68,12 @@ impl Default for MaterialWeight {
             normal_scale: 1.0,
             occlusion_strength: 1.0,
             roughness_factor: 1.0,
+
+            base_color_tex_coord: 0,
+            emissive_tex_coord: 0,
+            metallic_roughness_tex_coord: 0,
+            normal_tex_coord: 0,
+            occlusion_tex_coord: 0,
         }
     }
 }
@@ -112,51 +124,39 @@ impl GraphNodeEdges<MaterialEdge> for Material {}
 impl Extensions for Material {}
 
 impl Material {
-    pub fn base_color_texture_info(&self, graph: &Graph) -> Option<TextureInfo> {
-        self.find_edge_target(graph, &MaterialEdge::BaseColorTextureInfo)
+    pub fn base_color_texture(&self, graph: &Graph) -> Option<Texture> {
+        self.find_edge_target(graph, &MaterialEdge::BaseColorTexture)
     }
-    pub fn set_base_color_texture_info(
-        &self,
-        graph: &mut Graph,
-        texture_info: Option<TextureInfo>,
-    ) {
-        self.set_edge_target(graph, MaterialEdge::BaseColorTextureInfo, texture_info);
+    pub fn set_base_color_texture(&self, graph: &mut Graph, texture: Option<Texture>) {
+        self.set_edge_target(graph, MaterialEdge::BaseColorTexture, texture);
     }
 
-    pub fn emissive_texture_info(&self, graph: &Graph) -> Option<TextureInfo> {
-        self.find_edge_target(graph, &MaterialEdge::EmissiveTextureInfo)
+    pub fn emissive_texture(&self, graph: &Graph) -> Option<Texture> {
+        self.find_edge_target(graph, &MaterialEdge::EmissiveTexture)
     }
-    pub fn set_emissive_texture_info(&self, graph: &mut Graph, texture_info: Option<TextureInfo>) {
-        self.set_edge_target(graph, MaterialEdge::EmissiveTextureInfo, texture_info);
-    }
-
-    pub fn metallic_roughness_texture_info(&self, graph: &Graph) -> Option<TextureInfo> {
-        self.find_edge_target(graph, &MaterialEdge::MetallicRoughnessTextureInfo)
-    }
-    pub fn set_metallic_roughness_texture_info(
-        &self,
-        graph: &mut Graph,
-        texture_info: Option<TextureInfo>,
-    ) {
-        self.set_edge_target(
-            graph,
-            MaterialEdge::MetallicRoughnessTextureInfo,
-            texture_info,
-        );
+    pub fn set_emissive_texture(&self, graph: &mut Graph, texture: Option<Texture>) {
+        self.set_edge_target(graph, MaterialEdge::EmissiveTexture, texture);
     }
 
-    pub fn normal_texture_info(&self, graph: &Graph) -> Option<TextureInfo> {
-        self.find_edge_target(graph, &MaterialEdge::NormalTextureInfo)
+    pub fn metallic_roughness_texture(&self, graph: &Graph) -> Option<Texture> {
+        self.find_edge_target(graph, &MaterialEdge::MetallicRoughnessTexture)
     }
-    pub fn set_normal_texture_info(&self, graph: &mut Graph, texture_info: Option<TextureInfo>) {
-        self.set_edge_target(graph, MaterialEdge::NormalTextureInfo, texture_info);
+    pub fn set_metallic_roughness_texture(&self, graph: &mut Graph, texture: Option<Texture>) {
+        self.set_edge_target(graph, MaterialEdge::MetallicRoughnessTexture, texture);
     }
 
-    pub fn occlusion_texture_info(&self, graph: &Graph) -> Option<TextureInfo> {
-        self.find_edge_target(graph, &MaterialEdge::OcclusionTextureInfo)
+    pub fn normal_texture(&self, graph: &Graph) -> Option<Texture> {
+        self.find_edge_target(graph, &MaterialEdge::NormalTexture)
     }
-    pub fn set_occlusion_texture_info(&self, graph: &mut Graph, texture_info: Option<TextureInfo>) {
-        self.set_edge_target(graph, MaterialEdge::OcclusionTextureInfo, texture_info);
+    pub fn set_normal_texture(&self, graph: &mut Graph, texture: Option<Texture>) {
+        self.set_edge_target(graph, MaterialEdge::NormalTexture, texture);
+    }
+
+    pub fn occlusion_texture(&self, graph: &Graph) -> Option<Texture> {
+        self.find_edge_target(graph, &MaterialEdge::OcclusionTexture)
+    }
+    pub fn set_occlusion_texture(&self, graph: &mut Graph, texture: Option<Texture>) {
+        self.set_edge_target(graph, MaterialEdge::OcclusionTexture, texture);
     }
 }
 
@@ -165,75 +165,72 @@ mod tests {
     use super::*;
 
     #[test]
-    fn base_color_texture_info() {
+    fn base_color_texture() {
         let graph = &mut Graph::default();
 
         let material = Material::new(graph);
-        let texture_info = TextureInfo::new(graph);
+        let texture = Texture::new(graph);
 
-        material.set_base_color_texture_info(graph, Some(texture_info));
-        assert_eq!(material.base_color_texture_info(graph), Some(texture_info));
+        material.set_base_color_texture(graph, Some(texture));
+        assert_eq!(material.base_color_texture(graph), Some(texture));
 
-        material.set_base_color_texture_info(graph, None);
-        assert!(material.base_color_texture_info(graph).is_none());
+        material.set_base_color_texture(graph, None);
+        assert!(material.base_color_texture(graph).is_none());
     }
 
     #[test]
-    fn emmissive_texture_info() {
+    fn emmissive_texture() {
         let graph = &mut Graph::default();
 
         let material = Material::new(graph);
-        let texture_info = TextureInfo::new(graph);
+        let texture = Texture::new(graph);
 
-        material.set_emissive_texture_info(graph, Some(texture_info));
-        assert_eq!(material.emissive_texture_info(graph), Some(texture_info));
+        material.set_emissive_texture(graph, Some(texture));
+        assert_eq!(material.emissive_texture(graph), Some(texture));
 
-        material.set_emissive_texture_info(graph, None);
-        assert!(material.emissive_texture_info(graph).is_none());
+        material.set_emissive_texture(graph, None);
+        assert!(material.emissive_texture(graph).is_none());
     }
 
     #[test]
-    fn metallic_roughness_texture_info() {
+    fn metallic_roughness_texture() {
         let graph = &mut Graph::default();
 
         let material = Material::new(graph);
-        let texture_info = TextureInfo::new(graph);
+        let texture = Texture::new(graph);
 
-        material.set_metallic_roughness_texture_info(graph, Some(texture_info));
-        assert_eq!(
-            material.metallic_roughness_texture_info(graph),
-            Some(texture_info)
-        );
+        material.set_metallic_roughness_texture(graph, Some(texture));
+        assert_eq!(material.metallic_roughness_texture(graph), Some(texture));
 
-        material.set_metallic_roughness_texture_info(graph, None);
-        assert!(material.metallic_roughness_texture_info(graph).is_none());
+        material.set_metallic_roughness_texture(graph, None);
+        assert!(material.metallic_roughness_texture(graph).is_none());
     }
 
     #[test]
-    fn normal_texture_info() {
+    fn normal_texture() {
         let graph = &mut Graph::default();
 
         let material = Material::new(graph);
-        let texture_info = TextureInfo::new(graph);
+        let texture = Texture::new(graph);
 
-        material.set_normal_texture_info(graph, Some(texture_info));
-        assert_eq!(material.normal_texture_info(graph), Some(texture_info));
+        material.set_normal_texture(graph, Some(texture));
+        assert_eq!(material.normal_texture(graph), Some(texture));
 
-        material.set_normal_texture_info(graph, None);
-        assert!(material.normal_texture_info(graph).is_none());
+        material.set_normal_texture(graph, None);
+        assert!(material.normal_texture(graph).is_none());
     }
 
     #[test]
-    fn occlusion_texture_info() {
+    fn occlusion_texture() {
         let graph = &mut Graph::default();
 
         let material = Material::new(graph);
-        let texture_info = TextureInfo::new(graph);
+        let texture = Texture::new(graph);
 
-        material.set_occlusion_texture_info(graph, Some(texture_info));
-        assert_eq!(material.occlusion_texture_info(graph), Some(texture_info));
+        material.set_occlusion_texture(graph, Some(texture));
+        assert_eq!(material.occlusion_texture(graph), Some(texture));
 
-        material.set_occlusion_texture_info(graph, None);
-        assert!(material.occlusion_texture_info(graph).is_none());
+        material.set_occlusion_texture(graph, None);
+        assert!(material.occlusion_texture(graph).is_none());
     }
 }

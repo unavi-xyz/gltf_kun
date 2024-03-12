@@ -11,8 +11,8 @@ use bevy::{
 };
 use gltf_kun::graph::{
     gltf::{
-        texture_info::{MagFilter, MinFilter, TextureInfoWeight, WrappingMode},
-        Image as ImageKun, TextureInfo,
+        texture::{MagFilter, MinFilter, TextureWeight, WrappingMode},
+        Image as ImageKun, Texture,
     },
     GraphNodeWeight,
 };
@@ -22,22 +22,22 @@ use super::document::ImportContext;
 
 const DEFAULT_MIME: &str = "image/png";
 
-pub fn get_linear_textures(context: &ImportContext) -> HashSet<TextureInfo> {
-    let mut texture_infos = HashSet::default();
+pub fn get_linear_textures(context: &ImportContext) -> HashSet<Texture> {
+    let mut textures = HashSet::default();
 
     for m in context.doc.materials(context.graph) {
-        if let Some(info) = m.metallic_roughness_texture_info(context.graph) {
-            texture_infos.insert(info);
+        if let Some(info) = m.metallic_roughness_texture(context.graph) {
+            textures.insert(info);
         }
-        if let Some(info) = m.normal_texture_info(context.graph) {
-            texture_infos.insert(info);
+        if let Some(info) = m.normal_texture(context.graph) {
+            textures.insert(info);
         }
-        if let Some(info) = m.occlusion_texture_info(context.graph) {
-            texture_infos.insert(info);
+        if let Some(info) = m.occlusion_texture(context.graph) {
+            textures.insert(info);
         }
     }
 
-    texture_infos
+    textures
 }
 
 #[derive(Debug, Error)]
@@ -48,7 +48,7 @@ pub enum TextureLoadError {
 
 pub fn load_texture(
     context: &mut ImportContext,
-    info: TextureInfo,
+    info: Texture,
     image: ImageKun,
     is_srgb: bool,
 ) -> Result<Image, TextureLoadError> {
@@ -103,7 +103,7 @@ pub fn load_texture(
     Ok(texture)
 }
 
-fn sampler_descriptor(weight: &TextureInfoWeight) -> ImageSamplerDescriptor {
+fn sampler_descriptor(weight: &TextureWeight) -> ImageSamplerDescriptor {
     ImageSamplerDescriptor {
         address_mode_u: address_mode(&weight.wrap_s),
         address_mode_v: address_mode(&weight.wrap_t),

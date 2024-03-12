@@ -19,7 +19,7 @@ pub struct GraphSettings {
     pub enable_nodes: bool,
     pub enable_scenes: bool,
     pub enable_primitives: bool,
-    pub enable_texture_infos: bool,
+    pub enable_textures: bool,
 }
 
 impl Default for GraphSettings {
@@ -34,7 +34,7 @@ impl Default for GraphSettings {
             enable_nodes: true,
             enable_scenes: true,
             enable_primitives: true,
-            enable_texture_infos: true,
+            enable_textures: true,
         }
     }
 }
@@ -112,7 +112,7 @@ pub fn create_graph(gltf: &GltfKun, settings: &GraphSettings) -> Graph<Weight, E
                 }),
                 Weight::Gltf(GltfWeight::MorphTarget) => "MorphTarget".to_string(),
                 Weight::Gltf(GltfWeight::Primitive(_)) => "Primitive".to_string(),
-                Weight::Gltf(GltfWeight::TextureInfo(_)) => "TextureInfo".to_string(),
+                Weight::Gltf(GltfWeight::Texture(_)) => "Texture".to_string(),
 
                 Weight::Gltf(GltfWeight::Document) => "Document".to_string(),
 
@@ -155,7 +155,7 @@ pub fn create_graph(gltf: &GltfKun, settings: &GraphSettings) -> Graph<Weight, E
             Edge::Gltf(GltfEdge::Primitive(e)) => format!("{:?}", e),
             Edge::Gltf(GltfEdge::Scene(e)) => format!("{:?}", e),
             Edge::Gltf(GltfEdge::Skin(e)) => format!("{:?}", e),
-            Edge::Gltf(GltfEdge::TextureInfo(e)) => format!("{:?}", e),
+            Edge::Gltf(GltfEdge::Texture(e)) => format!("{:?}", e),
 
             Edge::Glxf(e) => format!("{:?}", e),
 
@@ -310,18 +310,18 @@ pub fn create_graph(gltf: &GltfKun, settings: &GraphSettings) -> Graph<Weight, E
         }
     }
 
-    if !settings.enable_texture_infos {
-        let texture_info_indices = g
+    if !settings.enable_textures {
+        let texture_indices = g
             .node_indices()
             .filter(|idx| {
                 matches!(
                     g.node_weight(*idx).unwrap().payload(),
-                    Weight::Gltf(GltfWeight::TextureInfo(_))
+                    Weight::Gltf(GltfWeight::Texture(_))
                 )
             })
             .collect::<Vec<_>>();
 
-        for idx in texture_info_indices {
+        for idx in texture_indices {
             g.remove_node(idx);
         }
     }

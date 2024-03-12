@@ -6,9 +6,11 @@ use gltf::json::{
     animation::Target,
     image::MimeType,
     material::{
-        EmissiveFactor, NormalTexture, PbrBaseColorFactor, PbrMetallicRoughness, StrengthFactor,
+        EmissiveFactor, NormalTexture, OcclusionTexture, PbrBaseColorFactor, PbrMetallicRoughness,
+        StrengthFactor,
     },
     scene::UnitQuaternion,
+    texture::Info,
     validation::{Checked, USize64},
     Index,
 };
@@ -18,10 +20,7 @@ use thiserror::Error;
 use tracing::warn;
 
 use crate::graph::{
-    gltf::{
-        accessor::iter::AccessorElement, buffer::Buffer, document::GltfDocument,
-        texture_info::TextureInfo,
-    },
+    gltf::{accessor::iter::AccessorElement, Buffer, GltfDocument},
     Graph, GraphNodeWeight,
 };
 
@@ -220,6 +219,42 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
         })
         .collect::<Vec<_>>();
 
+    // Create textures
+    json.textures = doc
+        .textures(graph)
+        .iter_mut()
+        .map(|texture| {
+            let weight = texture.get(graph);
+
+            let image = texture
+                .image(graph)
+                .and_then(|image| image_idxs.get(&image.0))
+                .map(|idx| Index::new(*idx as u32))
+                .unwrap();
+
+            let sampler_idx = json.samplers.len();
+            json.samplers.push(gltf::json::texture::Sampler {
+                extensions: None,
+                extras: weight.extras.clone(),
+                name: weight.name.clone(),
+
+                mag_filter: weight.mag_filter.map(Checked::Valid),
+                min_filter: weight.min_filter.map(Checked::Valid),
+                wrap_s: Checked::Valid(weight.wrap_s),
+                wrap_t: Checked::Valid(weight.wrap_t),
+            });
+
+            gltf::json::texture::Texture {
+                extensions: None,
+                extras: weight.extras.clone(),
+                name: weight.name.clone(),
+
+                sampler: Some(Index::new(sampler_idx as u32)),
+                source: image,
+            }
+        })
+        .collect::<Vec<_>>();
+
     // Create materials
     json.materials = doc
         .materials(graph)
@@ -230,39 +265,68 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 
             let weight = material.get(graph);
 
-            let base_color_texture = material
-                .base_color_texture_info(graph)
-                .and_then(|info| export_texture_info(&info, graph, &mut json, &image_idxs));
-            let metallic_roughness_texture = material
-                .metallic_roughness_texture_info(graph)
-                .and_then(|info| export_texture_info(&info, graph, &mut json, &image_idxs));
-            let normal_texture = material.normal_texture_info(graph).and_then(|info| {
-                export_texture_info(&info, graph, &mut json, &image_idxs).map(|info| {
-                    NormalTexture {
-                        extras: Default::default(),
-                        extensions: None,
-
-                        index: info.index,
-                        tex_coord: info.tex_coord,
-                        scale: weight.normal_scale,
-                    }
-                })
+            let base_color_texture = material.base_color_texture(graph).map(|t| Info {
+                extensions: None,
+                extras: None,
+                index: Index::new(
+                    doc.textures(graph)
+                        .iter()
+                        .position(|tex| tex.0 == t.0)
+                        .unwrap() as u32,
+                ),
+                tex_coord: weight.base_color_tex_coord as u32,
             });
-            let occlusion_texture = material.occlusion_texture_info(graph).and_then(|info| {
-                export_texture_info(&info, graph, &mut json, &image_idxs).map(|info| {
-                    gltf::json::material::OcclusionTexture {
-                        extras: Default::default(),
-                        extensions: None,
 
-                        index: info.index,
-                        tex_coord: info.tex_coord,
-                        strength: StrengthFactor(weight.occlusion_strength),
-                    }
-                })
+            let metallic_roughness_texture =
+                material.metallic_roughness_texture(graph).map(|t| Info {
+                    extensions: None,
+                    extras: None,
+                    index: Index::new(
+                        doc.textures(graph)
+                            .iter()
+                            .position(|tex| tex.0 == t.0)
+                            .unwrap() as u32,
+                    ),
+                    tex_coord: weight.metallic_roughness_tex_coord as u32,
+                });
+
+            let normal_texture = material.normal_texture(graph).map(|t| NormalTexture {
+                extensions: None,
+                extras: None,
+                index: Index::new(
+                    doc.textures(graph)
+                        .iter()
+                        .position(|tex| tex.0 == t.0)
+                        .unwrap() as u32,
+                ),
+                tex_coord: weight.normal_tex_coord as u32,
+                scale: weight.normal_scale,
             });
-            let emissive_texture = material
-                .emissive_texture_info(graph)
-                .and_then(|info| export_texture_info(&info, graph, &mut json, &image_idxs));
+
+            let occlusion_texture = material.occlusion_texture(graph).map(|t| OcclusionTexture {
+                extensions: None,
+                extras: None,
+                index: Index::new(
+                    doc.textures(graph)
+                        .iter()
+                        .position(|tex| tex.0 == t.0)
+                        .unwrap() as u32,
+                ),
+                tex_coord: weight.occlusion_tex_coord as u32,
+                strength: StrengthFactor(weight.occlusion_strength),
+            });
+
+            let emissive_texture = material.emissive_texture(graph).map(|t| Info {
+                extensions: None,
+                extras: None,
+                index: Index::new(
+                    doc.textures(graph)
+                        .iter()
+                        .position(|tex| tex.0 == t.0)
+                        .unwrap() as u32,
+                ),
+                tex_coord: weight.emissive_tex_coord as u32,
+            });
 
             gltf::json::material::Material {
                 name: weight.name.clone(),
@@ -639,54 +703,6 @@ fn create_buffer_view(
     buffer_view
 }
 
-fn export_texture_info(
-    info: &TextureInfo,
-    graph: &Graph,
-    json: &mut gltf::json::Root,
-    image_idxs: &BTreeMap<NodeIndex, usize>,
-) -> Option<gltf::json::texture::Info> {
-    let image = match info.image(graph) {
-        Some(image) => image,
-        None => {
-            warn!("No image found for texture");
-            return None;
-        }
-    };
-    let image_idx = image_idxs.get(&image.0).unwrap();
-
-    let weight = info.get(graph);
-    let sampler_idx = json.samplers.len();
-
-    json.samplers.push(gltf::json::texture::Sampler {
-        extensions: None,
-        extras: Default::default(),
-        name: None,
-
-        mag_filter: weight.mag_filter.map(Checked::Valid),
-        min_filter: weight.min_filter.map(Checked::Valid),
-        wrap_s: Checked::Valid(weight.wrap_s),
-        wrap_t: Checked::Valid(weight.wrap_t),
-    });
-
-    let texture_idx = json.textures.len();
-    json.textures.push(gltf::json::texture::Texture {
-        extensions: None,
-        extras: weight.extras.clone(),
-        name: None,
-
-        sampler: Some(Index::new(sampler_idx as u32)),
-        source: Index::new(*image_idx as u32),
-    });
-
-    Some(gltf::json::texture::Info {
-        extensions: None,
-        extras: Default::default(),
-
-        index: Index::new(texture_idx as u32),
-        tex_coord: weight.tex_coord as u32,
-    })
-}
-
 impl From<AccessorElement> for Value {
     fn from(value: AccessorElement) -> Self {
         match value {
@@ -773,7 +789,9 @@ impl From<AccessorElement> for Value {
 mod tests {
     use tracing_test::traced_test;
 
-    use crate::graph::gltf::{Accessor, Buffer, Image, Material, Mesh, Node, Primitive, Scene};
+    use crate::graph::gltf::{
+        Accessor, Buffer, Image, Material, Mesh, Node, Primitive, Scene, Texture,
+    };
 
     use super::*;
 
@@ -794,11 +812,11 @@ mod tests {
         let image_weight = image.get_mut(&mut graph);
         image_weight.data = vec![0, 1, 2, 3];
 
-        let texture = TextureInfo::new(&mut graph);
+        let texture = doc.create_texture(&mut graph);
         texture.set_image(&mut graph, Some(image));
 
         let material = doc.create_material(&mut graph);
-        material.set_base_color_texture_info(&mut graph, Some(texture));
+        material.set_base_color_texture(&mut graph, Some(texture));
 
         let mesh = doc.create_mesh(&mut graph);
 
@@ -818,7 +836,7 @@ mod tests {
         let _ = Buffer::new(&mut graph);
         let _ = Accessor::new(&mut graph);
         let _ = Image::new(&mut graph);
-        let _ = TextureInfo::new(&mut graph);
+        let _ = Texture::new(&mut graph);
         let _ = Material::new(&mut graph);
         let _ = Mesh::new(&mut graph);
         let _ = Primitive::new(&mut graph);

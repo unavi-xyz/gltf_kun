@@ -259,7 +259,7 @@ fn ui(
 
             if ui
                 .checkbox(
-                    &mut graph_settings.0.enable_texture_infos,
+                    &mut graph_settings.0.enable_textures,
                     "Enable texture infos",
                 )
                 .clicked()

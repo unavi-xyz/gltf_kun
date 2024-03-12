@@ -1,6 +1,6 @@
 use bevy::{asset::LoadContext, prelude::*, render::render_resource::Face};
 use gltf_kun::graph::{
-    gltf::{material::AlphaMode, GltfDocument, Material, TextureInfo},
+    gltf::{material::AlphaMode, GltfDocument, Material, Texture},
     Graph, GraphNodeWeight,
 };
 use thiserror::Error;
@@ -40,35 +40,35 @@ pub fn import_material(
                 context.doc,
                 context.graph,
                 load_context,
-                m.base_color_texture_info(context.graph),
+                m.base_color_texture(context.graph),
             );
 
             let emissive_texture = texture_handle(
                 context.doc,
                 context.graph,
                 load_context,
-                m.emissive_texture_info(context.graph),
+                m.emissive_texture(context.graph),
             );
 
             let metallic_roughness_texture = texture_handle(
                 context.doc,
                 context.graph,
                 load_context,
-                m.metallic_roughness_texture_info(context.graph),
+                m.metallic_roughness_texture(context.graph),
             );
 
             let normal_map_texture = texture_handle(
                 context.doc,
                 context.graph,
                 load_context,
-                m.normal_texture_info(context.graph),
+                m.normal_texture(context.graph),
             );
 
             let occlusion_texture = texture_handle(
                 context.doc,
                 context.graph,
                 load_context,
-                m.occlusion_texture_info(context.graph),
+                m.occlusion_texture(context.graph),
             );
 
             StandardMaterial {
@@ -116,7 +116,7 @@ fn texture_handle(
     doc: &mut GltfDocument,
     graph: &Graph,
     load_context: &mut LoadContext,
-    info: Option<TextureInfo>,
+    info: Option<Texture>,
 ) -> Option<Handle<Image>> {
     let info = match info {
         Some(info) => info,

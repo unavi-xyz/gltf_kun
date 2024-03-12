@@ -3,7 +3,7 @@ use petgraph::graph::NodeIndex;
 use crate::graph::{gltf::GltfEdge, Edge, Extensions, Graph, GraphNodeEdges, Weight};
 
 use super::{
-    Accessor, Animation, Buffer, GltfWeight, Image, Material, Mesh, Node, Scene, Skin, TextureInfo,
+    Accessor, Animation, Buffer, GltfWeight, Image, Material, Mesh, Node, Scene, Skin, Texture,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -18,6 +18,7 @@ pub enum DocumentEdge {
     Node,
     Scene,
     Skin,
+    Texture,
 }
 
 impl<'a> TryFrom<&'a Edge> for &'a DocumentEdge {
@@ -211,22 +212,19 @@ impl GltfDocument {
         self.skins(graph).iter().position(|s| *s == skin)
     }
 
-    pub fn textures(&self, graph: &Graph) -> Vec<TextureInfo> {
-        self.materials(graph)
-            .iter()
-            .flat_map(|m| {
-                [
-                    m.base_color_texture_info(graph),
-                    m.emissive_texture_info(graph),
-                    m.metallic_roughness_texture_info(graph),
-                    m.normal_texture_info(graph),
-                    m.occlusion_texture_info(graph),
-                ]
-            })
-            .flatten()
-            .collect()
+    pub fn textures(&self, graph: &Graph) -> Vec<Texture> {
+        self.edge_targets(graph, &DocumentEdge::Texture)
     }
-    pub fn texture_index(&self, graph: &Graph, texture: TextureInfo) -> Option<usize> {
+    pub fn add_texture(&self, graph: &mut Graph, texture: Texture) {
+        self.add_edge_target(graph, DocumentEdge::Texture, texture);
+    }
+    pub fn remove_texture(&self, graph: &mut Graph, texture: Texture) {
+        self.remove_edge_target(graph, DocumentEdge::Texture, texture);
+    }
+    pub fn create_texture(&self, graph: &mut Graph) -> Texture {
+        self.create_edge_target(graph, DocumentEdge::Texture)
+    }
+    pub fn texture_index(&self, graph: &Graph, texture: Texture) -> Option<usize> {
         self.textures(graph).iter().position(|t| *t == texture)
     }
 }
@@ -236,25 +234,6 @@ mod tests {
     use crate::graph::GraphNodeWeight;
 
     use super::*;
-
-    #[test]
-    fn test_textures() {
-        let graph = &mut Graph::default();
-        let doc = GltfDocument::new(graph);
-
-        let material = doc.create_material(graph);
-        let image = doc.create_image(graph);
-
-        let base_color_texture_info = TextureInfo::new(graph);
-        base_color_texture_info.set_image(graph, Some(image));
-        material.set_base_color_texture_info(graph, Some(base_color_texture_info));
-        assert_eq!(doc.textures(graph), vec![base_color_texture_info]);
-        assert_eq!(doc.texture_index(graph, base_color_texture_info), Some(0));
-
-        material.set_base_color_texture_info(graph, None);
-        assert_eq!(doc.textures(graph), vec![]);
-        assert_eq!(doc.texture_index(graph, base_color_texture_info), None);
-    }
 
     #[test]
     fn default_scene() {
@@ -372,5 +351,19 @@ mod tests {
         assert_eq!(doc.skins(graph), vec![sk_2]);
         assert_eq!(doc.skin_index(graph, sk), None);
         assert_eq!(doc.skin_index(graph, sk_2), Some(0));
+
+        let graph = &mut Graph::default();
+        let doc = GltfDocument::new(graph);
+
+        let t = doc.create_texture(graph);
+        let t_2 = Texture::new(graph);
+        doc.add_texture(graph, t_2);
+        assert_eq!(doc.textures(graph), vec![t, t_2]);
+        assert_eq!(doc.texture_index(graph, t), Some(0));
+        assert_eq!(doc.texture_index(graph, t_2), Some(1));
+        doc.remove_texture(graph, t);
+        assert_eq!(doc.textures(graph), vec![t_2]);
+        assert_eq!(doc.texture_index(graph, t), None);
+        assert_eq!(doc.texture_index(graph, t_2), Some(0));
     }
 }
