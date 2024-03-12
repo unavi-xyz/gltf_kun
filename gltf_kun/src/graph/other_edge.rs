@@ -17,16 +17,29 @@ pub trait OtherEdgeHelpers: Copy + From<NodeIndex> + Into<NodeIndex> {
             })
     }
 
-    fn find_properties<P: From<NodeIndex>>(
+    fn find_properties<P: From<NodeIndex> + Into<NodeIndex>>(
         self,
         graph: &Graph,
         edge: &str,
-    ) -> impl Iterator<Item = P> {
-        self.find_other_edges(graph, edge)
+    ) -> Vec<P> {
+        let mut properties = self
+            .find_other_edges(graph, edge)
             .map(|e| P::from(e.target()))
+            .collect::<Vec<_>>();
+
+        properties.sort_by_key(|p| {
+            let index: NodeIndex = (*p).into();
+            index.index()
+        });
+
+        properties
     }
-    fn find_property<P: From<NodeIndex>>(self, graph: &Graph, edge: &str) -> Option<P> {
-        self.find_properties(graph, edge).next()
+    fn find_property<P: From<NodeIndex> + Into<NodeIndex>>(
+        self,
+        graph: &Graph,
+        edge: &str,
+    ) -> Option<P> {
+        self.find_properties(graph, edge).pop()
     }
 
     fn set_property<P: Into<NodeIndex>>(
