@@ -3,8 +3,8 @@ use petgraph::{graph::NodeIndex, visit::EdgeRef};
 use thiserror::Error;
 
 use crate::graph::{
-    gltf::{accessor::iter::AccessorIterCreateError, Accessor, GltfEdge},
-    Edge, Extensions, Graph, GraphNodeEdges,
+    gltf::{accessor::iter::AccessorIterCreateError, Accessor, GltfEdge, GltfWeight},
+    Edge, Extensions, Graph, GraphNodeEdges, Weight,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -47,6 +47,10 @@ impl GraphNodeEdges<MorphTargetEdge> for MorphTarget {}
 impl Extensions for MorphTarget {}
 
 impl MorphTarget {
+    pub fn new(graph: &mut Graph) -> Self {
+        Self(graph.add_node(Weight::Gltf(GltfWeight::MorphTarget)))
+    }
+
     pub fn attributes(&self, graph: &Graph) -> Vec<(Semantic, Accessor)> {
         graph
             .edges_directed(self.0, petgraph::Direction::Outgoing)
