@@ -2,7 +2,7 @@ use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
 
 use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 
-use super::{accessor::Accessor, material::Material, GltfEdge, GltfWeight};
+use super::{accessor::Accessor, material::Material, mesh::MeshEdge, GltfEdge, GltfWeight, Mesh};
 
 pub use gltf::json::mesh::{Mode, Semantic};
 
@@ -184,6 +184,18 @@ impl Primitive {
         self.add_edge_target(graph, PrimitiveEdge::MorphTarget(index), idx);
         MorphTarget(idx)
     }
+
+    pub fn mesh(&self, graph: &Graph) -> Option<Mesh> {
+        graph
+            .edges_directed(self.0, Direction::Incoming)
+            .find_map(|edge| {
+                if let Edge::Gltf(GltfEdge::Mesh(MeshEdge::Primitive)) = edge.weight() {
+                    Some(Mesh(edge.source()))
+                } else {
+                    None
+                }
+            })
+    }
 }
 
 #[cfg(test)]
@@ -245,5 +257,37 @@ mod tests {
 
         primitive.set_material(&mut graph, None);
         assert!(primitive.material(&graph).is_none());
+    }
+
+    #[test]
+    fn morph_targets() {
+        let mut graph = Graph::default();
+
+        let primitive = Primitive::new(&mut graph);
+        let target1 = MorphTarget::new(&mut graph);
+        let target2 = MorphTarget::new(&mut graph);
+
+        primitive.add_morph_target(&mut graph, &target1, 0);
+        primitive.add_morph_target(&mut graph, &target2, 1);
+
+        assert_eq!(primitive.morph_targets(&graph), vec![target1, target2]);
+
+        primitive.remove_morph_target(&mut graph, &target1);
+        assert_eq!(primitive.morph_targets(&graph), vec![target2]);
+
+        let target3 = primitive.create_morph_target(&mut graph, 2);
+        assert_eq!(primitive.morph_targets(&graph), vec![target2, target3]);
+    }
+
+    #[test]
+    fn mesh() {
+        let mut graph = Graph::default();
+
+        let mesh = Mesh::new(&mut graph);
+        let primitive = mesh.create_primitive(&mut graph);
+        assert_eq!(primitive.mesh(&graph), Some(mesh));
+
+        mesh.remove_primitive(&mut graph, &primitive);
+        assert!(primitive.mesh(&graph).is_none());
     }
 }
