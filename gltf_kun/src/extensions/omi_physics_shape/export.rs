@@ -19,6 +19,7 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OmiPhysicsShape {
 
         let shapes = ext
             .shapes(graph)
+            .iter()
             .map(|shape| shape.read(graph).into())
             .collect::<Vec<_>>();
 

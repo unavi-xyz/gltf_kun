@@ -17,7 +17,7 @@ pub trait OtherEdgeHelpers: Copy + From<NodeIndex> + Into<NodeIndex> {
             })
     }
 
-    fn find_properties<P: From<NodeIndex> + Into<NodeIndex>>(
+    fn find_properties<P: Copy + From<NodeIndex> + Into<NodeIndex>>(
         self,
         graph: &Graph,
         edge: &str,
@@ -34,7 +34,7 @@ pub trait OtherEdgeHelpers: Copy + From<NodeIndex> + Into<NodeIndex> {
 
         properties
     }
-    fn find_property<P: From<NodeIndex> + Into<NodeIndex>>(
+    fn find_property<P: Copy + From<NodeIndex> + Into<NodeIndex>>(
         self,
         graph: &Graph,
         edge: &str,

@@ -40,7 +40,7 @@ impl Extension for OmiPhysicsShape {
 }
 
 impl OmiPhysicsShape {
-    pub fn shapes<'a>(&self, graph: &'a Graph) -> impl Iterator<Item = PhysicsShape> + 'a {
+    pub fn shapes<'a>(&self, graph: &'a Graph) -> Vec<PhysicsShape> {
         self.find_properties(graph, SHAPE_EDGE)
     }
     pub fn add_shape(&self, graph: &mut Graph, shape: PhysicsShape) {

@@ -40,7 +40,7 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OmiPhysicsBody {
                     .collider(graph)
                     .iter()
                     .filter_map(|s| doc.get_extension::<OmiPhysicsShape>(graph).map(|e| (e, s)))
-                    .find_map(|(e, s)| e.shapes(graph).position(|x| x == *s))
+                    .find_map(|(e, s)| e.shapes(graph).into_iter().position(|x| x == *s))
                     .map(|shape| ShapeRefJson {
                         shape: shape as isize,
                     });
@@ -49,7 +49,7 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OmiPhysicsBody {
                     .trigger(graph)
                     .iter()
                     .filter_map(|s| doc.get_extension::<OmiPhysicsShape>(graph).map(|e| (e, s)))
-                    .find_map(|(e, s)| e.shapes(graph).position(|x| x == *s))
+                    .find_map(|(e, s)| e.shapes(graph).into_iter().position(|x| x == *s))
                     .map(|shape| ShapeRefJson {
                         shape: shape as isize,
                     });

@@ -54,10 +54,9 @@ impl ExtensionImport<GltfDocument, GltfFormat> for OmiPhysicsBody {
 
                 if let Some(shape_ref) = json.collider {
                     if let Ok(idx) = shape_ref.shape.try_into() {
-                        let shape = omi_physics_shapes
-                            .shapes(graph)
-                            .nth(idx)
-                            .expect("Collider index out of bounds");
+                        let idx: usize = idx;
+
+                        let shape = omi_physics_shapes.shapes(graph)[idx];
 
                         ext.set_collider(graph, Some(shape));
                     }
@@ -65,10 +64,9 @@ impl ExtensionImport<GltfDocument, GltfFormat> for OmiPhysicsBody {
 
                 if let Some(shape_ref) = json.trigger {
                     if let Ok(idx) = shape_ref.shape.try_into() {
-                        let shape = omi_physics_shapes
-                            .shapes(graph)
-                            .nth(idx)
-                            .expect("Trigger index out of bounds");
+                        let idx: usize = idx;
+
+                        let shape = omi_physics_shapes.shapes(graph)[idx];
 
                         ext.set_trigger(graph, Some(shape));
                     }

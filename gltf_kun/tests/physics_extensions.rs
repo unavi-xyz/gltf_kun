@@ -57,9 +57,9 @@ fn validate_doc(graph: &Graph, doc: &GltfDocument) {
         .get_extension::<OmiPhysicsShape>(graph)
         .expect("OMI_physics_shape extension not found");
 
-    assert_eq!(shape_ext.shapes(graph).count(), 1);
+    assert_eq!(shape_ext.shapes(graph).len(), 1);
 
-    let shape = shape_ext.shapes(graph).next().expect("No shape");
+    let shape = shape_ext.shapes(graph)[0];
     match shape.read(graph) {
         PhysicsShapeWeight::Box(BoxShape { size }) => {
             assert_eq!(size, Size([1.0, 2.0, 3.0]));
