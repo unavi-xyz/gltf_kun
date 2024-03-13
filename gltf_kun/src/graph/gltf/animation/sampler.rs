@@ -77,7 +77,7 @@ impl From<AnimationSampler> for NodeIndex {
 }
 
 impl GraphNodeWeight<AnimationSamplerWeight> for AnimationSampler {}
-impl GraphNodeEdges<AnimationSamplerEdge> for AnimationSampler {}
+impl GraphNodeEdges for AnimationSampler {}
 impl Extensions for AnimationSampler {}
 
 impl AnimationSampler {

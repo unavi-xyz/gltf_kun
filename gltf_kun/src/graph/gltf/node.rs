@@ -1,5 +1,5 @@
 use glam::{Quat, Vec3};
-use petgraph::{graph::NodeIndex, visit::EdgeRef};
+use petgraph::graph::NodeIndex;
 
 use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 
@@ -95,7 +95,7 @@ impl From<Node> for NodeIndex {
 }
 
 impl GraphNodeWeight<NodeWeight> for Node {}
-impl GraphNodeEdges<NodeEdge> for Node {}
+impl GraphNodeEdges for Node {}
 impl Extensions for Node {}
 
 impl Node {
@@ -109,21 +109,8 @@ impl Node {
         self.remove_edge_target(graph, NodeEdge::Child, *child);
     }
 
-    pub fn parent(&self, graph: &Graph) -> Option<Node> {
-        graph
-            .edges_directed(self.0, petgraph::Direction::Incoming)
-            .find_map(|edge| {
-                if let Edge::Gltf(GltfEdge::Node(NodeEdge::Child)) = edge.weight() {
-                    Some(
-                        match graph.node_weight(edge.source()).expect("Weight not found") {
-                            Weight::Gltf(GltfWeight::Node(_)) => Node(edge.source()),
-                            _ => panic!("Incorrect weight type"),
-                        },
-                    )
-                } else {
-                    None
-                }
-            })
+    pub fn parents(&self, graph: &Graph) -> Vec<Node> {
+        self.edge_sources(graph, &NodeEdge::Child)
     }
 
     pub fn mesh(&self, graph: &Graph) -> Option<Mesh> {
@@ -153,8 +140,8 @@ mod tests {
         let child = Node::new(&mut graph);
 
         node.add_child(&mut graph, &child);
-        assert_eq!(child.parent(&graph), Some(node));
-        assert!(node.parent(&graph).is_none());
+        assert_eq!(child.parents(&graph), vec![node]);
+        assert!(node.parents(&graph).is_empty());
         assert!(child.children(&graph).is_empty());
 
         let children = node.children(&graph);
@@ -162,7 +149,7 @@ mod tests {
 
         node.remove_child(&mut graph, &child);
         assert!(node.children(&graph).is_empty());
-        assert!(child.parent(&graph).is_none());
+        assert!(child.parents(&graph).is_empty());
     }
 
     #[test]

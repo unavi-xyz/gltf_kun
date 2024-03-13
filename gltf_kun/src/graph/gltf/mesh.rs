@@ -2,7 +2,7 @@ use petgraph::graph::NodeIndex;
 
 use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 
-use super::{primitive::Primitive, GltfEdge, GltfWeight};
+use super::{node::NodeEdge, primitive::Primitive, GltfEdge, GltfWeight, Node};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum MeshEdge {
@@ -76,10 +76,15 @@ impl From<Mesh> for NodeIndex {
 }
 
 impl GraphNodeWeight<MeshWeight> for Mesh {}
-impl GraphNodeEdges<MeshEdge> for Mesh {}
+impl GraphNodeEdges for Mesh {}
 impl Extensions for Mesh {}
 
 impl Mesh {
+    /// Returns any Nodes using this Mesh.
+    pub fn nodes(&self, graph: &Graph) -> Vec<Node> {
+        self.edge_sources(graph, &NodeEdge::Mesh)
+    }
+
     pub fn primitives(&self, graph: &Graph) -> Vec<Primitive> {
         self.edge_targets(graph, &MeshEdge::Primitive)
     }
@@ -97,6 +102,27 @@ impl Mesh {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn nodes() {
+        let mut graph = Graph::default();
+
+        let mesh = Mesh::new(&mut graph);
+        let node_1 = Node::new(&mut graph);
+        let node_2 = Node::new(&mut graph);
+
+        node_1.set_mesh(&mut graph, Some(mesh));
+        assert_eq!(mesh.nodes(&graph), vec![node_1]);
+
+        node_2.set_mesh(&mut graph, Some(mesh));
+        assert_eq!(mesh.nodes(&graph), vec![node_1, node_2]);
+
+        node_1.set_mesh(&mut graph, None);
+        assert_eq!(mesh.nodes(&graph), vec![node_2]);
+
+        node_2.set_mesh(&mut graph, None);
+        assert!(mesh.nodes(&graph).is_empty());
+    }
 
     #[test]
     fn primitives() {

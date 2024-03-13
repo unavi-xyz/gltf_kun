@@ -88,7 +88,7 @@ impl From<AnimationChannel> for NodeIndex {
 }
 
 impl GraphNodeWeight<AnimationChannelWeight> for AnimationChannel {}
-impl GraphNodeEdges<AnimationChannelEdge> for AnimationChannel {}
+impl GraphNodeEdges for AnimationChannel {}
 impl Extensions for AnimationChannel {}
 
 impl AnimationChannel {

@@ -75,7 +75,7 @@ impl From<Skin> for NodeIndex {
 }
 
 impl GraphNodeWeight<SkinWeight> for Skin {}
-impl GraphNodeEdges<SkinEdge> for Skin {}
+impl GraphNodeEdges for Skin {}
 impl Extensions for Skin {}
 
 impl Skin {

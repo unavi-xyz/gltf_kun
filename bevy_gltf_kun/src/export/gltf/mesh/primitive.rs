@@ -83,35 +83,35 @@ pub fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::
         context.doc.add_accessor(&mut context.graph, accessor);
 
         if id == Mesh::ATTRIBUTE_POSITION.id {
-            primitive.set_attribute(&mut context.graph, &Semantic::Positions, Some(accessor));
+            primitive.set_attribute(&mut context.graph, Semantic::Positions, Some(accessor));
         }
 
         if id == Mesh::ATTRIBUTE_NORMAL.id {
-            primitive.set_attribute(&mut context.graph, &Semantic::Normals, Some(accessor));
+            primitive.set_attribute(&mut context.graph, Semantic::Normals, Some(accessor));
         }
 
         if id == Mesh::ATTRIBUTE_UV_0.id {
-            primitive.set_attribute(&mut context.graph, &Semantic::TexCoords(0), Some(accessor));
+            primitive.set_attribute(&mut context.graph, Semantic::TexCoords(0), Some(accessor));
         }
 
         if id == Mesh::ATTRIBUTE_UV_1.id {
-            primitive.set_attribute(&mut context.graph, &Semantic::TexCoords(1), Some(accessor));
+            primitive.set_attribute(&mut context.graph, Semantic::TexCoords(1), Some(accessor));
         }
 
         if id == Mesh::ATTRIBUTE_COLOR.id {
-            primitive.set_attribute(&mut context.graph, &Semantic::Colors(0), Some(accessor));
+            primitive.set_attribute(&mut context.graph, Semantic::Colors(0), Some(accessor));
         }
 
         if id == Mesh::ATTRIBUTE_TANGENT.id {
-            primitive.set_attribute(&mut context.graph, &Semantic::Tangents, Some(accessor));
+            primitive.set_attribute(&mut context.graph, Semantic::Tangents, Some(accessor));
         }
 
         if id == Mesh::ATTRIBUTE_JOINT_INDEX.id {
-            primitive.set_attribute(&mut context.graph, &Semantic::Joints(0), Some(accessor));
+            primitive.set_attribute(&mut context.graph, Semantic::Joints(0), Some(accessor));
         }
 
         if id == Mesh::ATTRIBUTE_JOINT_WEIGHT.id {
-            primitive.set_attribute(&mut context.graph, &Semantic::Weights(0), Some(accessor));
+            primitive.set_attribute(&mut context.graph, Semantic::Weights(0), Some(accessor));
         }
     });
 

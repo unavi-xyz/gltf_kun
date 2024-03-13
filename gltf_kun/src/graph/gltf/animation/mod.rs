@@ -81,7 +81,7 @@ impl From<Animation> for NodeIndex {
 }
 
 impl GraphNodeWeight<AnimationWeight> for Animation {}
-impl GraphNodeEdges<AnimationEdge> for Animation {}
+impl GraphNodeEdges for Animation {}
 impl Extensions for Animation {}
 
 impl Animation {

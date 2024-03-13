@@ -113,7 +113,7 @@ impl From<Accessor> for NodeIndex {
 }
 
 impl GraphNodeWeight<AccessorWeight> for Accessor {}
-impl GraphNodeEdges<AccessorEdge> for Accessor {}
+impl GraphNodeEdges for Accessor {}
 impl Extensions for Accessor {}
 
 impl Accessor {

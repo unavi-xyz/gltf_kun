@@ -120,7 +120,7 @@ impl From<Material> for NodeIndex {
 }
 
 impl GraphNodeWeight<MaterialWeight> for Material {}
-impl GraphNodeEdges<MaterialEdge> for Material {}
+impl GraphNodeEdges for Material {}
 impl Extensions for Material {}
 
 impl Material {

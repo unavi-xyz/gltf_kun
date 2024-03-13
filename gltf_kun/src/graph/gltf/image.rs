@@ -80,7 +80,7 @@ impl From<Image> for NodeIndex {
 }
 
 impl GraphNodeWeight<ImageWeight> for Image {}
-impl GraphNodeEdges<ImageEdge> for Image {}
+impl GraphNodeEdges for Image {}
 impl Extensions for Image {}
 
 impl Image {

@@ -80,7 +80,7 @@ impl From<Texture> for NodeIndex {
 }
 
 impl GraphNodeWeight<TextureWeight> for Texture {}
-impl GraphNodeEdges<TextureEdge> for Texture {}
+impl GraphNodeEdges for Texture {}
 impl Extensions for Texture {}
 
 impl Texture {

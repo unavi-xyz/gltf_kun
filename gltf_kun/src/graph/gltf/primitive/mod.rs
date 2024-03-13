@@ -91,13 +91,13 @@ impl From<Primitive> for NodeIndex {
 }
 
 impl GraphNodeWeight<PrimitiveWeight> for Primitive {}
-impl GraphNodeEdges<PrimitiveEdge> for Primitive {}
+impl GraphNodeEdges for Primitive {}
 impl Extensions for Primitive {}
 
 impl Primitive {
     pub fn attributes(&self, graph: &Graph) -> Vec<(Semantic, Accessor)> {
         graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
+            .edges_directed(self.0, Direction::Outgoing)
             .filter_map(|edge| {
                 if let Edge::Gltf(GltfEdge::Primitive(PrimitiveEdge::Attribute(semantic))) =
                     edge.weight()
@@ -109,16 +109,11 @@ impl Primitive {
             })
             .collect()
     }
-    pub fn attribute(&self, graph: &Graph, semantic: &Semantic) -> Option<Accessor> {
-        self.find_edge_target(graph, &PrimitiveEdge::Attribute(semantic.clone()))
+    pub fn attribute(&self, graph: &Graph, semantic: Semantic) -> Option<Accessor> {
+        self.find_edge_target(graph, &PrimitiveEdge::Attribute(semantic))
     }
-    pub fn set_attribute(
-        &self,
-        graph: &mut Graph,
-        semantic: &Semantic,
-        accessor: Option<Accessor>,
-    ) {
-        self.set_edge_target(graph, PrimitiveEdge::Attribute(semantic.clone()), accessor);
+    pub fn set_attribute(&self, graph: &mut Graph, semantic: Semantic, accessor: Option<Accessor>) {
+        self.set_edge_target(graph, PrimitiveEdge::Attribute(semantic), accessor);
     }
 
     pub fn indices(&self, graph: &Graph) -> Option<Accessor> {
@@ -186,15 +181,7 @@ impl Primitive {
     }
 
     pub fn mesh(&self, graph: &Graph) -> Option<Mesh> {
-        graph
-            .edges_directed(self.0, Direction::Incoming)
-            .find_map(|edge| {
-                if let Edge::Gltf(GltfEdge::Mesh(MeshEdge::Primitive)) = edge.weight() {
-                    Some(Mesh(edge.source()))
-                } else {
-                    None
-                }
-            })
+        self.find_edge_source(graph, &MeshEdge::Primitive)
     }
 }
 
@@ -224,25 +211,22 @@ mod tests {
         let position = Accessor::new(&mut graph);
         let normal = Accessor::new(&mut graph);
 
-        primitive.set_attribute(&mut graph, &Semantic::Positions, Some(position));
+        primitive.set_attribute(&mut graph, Semantic::Positions, Some(position));
         assert_eq!(
-            primitive.attribute(&graph, &Semantic::Positions),
+            primitive.attribute(&graph, Semantic::Positions),
             Some(position)
         );
 
-        primitive.set_attribute(&mut graph, &Semantic::Normals, Some(normal));
-        assert_eq!(
-            primitive.attribute(&graph, &Semantic::Normals),
-            Some(normal)
-        );
+        primitive.set_attribute(&mut graph, Semantic::Normals, Some(normal));
+        assert_eq!(primitive.attribute(&graph, Semantic::Normals), Some(normal));
         assert_eq!(primitive.attributes(&graph).len(), 2);
 
-        primitive.set_attribute(&mut graph, &Semantic::Normals, None);
-        assert_eq!(primitive.attribute(&graph, &Semantic::Normals), None);
+        primitive.set_attribute(&mut graph, Semantic::Normals, None);
+        assert_eq!(primitive.attribute(&graph, Semantic::Normals), None);
         assert_eq!(primitive.attributes(&graph).len(), 1);
 
-        primitive.set_attribute(&mut graph, &Semantic::Positions, None);
-        assert!(primitive.attribute(&graph, &Semantic::Positions).is_none());
+        primitive.set_attribute(&mut graph, Semantic::Positions, None);
+        assert!(primitive.attribute(&graph, Semantic::Positions).is_none());
     }
 
     #[test]

@@ -400,7 +400,7 @@ pub async fn import(
                             }
                         };
 
-                        primitive.set_attribute(graph, semantic, Some(*accessor));
+                        primitive.set_attribute(graph, semantic.clone(), Some(*accessor));
                     }
                 }
 
@@ -410,17 +410,17 @@ pub async fn import(
 
                         if let Some(positions_idx) = target.positions {
                             let accessor = accessors.get(positions_idx.value()).copied();
-                            morph_target.set_attribute(graph, &Semantic::Positions, accessor);
+                            morph_target.set_attribute(graph, Semantic::Positions, accessor);
                         }
 
                         if let Some(normals_idx) = target.normals {
                             let accessor = accessors.get(normals_idx.value()).copied();
-                            morph_target.set_attribute(graph, &Semantic::Normals, accessor);
+                            morph_target.set_attribute(graph, Semantic::Normals, accessor);
                         }
 
                         if let Some(tangents_idx) = target.tangents {
                             let accessor = accessors.get(tangents_idx.value()).copied();
-                            morph_target.set_attribute(graph, &Semantic::Tangents, accessor);
+                            morph_target.set_attribute(graph, Semantic::Tangents, accessor);
                         }
                     }
                 }

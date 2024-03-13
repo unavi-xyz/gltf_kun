@@ -126,7 +126,7 @@ pub fn import_primitive(
         ..default()
     });
 
-    if let Some(pos) = p.attribute(context.graph, &Semantic::Positions) {
+    if let Some(pos) = p.attribute(context.graph, Semantic::Positions) {
         let max = match pos.calc_max(context.graph) {
             Some(AccessorElement::F32x3(m)) => m,
             _ => return Err(ImportPrimitiveError::InvalidAccessor),
@@ -469,7 +469,7 @@ fn convert_tex_coord_values(
 
 fn morph_targets_iter(graph: &Graph, target: MorphTarget) -> MorphTargetsIter {
     let positions = target
-        .attribute(graph, &Semantic::Positions)
+        .attribute(graph, Semantic::Positions)
         .map(|a| a.iter(graph).unwrap())
         .map(|i| match i {
             AccessorIter::F32x3(i) => i,
@@ -477,7 +477,7 @@ fn morph_targets_iter(graph: &Graph, target: MorphTarget) -> MorphTargetsIter {
         });
 
     let normals = target
-        .attribute(graph, &Semantic::Normals)
+        .attribute(graph, Semantic::Normals)
         .map(|a| a.iter(graph).unwrap())
         .map(|i| match i {
             AccessorIter::F32x3(i) => i,
@@ -485,7 +485,7 @@ fn morph_targets_iter(graph: &Graph, target: MorphTarget) -> MorphTargetsIter {
         });
 
     let tangents = target
-        .attribute(graph, &Semantic::Tangents)
+        .attribute(graph, Semantic::Tangents)
         .map(|a| a.iter(graph).unwrap())
         .map(|i| match i {
             AccessorIter::F32x3(i) => i,

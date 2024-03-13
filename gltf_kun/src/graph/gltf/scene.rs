@@ -73,7 +73,7 @@ impl From<Scene> for NodeIndex {
 }
 
 impl GraphNodeWeight<SceneWeight> for Scene {}
-impl GraphNodeEdges<SceneEdge> for Scene {}
+impl GraphNodeEdges for Scene {}
 impl Extensions for Scene {}
 
 impl Scene {

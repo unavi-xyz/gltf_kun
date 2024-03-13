@@ -1,5 +1,5 @@
 use gltf::Semantic;
-use petgraph::{graph::NodeIndex, visit::EdgeRef};
+use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
 use thiserror::Error;
 
 use crate::graph::{
@@ -43,7 +43,7 @@ impl From<MorphTarget> for NodeIndex {
     }
 }
 
-impl GraphNodeEdges<MorphTargetEdge> for MorphTarget {}
+impl GraphNodeEdges for MorphTarget {}
 impl Extensions for MorphTarget {}
 
 impl MorphTarget {
@@ -53,7 +53,7 @@ impl MorphTarget {
 
     pub fn attributes(&self, graph: &Graph) -> Vec<(Semantic, Accessor)> {
         graph
-            .edges_directed(self.0, petgraph::Direction::Outgoing)
+            .edges_directed(self.0, Direction::Outgoing)
             .filter_map(|edge| {
                 if let Edge::Gltf(GltfEdge::MorphTarget(MorphTargetEdge::Attribute(semantic))) =
                     edge.weight()
@@ -65,20 +65,11 @@ impl MorphTarget {
             })
             .collect()
     }
-    pub fn attribute(&self, graph: &Graph, semantic: &Semantic) -> Option<Accessor> {
-        self.find_edge_target(graph, &MorphTargetEdge::Attribute(semantic.clone()))
+    pub fn attribute(&self, graph: &Graph, semantic: Semantic) -> Option<Accessor> {
+        self.find_edge_target(graph, &MorphTargetEdge::Attribute(semantic))
     }
-    pub fn set_attribute(
-        &self,
-        graph: &mut Graph,
-        semantic: &Semantic,
-        accessor: Option<Accessor>,
-    ) {
-        self.set_edge_target(
-            graph,
-            MorphTargetEdge::Attribute(semantic.clone()),
-            accessor,
-        );
+    pub fn set_attribute(&self, graph: &mut Graph, semantic: Semantic, accessor: Option<Accessor>) {
+        self.set_edge_target(graph, MorphTargetEdge::Attribute(semantic), accessor);
     }
 }
 

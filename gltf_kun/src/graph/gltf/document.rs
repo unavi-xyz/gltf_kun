@@ -52,7 +52,7 @@ impl From<GltfDocument> for NodeIndex {
     }
 }
 
-impl GraphNodeEdges<DocumentEdge> for GltfDocument {}
+impl GraphNodeEdges for GltfDocument {}
 impl Extensions for GltfDocument {}
 
 impl GltfDocument {
