@@ -55,7 +55,8 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
 
     let mesh = match n.mesh(context.graph) {
         Some(m) => {
-            let (ents, mesh, morph_weights) = import_mesh(context, &mut ent, m, is_scale_inverted);
+            let (ents, mesh, morph_weights) =
+                import_mesh::<E>(context, &mut ent, m, is_scale_inverted);
 
             primitive_entities.extend(ents);
 

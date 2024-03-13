@@ -22,10 +22,13 @@ use gltf_kun::graph::{
             Accessor, ComponentType, GetAccessorSliceError, Type,
         },
         primitive::{Mode, MorphTarget, Primitive, Semantic},
+        GltfDocument,
     },
     Graph, GraphNodeWeight,
 };
 use thiserror::Error;
+
+use crate::import::extensions::BevyImportExtensions;
 
 use super::{
     document::ImportContext,
@@ -61,7 +64,7 @@ pub enum ImportPrimitiveError {
     MorphBuildError(#[from] MorphBuildError),
 }
 
-pub fn import_primitive(
+pub fn import_primitive<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
     parent: &mut WorldChildBuilder,
     is_scale_inverted: bool,
@@ -210,6 +213,8 @@ pub fn import_primitive(
 
         bevy_mesh.set_morph_targets(handle);
     }
+
+    E::import_primitive(context, &mut entity, *p);
 
     let mesh_label = context
         .load_context
