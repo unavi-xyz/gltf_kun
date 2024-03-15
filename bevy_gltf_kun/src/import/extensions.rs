@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use gltf_kun::{
     extensions::{DefaultExtensions, Extension},
     graph::{
-        gltf::{GltfDocument, Node, Primitive},
+        gltf::{GltfDocument, Node, Primitive, Scene},
         Extensions,
     },
 };
@@ -45,6 +45,16 @@ pub trait RootExtensionImport<D: Extensions>: Extension {
     fn import_root(context: &mut ImportContext, ext: Self);
 }
 
+pub trait SceneExtensionImport<D>: Extension {
+    fn maybe_import_scene(context: &mut ImportContext, scene: Scene, world: &mut World) {
+        if let Some(ext) = scene.get_extension::<Self>(context.graph) {
+            Self::import_scene(context, ext, world);
+        }
+    }
+
+    fn import_scene(context: &mut ImportContext, ext: Self, world: &mut World);
+}
+
 pub trait BevyImportExtensions<D> {
     fn import_node(context: &mut ImportContext, entity: &mut EntityWorldMut, node: Node);
     fn import_primitive(
@@ -53,6 +63,7 @@ pub trait BevyImportExtensions<D> {
         primitive: Primitive,
     );
     fn import_root(context: &mut ImportContext);
+    fn import_scene(context: &mut ImportContext, scene: Scene, world: &mut World);
 }
 
 impl BevyImportExtensions<GltfDocument> for DefaultExtensions {
@@ -73,4 +84,6 @@ impl BevyImportExtensions<GltfDocument> for DefaultExtensions {
     }
 
     fn import_root(_context: &mut ImportContext) {}
+
+    fn import_scene(_context: &mut ImportContext, _scene: Scene, _world: &mut World) {}
 }

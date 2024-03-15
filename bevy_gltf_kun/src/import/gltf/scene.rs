@@ -98,6 +98,9 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
         }
     }
 
+    // Load extensions.
+    E::import_scene(context, s, &mut world);
+
     let scene = Scene { world };
 
     let index = context.doc.scene_index(context.graph, s).unwrap();
