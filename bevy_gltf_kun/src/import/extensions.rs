@@ -84,6 +84,5 @@ impl BevyImportExtensions<GltfDocument> for DefaultExtensions {
     }
 
     fn import_root(_context: &mut ImportContext) {}
-
     fn import_scene(_context: &mut ImportContext, _scene: Scene, _world: &mut World) {}
 }

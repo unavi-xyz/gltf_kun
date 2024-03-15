@@ -16,7 +16,6 @@ use super::{
 #[derive(Asset, Debug, TypePath)]
 pub struct GltfScene {
     pub extras: Option<Box<serde_json::value::RawValue>>,
-    pub node_entities: HashMap<Handle<GltfNode>, Entity>,
     pub nodes: Vec<Handle<GltfNode>>,
     pub scene: Handle<Scene>,
 }
@@ -113,7 +112,6 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
 
     let gltf_scene = GltfScene {
         extras: weight.extras.clone(),
-        node_entities,
         nodes: root_nodes,
         scene: handle.clone(),
     };
