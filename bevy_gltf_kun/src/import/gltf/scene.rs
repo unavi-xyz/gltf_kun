@@ -31,6 +31,7 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
     let mut world = World::default();
 
     let mut node_entities = HashMap::<Handle<GltfNode>, Entity>::default();
+    let mut node_primitive_entities = HashMap::<Handle<GltfNode>, Vec<Entity>>::default();
     let mut root_nodes = Vec::new();
 
     world
@@ -40,6 +41,7 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
                 match import_node::<E>(
                     context,
                     &mut node_entities,
+                    &mut node_primitive_entities,
                     parent,
                     &Transform::default(),
                     &mut node,
@@ -84,7 +86,7 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
             }
 
             let handle = context.nodes_handles.get(&node).unwrap();
-            let primitive_ents = context.node_primitive_entities.get(handle).unwrap();
+            let primitive_ents = node_primitive_entities.get(handle).unwrap();
 
             for entity in primitive_ents {
                 let mut entity = world.entity_mut(*entity);

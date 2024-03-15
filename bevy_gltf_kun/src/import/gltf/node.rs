@@ -32,6 +32,7 @@ pub enum ImportNodeError {
 pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext<'_, '_>,
     node_entities: &mut HashMap<Handle<GltfNode>, Entity>,
+    node_primitive_entities: &mut HashMap<Handle<GltfNode>, Vec<Entity>>,
     builder: &mut WorldChildBuilder,
     parent_world_transform: &Transform,
     n: &mut Node,
@@ -81,7 +82,14 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
 
     ent.with_children(|parent| {
         for c in n.children(context.graph).iter_mut() {
-            match import_node::<E>(context, node_entities, parent, &world_transform, c) {
+            match import_node::<E>(
+                context,
+                node_entities,
+                node_primitive_entities,
+                parent,
+                &world_transform,
+                c,
+            ) {
                 Ok(handle) => children.push(handle),
                 Err(e) => {
                     warn!("Failed to import node: {}", e);
@@ -108,9 +116,7 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
 
     node_entities.insert(handle.clone(), ent.id());
     context.nodes_handles.insert(*n, handle.clone());
-    context
-        .node_primitive_entities
-        .insert(handle.clone(), primitive_entities);
+    node_primitive_entities.insert(handle.clone(), primitive_entities);
 
     // Load extensions.
     E::import_node(context, &mut ent, *n);

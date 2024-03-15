@@ -30,7 +30,6 @@ pub struct ImportContext<'a, 'b> {
     pub graph: &'a mut Graph,
     pub load_context: &'a mut LoadContext<'b>,
 
-    pub node_primitive_entities: HashMap<Handle<GltfNode>, Vec<Entity>>,
     pub nodes_handles: HashMap<Node, Handle<GltfNode>>,
     pub skin_matrices: HashMap<Skin, Handle<SkinnedMeshInverseBindposes>>,
     pub materials: HashMap<(Material, bool), Handle<StandardMaterial>>,

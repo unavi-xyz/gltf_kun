@@ -100,7 +100,6 @@ where
                 load_context,
 
                 materials: HashMap::default(),
-                node_primitive_entities: HashMap::default(),
                 nodes_handles: HashMap::default(),
                 skin_matrices: HashMap::default(),
             };
