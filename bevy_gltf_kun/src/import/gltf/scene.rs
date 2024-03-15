@@ -72,7 +72,7 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
                 .joints(context.graph)
                 .iter()
                 .map(|joint| {
-                    let handle = context.nodes_handles.get(joint).unwrap();
+                    let handle = context.gltf.node_handles.get(joint).unwrap();
                     *node_entities.get(handle).unwrap()
                 })
                 .collect::<Vec<_>>();
@@ -85,7 +85,7 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
                 );
             }
 
-            let handle = context.nodes_handles.get(&node).unwrap();
+            let handle = context.gltf.node_handles.get(&node).unwrap();
             let primitive_ents = node_primitive_entities.get(handle).unwrap();
 
             for entity in primitive_ents {

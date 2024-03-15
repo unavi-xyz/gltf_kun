@@ -1,7 +1,7 @@
 use bevy::render::mesh::skinning::SkinnedMeshInverseBindposes;
 use bevy::utils::HashSet;
 use bevy::{asset::LoadContext, prelude::*, utils::HashMap};
-use gltf_kun::graph::gltf::{Material, Node, Skin};
+use gltf_kun::graph::gltf::{Material, Skin};
 use gltf_kun::graph::{gltf::GltfDocument, Graph};
 use thiserror::Error;
 
@@ -10,7 +10,6 @@ use crate::import::extensions::BevyImportExtensions;
 use super::skin::import_skin_matrices;
 use super::{
     animation::{import_animation, paths_recur, AnimationImportError},
-    node::GltfNode,
     scene::import_scene,
     texture::{get_linear_textures, load_texture, texture_label, TextureLoadError},
     GltfKun,
@@ -30,7 +29,6 @@ pub struct ImportContext<'a, 'b> {
     pub graph: &'a mut Graph,
     pub load_context: &'a mut LoadContext<'b>,
 
-    pub nodes_handles: HashMap<Node, Handle<GltfNode>>,
     pub skin_matrices: HashMap<Skin, Handle<SkinnedMeshInverseBindposes>>,
     pub materials: HashMap<(Material, bool), Handle<StandardMaterial>>,
 }

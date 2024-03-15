@@ -3,7 +3,10 @@ use std::marker::PhantomData;
 use bevy::{prelude::*, utils::HashMap};
 use gltf_kun::{
     extensions::ExtensionImport,
-    graph::{gltf::document::GltfDocument, Graph},
+    graph::{
+        gltf::{document::GltfDocument, Node},
+        Graph,
+    },
     io::format::gltf::GltfFormat,
 };
 
@@ -65,6 +68,7 @@ where
 #[derive(Asset, Debug, Default, TypePath)]
 pub struct GltfKun {
     pub graph: Graph,
+    pub node_handles: HashMap<Node, Handle<GltfNode>>,
 
     pub animations: Vec<Handle<AnimationClip>>,
     pub default_scene: Option<Handle<GltfScene>>,

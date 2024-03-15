@@ -111,11 +111,11 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
         .load_context
         .add_labeled_asset(node_label.clone(), node);
 
-    context.gltf.nodes.insert(index, handle.clone());
     context.gltf.named_nodes.insert(name, handle.clone());
+    context.gltf.node_handles.insert(*n, handle.clone());
+    context.gltf.nodes.insert(index, handle.clone());
 
     node_entities.insert(handle.clone(), ent.id());
-    context.nodes_handles.insert(*n, handle.clone());
     node_primitive_entities.insert(handle.clone(), primitive_entities);
 
     // Load extensions.
