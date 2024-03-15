@@ -30,7 +30,6 @@ pub struct ImportContext<'a, 'b> {
     pub graph: &'a mut Graph,
     pub load_context: &'a mut LoadContext<'b>,
 
-    pub node_entities: HashMap<Handle<GltfNode>, Entity>,
     pub node_primitive_entities: HashMap<Handle<GltfNode>, Vec<Entity>>,
     pub nodes_handles: HashMap<Node, Handle<GltfNode>>,
     pub skin_matrices: HashMap<Skin, Handle<SkinnedMeshInverseBindposes>>,
@@ -84,14 +83,12 @@ pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
     // Load scenes.
     let default_scene = context.doc.default_scene(context.graph);
 
-    for (i, scene) in context.doc.scenes(context.graph).into_iter().enumerate() {
+    for scene in context.doc.scenes(context.graph).into_iter() {
         let handle = import_scene::<E>(context, &animation_roots, scene);
 
         if Some(scene) == default_scene {
             context.gltf.default_scene = Some(handle.clone());
         }
-
-        context.gltf.scenes.insert(i, handle);
     }
 
     // Load extensions.

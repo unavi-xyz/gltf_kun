@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use bevy::{prelude::*, render::mesh::skinning::SkinnedMesh, utils::HashSet};
 use gltf_kun::graph::{
     gltf::{document::GltfDocument, scene, Node},
@@ -8,8 +10,16 @@ use crate::import::extensions::BevyImportExtensions;
 
 use super::{
     document::ImportContext,
-    node::{import_node, node_name},
+    node::{import_node, node_name, GltfNode},
 };
+
+#[derive(Asset, Debug, TypePath)]
+pub struct GltfScene {
+    pub extras: Option<Box<serde_json::value::RawValue>>,
+    pub node_entities: HashMap<Handle<GltfNode>, Entity>,
+    pub nodes: Vec<Handle<GltfNode>>,
+    pub scene: Handle<Scene>,
+}
 
 const MAX_JOINTS: usize = 256;
 
@@ -17,16 +27,29 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
     animation_roots: &HashSet<Node>,
     s: scene::Scene,
-) -> Handle<Scene> {
+) -> Handle<GltfScene> {
     let mut world = World::default();
+
+    let mut node_entities = HashMap::<Handle<GltfNode>, Entity>::default();
+    let mut root_nodes = Vec::new();
 
     world
         .spawn(SpatialBundle::INHERITED_IDENTITY)
         .with_children(|parent| {
             for mut node in s.nodes(context.graph) {
-                if let Err(e) = import_node::<E>(context, parent, &Transform::default(), &mut node)
-                {
-                    warn!("Failed to import node: {}", e);
+                match import_node::<E>(
+                    context,
+                    &mut node_entities,
+                    parent,
+                    &Transform::default(),
+                    &mut node,
+                ) {
+                    Ok(handle) => {
+                        root_nodes.push(handle);
+                    }
+                    Err(e) => {
+                        error!("Failed to import node: {}", e);
+                    }
                 }
             }
         });
@@ -35,7 +58,7 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
         if animation_roots.contains(&node) {
             let name = node_name(context.doc, context.graph, node);
             let handle = context.gltf.named_nodes.get(&name).unwrap();
-            let entity = context.node_entities.get(handle).unwrap();
+            let entity = node_entities.get(handle).unwrap();
             let mut entity = world.entity_mut(*entity);
             entity.insert(AnimationPlayer::default());
         }
@@ -48,7 +71,7 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
                 .iter()
                 .map(|joint| {
                     let handle = context.nodes_handles.get(joint).unwrap();
-                    *context.node_entities.get(handle).unwrap()
+                    *node_entities.get(handle).unwrap()
                 })
                 .collect::<Vec<_>>();
 
@@ -83,16 +106,31 @@ pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
         .load_context
         .add_labeled_asset(scene_label.clone(), scene);
 
+    let gltf_scene = GltfScene {
+        extras: weight.extras.clone(),
+        node_entities,
+        nodes: root_nodes,
+        scene: handle.clone(),
+    };
+
+    let gltf_scene_handle = context
+        .load_context
+        .add_labeled_asset(gltf_scene_label(index), gltf_scene);
+
     if weight.name.is_some() {
         context
             .gltf
             .named_scenes
-            .insert(scene_label.clone(), handle.clone());
+            .insert(scene_label.clone(), gltf_scene_handle.clone());
     }
 
-    handle
+    gltf_scene_handle
 }
 
 fn scene_label(index: usize) -> String {
     format!("Scene{}", index)
+}
+
+fn gltf_scene_label(index: usize) -> String {
+    format!("GltfScene{}", index)
 }

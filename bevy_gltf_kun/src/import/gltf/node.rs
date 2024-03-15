@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use bevy::{prelude::*, render::mesh::morph::MorphBuildError};
 use gltf_kun::graph::{
     gltf::{GltfDocument, Node},
@@ -29,6 +31,7 @@ pub enum ImportNodeError {
 
 pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext<'_, '_>,
+    node_entities: &mut HashMap<Handle<GltfNode>, Entity>,
     builder: &mut WorldChildBuilder,
     parent_world_transform: &Transform,
     n: &mut Node,
@@ -78,7 +81,7 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
 
     ent.with_children(|parent| {
         for c in n.children(context.graph).iter_mut() {
-            match import_node::<E>(context, parent, &world_transform, c) {
+            match import_node::<E>(context, node_entities, parent, &world_transform, c) {
                 Ok(handle) => children.push(handle),
                 Err(e) => {
                     warn!("Failed to import node: {}", e);
@@ -103,7 +106,7 @@ pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
     context.gltf.nodes.insert(index, handle.clone());
     context.gltf.named_nodes.insert(name, handle.clone());
 
-    context.node_entities.insert(handle.clone(), ent.id());
+    node_entities.insert(handle.clone(), ent.id());
     context.nodes_handles.insert(*n, handle.clone());
     context
         .node_primitive_entities

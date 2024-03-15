@@ -7,7 +7,7 @@ use gltf_kun::{
     io::format::gltf::GltfFormat,
 };
 
-use self::{loader::GltfLoader, mesh::GltfMesh, node::GltfNode};
+use self::{loader::GltfLoader, mesh::GltfMesh, node::GltfNode, scene::GltfScene};
 
 use super::extensions::BevyImportExtensions;
 
@@ -21,6 +21,19 @@ pub mod primitive;
 pub mod scene;
 pub mod skin;
 pub mod texture;
+
+/// Initializes Gltf assets.
+/// Not needed if you add [GltfImportPlugin].
+pub struct GltfAssetPlugin;
+
+impl Plugin for GltfAssetPlugin {
+    fn build(&self, app: &mut App) {
+        app.init_asset::<GltfKun>()
+            .init_asset::<GltfMesh>()
+            .init_asset::<GltfNode>()
+            .init_asset::<GltfScene>();
+    }
+}
 
 /// Adds the ability to import glTF files.
 pub struct GltfImportPlugin<E: BevyImportExtensions<GltfDocument> + Send + Sync> {
@@ -44,9 +57,7 @@ where
         + 'static,
 {
     fn build(&self, app: &mut App) {
-        app.init_asset::<GltfKun>()
-            .init_asset::<GltfNode>()
-            .init_asset::<GltfMesh>()
+        app.add_plugins(GltfAssetPlugin)
             .register_asset_loader::<GltfLoader<E>>(GltfLoader::<E>::default());
     }
 }
@@ -56,18 +67,18 @@ pub struct GltfKun {
     pub graph: Graph,
 
     pub animations: Vec<Handle<AnimationClip>>,
-    pub default_scene: Option<Handle<Scene>>,
+    pub default_scene: Option<Handle<GltfScene>>,
     pub images: Vec<Handle<Image>>,
     pub materials: Vec<Handle<StandardMaterial>>,
     pub meshes: Vec<Handle<GltfMesh>>,
     pub nodes: Vec<Handle<GltfNode>>,
-    pub scenes: Vec<Handle<Scene>>,
+    pub scenes: Vec<Handle<GltfScene>>,
 
     pub named_animations: HashMap<String, Handle<AnimationClip>>,
     pub named_materials: HashMap<String, Handle<StandardMaterial>>,
     pub named_meshes: HashMap<String, Handle<GltfMesh>>,
     pub named_nodes: HashMap<String, Handle<GltfNode>>,
-    pub named_scenes: HashMap<String, Handle<Scene>>,
+    pub named_scenes: HashMap<String, Handle<GltfScene>>,
 }
 
 impl GltfKun {

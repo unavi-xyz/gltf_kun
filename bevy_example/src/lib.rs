@@ -8,7 +8,7 @@ use bevy_egui::{egui::ComboBox, EguiContexts, EguiPlugin};
 use bevy_gltf_kun::{
     export::gltf::{GltfExport, GltfExportPlugin, GltfExportResult},
     extensions::ExtensionsPlugin,
-    import::gltf::{GltfImportPlugin, GltfKun},
+    import::gltf::{scene::GltfScene, GltfImportPlugin, GltfKun},
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use bevy_xpbd_3d::prelude::*;
@@ -398,6 +398,7 @@ fn load_scene(
     mut commands: Commands,
     mut events: EventReader<LoadScene>,
     scenes: Query<Entity, With<Handle<Scene>>>,
+    gltf_scenes: Res<Assets<GltfScene>>,
 ) {
     for event in events.read() {
         // Despawn previous scene.
@@ -436,7 +437,18 @@ fn load_scene(
                     }
                 };
 
-                gltf.default_scene.clone().unwrap_or(gltf.scenes[0].clone())
+                let gltf_scene_handle =
+                    gltf.default_scene.clone().unwrap_or(gltf.scenes[0].clone());
+
+                let gltf_scene = match gltf_scenes.get(&gltf_scene_handle) {
+                    Some(scene) => scene,
+                    None => {
+                        error!("Failed to get gltf scene");
+                        return;
+                    }
+                };
+
+                gltf_scene.scene.clone()
             }
         };
 
