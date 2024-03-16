@@ -5,12 +5,14 @@ use gltf_kun::graph::{
 };
 use thiserror::Error;
 
+use crate::import::extensions::BevyImportExtensions;
+
 use super::document::ImportContext;
 
 #[derive(Debug, Error)]
 pub enum MaterialImportError {}
 
-pub fn import_material(
+pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
     context: &mut ImportContext,
     m: Material,
     is_scale_inverted: bool,
@@ -19,74 +21,74 @@ pub fn import_material(
     let weight = m.get(context.graph);
     let label = material_label(index, is_scale_inverted);
 
-    context
-        .load_context
-        .labeled_asset_scope(label, |load_context| {
-            let alpha_mode = match &weight.alpha_mode {
-                AlphaMode::Blend => bevy::prelude::AlphaMode::Blend,
-                AlphaMode::Mask => bevy::prelude::AlphaMode::Mask(weight.alpha_cutoff.0),
-                AlphaMode::Opaque => bevy::prelude::AlphaMode::Opaque,
-            };
+    let alpha_mode = match &weight.alpha_mode {
+        AlphaMode::Blend => bevy::prelude::AlphaMode::Blend,
+        AlphaMode::Mask => bevy::prelude::AlphaMode::Mask(weight.alpha_cutoff.0),
+        AlphaMode::Opaque => bevy::prelude::AlphaMode::Opaque,
+    };
 
-            let cull_mode = if weight.double_sided {
-                None
-            } else if is_scale_inverted {
-                Some(Face::Front)
-            } else {
-                Some(Face::Back)
-            };
+    let cull_mode = if weight.double_sided {
+        None
+    } else if is_scale_inverted {
+        Some(Face::Front)
+    } else {
+        Some(Face::Back)
+    };
 
-            let base_color_texture = texture_handle(
-                context.doc,
-                context.graph,
-                load_context,
-                m.base_color_texture(context.graph),
-            );
+    let base_color_texture = texture_handle(
+        context.doc,
+        context.graph,
+        context.load_context,
+        m.base_color_texture(context.graph),
+    );
 
-            let emissive_texture = texture_handle(
-                context.doc,
-                context.graph,
-                load_context,
-                m.emissive_texture(context.graph),
-            );
+    let emissive_texture = texture_handle(
+        context.doc,
+        context.graph,
+        context.load_context,
+        m.emissive_texture(context.graph),
+    );
 
-            let metallic_roughness_texture = texture_handle(
-                context.doc,
-                context.graph,
-                load_context,
-                m.metallic_roughness_texture(context.graph),
-            );
+    let metallic_roughness_texture = texture_handle(
+        context.doc,
+        context.graph,
+        context.load_context,
+        m.metallic_roughness_texture(context.graph),
+    );
 
-            let normal_map_texture = texture_handle(
-                context.doc,
-                context.graph,
-                load_context,
-                m.normal_texture(context.graph),
-            );
+    let normal_map_texture = texture_handle(
+        context.doc,
+        context.graph,
+        context.load_context,
+        m.normal_texture(context.graph),
+    );
 
-            let occlusion_texture = texture_handle(
-                context.doc,
-                context.graph,
-                load_context,
-                m.occlusion_texture(context.graph),
-            );
+    let occlusion_texture = texture_handle(
+        context.doc,
+        context.graph,
+        context.load_context,
+        m.occlusion_texture(context.graph),
+    );
 
-            StandardMaterial {
-                alpha_mode,
-                base_color: Color::rgba_linear_from_array(weight.base_color_factor),
-                base_color_texture,
-                cull_mode,
-                double_sided: weight.double_sided,
-                emissive: Color::rgb_linear_from_array(weight.emissive_factor),
-                emissive_texture,
-                metallic: weight.metallic_factor,
-                metallic_roughness_texture,
-                normal_map_texture,
-                occlusion_texture,
-                perceptual_roughness: weight.roughness_factor,
-                ..default()
-            }
-        })
+    let mut material = StandardMaterial {
+        alpha_mode,
+        base_color: Color::rgba_linear_from_array(weight.base_color_factor),
+        base_color_texture,
+        cull_mode,
+        double_sided: weight.double_sided,
+        emissive: Color::rgb_linear_from_array(weight.emissive_factor),
+        emissive_texture,
+        metallic: weight.metallic_factor,
+        metallic_roughness_texture,
+        normal_map_texture,
+        occlusion_texture,
+        perceptual_roughness: weight.roughness_factor,
+        ..default()
+    };
+
+    E::import_material(context, &mut material, m);
+
+    context.load_context.add_labeled_asset(label, material)
 }
 
 const DEFAULT_MATERIAL_LABEL: &str = "MaterialDefault";

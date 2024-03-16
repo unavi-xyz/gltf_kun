@@ -109,7 +109,7 @@ pub fn import_primitive<E: BevyImportExtensions<GltfDocument>>(
             if let Some(material) = context.materials.get(&(m, is_scale_inverted)) {
                 material.clone()
             } else {
-                let material = import_material(context, m, is_scale_inverted);
+                let material = import_material::<E>(context, m, is_scale_inverted);
 
                 context
                     .materials
