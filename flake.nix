@@ -98,7 +98,7 @@
         gltf_kun = craneLib.buildPackage (commonArgs // {
           inherit cargoArtifacts;
           pname = "gltf_kun";
-          cargoExtraArgs = "-p gltf_kun";
+          cargoExtraArgs = "-p gltf_kun --all-features";
         });
 
         web = craneLib.buildTrunkPackage (commonArgs // {

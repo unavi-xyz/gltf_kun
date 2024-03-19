@@ -9,6 +9,7 @@ repository = "https://github.com/unavi-xyz/gltf_kun"
 license = "MIT OR Apache-2.0"
 
 [workspace.dependencies]
+bevy_gltf_kun = { path = "crates/bevy_gltf_kun", version = "0.0.11" }
 glam = "0.25.0"
 gltf_kun = { path = "crates/gltf_kun", version = "0.0.11" }
 petgraph = { version = "0.6.4", default-features = false, features = ["stable_graph"] }
