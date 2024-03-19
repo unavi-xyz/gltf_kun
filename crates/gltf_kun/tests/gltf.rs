@@ -8,7 +8,7 @@ use gltf_kun::{
 use tracing::debug;
 use tracing_test::traced_test;
 
-const ASSETS_DIR: &str = "../assets";
+const ASSETS_DIR: &str = "../../assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
 const MODEL: &str = "BoxTextured/BoxTextured.gltf";
 
