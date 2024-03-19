@@ -1,4 +1,8 @@
-use bevy::{asset::LoadContext, prelude::*, render::render_resource::Face};
+use bevy::{
+    asset::{LoadContext, LoadedAsset},
+    prelude::*,
+    render::render_resource::Face,
+};
 use gltf_kun::graph::{
     gltf::{material::AlphaMode, GltfDocument, Material, Texture},
     Graph, GraphNodeWeight,
@@ -88,7 +92,9 @@ pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
 
     E::import_material(context, &mut material, m);
 
-    context.load_context.add_labeled_asset(label, material)
+    context
+        .load_context
+        .add_loaded_labeled_asset(label, LoadedAsset::new_with_dependencies(material, None))
 }
 
 const DEFAULT_MATERIAL_LABEL: &str = "MaterialDefault";
@@ -118,14 +124,14 @@ fn texture_handle(
     doc: &mut GltfDocument,
     graph: &Graph,
     load_context: &mut LoadContext,
-    info: Option<Texture>,
+    texture: Option<Texture>,
 ) -> Option<Handle<Image>> {
-    let info = match info {
-        Some(info) => info,
+    let texture = match texture {
+        Some(t) => t,
         None => return None,
     };
 
-    let index = doc.texture_index(graph, info)?;
+    let index = doc.texture_index(graph, texture)?;
     let label = texture_label(index);
 
     Some(load_context.get_label_handle(&label))
