@@ -11,7 +11,7 @@ edition.workspace = true
 type_complexity = "allow"
 
 [features]
-default = ["export", "import", "omi_physics"]
+default = ["export", "import"]
 export = []
 import = []
 omi_physics = ["dep:bevy_xpbd_3d", "gltf_kun/omi_physics"]
