@@ -7,7 +7,7 @@ repository.workspace = true
 edition.workspace = true
 
 [dependencies]
-bevy = "0.13.0"
+bevy = "0.13.2"
 bevy_egui = "0.26.0"
 bevy_gltf_kun.workspace = true
 bevy_panorbit_camera = "0.17.0"
