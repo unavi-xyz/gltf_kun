@@ -516,7 +516,7 @@ fn reload(
         let mut used_path = exported.0.clone();
 
         if used_path.is_empty() {
-            used_path = selected.0.clone();
+            used_path.clone_from(&selected.0);
         }
 
         info!("Reloading scene");
@@ -565,7 +565,7 @@ fn get_result(
             // Write glb to temp dir
             let file_path = Path::new(TEMP_FOLDER).join(temp_file(frame.0));
             let file_path_str = file_path.to_str().unwrap().to_string();
-            exported_path.0 = file_path_str.clone();
+            exported_path.0.clone_from(&file_path_str);
 
             info!("Writing glb to {}", file_path.display());
 

@@ -48,10 +48,10 @@ pub async fn import(
         let mut buffer = doc.create_buffer(graph);
         let weight = buffer.get_mut(graph);
 
-        weight.name = buf.name.clone();
-        weight.extras = buf.extras.clone();
+        weight.name.clone_from(&buf.name);
+        weight.extras.clone_from(&buf.extras);
 
-        weight.uri = buf.uri.clone();
+        weight.uri.clone_from(&buf.uri);
 
         let mut data = None;
 
@@ -84,8 +84,8 @@ pub async fn import(
 
                 let weight = accessor.get_mut(graph);
 
-                weight.name = a.name.clone();
-                weight.extras = a.extras.clone();
+                weight.name.clone_from(&a.name);
+                weight.extras.clone_from(&a.extras);
 
                 weight.normalized = a.normalized;
                 weight.component_type = match a.component_type {
@@ -220,12 +220,12 @@ pub async fn import(
         let mut image = doc.create_image(graph);
 
         let weight = image.get_mut(graph);
-        weight.name = img.name.clone();
-        weight.extras = img.extras.clone();
+        weight.name.clone_from(&img.name);
+        weight.extras.clone_from(&img.extras);
         weight.mime_type = img.mime_type.clone().map(|m| m.0);
 
         if let Some(uri) = img.uri.as_ref() {
-            weight.uri = img.uri.clone();
+            weight.uri.clone_from(&img.uri);
 
             if weight.mime_type.is_none() {
                 weight.mime_type = guess_mime_type(uri).map(|s| s.to_string())
@@ -264,8 +264,8 @@ pub async fn import(
             let mut texture = doc.create_texture(graph);
             let weight = texture.get_mut(graph);
 
-            weight.name = t.name.clone();
-            weight.extras = t.extras.clone();
+            weight.name.clone_from(&t.name);
+            weight.extras.clone_from(&t.extras);
 
             let source = t.source.value();
             let image = images.get(source).copied();
@@ -295,8 +295,8 @@ pub async fn import(
             let mut material = doc.create_material(graph);
             let weight = material.get_mut(graph);
 
-            weight.name = m.name.clone();
-            weight.extras = m.extras.clone();
+            weight.name.clone_from(&m.name);
+            weight.extras.clone_from(&m.extras);
 
             weight.alpha_cutoff = m.alpha_cutoff.unwrap_or_default();
             weight.alpha_mode = m.alpha_mode.unwrap();
@@ -361,18 +361,18 @@ pub async fn import(
             let mut mesh = doc.create_mesh(graph);
             let weight = mesh.get_mut(graph);
 
-            weight.extras = m.extras.clone();
-            weight.name = m.name.clone();
+            weight.extras.clone_from(&m.extras);
+            weight.name.clone_from(&m.name);
 
             if let Some(weights) = &m.weights {
-                weight.weights = weights.clone();
+                weight.weights.clone_from(weights);
             }
 
             for p in m.primitives.iter() {
                 let mut primitive = mesh.create_primitive(graph);
                 let p_weight = primitive.get_mut(graph);
 
-                p_weight.extras = p.extras.clone();
+                p_weight.extras.clone_from(&p.extras);
                 p_weight.mode = match p.mode {
                     Checked::Valid(mode) => mode,
                     Checked::Invalid => gltf::mesh::Mode::Triangles,
@@ -439,8 +439,8 @@ pub async fn import(
             let mut node = doc.create_node(graph);
             let weight = node.get_mut(graph);
 
-            weight.name = n.name.clone();
-            weight.extras = n.extras.clone();
+            weight.name.clone_from(&n.name);
+            weight.extras.clone_from(&n.extras);
 
             weight.rotation = n
                 .rotation
@@ -458,7 +458,7 @@ pub async fn import(
             }
 
             if let Some(weights) = &n.weights {
-                weight.weights = weights.clone();
+                weight.weights.clone_from(weights);
             }
 
             if let Some(index) = n.mesh {
@@ -496,8 +496,8 @@ pub async fn import(
             let mut scene = doc.create_scene(graph);
             let weight = scene.get_mut(graph);
 
-            weight.name = s.name.clone();
-            weight.extras = s.extras.clone();
+            weight.name.clone_from(&s.name);
+            weight.extras.clone_from(&s.extras);
 
             s.nodes.iter().for_each(|idx| {
                 if let Some(node) = nodes.get(idx.value()) {
@@ -521,8 +521,8 @@ pub async fn import(
         let mut skin = doc.create_skin(graph);
 
         let weight = skin.get_mut(graph);
-        weight.name = s.name.clone();
-        weight.extras = s.extras.clone();
+        weight.name.clone_from(&s.name);
+        weight.extras.clone_from(&s.extras);
 
         if let Some(inverse_bind_matrices) = s.inverse_bind_matrices {
             if let Some(accessor) = accessors.get(inverse_bind_matrices.value()) {
@@ -554,8 +554,8 @@ pub async fn import(
         let mut animation = doc.create_animation(graph);
 
         let weight = animation.get_mut(graph);
-        weight.name = a.name.clone();
-        weight.extras = a.extras.clone();
+        weight.name.clone_from(&a.name);
+        weight.extras.clone_from(&a.extras);
 
         let samplers = a
             .samplers
@@ -564,7 +564,7 @@ pub async fn import(
                 let mut sampler = AnimationSampler::new(graph);
 
                 let weight = sampler.get_mut(graph);
-                weight.extras = s.extras.clone();
+                weight.extras.clone_from(&s.extras);
                 weight.interpolation = s.interpolation.unwrap();
 
                 let input_idx = s.input.value();
@@ -583,7 +583,7 @@ pub async fn import(
             let mut channel = animation.create_channel(graph);
             let c_weight = channel.get_mut(graph);
 
-            c_weight.extras = c.extras.clone();
+            c_weight.extras.clone_from(&c.extras);
             c_weight.path = c.target.path.unwrap();
 
             let node = nodes[c.target.node.value()];
