@@ -25,4 +25,4 @@ image = "0.25.1"
 serde_json.workspace = true
 thiserror.workspace = true
 
-bevy_xpbd_3d = { version = "0.4.2", optional = true }
+bevy_xpbd_3d = { version = "0.5.0", optional = true }
