@@ -1,4 +1,4 @@
-use bevy::{prelude::*, utils::HashMap};
+use bevy::{animation::AnimationTargetId, prelude::*, utils::HashMap};
 use gltf_kun::graph::{
     gltf::{
         accessor::{ComponentType, Type},
@@ -43,15 +43,13 @@ pub fn export_animations(
                 }
             };
 
-            let path = EntityPath { parts };
-
-            let curves = match clip.get_curves_by_path(&path) {
+            let curves = match clip.curves_for_target(AnimationTargetId::from_names(parts.iter())) {
                 Some(curves) => curves,
                 None => continue,
             };
 
             if curves.is_empty() {
-                warn!("Curves empty for path {:?}", path);
+                warn!("Curves empty for path {:?}", parts);
                 continue;
             }
 

@@ -18,11 +18,10 @@ omi_physics = ["dep:bevy_xpbd_3d", "gltf_kun/omi_physics"]
 register_extensions = []
 
 [dependencies]
-bevy = { version = "0.13.2", default-features = false, features = ["animation", "bevy_asset", "bevy_scene", "bevy_pbr"] }
-glam.workspace = true
+bevy = { version = "0.14.0", default-features = false, features = ["animation", "bevy_asset", "bevy_scene", "bevy_pbr"] }
 gltf_kun.workspace = true
 image = "0.25.1"
 serde_json.workspace = true
 thiserror.workspace = true
 
-bevy_xpbd_3d = { version = "0.4.2", optional = true }
+bevy_xpbd_3d = { workspace = true, optional = true }

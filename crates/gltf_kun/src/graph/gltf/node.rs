@@ -1,4 +1,4 @@
-use glam::{Quat, Vec3};
+use bevy_math::{Quat, Vec3};
 use petgraph::graph::NodeIndex;
 
 use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};

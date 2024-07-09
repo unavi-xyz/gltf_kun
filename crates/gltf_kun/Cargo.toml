@@ -8,13 +8,13 @@ repository.workspace = true
 edition.workspace = true
 
 [features]
-default = []
+default = ["omi_physics"]
 omi_physics = []
 
 [dependencies]
 base64 = "0.22.0"
+bevy_math = "0.14.0"
 byteorder = "1.5.0"
-glam.workspace = true
 gltf = { version = "1.4.0", features = ["extensions", "extras"] }
 petgraph.workspace = true
 serde = { version = "1.0.198", features = ["derive"] }

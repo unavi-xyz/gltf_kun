@@ -1,6 +1,8 @@
 //! [OMI_physics_body](https://github.com/omigroup/gltf-extensions/tree/main/extensions/2.0/OMI_physics_body)
 //! extension.
 
+use std::fmt::Display;
+
 use petgraph::graph::NodeIndex;
 use serde::{Deserialize, Serialize};
 
@@ -25,9 +27,11 @@ pub enum PhysicsBodyEdge {
     Trigger,
 }
 
-impl ToString for PhysicsBodyEdge {
-    fn to_string(&self) -> String {
-        serde_json::to_string(self).unwrap()
+impl Display for PhysicsBodyEdge {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let res = serde_json::to_string(self).unwrap();
+        f.write_str(&res)?;
+        Ok(())
     }
 }
 

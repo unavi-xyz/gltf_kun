@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, HashMap};
 
-use glam::Quat;
+use bevy_math::{Quat, Vec3};
 use gltf::json::{
     accessor::GenericComponentType,
     animation::Target,
@@ -446,12 +446,12 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                 } else {
                     Some(UnitQuaternion(weight.rotation.into()))
                 },
-                scale: if weight.scale == glam::Vec3::ONE {
+                scale: if weight.scale == Vec3::ONE {
                     None
                 } else {
                     Some(weight.scale.into())
                 },
-                translation: if weight.translation == glam::Vec3::ZERO {
+                translation: if weight.translation == Vec3::ZERO {
                     None
                 } else {
                     Some(weight.translation.into())

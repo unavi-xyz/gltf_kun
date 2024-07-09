@@ -1,4 +1,4 @@
-use glam::Quat;
+use bevy_math::{Mat4, Quat, Vec3};
 use gltf::{
     json::{validation::Checked, Index},
     Semantic,
@@ -447,10 +447,10 @@ pub async fn import(
                 .map(|r| Quat::from_slice(&r.0))
                 .unwrap_or(Quat::IDENTITY);
             weight.translation = n.translation.map(|t| t.into()).unwrap_or_default();
-            weight.scale = n.scale.map(|s| s.into()).unwrap_or(glam::Vec3::ONE);
+            weight.scale = n.scale.map(|s| s.into()).unwrap_or(Vec3::ONE);
 
             if let Some(matrix) = n.matrix {
-                let matrix = glam::Mat4::from_cols_slice(&matrix);
+                let matrix = Mat4::from_cols_slice(&matrix);
                 let (scale, rotation, translation) = matrix.to_scale_rotation_translation();
                 weight.rotation = rotation;
                 weight.scale = scale;

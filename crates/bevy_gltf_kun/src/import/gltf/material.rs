@@ -76,11 +76,11 @@ pub fn import_material<E: BevyImportExtensions<GltfDocument>>(
 
     let mut material = StandardMaterial {
         alpha_mode,
-        base_color: Color::rgba_linear_from_array(weight.base_color_factor),
+        base_color: LinearRgba::from_f32_array(weight.base_color_factor).into(),
         base_color_texture,
         cull_mode,
         double_sided: weight.double_sided,
-        emissive: Color::rgb_linear_from_array(weight.emissive_factor),
+        emissive: LinearRgba::from_f32_array_no_alpha(weight.emissive_factor),
         emissive_texture,
         metallic: weight.metallic_factor,
         metallic_roughness_texture,

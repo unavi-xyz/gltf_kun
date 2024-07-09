@@ -83,7 +83,7 @@ fn export_node(
     }
 
     weight.translation = transform.translation.to_array().into();
-    weight.rotation = glam::Quat::from_array(transform.rotation.to_array());
+    weight.rotation = Quat::from_array(transform.rotation.to_array());
     weight.scale = transform.scale.to_array().into();
 
     if let Some(children) = children {

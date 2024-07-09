@@ -1,4 +1,5 @@
 use bevy::{
+    animation::AnimationTargetId,
     prelude::*,
     utils::{HashMap, HashSet},
 };
@@ -140,8 +141,8 @@ pub fn import_animation(
 
         roots.insert(path.0);
 
-        clip.add_curve_to_path(
-            EntityPath { parts: path.1 },
+        clip.add_curve_to_target(
+            AnimationTargetId::from_names(path.1.iter()),
             VariableCurve {
                 interpolation,
                 keyframe_timestamps,

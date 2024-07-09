@@ -91,13 +91,13 @@ trait ColorChannel {
 
 impl ColorChannel for u8 {
     fn max_color() -> Self {
-        u8::max_value()
+        u8::MAX
     }
 }
 
 impl ColorChannel for u16 {
     fn max_color() -> Self {
-        u16::max_value()
+        u16::MAX
     }
 }
 

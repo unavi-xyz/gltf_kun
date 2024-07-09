@@ -5,7 +5,7 @@ use bevy::{
         io::Reader, AssetLoadError, AssetLoader, AsyncReadExt, LoadContext, ReadAssetBytesError,
     },
     prelude::*,
-    utils::{BoxedFuture, HashMap},
+    utils::HashMap,
 };
 use gltf_kun::{
     extensions::ExtensionImport,
@@ -67,9 +67,9 @@ where
     fn load<'a>(
         &'a self,
         reader: &'a mut Reader,
-        _settings: &'a (),
+        _settings: &'a Self::Settings,
         load_context: &'a mut LoadContext,
-    ) -> BoxedFuture<'a, Result<Self::Asset, Self::Error>> {
+    ) -> impl bevy::utils::ConditionalSendFuture<Output = Result<Self::Asset, Self::Error>> {
         Box::pin(async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
