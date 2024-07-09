@@ -1,4 +1,11 @@
-{ lib, pkgs, system, build_inputs, native_build_inputs, makeRustPlatform }:
+{
+  lib,
+  pkgs,
+  system,
+  build_inputs,
+  native_build_inputs,
+  makeRustPlatform,
+}:
 let
   rustBin = pkgs.rust-bin.stable.latest.default;
 
@@ -18,13 +25,20 @@ let
 
     LD_LIBRARY_PATH = lib.makeLibraryPath build_inputs;
   };
-in {
-  bevy_gltf_kun = rustPlatform.buildRustPackage (common // {
-    pname = "bevy_gltf_kun";
-    buildAndTestSubdir = "bevy_gltf_kun";
-  });
-  gltf_kun = rustPlatform.buildRustPackage (common // {
-    pname = "gltf_kun";
-    buildAndTestSubdir = "gltf_kun";
-  });
+in
+{
+  bevy_gltf_kun = rustPlatform.buildRustPackage (
+    common
+    // {
+      pname = "bevy_gltf_kun";
+      buildAndTestSubdir = "bevy_gltf_kun";
+    }
+  );
+  gltf_kun = rustPlatform.buildRustPackage (
+    common
+    // {
+      pname = "gltf_kun";
+      buildAndTestSubdir = "gltf_kun";
+    }
+  );
 }
