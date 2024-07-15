@@ -464,29 +464,27 @@ fn play_animations(
     mut players: Query<(Entity, &mut AnimationPlayer), Without<Handle<AnimationGraph>>>,
 ) {
     for (entity, mut player) in players.iter_mut() {
-        info!("Playing animations");
-
         let mut graph = AnimationGraph::default();
+        let mut animation_nodes = Vec::new();
 
         for (_, gltf) in gltf_assets.iter() {
             for clip in gltf.animations.iter() {
-                graph.add_clip(clip.clone(), 1.0, graph.root);
+                animation_nodes.push(graph.add_clip(clip.clone(), 1.0, graph.root));
             }
         }
 
         for (_, gltf) in gltf_kun_assets.iter() {
             for clip in gltf.animations.iter() {
-                graph.add_clip(clip.clone(), 1.0, graph.root);
+                animation_nodes.push(graph.add_clip(clip.clone(), 1.0, graph.root));
             }
         }
 
-        let mut transitions = AnimationTransitions::default();
-        transitions
-            .play(&mut player, graph.root, Duration::ZERO)
-            .repeat();
+        for node in animation_nodes {
+            player.play(node).repeat();
+        }
 
         let handle = animation_graphs.add(graph);
-        commands.entity(entity).insert((transitions, handle));
+        commands.entity(entity).insert(handle);
     }
 }
 
