@@ -17,13 +17,13 @@ pub mod scene;
 pub mod skin;
 
 #[derive(Default, Event)]
-pub struct GltfExport<E: BevyExtensionExport<GltfDocument>> {
+pub struct GltfExportEvent<E: BevyExtensionExport<GltfDocument>> {
     pub scenes: Vec<Handle<Scene>>,
     pub default_scene: Option<Handle<Scene>>,
     _marker: PhantomData<E>,
 }
 
-impl<E: BevyExtensionExport<GltfDocument>> GltfExport<E> {
+impl<E: BevyExtensionExport<GltfDocument>> GltfExportEvent<E> {
     pub fn new(scene: Handle<Scene>) -> Self {
         Self {
             scenes: vec![scene.clone()],
@@ -56,7 +56,7 @@ pub struct ExportContext {
 }
 
 impl ExportContext {
-    pub fn new<E: BevyExtensionExport<GltfDocument>>(event: GltfExport<E>) -> Self {
+    pub fn new<E: BevyExtensionExport<GltfDocument>>(event: GltfExportEvent<E>) -> Self {
         let mut graph = Graph::default();
         let doc = GltfDocument::new(&mut graph);
 
@@ -99,7 +99,7 @@ pub struct CachedScene {
 }
 
 pub fn export_gltf<E: BevyExtensionExport<GltfDocument>>(world: &mut World) {
-    let events = match world.get_resource_mut::<Events<GltfExport<E>>>() {
+    let events = match world.get_resource_mut::<Events<GltfExportEvent<E>>>() {
         Some(mut events) => events.drain().collect::<Vec<_>>(),
         None => return,
     };

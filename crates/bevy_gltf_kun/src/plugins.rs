@@ -8,7 +8,7 @@ use gltf_kun::{
 use crate::{
     export::{
         extensions::BevyExtensionExport,
-        gltf::{export_gltf, GltfExport, GltfExportResult},
+        gltf::{export_gltf, GltfExportEvent, GltfExportResult},
     },
     import::{
         extensions::BevyExtensionImport,
@@ -42,7 +42,7 @@ impl<E: BevyExtensionExport<GltfDocument>> Default for GltfExportPlugin<E> {
 
 impl<E: BevyExtensionExport<GltfDocument>> Plugin for GltfExportPlugin<E> {
     fn build(&self, app: &mut App) {
-        app.add_event::<GltfExport<E>>()
+        app.add_event::<GltfExportEvent<E>>()
             .add_event::<GltfExportResult>()
             .add_systems(Update, export_gltf::<E>);
     }
