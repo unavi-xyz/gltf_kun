@@ -4,12 +4,10 @@
 
 Bevy glTF plugin using [gltf_kun](https://crates.io/crates/gltf_kun).
 
-### Comparison
+This plugin adds support for:
 
-Compared to `bevy_gltf`, this plugin adds support for:
-
-- Arbitrary glTF extensions
-- glTF exporting
-- [glXF](https://github.com/KhronosGroup/glXF) import and export
+- glTF extension processing via hooks
+- [glTF](https://github.com/KhronosGroup/glTF) import / export
+- [glXF](https://github.com/KhronosGroup/glXF) import / export
 
 <!-- cargo-rdme end -->
