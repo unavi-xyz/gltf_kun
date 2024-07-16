@@ -7,7 +7,7 @@ use gltf_kun::graph::{
 };
 use thiserror::Error;
 
-use crate::import::extensions::BevyImportExtensions;
+use crate::import::extensions::BevyExtensionImport;
 
 use super::{
     document::ImportContext,
@@ -29,7 +29,7 @@ pub enum ImportNodeError {
     MorphBuildEror(#[from] MorphBuildError),
 }
 
-pub fn import_node<E: BevyImportExtensions<GltfDocument>>(
+pub fn import_node<E: BevyExtensionImport<GltfDocument>>(
     context: &mut ImportContext<'_, '_>,
     node_entities: &mut HashMap<Handle<GltfNode>, Entity>,
     node_primitive_entities: &mut HashMap<Handle<GltfNode>, Vec<Entity>>,

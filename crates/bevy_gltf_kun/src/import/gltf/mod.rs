@@ -1,18 +1,10 @@
-use std::marker::PhantomData;
-
 use bevy::{prelude::*, utils::HashMap};
-use gltf_kun::{
-    extensions::ExtensionImport,
-    graph::{
-        gltf::{document::GltfDocument, Node},
-        Graph,
-    },
-    io::format::gltf::GltfFormat,
+use gltf_kun::graph::{
+    gltf::{document::GltfDocument, Node},
+    Graph,
 };
 
-use self::{loader::GltfLoader, mesh::GltfMesh, node::GltfNode, scene::GltfScene};
-
-use super::extensions::BevyImportExtensions;
+use self::{mesh::GltfMesh, node::GltfNode, scene::GltfScene};
 
 pub mod animation;
 pub mod document;
@@ -24,46 +16,6 @@ pub mod primitive;
 pub mod scene;
 pub mod skin;
 pub mod texture;
-
-/// Initializes Gltf assets.
-/// Not needed if you add [GltfImportPlugin].
-pub struct GltfAssetPlugin;
-
-impl Plugin for GltfAssetPlugin {
-    fn build(&self, app: &mut App) {
-        app.init_asset::<GltfKun>()
-            .init_asset::<GltfMesh>()
-            .init_asset::<GltfNode>()
-            .init_asset::<GltfScene>();
-    }
-}
-
-/// Adds the ability to import glTF files.
-pub struct GltfImportPlugin<E: BevyImportExtensions<GltfDocument> + Send + Sync> {
-    _marker: PhantomData<E>,
-}
-
-impl<E: BevyImportExtensions<GltfDocument> + Send + Sync> Default for GltfImportPlugin<E> {
-    fn default() -> Self {
-        Self {
-            _marker: PhantomData,
-        }
-    }
-}
-
-impl<E> Plugin for GltfImportPlugin<E>
-where
-    E: BevyImportExtensions<GltfDocument>
-        + ExtensionImport<GltfDocument, GltfFormat>
-        + Send
-        + Sync
-        + 'static,
-{
-    fn build(&self, app: &mut App) {
-        app.add_plugins(GltfAssetPlugin)
-            .register_asset_loader::<GltfLoader<E>>(GltfLoader::<E>::default());
-    }
-}
 
 #[derive(Asset, Debug, Default, TypePath)]
 pub struct GltfKun {

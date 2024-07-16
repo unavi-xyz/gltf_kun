@@ -4,7 +4,7 @@ use gltf_kun::graph::{
     GraphNodeWeight,
 };
 
-use crate::import::extensions::BevyImportExtensions;
+use crate::import::extensions::BevyExtensionImport;
 
 use super::{
     document::ImportContext,
@@ -17,7 +17,7 @@ pub struct GltfMesh {
     pub extras: Option<Box<serde_json::value::RawValue>>,
 }
 
-pub fn import_mesh<E: BevyImportExtensions<GltfDocument>>(
+pub fn import_mesh<E: BevyExtensionImport<GltfDocument>>(
     context: &mut ImportContext,
     entity: &mut EntityWorldMut,
     mut m: gltf::mesh::Mesh,

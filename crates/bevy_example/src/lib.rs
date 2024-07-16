@@ -1,5 +1,6 @@
 use std::{fmt::Display, path::Path};
 
+use avian3d::prelude::*;
 use bevy::{
     core::FrameCount,
     gltf::Gltf,
@@ -9,12 +10,11 @@ use bevy::{
 };
 use bevy_egui::{egui::ComboBox, EguiContexts, EguiPlugin};
 use bevy_gltf_kun::{
-    export::gltf::{GltfExport, GltfExportPlugin, GltfExportResult},
-    extensions::ExtensionsPlugin,
-    import::gltf::{scene::GltfScene, GltfImportPlugin, GltfKun},
+    export::gltf::{GltfExport, GltfExportResult},
+    import::gltf::{scene::GltfScene, GltfKun},
+    GltfKunPlugin,
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
-use bevy_xpbd_3d::prelude::*;
 use egui_graphs::Graph;
 use gltf_kun::{
     extensions::DefaultExtensions,
@@ -59,9 +59,7 @@ impl Plugin for ExamplePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             EguiPlugin,
-            ExtensionsPlugin,
-            GltfExportPlugin::<DefaultExtensions>::default(),
-            GltfImportPlugin::<DefaultExtensions>::default(),
+            GltfKunPlugin::default(),
             PanOrbitCameraPlugin,
             PhysicsDebugPlugin::default(),
             PhysicsPlugins::default(),

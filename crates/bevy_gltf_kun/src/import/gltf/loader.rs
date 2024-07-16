@@ -17,18 +17,18 @@ use gltf_kun::{
 };
 use thiserror::Error;
 
-use crate::import::{extensions::BevyImportExtensions, resolver::BevyAssetResolver};
+use crate::import::{extensions::BevyExtensionImport, resolver::BevyAssetResolver};
 
 use super::{
     document::{import_gltf_document, DocumentImportError, ImportContext},
     GltfKun,
 };
 
-pub struct GltfLoader<E: BevyImportExtensions<GltfDocument>> {
+pub struct GltfLoader<E: BevyExtensionImport<GltfDocument>> {
     pub _marker: PhantomData<E>,
 }
 
-impl<E: BevyImportExtensions<GltfDocument>> Default for GltfLoader<E> {
+impl<E: BevyExtensionImport<GltfDocument>> Default for GltfLoader<E> {
     fn default() -> Self {
         Self {
             _marker: PhantomData,
@@ -55,7 +55,7 @@ pub enum GltfError {
 impl<E> AssetLoader for GltfLoader<E>
 where
     E: ExtensionImport<GltfDocument, GltfFormat>
-        + BevyImportExtensions<GltfDocument>
+        + BevyExtensionImport<GltfDocument>
         + Send
         + Sync
         + 'static,

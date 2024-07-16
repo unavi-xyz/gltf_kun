@@ -1,5 +1,5 @@
+use avian3d::{parry::shape::ShapeType, prelude::*};
 use bevy::{ecs::system::RunSystemOnce, prelude::*};
-use bevy_xpbd_3d::{parry::shape::ShapeType, prelude::*};
 use gltf_kun::{
     extensions::{
         omi_physics_body::{
@@ -13,12 +13,12 @@ use gltf_kun::{
             OmiPhysicsShape,
         },
     },
-    graph::{ByteNode, Extensions},
+    graph::{gltf::GltfDocument, ByteNode, Extensions},
 };
 
 use crate::export::{extensions::BevyExtensionExport, gltf::ExportContext};
 
-impl BevyExtensionExport for OmiPhysicsBody {
+impl BevyExtensionExport<GltfDocument> for OmiPhysicsBody {
     fn bevy_export(In(context): In<ExportContext>, world: &mut World) -> ExportContext {
         world.run_system_once_with(context, export_physics_bodies)
     }

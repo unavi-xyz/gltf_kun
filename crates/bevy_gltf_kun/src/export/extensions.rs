@@ -3,15 +3,11 @@ use gltf_kun::{extensions::DefaultExtensions, graph::gltf::GltfDocument};
 
 use super::gltf::ExportContext;
 
-pub trait BevyExtensionExport {
+pub trait BevyExtensionExport<D>: Send + Sync + 'static {
     fn bevy_export(context: In<ExportContext>, world: &mut World) -> ExportContext;
 }
 
-pub trait BevyExportExtensions<D>: Send + Sync + 'static {
-    fn bevy_export(context: In<ExportContext>, world: &mut World) -> ExportContext;
-}
-
-impl BevyExportExtensions<GltfDocument> for DefaultExtensions {
+impl BevyExtensionExport<GltfDocument> for DefaultExtensions {
     fn bevy_export(In(mut context): In<ExportContext>, world: &mut World) -> ExportContext {
         #[cfg(feature = "omi_physics")]
         {

@@ -10,18 +10,18 @@ use gltf_kun::{
 use crate::import::gltf::document::ImportContext;
 
 pub trait NodeExtensionImport<D>: Extension {
-    fn maybe_import_node(context: &mut ImportContext, entity: &mut EntityWorldMut, node: Node) {
+    fn try_import_node(context: &mut ImportContext, entity: &mut EntityWorldMut, node: Node) {
         if let Some(ext) = node.get_extension::<Self>(context.graph) {
             Self::import_node(context, entity, ext);
         }
     }
 
-    /// Called when a node with this extension is imported.
-    /// This is called while the tree is being traversed, so the node's children may not have been imported yet.
+    /// Hook for nodes with this extension.
+    /// Called while the tree is being traversed, so the node's children may not have been imported yet.
     fn import_node(context: &mut ImportContext, entity: &mut EntityWorldMut, ext: Self);
 }
 
-pub trait BevyImportExtensions<D> {
+pub trait BevyExtensionImport<D> {
     fn import_material(
         context: &mut ImportContext,
         standard_material: &mut StandardMaterial,
@@ -37,7 +37,7 @@ pub trait BevyImportExtensions<D> {
     fn import_scene(context: &mut ImportContext, scene: Scene, world: &mut World);
 }
 
-impl BevyImportExtensions<GltfDocument> for DefaultExtensions {
+impl BevyExtensionImport<GltfDocument> for DefaultExtensions {
     fn import_material(
         _context: &mut ImportContext,
         _standard_material: &mut StandardMaterial,
@@ -48,7 +48,7 @@ impl BevyImportExtensions<GltfDocument> for DefaultExtensions {
     fn import_node(context: &mut ImportContext, entity: &mut EntityWorldMut, node: Node) {
         #[cfg(feature = "omi_physics")]
         {
-            gltf_kun::extensions::omi_physics_body::OmiPhysicsBody::maybe_import_node(
+            gltf_kun::extensions::omi_physics_body::OmiPhysicsBody::try_import_node(
                 context, entity, node,
             )
         }

@@ -7,7 +7,7 @@ use gltf_kun::graph::{
 };
 use thiserror::Error;
 
-use super::extensions::BevyExportExtensions;
+use super::extensions::BevyExtensionExport;
 
 pub mod animation;
 pub mod material;
@@ -16,35 +16,14 @@ pub mod node;
 pub mod scene;
 pub mod skin;
 
-/// Adds the ability to export Bevy scenes to glTF.
-pub struct GltfExportPlugin<E: BevyExportExtensions<GltfDocument>> {
-    _marker: PhantomData<E>,
-}
-
-impl<E: BevyExportExtensions<GltfDocument>> Default for GltfExportPlugin<E> {
-    fn default() -> Self {
-        Self {
-            _marker: PhantomData,
-        }
-    }
-}
-
-impl<E: BevyExportExtensions<GltfDocument>> Plugin for GltfExportPlugin<E> {
-    fn build(&self, app: &mut App) {
-        app.add_event::<GltfExport<E>>()
-            .add_event::<GltfExportResult>()
-            .add_systems(Update, export_gltf::<E>);
-    }
-}
-
 #[derive(Default, Event)]
-pub struct GltfExport<E: BevyExportExtensions<GltfDocument>> {
+pub struct GltfExport<E: BevyExtensionExport<GltfDocument>> {
     pub scenes: Vec<Handle<Scene>>,
     pub default_scene: Option<Handle<Scene>>,
     _marker: PhantomData<E>,
 }
 
-impl<E: BevyExportExtensions<GltfDocument>> GltfExport<E> {
+impl<E: BevyExtensionExport<GltfDocument>> GltfExport<E> {
     pub fn new(scene: Handle<Scene>) -> Self {
         Self {
             scenes: vec![scene.clone()],
@@ -77,7 +56,7 @@ pub struct ExportContext {
 }
 
 impl ExportContext {
-    pub fn new<E: BevyExportExtensions<GltfDocument>>(event: GltfExport<E>) -> Self {
+    pub fn new<E: BevyExtensionExport<GltfDocument>>(event: GltfExport<E>) -> Self {
         let mut graph = Graph::default();
         let doc = GltfDocument::new(&mut graph);
 
@@ -119,7 +98,7 @@ pub struct CachedScene {
     pub entity: Entity,
 }
 
-pub fn export_gltf<E: BevyExportExtensions<GltfDocument>>(world: &mut World) {
+pub fn export_gltf<E: BevyExtensionExport<GltfDocument>>(world: &mut World) {
     let events = match world.get_resource_mut::<Events<GltfExport<E>>>() {
         Some(mut events) => events.drain().collect::<Vec<_>>(),
         None => return,

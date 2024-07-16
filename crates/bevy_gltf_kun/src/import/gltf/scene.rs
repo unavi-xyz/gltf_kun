@@ -6,7 +6,7 @@ use gltf_kun::graph::{
     GraphNodeWeight,
 };
 
-use crate::import::extensions::BevyImportExtensions;
+use crate::import::extensions::BevyExtensionImport;
 
 use super::{
     document::ImportContext,
@@ -22,7 +22,7 @@ pub struct GltfScene {
 
 const MAX_JOINTS: usize = 256;
 
-pub fn import_scene<E: BevyImportExtensions<GltfDocument>>(
+pub fn import_scene<E: BevyExtensionImport<GltfDocument>>(
     context: &mut ImportContext,
     animation_roots: &HashSet<Node>,
     s: scene::Scene,

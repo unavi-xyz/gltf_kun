@@ -3,7 +3,7 @@ use bevy::prelude::*;
 #[cfg(feature = "omi_physics")]
 pub mod omi_physics;
 
-/// Adds support for glTF extensions.
+/// Adds support for extensions.
 pub struct ExtensionsPlugin;
 
 impl Plugin for ExtensionsPlugin {

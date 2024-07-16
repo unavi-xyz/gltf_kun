@@ -1,5 +1,5 @@
+use avian3d::prelude::*;
 use bevy::prelude::*;
-use bevy_xpbd_3d::prelude::*;
 use gltf_kun::{
     extensions::{
         omi_physics_body::{weight::BodyType, OmiPhysicsBody},

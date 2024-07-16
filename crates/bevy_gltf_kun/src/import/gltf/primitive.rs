@@ -28,7 +28,7 @@ use gltf_kun::graph::{
 };
 use thiserror::Error;
 
-use crate::import::extensions::BevyImportExtensions;
+use crate::import::extensions::BevyExtensionImport;
 
 use super::{
     document::ImportContext,
@@ -64,7 +64,7 @@ pub enum ImportPrimitiveError {
     MorphBuildError(#[from] MorphBuildError),
 }
 
-pub fn import_primitive<E: BevyImportExtensions<GltfDocument>>(
+pub fn import_primitive<E: BevyExtensionImport<GltfDocument>>(
     context: &mut ImportContext,
     parent: &mut WorldChildBuilder,
     is_scale_inverted: bool,

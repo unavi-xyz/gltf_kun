@@ -5,7 +5,7 @@ use gltf_kun::graph::gltf::{Material, Skin};
 use gltf_kun::graph::{gltf::GltfDocument, Graph};
 use thiserror::Error;
 
-use crate::import::extensions::BevyImportExtensions;
+use crate::import::extensions::BevyExtensionImport;
 
 use super::skin::import_skin_matrices;
 use super::{
@@ -33,7 +33,7 @@ pub struct ImportContext<'a, 'b> {
     pub materials: HashMap<(Material, bool), Handle<StandardMaterial>>,
 }
 
-pub fn import_gltf_document<E: BevyImportExtensions<GltfDocument>>(
+pub fn import_gltf_document<E: BevyExtensionImport<GltfDocument>>(
     context: &mut ImportContext,
 ) -> Result<(), DocumentImportError> {
     // Load skins.
