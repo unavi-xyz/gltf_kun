@@ -1,6 +1,10 @@
 use std::collections::HashMap;
 
-use bevy::{prelude::*, render::mesh::morph::MorphBuildError};
+use bevy::{
+    animation::{AnimationTarget, AnimationTargetId},
+    prelude::*,
+    render::mesh::morph::MorphBuildError,
+};
 use gltf_kun::graph::{
     gltf::{GltfDocument, Node},
     Graph, GraphNodeWeight,
@@ -35,6 +39,8 @@ pub fn import_node<E: BevyExtensionImport<GltfDocument>>(
     node_primitive_entities: &mut HashMap<Handle<GltfNode>, Vec<Entity>>,
     builder: &mut WorldChildBuilder,
     parent_world_transform: &Transform,
+    mut path: Vec<Name>,
+    root_node: Option<Entity>,
     n: &mut Node,
 ) -> Result<Handle<GltfNode>, ImportNodeError> {
     let index = context.doc.node_index(context.graph, *n).unwrap();
@@ -54,6 +60,14 @@ pub fn import_node<E: BevyExtensionImport<GltfDocument>>(
 
     let name = node_name(context.doc, context.graph, *n);
     ent.insert(Name::new(name.clone()));
+
+    path.push(Name::new(name.clone()));
+    let root_node = root_node.unwrap_or(ent.id());
+
+    ent.insert(AnimationTarget {
+        id: AnimationTargetId::from_names(path.iter()),
+        player: root_node,
+    });
 
     let mut primitive_entities = Vec::new();
 
@@ -88,6 +102,8 @@ pub fn import_node<E: BevyExtensionImport<GltfDocument>>(
                 node_primitive_entities,
                 parent,
                 &world_transform,
+                path.clone(),
+                Some(root_node),
                 c,
             ) {
                 Ok(handle) => children.push(handle),

@@ -43,6 +43,8 @@ pub fn import_scene<E: BevyExtensionImport<GltfDocument>>(
                     &mut node_primitive_entities,
                     parent,
                     &Transform::default(),
+                    Vec::new(),
+                    None,
                     &mut node,
                 ) {
                     Ok(handle) => {
@@ -60,8 +62,7 @@ pub fn import_scene<E: BevyExtensionImport<GltfDocument>>(
             let name = node_name(context.doc, context.graph, node);
             let handle = context.gltf.named_nodes.get(&name).unwrap();
             let entity = node_entities.get(handle).unwrap();
-            let mut entity = world.entity_mut(*entity);
-            entity.insert(AnimationPlayer::default());
+            world.entity_mut(*entity).insert(AnimationPlayer::default());
         }
 
         if let Some(skin) = node.skin(context.graph) {
@@ -88,8 +89,7 @@ pub fn import_scene<E: BevyExtensionImport<GltfDocument>>(
             let primitive_ents = node_primitive_entities.get(handle).unwrap();
 
             for entity in primitive_ents {
-                let mut entity = world.entity_mut(*entity);
-                entity.insert(SkinnedMesh {
+                world.entity_mut(*entity).insert(SkinnedMesh {
                     inverse_bindposes: inverse_bindposes.clone(),
                     joints: joints.clone(),
                 });

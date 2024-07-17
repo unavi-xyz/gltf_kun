@@ -8,6 +8,7 @@ repository.workspace = true
 edition.workspace = true
 
 [lints.clippy]
+too_many_arguments = "allow"
 type_complexity = "allow"
 
 [features]
