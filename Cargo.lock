@@ -704,7 +704,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_example"
-version = "0.0.12"
+version = "0.0.13"
 dependencies = [
  "avian3d",
  "bevy",
@@ -799,7 +799,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_gltf_kun"
-version = "0.0.12"
+version = "0.0.13"
 dependencies = [
  "avian3d",
  "bevy",
@@ -2330,7 +2330,7 @@ dependencies = [
 
 [[package]]
 name = "gltf_kun"
-version = "0.0.12"
+version = "0.0.13"
 dependencies = [
  "base64 0.22.1",
  "bevy_math",
