@@ -8,13 +8,13 @@
 //!
 //! ## Usage
 //!
-//! Add the plugin to your app:
+//! Add [GltfKunPlugin] to your app:
 //!
-//! ```
+//! ```no_run
 //! use bevy::prelude::*;
 //! use bevy_gltf_kun::GltfKunPlugin;
 //!
-//! let app = App::new().add_plugins((DefaultPlugins, GltfKunPlugin::default()));
+//! App::new().add_plugins((DefaultPlugins, GltfKunPlugin::default()));
 //! ```
 //!
 //! ### Export
