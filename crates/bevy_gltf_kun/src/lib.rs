@@ -111,8 +111,8 @@ pub mod import;
 mod plugins;
 
 pub struct GltfKunPlugin {
-    gltf_export: bool,
-    gltf_import: bool,
+    pub gltf_export: bool,
+    pub gltf_import: bool,
 }
 
 impl Default for GltfKunPlugin {
