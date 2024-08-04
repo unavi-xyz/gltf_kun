@@ -216,7 +216,7 @@ pub fn import_primitive<E: BevyExtensionImport<GltfDocument>>(
 
     E::import_primitive(context, &mut entity, *p);
 
-    let mesh_label = context
+    let mesh = context
         .load_context
         .add_labeled_asset(primitive_label.clone(), bevy_mesh);
 
@@ -225,7 +225,7 @@ pub fn import_primitive<E: BevyExtensionImport<GltfDocument>>(
     let primitive = GltfPrimitive {
         extras: weight.extras.take(),
         material,
-        mesh: mesh_label,
+        mesh,
     };
 
     Ok((entity.id(), primitive, morph_weights))

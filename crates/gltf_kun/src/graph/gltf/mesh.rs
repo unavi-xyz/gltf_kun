@@ -7,7 +7,6 @@ use super::{node::NodeEdge, primitive::Primitive, GltfEdge, GltfWeight, Node};
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum MeshEdge {
     Primitive,
-    Material,
 }
 
 impl<'a> TryFrom<&'a Edge> for &'a MeshEdge {
