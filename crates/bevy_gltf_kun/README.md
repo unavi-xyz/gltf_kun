@@ -29,7 +29,6 @@ The resulting [GltfExportResult](export::gltf::GltfExportResult) will contain a 
 [GltfDocument](gltf_kun::graph::gltf::document::GltfDocument) that can be exported to various
 file types. See [gltf_kun] for more information on how to do so.
 
-
 ```rust
 use bevy::prelude::*;
 use bevy_gltf_kun::{
