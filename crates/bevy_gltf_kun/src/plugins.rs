@@ -12,7 +12,13 @@ use crate::{
     },
     import::{
         extensions::BevyExtensionImport,
-        gltf::{loader::GltfLoader, mesh::GltfMesh, node::GltfNode, scene::GltfScene, GltfKun},
+        gltf::{
+            loader::{GlbLoader, GltfLoader},
+            mesh::GltfMesh,
+            node::GltfNode,
+            scene::GltfScene,
+            GltfKun,
+        },
     },
 };
 
@@ -71,6 +77,7 @@ where
 {
     fn build(&self, app: &mut App) {
         app.add_plugins(GltfAssetPlugin)
-            .register_asset_loader::<GltfLoader<E>>(GltfLoader::<E>::default());
+            .register_asset_loader::<GltfLoader<E>>(GltfLoader::<E>::default())
+            .register_asset_loader::<GlbLoader<E>>(GlbLoader::<E>::default());
     }
 }

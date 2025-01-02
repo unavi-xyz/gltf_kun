@@ -14,7 +14,6 @@ type_complexity = "allow"
 [features]
 default = []
 omi_physics = ["dep:avian3d", "gltf_kun/omi_physics"]
-register_extensions = []
 
 [dependencies]
 avian3d = { workspace = true, optional = true }
