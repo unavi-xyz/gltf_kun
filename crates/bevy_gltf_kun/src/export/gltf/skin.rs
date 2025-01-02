@@ -10,13 +10,13 @@ use gltf_kun::graph::{
 use super::ExportContext;
 
 pub fn export_skins(
-    In(mut context): In<ExportContext>,
+    In(mut ctx): In<ExportContext>,
     inverse_bindposes: Res<Assets<SkinnedMeshInverseBindposes>>,
     skinned_meshes: Query<(Entity, &SkinnedMesh, Option<&Name>)>,
 ) -> ExportContext {
     for (entity, mesh, name) in skinned_meshes.iter() {
-        let mut skin = context.doc.create_skin(&mut context.graph);
-        let weight = skin.get_mut(&mut context.graph);
+        let mut skin = ctx.doc.create_skin(&mut ctx.graph);
+        let weight = skin.get_mut(&mut ctx.graph);
 
         if let Some(name) = name {
             weight.name = Some(name.to_string());
@@ -24,10 +24,10 @@ pub fn export_skins(
 
         mesh.joints
             .iter()
-            .filter_map(|joint| context.nodes.iter().find(|n| n.entity == *joint))
+            .filter_map(|joint| ctx.nodes.iter().find(|n| n.entity == *joint))
             .enumerate()
             .for_each(|(i, cached)| {
-                skin.add_joint(&mut context.graph, &cached.node, i);
+                skin.add_joint(&mut ctx.graph, &cached.node, i);
             });
 
         let inverse_bindposes_handle = &mesh.inverse_bindposes;
@@ -45,13 +45,13 @@ pub fn export_skins(
             data
         });
 
-        let mut accessor = context.doc.create_accessor(&mut context.graph);
-        skin.set_inverse_bind_matrices(&mut context.graph, Some(accessor));
+        let mut accessor = ctx.doc.create_accessor(&mut ctx.graph);
+        skin.set_inverse_bind_matrices(&mut ctx.graph, Some(accessor));
 
-        let buffer = context.doc.create_buffer(&mut context.graph);
-        accessor.set_buffer(&mut context.graph, Some(buffer));
+        let buffer = ctx.doc.create_buffer(&mut ctx.graph);
+        accessor.set_buffer(&mut ctx.graph, Some(buffer));
 
-        let accessor_weight = accessor.get_mut(&mut context.graph);
+        let accessor_weight = accessor.get_mut(&mut ctx.graph);
         accessor_weight.component_type = ComponentType::F32;
         accessor_weight.element_type = Type::Mat4;
         accessor_weight.data = data;
@@ -60,13 +60,13 @@ pub fn export_skins(
 
         // Find which node this skinned mesh is attached to.
         // `entity` is a gltf primitive.
-        for cached_node in &context.nodes {
-            let mesh = match cached_node.node.mesh(&context.graph) {
+        for cached_node in &ctx.nodes {
+            let mesh = match cached_node.node.mesh(&ctx.graph) {
                 Some(mesh) => mesh,
                 None => continue,
             };
 
-            let cached_mesh = context
+            let cached_mesh = ctx
                 .meshes
                 .iter()
                 .find(|cached| cached.mesh == mesh)
@@ -74,7 +74,7 @@ pub fn export_skins(
 
             for (ent, _) in &cached_mesh.primitives {
                 if *ent == entity {
-                    cached_node.node.set_skin(&mut context.graph, Some(skin));
+                    cached_node.node.set_skin(&mut ctx.graph, Some(skin));
                     found_node = true;
                 }
             }
@@ -85,5 +85,5 @@ pub fn export_skins(
         }
     }
 
-    context
+    ctx
 }

@@ -6,11 +6,11 @@ use crate::import::gltf::node::node_label;
 use super::{CachedNode, ExportContext};
 
 pub fn export_nodes(
-    In(mut context): In<ExportContext>,
+    In(mut ctx): In<ExportContext>,
     nodes: Query<(&Transform, Option<&Name>, Option<&Children>)>,
 ) -> ExportContext {
-    context.doc.scenes(&context.graph).iter().for_each(|scene| {
-        let entity = context
+    ctx.doc.scenes(&ctx.graph).iter().for_each(|scene| {
+        let entity = ctx
             .scenes
             .iter()
             .find(|cached| cached.scene == *scene)
@@ -36,26 +36,26 @@ pub fn export_nodes(
                 };
 
                 for child in grandchildren {
-                    let n = export_node(&mut context, &nodes, *child);
-                    scene.add_node(&mut context.graph, n);
+                    let n = export_node(&mut ctx, &nodes, *child);
+                    scene.add_node(&mut ctx.graph, n);
                 }
             } else {
-                let n = export_node(&mut context, &nodes, *c);
-                scene.add_node(&mut context.graph, n);
+                let n = export_node(&mut ctx, &nodes, *c);
+                scene.add_node(&mut ctx.graph, n);
             }
         });
     });
 
-    context
+    ctx
 }
 
 fn export_node(
-    context: &mut ExportContext,
+    ctx: &mut ExportContext,
     nodes: &Query<(&Transform, Option<&Name>, Option<&Children>)>,
     entity: Entity,
 ) -> node::Node {
-    let mut node = context.doc.create_node(&mut context.graph);
-    let weight = node.get_mut(&mut context.graph);
+    let mut node = ctx.doc.create_node(&mut ctx.graph);
+    let weight = node.get_mut(&mut ctx.graph);
 
     let (transform, name, children) = nodes.get(entity).expect("Node not found");
 
@@ -88,12 +88,12 @@ fn export_node(
 
     if let Some(children) = children {
         children.iter().for_each(|child| {
-            let n = export_node(context, nodes, *child);
-            node.add_child(&mut context.graph, &n);
+            let n = export_node(ctx, nodes, *child);
+            node.add_child(&mut ctx.graph, &n);
         })
     }
 
-    context.nodes.push(CachedNode { node, entity });
+    ctx.nodes.push(CachedNode { node, entity });
 
     node
 }

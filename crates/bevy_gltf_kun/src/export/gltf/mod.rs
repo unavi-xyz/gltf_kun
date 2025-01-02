@@ -121,12 +121,9 @@ pub fn export_gltf<E: BevyExtensionExport<GltfDocument>>(world: &mut World) {
     }
 }
 
-pub fn create_export_result(
-    In(context): In<ExportContext>,
-    mut writer: EventWriter<GltfExportResult>,
-) {
+pub fn create_export_result(In(ctx): In<ExportContext>, mut writer: EventWriter<GltfExportResult>) {
     writer.send(GltfExportResult {
-        graph: context.graph,
-        result: Ok(context.doc),
+        graph: ctx.graph,
+        result: Ok(ctx.doc),
     });
 }

@@ -20,13 +20,13 @@ use thiserror::Error;
 use super::{CachedMaterial, ExportContext};
 
 pub fn export_materials(
-    In(mut context): In<ExportContext>,
+    In(mut ctx): In<ExportContext>,
     material_assets: Res<Assets<StandardMaterial>>,
     materials: Query<(&MeshMaterial3d<StandardMaterial>, Option<&Name>)>,
     image_assets: Res<Assets<Image>>,
 ) -> ExportContext {
-    for mesh in context.doc.meshes(&context.graph) {
-        let cached_mesh = context
+    for mesh in ctx.doc.meshes(&ctx.graph) {
+        let cached_mesh = ctx
             .meshes
             .iter()
             .find(|cached| cached.mesh == mesh)
@@ -38,7 +38,7 @@ pub fn export_materials(
                 Err(_) => continue,
             };
 
-            let cached_material = context
+            let cached_material = ctx
                 .materials
                 .iter()
                 .find(|cached| cached.bevy_material.0 == handle.0);
@@ -48,8 +48,8 @@ pub fn export_materials(
                 None => {
                     let standard_material = material_assets.get(handle).unwrap();
 
-                    let mut material = context.doc.create_material(&mut context.graph);
-                    let weight = material.get_mut(&mut context.graph);
+                    let mut material = ctx.doc.create_material(&mut ctx.graph);
+                    let weight = material.get_mut(&mut ctx.graph);
 
                     weight.name = name.map(|n| n.to_string());
                     weight.double_sided = standard_material.double_sided;
@@ -74,44 +74,42 @@ pub fn export_materials(
                     weight.alpha_mode = alpha_mode;
 
                     let base_color_texture = export_texture(
-                        &mut context,
+                        &mut ctx,
                         &standard_material.base_color_texture,
                         &image_assets,
                     );
-                    material.set_base_color_texture(&mut context.graph, base_color_texture);
+                    material.set_base_color_texture(&mut ctx.graph, base_color_texture);
 
                     let emissive_texture = export_texture(
-                        &mut context,
+                        &mut ctx,
                         &standard_material.emissive_texture,
                         &image_assets,
                     );
-                    material.set_emissive_texture(&mut context.graph, emissive_texture);
+                    material.set_emissive_texture(&mut ctx.graph, emissive_texture);
 
                     let metallic_roughness_texture = export_texture(
-                        &mut context,
+                        &mut ctx,
                         &standard_material.metallic_roughness_texture,
                         &image_assets,
                     );
-                    material.set_metallic_roughness_texture(
-                        &mut context.graph,
-                        metallic_roughness_texture,
-                    );
+                    material
+                        .set_metallic_roughness_texture(&mut ctx.graph, metallic_roughness_texture);
 
                     let normal_texture = export_texture(
-                        &mut context,
+                        &mut ctx,
                         &standard_material.normal_map_texture,
                         &image_assets,
                     );
-                    material.set_normal_texture(&mut context.graph, normal_texture);
+                    material.set_normal_texture(&mut ctx.graph, normal_texture);
 
                     let occlusion_texture = export_texture(
-                        &mut context,
+                        &mut ctx,
                         &standard_material.occlusion_texture,
                         &image_assets,
                     );
-                    material.set_occlusion_texture(&mut context.graph, occlusion_texture);
+                    material.set_occlusion_texture(&mut ctx.graph, occlusion_texture);
 
-                    context.materials.push(CachedMaterial {
+                    ctx.materials.push(CachedMaterial {
                         bevy_material: handle.clone(),
                         entity,
                         material,
@@ -121,15 +119,15 @@ pub fn export_materials(
                 }
             };
 
-            primitive.set_material(&mut context.graph, Some(material));
+            primitive.set_material(&mut ctx.graph, Some(material));
         }
     }
 
-    context
+    ctx
 }
 
 fn export_texture(
-    context: &mut ExportContext,
+    ctx: &mut ExportContext,
     texture: &Option<Handle<Image>>,
     image_assets: &Res<Assets<Image>>,
 ) -> Option<Texture> {
@@ -140,12 +138,12 @@ fn export_texture(
 
     let bevy_image = image_assets.get(handle).unwrap();
 
-    let mut image = context.doc.create_image(&mut context.graph);
+    let mut image = ctx.doc.create_image(&mut ctx.graph);
 
-    let buffer = context.doc.buffers(&context.graph)[0];
-    image.set_buffer(&mut context.graph, Some(buffer));
+    let buffer = ctx.doc.buffers(&ctx.graph)[0];
+    image.set_buffer(&mut ctx.graph, Some(buffer));
 
-    let image_weight = image.get_mut(&mut context.graph);
+    let image_weight = image.get_mut(&mut ctx.graph);
 
     let (mime, data) = match convert_image(bevy_image) {
         Ok((mime, data)) => (mime, data),
@@ -158,10 +156,10 @@ fn export_texture(
     image_weight.mime_type = Some(mime);
     image_weight.data = data;
 
-    let mut info = Texture::new(&mut context.graph);
-    info.set_image(&mut context.graph, Some(image));
+    let mut texture = ctx.doc.create_texture(&mut ctx.graph);
+    texture.set_image(&mut ctx.graph, Some(image));
 
-    let info_weight = info.get_mut(&mut context.graph);
+    let info_weight = texture.get_mut(&mut ctx.graph);
 
     match &bevy_image.sampler {
         ImageSampler::Default => {
@@ -190,7 +188,7 @@ fn export_texture(
         }
     };
 
-    Some(info)
+    Some(texture)
 }
 
 fn address_mode(value: &ImageAddressMode) -> WrappingMode {

@@ -12,24 +12,17 @@ use crate::import::gltf::animation::paths_recur;
 use super::ExportContext;
 
 pub fn export_animations(
-    In(mut context): In<ExportContext>,
+    In(mut ctx): In<ExportContext>,
     clips: Res<Assets<AnimationClip>>,
 ) -> ExportContext {
     let mut animation_paths = HashMap::new();
-    for scene in context.doc.scenes(&context.graph) {
-        for node in scene.nodes(&context.graph) {
-            paths_recur(
-                &context.doc,
-                &context.graph,
-                &[],
-                node,
-                &mut animation_paths,
-                node,
-            );
+    for scene in ctx.doc.scenes(&ctx.graph) {
+        for node in scene.nodes(&ctx.graph) {
+            paths_recur(&ctx.doc, &ctx.graph, &[], node, &mut animation_paths, node);
         }
     }
 
-    let nodes = context.nodes.iter().map(|n| n.node).collect::<Vec<_>>();
+    let nodes = ctx.nodes.iter().map(|n| n.node).collect::<Vec<_>>();
 
     // Find clips that have an EntityPath matching one of our nodes.
     for (_, clip) in clips.iter() {
@@ -52,15 +45,15 @@ pub fn export_animations(
                 continue;
             }
 
-            let a = context.doc.create_animation(&mut context.graph);
+            let a = ctx.doc.create_animation(&mut ctx.graph);
 
             for curve in curves.iter() {
-                export_curve(&mut context, a, curve, *node);
+                export_curve(&mut ctx, a, curve, *node);
             }
         }
     }
 
-    context
+    ctx
 }
 
 fn export_curve(
