@@ -356,6 +356,10 @@ fn export(
     scene: Query<&SceneRoot>,
 ) {
     for event in key_events.read() {
+        if !event.state.is_pressed() {
+            continue;
+        }
+
         if event.logical_key != Key::Character("e".into()) {
             continue;
         }
@@ -381,6 +385,10 @@ fn reload(
     selected: Res<SelectedModel>,
 ) {
     for event in key_events.read() {
+        if !event.state.is_pressed() {
+            continue;
+        }
+
         if event.logical_key != Key::Character("r".into()) {
             continue;
         }
