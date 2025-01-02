@@ -35,7 +35,7 @@
 //! use gltf_kun::io::format::glb::GlbExport;
 //!
 //! fn export_scene(
-//!     scenes: Query<&Handle<Scene>>,
+//!     scenes: Query<&SceneRoot>,
 //!     mut export: EventWriter<GltfExportEvent<DefaultExtensions>>,
 //!     mut results: ResMut<Events<GltfExportResult>>,
 //!     mut did_export: Local<bool>,
@@ -43,7 +43,7 @@
 //!     // Send an export event once.
 //!     if !*did_export {
 //!         if let Some(handle) = scenes.iter().next() {
-//!             export.send(GltfExportEvent::new(handle.clone()));
+//!             export.send(GltfExportEvent::new(handle.0.clone()));
 //!             *did_export = true;
 //!         }
 //!     }
@@ -92,7 +92,7 @@
 //!
 //!     // Spawn the first scene.
 //!     let gltf_scene = gltf_scene_assets.get(&gltf.scenes[0]).unwrap();
-//!     commands.spawn(SceneBundle { scene: gltf_scene.scene.clone(), ..default() });
+//!     commands.spawn(SceneRoot(gltf_scene.scene.clone()));
 //!
 //!     *did_import = true;
 //! }

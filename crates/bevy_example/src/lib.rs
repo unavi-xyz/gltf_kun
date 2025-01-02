@@ -124,29 +124,24 @@ struct LoadedKun(Option<Handle<GltfKun>>);
 
 fn setup(mut commands: Commands, mut writer: EventWriter<LoadModel>) {
     commands.spawn((
-        Camera3dBundle {
-            transform: Transform::from_xyz(1.0, 2.0, 5.0),
-            ..default()
-        },
         PanOrbitCamera::default(),
+        Transform::from_xyz(1.0, 2.0, 5.0),
     ));
 
-    commands.spawn(DirectionalLightBundle {
-        directional_light: DirectionalLight {
+    commands.spawn((
+        DirectionalLight {
             shadows_enabled: true,
             ..default()
         },
-        transform: Transform::from_xyz(4.0, 8.0, 3.0),
-        cascade_shadow_config: CascadeShadowConfigBuilder {
+        Transform::from_xyz(4.0, 8.0, 3.0),
+        CascadeShadowConfigBuilder {
             num_cascades: 3,
             maximum_distance: 100.0,
             first_cascade_far_bound: 8.0,
             ..default()
         }
         .build(),
-
-        ..default()
-    });
+    ));
 
     writer.send(LoadModel(MODELS[0].to_string()));
 }
@@ -264,7 +259,7 @@ fn load_scene(
     loader: Res<Loader>,
     mut commands: Commands,
     mut events: EventReader<LoadScene>,
-    scenes: Query<Entity, With<Handle<Scene>>>,
+    scenes: Query<Entity, With<SceneRoot>>,
     gltf_scenes: Res<Assets<GltfScene>>,
 ) {
     for event in events.read() {
@@ -319,7 +314,7 @@ fn load_scene(
             }
         };
 
-        commands.spawn(SceneBundle { scene, ..default() });
+        commands.spawn(SceneRoot(scene));
     }
 }
 
@@ -328,7 +323,7 @@ fn play_animations(
     gltf_assets: Res<Assets<Gltf>>,
     gltf_kun_assets: Res<Assets<GltfKun>>,
     mut animation_graphs: ResMut<Assets<AnimationGraph>>,
-    mut players: Query<(Entity, &mut AnimationPlayer), Without<Handle<AnimationGraph>>>,
+    mut players: Query<(Entity, &mut AnimationPlayer), Without<AnimationGraphHandle>>,
 ) {
     for (entity, mut player) in players.iter_mut() {
         let mut graph = AnimationGraph::default();
@@ -351,14 +346,14 @@ fn play_animations(
         }
 
         let handle = animation_graphs.add(graph);
-        commands.entity(entity).insert(handle);
+        commands.entity(entity).insert(AnimationGraphHandle(handle));
     }
 }
 
 fn export(
     mut export: EventWriter<GltfExportEvent<DefaultExtensions>>,
     mut key_events: EventReader<KeyboardInput>,
-    scene: Query<&Handle<Scene>>,
+    scene: Query<&SceneRoot>,
 ) {
     for event in key_events.read() {
         if event.logical_key != Key::Character("e".into()) {
@@ -375,7 +370,7 @@ fn export(
             }
         };
 
-        export.send(GltfExportEvent::new(handle.clone()));
+        export.send(GltfExportEvent::new(handle.0.clone()));
     }
 }
 

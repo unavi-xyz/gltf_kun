@@ -1,11 +1,9 @@
 use std::marker::PhantomData;
 
 use bevy::{
+    image::{ImageAddressMode, ImageFilterMode, ImageSampler},
     prelude::*,
-    render::{
-        render_resource::TextureFormat,
-        texture::{ImageAddressMode, ImageFilterMode, ImageSampler},
-    },
+    render::render_resource::TextureFormat,
 };
 use gltf_kun::graph::{
     gltf::{
@@ -24,7 +22,7 @@ use super::{CachedMaterial, ExportContext};
 pub fn export_materials(
     In(mut context): In<ExportContext>,
     material_assets: Res<Assets<StandardMaterial>>,
-    materials: Query<(&Handle<StandardMaterial>, Option<&Name>)>,
+    materials: Query<(&MeshMaterial3d<StandardMaterial>, Option<&Name>)>,
     image_assets: Res<Assets<Image>>,
 ) -> ExportContext {
     for mesh in context.doc.meshes(&context.graph) {
@@ -43,7 +41,7 @@ pub fn export_materials(
             let cached_material = context
                 .materials
                 .iter()
-                .find(|cached| cached.bevy_material == *handle);
+                .find(|cached| cached.bevy_material.0 == handle.0);
 
             let material = match cached_material {
                 Some(cached) => cached.material,

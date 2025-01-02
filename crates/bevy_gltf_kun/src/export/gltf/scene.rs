@@ -6,20 +6,20 @@ use super::{CachedScene, ExportContext};
 pub fn export_scenes(
     In(mut context): In<ExportContext>,
     names: Query<&Name>,
-    scenes: Query<(Entity, &Handle<Scene>)>,
+    scenes: Query<(Entity, &SceneRoot)>,
 ) -> ExportContext {
     for (entity, handle) in scenes.iter() {
         if !context.target_scenes.contains(handle) {
             continue;
         }
 
-        if context.scenes.iter().any(|x| x.handle == *handle) {
+        if context.scenes.iter().any(|x| x.handle == **handle) {
             continue;
         }
 
         let mut scene = context.doc.create_scene(&mut context.graph);
 
-        if context.target_default_scene == Some(handle.clone()) {
+        if context.target_default_scene == Some(handle.0.clone()) {
             context
                 .doc
                 .set_default_scene(&mut context.graph, Some(scene));
@@ -33,7 +33,7 @@ pub fn export_scenes(
 
         context.scenes.push(CachedScene {
             entity,
-            handle: handle.clone(),
+            handle: handle.0.clone(),
             scene,
         });
     }

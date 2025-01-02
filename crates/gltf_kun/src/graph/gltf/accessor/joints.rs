@@ -53,8 +53,8 @@ impl<'a, A> CastingIter<'a, A> {
     }
 }
 
-impl<'a, A: Cast> ExactSizeIterator for CastingIter<'a, A> {}
-impl<'a, A: Cast> Iterator for CastingIter<'a, A> {
+impl<A: Cast> ExactSizeIterator for CastingIter<'_, A> {}
+impl<A: Cast> Iterator for CastingIter<'_, A> {
     type Item = A::Output;
 
     #[inline]

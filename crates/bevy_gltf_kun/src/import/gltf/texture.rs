@@ -1,12 +1,10 @@
 use bevy::{
-    prelude::*,
-    render::{
-        render_asset::RenderAssetUsages,
-        texture::{
-            CompressedImageFormats, ImageAddressMode, ImageFilterMode, ImageSampler,
-            ImageSamplerDescriptor, ImageType, TextureError,
-        },
+    image::{
+        CompressedImageFormats, ImageAddressMode, ImageFilterMode, ImageSampler,
+        ImageSamplerDescriptor, ImageType,
     },
+    prelude::*,
+    render::render_asset::RenderAssetUsages,
     utils::HashSet,
 };
 use gltf_kun::graph::{

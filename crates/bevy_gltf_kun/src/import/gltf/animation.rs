@@ -220,9 +220,10 @@ pub fn import_animation(
                     };
 
                     if keyframe_timestamps.len() == 1 {
-                        Some(ConstantCurve::new(Interval::EVERYWHERE, weights))
-                            .map(WeightsCurve)
-                            .map(VariableCurve::new)
+                        Some(VariableCurve::new(WeightsCurve(ConstantCurve::new(
+                            Interval::EVERYWHERE,
+                            weights,
+                        ))))
                     } else {
                         match sampler_weight.interpolation {
                             Interpolation::Linear => {

@@ -43,7 +43,7 @@ pub trait GraphNodeEdges: Copy + Into<NodeIndex> {
         graph: &'a Graph,
         edge: &E,
         direction: Direction,
-    ) -> impl Iterator<Item = EdgeReference<Edge>>
+    ) -> impl Iterator<Item = EdgeReference<'a, Edge>>
     where
         for<'b> &'b E: TryFrom<&'b Edge> + PartialEq,
         Edge: From<E>,
@@ -64,7 +64,7 @@ pub trait GraphNodeEdges: Copy + Into<NodeIndex> {
         graph: &'a Graph,
         edge: &E,
         direction: Direction,
-    ) -> Option<EdgeReference<Edge>>
+    ) -> Option<EdgeReference<'a, Edge>>
     where
         for<'b> &'b E: TryFrom<&'b Edge> + PartialEq,
         Edge: From<E>,

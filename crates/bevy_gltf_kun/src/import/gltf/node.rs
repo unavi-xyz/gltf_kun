@@ -56,7 +56,7 @@ pub fn import_node<E: BevyExtensionImport<GltfDocument>>(
     let world_transform = *parent_world_transform * transform;
     let is_scale_inverted = world_transform.scale.is_negative_bitmask().count_ones() & 1 == 1;
 
-    let mut ent = builder.spawn(SpatialBundle::from_transform(transform));
+    let mut ent = builder.spawn((transform, Visibility::default()));
 
     let name = node_name(context.doc, context.graph, *n);
     ent.insert(Name::new(name.clone()));

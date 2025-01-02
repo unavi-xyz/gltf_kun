@@ -551,7 +551,7 @@ pub struct ElementIter<'a, T: Element> {
     pub _phantom: PhantomData<T>,
 }
 
-impl<'a, T: Element> Iterator for ElementIter<'a, T> {
+impl<T: Element> Iterator for ElementIter<'_, T> {
     type Item = T;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -567,7 +567,7 @@ impl<'a, T: Element> Iterator for ElementIter<'a, T> {
     }
 }
 
-impl<'a, T: Element + Copy> ElementIter<'a, T> {
+impl<T: Element + Copy> ElementIter<'_, T> {
     pub fn count(&self) -> usize {
         self.slice.len() / T::stride()
     }

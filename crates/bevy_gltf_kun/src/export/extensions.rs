@@ -13,10 +13,12 @@ impl BevyExtensionExport<GltfDocument> for DefaultExtensions {
         {
             use bevy::ecs::system::RunSystemOnce;
 
-            context = world.run_system_once_with(
-                context,
-                gltf_kun::extensions::omi_physics_body::OmiPhysicsBody::bevy_export,
-            );
+            context = world
+                .run_system_once_with(
+                    context,
+                    gltf_kun::extensions::omi_physics_body::OmiPhysicsBody::bevy_export,
+                )
+                .expect("omi physics");
         }
 
         context

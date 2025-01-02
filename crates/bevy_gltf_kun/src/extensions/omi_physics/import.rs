@@ -51,18 +51,14 @@ pub fn insert_rigid_bodies(mut commands: Commands, mut query: Query<(Entity, &Ri
             RigidBodyType::Kinematic => RigidBody::Kinematic,
         };
 
-        commands
-            .entity(entity)
-            .remove::<RigidBodyMarker>()
-            .insert(rigid_body)
-            .insert(LinearVelocity(marker.linear_velocity))
-            .insert(AngularVelocity(marker.angular_velocity))
-            .insert(MassPropertiesBundle {
-                mass: Mass(marker.mass),
-                center_of_mass: CenterOfMass(marker.center_of_mass),
-                inertia: marker.inertia,
-                ..default()
-            });
+        commands.entity(entity).remove::<RigidBodyMarker>().insert((
+            rigid_body,
+            LinearVelocity(marker.linear_velocity),
+            AngularVelocity(marker.angular_velocity),
+            Mass(marker.mass),
+            CenterOfMass(marker.center_of_mass),
+            marker.inertia,
+        ));
     }
 }
 
@@ -71,7 +67,7 @@ pub fn insert_rigid_bodies(mut commands: Commands, mut query: Query<(Entity, &Ri
 pub struct RigidBodyMarker {
     angular_velocity: Vec3,
     center_of_mass: Vec3,
-    inertia: Inertia,
+    inertia: AngularInertia,
     linear_velocity: Vec3,
     mass: f32,
     typ: RigidBodyType,
@@ -82,7 +78,7 @@ impl Default for RigidBodyMarker {
         Self {
             angular_velocity: Vec3::ZERO,
             center_of_mass: Vec3::ZERO,
-            inertia: Inertia::ZERO,
+            inertia: AngularInertia::ZERO,
             linear_velocity: Vec3::ZERO,
             mass: 1.0,
             typ: RigidBodyType::Dynamic,
@@ -135,12 +131,13 @@ impl NodeExtensionImport<GltfDocument> for OmiPhysicsBody {
                 BodyType::Kinematic => RigidBodyType::Kinematic,
             };
 
-            let inertia = Mat3::from_diagonal(motion.intertial_diagonal.into());
-            let inertia = Inertia(inertia);
-
             let rotation = motion.inertia_orientation.0;
-            let rotation = Quat::from_xyzw(rotation[0], rotation[1], rotation[2], rotation[3]);
-            inertia.rotated(&rotation.into());
+            let rotation = Mat3::from_quat(Quat::from_array(rotation));
+
+            let inertia = Mat3::from_diagonal(motion.intertial_diagonal.into());
+            let rotated_inertia = (rotation * inertia) * rotation.transpose();
+
+            let inertia = AngularInertia::from(rotated_inertia);
 
             entity.insert(RigidBodyMarker {
                 angular_velocity: motion.angular_velocity.into(),

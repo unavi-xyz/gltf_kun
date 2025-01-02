@@ -34,7 +34,7 @@ pub fn import_scene<E: BevyExtensionImport<GltfDocument>>(
     let mut root_nodes = Vec::new();
 
     world
-        .spawn(SpatialBundle::INHERITED_IDENTITY)
+        .spawn((Transform::default(), Visibility::default()))
         .with_children(|parent| {
             for mut node in s.nodes(context.graph) {
                 match import_node::<E>(

@@ -78,13 +78,13 @@ impl ExportContext {
 pub struct CachedMaterial {
     pub material: gltf::Material,
     pub entity: Entity,
-    pub bevy_material: Handle<StandardMaterial>,
+    pub bevy_material: MeshMaterial3d<StandardMaterial>,
 }
 
 pub struct CachedMesh {
     pub mesh: gltf::Mesh,
     pub primitives: Vec<(Entity, gltf::Primitive)>,
-    pub bevy_meshes: Vec<Handle<Mesh>>,
+    pub bevy_meshes: Vec<Mesh3d>,
 }
 
 pub struct CachedNode {
@@ -105,17 +105,19 @@ pub fn export_gltf<E: BevyExtensionExport<GltfDocument>>(world: &mut World) {
     };
 
     for event in events {
-        world.run_system_once_with(
-            ExportContext::new(event),
-            scene::export_scenes
-                .pipe(node::export_nodes)
-                .pipe(mesh::export_meshes)
-                .pipe(material::export_materials)
-                .pipe(animation::export_animations)
-                .pipe(skin::export_skins)
-                .pipe(E::bevy_export)
-                .pipe(create_export_result),
-        );
+        world
+            .run_system_once_with(
+                ExportContext::new(event),
+                scene::export_scenes
+                    .pipe(node::export_nodes)
+                    .pipe(mesh::export_meshes)
+                    .pipe(material::export_materials)
+                    .pipe(animation::export_animations)
+                    .pipe(skin::export_skins)
+                    .pipe(E::bevy_export)
+                    .pipe(create_export_result),
+            )
+            .expect("export");
     }
 }
 

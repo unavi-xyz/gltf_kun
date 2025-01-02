@@ -1,8 +1,7 @@
 use bevy::{animation::AnimationTargetId, prelude::*, utils::HashMap};
 use gltf_kun::graph::{
     gltf::{
-        accessor::{ComponentType, Type},
-        animation::{AnimationChannel, AnimationSampler, Interpolation, TargetPath},
+        animation::{AnimationChannel, AnimationSampler},
         Animation, Node,
     },
     GraphNodeWeight,
@@ -67,94 +66,95 @@ pub fn export_animations(
 fn export_curve(
     context: &mut ExportContext,
     animation: Animation,
-    curve: &VariableCurve,
+    _curve: &VariableCurve,
     target: Node,
 ) {
-    let mut channel = AnimationChannel::new(&mut context.graph);
+    let channel = AnimationChannel::new(&mut context.graph);
     animation.add_channel(&mut context.graph, &channel);
 
-    let mut sampler = AnimationSampler::new(&mut context.graph);
+    let sampler = AnimationSampler::new(&mut context.graph);
     channel.set_sampler(&mut context.graph, Some(sampler));
     channel.set_target(&mut context.graph, Some(target));
 
-    let sampler_weight = sampler.get_mut(&mut context.graph);
+    // let sampler_weight = sampler.get_mut(&mut context.graph);
 
-    let interpolation = match curve.interpolation {
-        bevy::animation::Interpolation::Linear => Interpolation::Linear,
-        bevy::animation::Interpolation::Step => Interpolation::Step,
-        bevy::animation::Interpolation::CubicSpline => Interpolation::CubicSpline,
-    };
-
-    sampler_weight.interpolation = interpolation;
+    // let interpolation = match curve.interpolation {
+    //     bevy::animation::Interpolation::Linear => Interpolation::Linear,
+    //     bevy::animation::Interpolation::Step => Interpolation::Step,
+    //     bevy::animation::Interpolation::CubicSpline => Interpolation::CubicSpline,
+    // };
+    // sampler_weight.interpolation = interpolation;
 
     let buffer = context.doc.create_buffer(&mut context.graph);
 
-    let mut input = context.doc.create_accessor(&mut context.graph);
+    let input = context.doc.create_accessor(&mut context.graph);
     input.set_buffer(&mut context.graph, Some(buffer));
     sampler.set_input(&mut context.graph, Some(input));
 
-    let input_weight = input.get_mut(&mut context.graph);
-    input_weight.element_type = Type::Scalar;
-    input_weight.component_type = ComponentType::F32;
-    input_weight.data = curve
-        .keyframe_timestamps
-        .iter()
-        .copied()
-        .flat_map(|f| f.to_le_bytes())
-        .collect();
+    // TODO animation curve export
 
-    let mut output = context.doc.create_accessor(&mut context.graph);
-    output.set_buffer(&mut context.graph, Some(buffer));
-    sampler.set_output(&mut context.graph, Some(output));
-
-    match &curve.keyframes {
-        Keyframes::Translation(keyframes) => {
-            let channel_weight = channel.get_mut(&mut context.graph);
-            channel_weight.path = TargetPath::Translation;
-
-            let output_weight = output.get_mut(&mut context.graph);
-            output_weight.element_type = Type::Vec3;
-            output_weight.component_type = ComponentType::F32;
-            output_weight.data = keyframes
-                .iter()
-                .flat_map(|v| v.to_array())
-                .flat_map(|f| f.to_le_bytes())
-                .collect();
-        }
-        Keyframes::Rotation(keyframes) => {
-            let channel_weight = channel.get_mut(&mut context.graph);
-            channel_weight.path = TargetPath::Rotation;
-
-            let output_weight = output.get_mut(&mut context.graph);
-            output_weight.element_type = Type::Vec4;
-            output_weight.component_type = ComponentType::F32;
-            output_weight.data = keyframes
-                .iter()
-                .flat_map(|v| v.to_array())
-                .flat_map(|f| f.to_le_bytes())
-                .collect();
-        }
-        Keyframes::Scale(keyframes) => {
-            let channel_weight = channel.get_mut(&mut context.graph);
-            channel_weight.path = TargetPath::Scale;
-
-            let output_weight = output.get_mut(&mut context.graph);
-            output_weight.element_type = Type::Vec3;
-            output_weight.component_type = ComponentType::F32;
-            output_weight.data = keyframes
-                .iter()
-                .flat_map(|v| v.to_array())
-                .flat_map(|f| f.to_le_bytes())
-                .collect();
-        }
-        Keyframes::Weights(keyframes) => {
-            let channel_weight = channel.get_mut(&mut context.graph);
-            channel_weight.path = TargetPath::MorphTargetWeights;
-
-            let output_weight = output.get_mut(&mut context.graph);
-            output_weight.element_type = Type::Scalar;
-            output_weight.component_type = ComponentType::F32;
-            output_weight.data = keyframes.iter().flat_map(|f| f.to_le_bytes()).collect();
-        }
-    }
+    // let input_weight = input.get_mut(&mut context.graph);
+    // input_weight.element_type = Type::Scalar;
+    // input_weight.component_type = ComponentType::F32;
+    // input_weight.data = curve
+    //     .keyframe_timestamps
+    //     .iter()
+    //     .copied()
+    //     .flat_map(|f| f.to_le_bytes())
+    //     .collect();
+    //
+    // let mut output = context.doc.create_accessor(&mut context.graph);
+    // output.set_buffer(&mut context.graph, Some(buffer));
+    // sampler.set_output(&mut context.graph, Some(output));
+    //
+    // match &curve.keyframes {
+    //     Keyframes::Translation(keyframes) => {
+    //         let channel_weight = channel.get_mut(&mut context.graph);
+    //         channel_weight.path = TargetPath::Translation;
+    //
+    //         let output_weight = output.get_mut(&mut context.graph);
+    //         output_weight.element_type = Type::Vec3;
+    //         output_weight.component_type = ComponentType::F32;
+    //         output_weight.data = keyframes
+    //             .iter()
+    //             .flat_map(|v| v.to_array())
+    //             .flat_map(|f| f.to_le_bytes())
+    //             .collect();
+    //     }
+    //     Keyframes::Rotation(keyframes) => {
+    //         let channel_weight = channel.get_mut(&mut context.graph);
+    //         channel_weight.path = TargetPath::Rotation;
+    //
+    //         let output_weight = output.get_mut(&mut context.graph);
+    //         output_weight.element_type = Type::Vec4;
+    //         output_weight.component_type = ComponentType::F32;
+    //         output_weight.data = keyframes
+    //             .iter()
+    //             .flat_map(|v| v.to_array())
+    //             .flat_map(|f| f.to_le_bytes())
+    //             .collect();
+    //     }
+    //     Keyframes::Scale(keyframes) => {
+    //         let channel_weight = channel.get_mut(&mut context.graph);
+    //         channel_weight.path = TargetPath::Scale;
+    //
+    //         let output_weight = output.get_mut(&mut context.graph);
+    //         output_weight.element_type = Type::Vec3;
+    //         output_weight.component_type = ComponentType::F32;
+    //         output_weight.data = keyframes
+    //             .iter()
+    //             .flat_map(|v| v.to_array())
+    //             .flat_map(|f| f.to_le_bytes())
+    //             .collect();
+    //     }
+    //     Keyframes::Weights(keyframes) => {
+    //         let channel_weight = channel.get_mut(&mut context.graph);
+    //         channel_weight.path = TargetPath::MorphTargetWeights;
+    //
+    //         let output_weight = output.get_mut(&mut context.graph);
+    //         output_weight.element_type = Type::Scalar;
+    //         output_weight.component_type = ComponentType::F32;
+    //         output_weight.data = keyframes.iter().flat_map(|f| f.to_le_bytes()).collect();
+    //     }
+    // }
 }

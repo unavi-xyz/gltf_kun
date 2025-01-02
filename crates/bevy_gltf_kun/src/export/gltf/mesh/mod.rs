@@ -14,7 +14,7 @@ mod vertex_to_accessor;
 pub fn export_meshes(
     In(mut context): In<ExportContext>,
     mesh_assets: Res<Assets<Mesh>>,
-    meshes: Query<(&Handle<Mesh>, Option<&Name>)>,
+    meshes: Query<(&Mesh3d, Option<&Name>)>,
 ) -> ExportContext {
     context.doc.scenes(&context.graph).iter().for_each(|scene| {
         scene.nodes(&context.graph).iter().for_each(|node| {
@@ -28,7 +28,7 @@ pub fn export_meshes(
 fn export_node_mesh(
     context: &mut ExportContext,
     mesh_assets: &Res<Assets<Mesh>>,
-    meshes: &Query<(&Handle<Mesh>, Option<&Name>)>,
+    meshes: &Query<(&Mesh3d, Option<&Name>)>,
     node: node::Node,
 ) {
     let cached = context

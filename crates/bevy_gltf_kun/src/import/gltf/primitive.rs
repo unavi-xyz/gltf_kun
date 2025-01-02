@@ -506,7 +506,7 @@ struct MorphTargetsIter<'a> {
     tangents: Option<ElementIter<'a, [f32; 3]>>,
 }
 
-impl<'a> Iterator for MorphTargetsIter<'a> {
+impl Iterator for MorphTargetsIter<'_> {
     type Item = MorphAttributes;
 
     fn next(&mut self) -> Option<Self::Item> {

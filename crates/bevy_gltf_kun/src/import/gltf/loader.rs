@@ -1,9 +1,7 @@
 use std::marker::PhantomData;
 
 use bevy::{
-    asset::{
-        io::Reader, AssetLoadError, AssetLoader, AsyncReadExt, LoadContext, ReadAssetBytesError,
-    },
+    asset::{io::Reader, AssetLoadError, AssetLoader, LoadContext, ReadAssetBytesError},
     prelude::*,
     utils::HashMap,
 };

@@ -20,7 +20,9 @@ use crate::export::{extensions::BevyExtensionExport, gltf::ExportContext};
 
 impl BevyExtensionExport<GltfDocument> for OmiPhysicsBody {
     fn bevy_export(In(context): In<ExportContext>, world: &mut World) -> ExportContext {
-        world.run_system_once_with(context, export_physics_bodies)
+        world
+            .run_system_once_with(context, export_physics_bodies)
+            .expect("export physics bodies")
     }
 }
 
@@ -31,7 +33,7 @@ pub fn export_physics_bodies(
         &AngularVelocity,
         &LinearVelocity,
         &Mass,
-        &Inertia,
+        &AngularInertia,
         &CenterOfMass,
     )>,
     colliders: Query<&Collider>,
