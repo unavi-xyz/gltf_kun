@@ -97,7 +97,7 @@ pub fn import_animation(
                                 ConstantCurve::new(Interval::EVERYWHERE, *translation),
                             )))
                         } else {
-                            debug!("No translation keyframe.");
+                            warn!("No translation data.");
                             continue;
                         }
                     } else {
@@ -141,7 +141,7 @@ pub fn import_animation(
                                 ConstantCurve::new(Interval::EVERYWHERE, *rotation),
                             )))
                         } else {
-                            debug!("No rotation keyframe.");
+                            warn!("No rotation data.");
                             continue;
                         }
                     } else {
@@ -184,7 +184,7 @@ pub fn import_animation(
                                 ConstantCurve::new(Interval::EVERYWHERE, *scale),
                             )))
                         } else {
-                            debug!("No scale keyframe.");
+                            warn!("No scale data.");
                             continue;
                         }
                     } else {
@@ -251,7 +251,7 @@ pub fn import_animation(
             };
 
         let Some(curve) = maybe_curve else {
-            warn!("Invalid keyframe data.");
+            warn!("Invalid {:?} keyframe data.", channel_weight.path);
             continue;
         };
 

@@ -1,7 +1,13 @@
-use bevy::{animation::AnimationTargetId, prelude::*, utils::HashMap};
+use anyhow::bail;
+use bevy::{
+    animation::{animated_field, AnimationEntityMut, AnimationTargetId},
+    prelude::*,
+    utils::HashMap,
+};
 use gltf_kun::graph::{
     gltf::{
-        animation::{AnimationChannel, AnimationSampler},
+        accessor::{ComponentType, Type},
+        animation::{AnimationChannel, AnimationSampler, Interpolation, TargetPath},
         Animation, Node,
     },
     GraphNodeWeight,
@@ -48,7 +54,9 @@ pub fn export_animations(
             let a = ctx.doc.create_animation(&mut ctx.graph);
 
             for curve in curves.iter() {
-                export_curve(&mut ctx, a, curve, *node);
+                if let Err(e) = export_curve(&mut ctx, a, curve, *node) {
+                    warn!("Failed to export animation curve: {:?}", e);
+                };
             }
         }
     }
@@ -56,98 +64,166 @@ pub fn export_animations(
     ctx
 }
 
+const POLL_RATE: f32 = 0.1;
+
 fn export_curve(
-    context: &mut ExportContext,
+    ctx: &mut ExportContext,
     animation: Animation,
-    _curve: &VariableCurve,
+    curve: &VariableCurve,
     target: Node,
-) {
-    let channel = AnimationChannel::new(&mut context.graph);
-    animation.add_channel(&mut context.graph, &channel);
+) -> anyhow::Result<()> {
+    let channel = AnimationChannel::new(&mut ctx.graph);
+    animation.add_channel(&mut ctx.graph, &channel);
 
-    let sampler = AnimationSampler::new(&mut context.graph);
-    channel.set_sampler(&mut context.graph, Some(sampler));
-    channel.set_target(&mut context.graph, Some(target));
+    let mut sampler = AnimationSampler::new(&mut ctx.graph);
+    channel.set_sampler(&mut ctx.graph, Some(sampler));
+    channel.set_target(&mut ctx.graph, Some(target));
 
-    // let sampler_weight = sampler.get_mut(&mut context.graph);
+    let buffer = ctx.doc.create_buffer(&mut ctx.graph);
 
-    // let interpolation = match curve.interpolation {
-    //     bevy::animation::Interpolation::Linear => Interpolation::Linear,
-    //     bevy::animation::Interpolation::Step => Interpolation::Step,
-    //     bevy::animation::Interpolation::CubicSpline => Interpolation::CubicSpline,
-    // };
-    // sampler_weight.interpolation = interpolation;
+    let mut input = ctx.doc.create_accessor(&mut ctx.graph);
+    input.set_buffer(&mut ctx.graph, Some(buffer));
+    sampler.set_input(&mut ctx.graph, Some(input));
 
-    let buffer = context.doc.create_buffer(&mut context.graph);
+    let mut output = ctx.doc.create_accessor(&mut ctx.graph);
+    output.set_buffer(&mut ctx.graph, Some(buffer));
+    sampler.set_output(&mut ctx.graph, Some(output));
 
-    let input = context.doc.create_accessor(&mut context.graph);
-    input.set_buffer(&mut context.graph, Some(buffer));
-    sampler.set_input(&mut context.graph, Some(input));
+    let path = match curve.0.evaluator_id() {
+        EvaluatorId::ComponentField(t) => {
+            let prop_t = animated_field!(Transform::translation);
+            let prop_r = animated_field!(Transform::rotation);
+            let prop_s = animated_field!(Transform::scale);
 
-    // TODO animation curve export
+            let EvaluatorId::ComponentField(id_t) = prop_t.evaluator_id() else {
+                unreachable!();
+            };
+            let EvaluatorId::ComponentField(id_r) = prop_r.evaluator_id() else {
+                unreachable!();
+            };
+            let EvaluatorId::ComponentField(id_s) = prop_s.evaluator_id() else {
+                unreachable!();
+            };
 
-    // let input_weight = input.get_mut(&mut context.graph);
-    // input_weight.element_type = Type::Scalar;
-    // input_weight.component_type = ComponentType::F32;
-    // input_weight.data = curve
-    //     .keyframe_timestamps
-    //     .iter()
-    //     .copied()
-    //     .flat_map(|f| f.to_le_bytes())
-    //     .collect();
-    //
-    // let mut output = context.doc.create_accessor(&mut context.graph);
-    // output.set_buffer(&mut context.graph, Some(buffer));
-    // sampler.set_output(&mut context.graph, Some(output));
-    //
-    // match &curve.keyframes {
-    //     Keyframes::Translation(keyframes) => {
-    //         let channel_weight = channel.get_mut(&mut context.graph);
-    //         channel_weight.path = TargetPath::Translation;
-    //
-    //         let output_weight = output.get_mut(&mut context.graph);
-    //         output_weight.element_type = Type::Vec3;
-    //         output_weight.component_type = ComponentType::F32;
-    //         output_weight.data = keyframes
-    //             .iter()
-    //             .flat_map(|v| v.to_array())
-    //             .flat_map(|f| f.to_le_bytes())
-    //             .collect();
-    //     }
-    //     Keyframes::Rotation(keyframes) => {
-    //         let channel_weight = channel.get_mut(&mut context.graph);
-    //         channel_weight.path = TargetPath::Rotation;
-    //
-    //         let output_weight = output.get_mut(&mut context.graph);
-    //         output_weight.element_type = Type::Vec4;
-    //         output_weight.component_type = ComponentType::F32;
-    //         output_weight.data = keyframes
-    //             .iter()
-    //             .flat_map(|v| v.to_array())
-    //             .flat_map(|f| f.to_le_bytes())
-    //             .collect();
-    //     }
-    //     Keyframes::Scale(keyframes) => {
-    //         let channel_weight = channel.get_mut(&mut context.graph);
-    //         channel_weight.path = TargetPath::Scale;
-    //
-    //         let output_weight = output.get_mut(&mut context.graph);
-    //         output_weight.element_type = Type::Vec3;
-    //         output_weight.component_type = ComponentType::F32;
-    //         output_weight.data = keyframes
-    //             .iter()
-    //             .flat_map(|v| v.to_array())
-    //             .flat_map(|f| f.to_le_bytes())
-    //             .collect();
-    //     }
-    //     Keyframes::Weights(keyframes) => {
-    //         let channel_weight = channel.get_mut(&mut context.graph);
-    //         channel_weight.path = TargetPath::MorphTargetWeights;
-    //
-    //         let output_weight = output.get_mut(&mut context.graph);
-    //         output_weight.element_type = Type::Scalar;
-    //         output_weight.component_type = ComponentType::F32;
-    //         output_weight.data = keyframes.iter().flat_map(|f| f.to_le_bytes()).collect();
-    //     }
-    // }
+            // TODO: Weights
+
+            if t == id_t {
+                let output_weight = output.get_mut(&mut ctx.graph);
+                output_weight.element_type = Type::Vec3;
+                output_weight.component_type = ComponentType::F32;
+
+                TargetPath::Translation
+            } else if t == id_r {
+                let output_weight = output.get_mut(&mut ctx.graph);
+                output_weight.element_type = Type::Vec4;
+                output_weight.component_type = ComponentType::F32;
+
+                TargetPath::Rotation
+            } else if t == id_s {
+                let output_weight = output.get_mut(&mut ctx.graph);
+                output_weight.element_type = Type::Vec3;
+                output_weight.component_type = ComponentType::F32;
+
+                TargetPath::Scale
+            } else {
+                bail!("Custom animation targets not supported.");
+            }
+        }
+        EvaluatorId::Type(_) => {
+            bail!("Custom animation types not supported.");
+        }
+    };
+
+    let mut world = World::default();
+
+    let ent = world.spawn(Transform::default()).id();
+    let mut graph = AnimationGraph::default();
+    let idx = graph.add_blend(1.0, graph.root);
+
+    // Export every animation as a cubic spline, with an arbitrary polling rate.
+    // We do not know the original keyframe timestamps, as that information is
+    // lost when importing into Bevy's curve format (or at least, it is not
+    // made public to outside crates).
+    let sampler_weight = sampler.get_mut(&mut ctx.graph);
+    sampler_weight.interpolation = Interpolation::CubicSpline;
+
+    let mut eval = curve.0.create_evaluator();
+    let interval = curve.0.domain();
+
+    let mut t = interval.start();
+    let mut keyframe_timestamps = Vec::new();
+    let mut keyframes: Vec<u8> = Vec::new();
+
+    loop {
+        keyframe_timestamps.push(t);
+
+        curve
+            .0
+            .apply(eval.as_mut(), t, 1.0, idx)
+            .map_err(|e| anyhow::format_err!("{:?}", e))?;
+
+        match path {
+            TargetPath::Translation => {
+                let tr = world.entity(ent).get::<Transform>().unwrap();
+                keyframes.extend(
+                    tr.translation
+                        .to_array()
+                        .into_iter()
+                        .flat_map(|f| f.to_le_bytes()),
+                );
+            }
+            TargetPath::Rotation => {
+                let tr = world.entity(ent).get::<Transform>().unwrap();
+                keyframes.extend(
+                    tr.rotation
+                        .to_array()
+                        .into_iter()
+                        .flat_map(|f| f.to_le_bytes()),
+                );
+            }
+            TargetPath::Scale => {
+                let tr = world.entity(ent).get::<Transform>().unwrap();
+                keyframes.extend(
+                    tr.scale
+                        .to_array()
+                        .into_iter()
+                        .flat_map(|f| f.to_le_bytes()),
+                );
+            }
+            TargetPath::MorphTargetWeights => {
+                todo!();
+            }
+        };
+
+        let ent_anim = world
+            .query::<AnimationEntityMut>()
+            .get_mut(&mut world, ent)
+            .unwrap();
+
+        eval.commit(ent_anim)
+            .map_err(|e| anyhow::format_err!("{:?}", e))?;
+
+        if t == interval.end() {
+            break;
+        }
+
+        t += POLL_RATE;
+
+        if t > interval.end() {
+            t = interval.end();
+        }
+    }
+
+    let input_weight = input.get_mut(&mut ctx.graph);
+    input_weight.element_type = Type::Scalar;
+    input_weight.component_type = ComponentType::F32;
+    input_weight.data = keyframe_timestamps
+        .into_iter()
+        .flat_map(|f| f.to_le_bytes())
+        .collect();
+
+    let output_weight = output.get_mut(&mut ctx.graph);
+    output_weight.data = keyframes;
+
+    Ok(())
 }
