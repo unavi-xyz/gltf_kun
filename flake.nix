@@ -65,7 +65,6 @@
             with pkgs;
             [
               binaryen
-              cargo-auditable
               pkg-config
               trunk
               wasm-bindgen-cli
@@ -81,7 +80,9 @@
           checks = self.checks.${localSystem};
           packages = with pkgs; [
             cargo-rdme
+            cargo-release
             cargo-watch
+            cargo-workspaces
             rust-analyzer
           ];
 

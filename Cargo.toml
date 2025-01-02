@@ -8,6 +8,11 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/unavi-xyz/gltf_kun"
 version = "0.0.13"
 
+[workspace.metadata.release]
+publish = false
+shared-version = true
+tag-name = "v{{version}}"
+
 [workspace.dependencies]
 avian3d = "0.2.0"
 petgraph = { version = "0.6.6", default-features = false, features = [
