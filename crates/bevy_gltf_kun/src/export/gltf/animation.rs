@@ -72,7 +72,7 @@ fn export_curve(
     curve: &VariableCurve,
     target: Node,
 ) -> anyhow::Result<()> {
-    let channel = AnimationChannel::new(&mut ctx.graph);
+    let mut channel = AnimationChannel::new(&mut ctx.graph);
     animation.add_channel(&mut ctx.graph, &channel);
 
     let mut sampler = AnimationSampler::new(&mut ctx.graph);
@@ -133,6 +133,9 @@ fn export_curve(
             bail!("Custom animation types not supported.");
         }
     };
+
+    let channel_weight = channel.get_mut(&mut ctx.graph);
+    channel_weight.path = path;
 
     let mut world = World::default();
 
