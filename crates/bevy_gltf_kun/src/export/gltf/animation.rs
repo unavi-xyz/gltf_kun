@@ -64,7 +64,7 @@ pub fn export_animations(
     ctx
 }
 
-const POLL_RATE: f32 = 0.1;
+const SAMPLE_RATE: f32 = 0.05;
 
 fn export_curve(
     ctx: &mut ExportContext,
@@ -143,12 +143,12 @@ fn export_curve(
     let mut graph = AnimationGraph::default();
     let idx = graph.add_blend(1.0, graph.root);
 
-    // Export every animation as a cubic spline, with an arbitrary polling rate.
-    // We do not know the original keyframe timestamps, as that information is
-    // lost when importing into Bevy's curve format (or at least, it is not
-    // made public to outside crates).
+    // Export every animation with an arbitrary linear sample rate.
+    // We do not know the original keyframe timestamps, or interpolation type,
+    // as that information is lost when importing into Bevy's curve format (or
+    // at least, it is not made public to outside crates).
     let sampler_weight = sampler.get_mut(&mut ctx.graph);
-    sampler_weight.interpolation = Interpolation::CubicSpline;
+    sampler_weight.interpolation = Interpolation::Linear;
 
     let mut eval = curve.0.create_evaluator();
     let interval = curve.0.domain();
@@ -210,7 +210,7 @@ fn export_curve(
             break;
         }
 
-        t += POLL_RATE;
+        t += SAMPLE_RATE;
 
         if t > interval.end() {
             t = interval.end();

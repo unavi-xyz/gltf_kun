@@ -112,7 +112,6 @@ pub fn import_animation(
                             )
                             .ok()
                             .map(|curve| VariableCurve::new(AnimatableCurve::new(property, curve))),
-
                             Interpolation::CubicSpline => {
                                 CubicKeyframeCurve::new(keyframe_timestamps, translations)
                                     .ok()
@@ -156,7 +155,6 @@ pub fn import_animation(
                             )
                             .ok()
                             .map(|curve| VariableCurve::new(AnimatableCurve::new(property, curve))),
-
                             Interpolation::CubicSpline => CubicRotationCurve::new(
                                 keyframe_timestamps,
                                 rotations.into_iter().map(Vec4::from),
@@ -199,7 +197,6 @@ pub fn import_animation(
                             )
                             .ok()
                             .map(|curve| VariableCurve::new(AnimatableCurve::new(property, curve))),
-
                             Interpolation::CubicSpline => {
                                 CubicKeyframeCurve::new(keyframe_timestamps, scales)
                                     .ok()

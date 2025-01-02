@@ -294,7 +294,7 @@ fn load_scene(
                 let gltf = match gltf_kun_assets.get(handle) {
                     Some(gltf) => gltf,
                     None => {
-                        error!("Failed to get gltf_kun asset");
+                        warn!("Failed to get gltf_kun asset");
                         return;
                     }
                 };
