@@ -9,15 +9,17 @@
         nixpkgs.follows = "nixpkgs";
       };
     };
+    treefmt-nix.url = "github:numtide/treefmt-nix";
   };
 
   outputs =
     {
-      self,
-      nixpkgs,
       crane,
       flake-utils,
+      nixpkgs,
       rust-overlay,
+      self,
+      treefmt-nix,
       ...
     }:
     flake-utils.lib.eachDefaultSystem (
@@ -33,6 +35,8 @@
         };
 
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
+
+        treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
 
         commonArgs = {
           src = pkgs.lib.cleanSource ./.;
@@ -62,7 +66,6 @@
             [
               binaryen
               cargo-auditable
-              nodePackages.prettier
               pkg-config
               trunk
               wasm-bindgen-cli
@@ -151,6 +154,8 @@
         );
       in
       {
+        formatter = treefmtEval.config.build.wrapper;
+
         checks = {
           inherit
             gltf_kun
@@ -189,8 +194,6 @@
         };
 
         devShells.default = craneLib.devShell commonShell;
-
-        formatter = pkgs.nixfmt-rfc-style;
       }
     );
 }
