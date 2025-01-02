@@ -8,7 +8,7 @@ edition.workspace = true
 
 [dependencies]
 avian3d.workspace = true
-bevy = "0.15.0"
+bevy = { version = "0.15.0", features = ["jpeg"] }
 bevy_egui = "0.31.1"
 bevy_gltf_kun = { path = "../bevy_gltf_kun", features = ["omi_physics"] }
 bevy_panorbit_camera = "0.21.2"
