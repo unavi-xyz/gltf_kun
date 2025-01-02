@@ -123,11 +123,7 @@ pub fn import_primitive<E: BevyExtensionImport<GltfDocument>>(
 
     let primitive_handle = context.load_context.get_label_handle(&primitive_label);
 
-    let mut entity = parent.spawn(PbrBundle {
-        mesh: primitive_handle,
-        material: material.clone(),
-        ..default()
-    });
+    let mut entity = parent.spawn((Mesh3d(primitive_handle), MeshMaterial3d(material.clone())));
 
     if let Some(pos) = p.attribute(context.graph, Semantic::Positions) {
         let max = match pos.calc_max(context.graph) {

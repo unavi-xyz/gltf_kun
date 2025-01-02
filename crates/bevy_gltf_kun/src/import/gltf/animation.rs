@@ -1,5 +1,12 @@
 use bevy::{
-    animation::AnimationTargetId,
+    animation::{
+        animated_field,
+        gltf_curves::{
+            CubicKeyframeCurve, CubicRotationCurve, SteppedKeyframeCurve, WideCubicKeyframeCurve,
+            WideLinearKeyframeCurve, WideSteppedKeyframeCurve,
+        },
+        AnimationTargetId,
+    },
     prelude::*,
     utils::{HashMap, HashSet},
 };
@@ -42,12 +49,6 @@ pub fn import_animation(
 
         let sampler_weight = sampler.get(context.graph);
 
-        let interpolation = match sampler_weight.interpolation {
-            Interpolation::CubicSpline => bevy::animation::Interpolation::CubicSpline,
-            Interpolation::Linear => bevy::animation::Interpolation::Linear,
-            Interpolation::Step => bevy::animation::Interpolation::Step,
-        };
-
         let input = match sampler.input(context.graph) {
             Some(input) => input,
             None => {
@@ -58,7 +59,7 @@ pub fn import_animation(
 
         let input_iter = input.iter(context.graph)?;
 
-        let keyframe_timestamps = match input_iter {
+        let keyframe_timestamps: Vec<f32> = match input_iter {
             AccessorIter::F32(iter) => iter.collect(),
             _ => {
                 debug!("Input is not F32");
@@ -76,51 +77,181 @@ pub fn import_animation(
 
         let output_iter = output.iter(context.graph)?;
 
-        let keyframes = match &channel_weight.path {
-            TargetPath::Translation => {
-                let iter = match output_iter {
-                    AccessorIter::F32x3(iter) => iter,
-                    _ => {
-                        debug!("Output is not F32x3");
-                        continue;
-                    }
-                };
+        let maybe_curve =
+            match &channel_weight.path {
+                TargetPath::Translation => {
+                    let translations: Vec<Vec3> = match output_iter {
+                        AccessorIter::F32x3(iter) => iter.map(Vec3::from).collect(),
+                        _ => {
+                            debug!("Output is not F32x3");
+                            continue;
+                        }
+                    };
 
-                Keyframes::Translation(iter.map(Vec3::from).collect())
-            }
-            TargetPath::Rotation => {
-                let iter = match output_iter {
-                    AccessorIter::F32x4(iter) => iter,
-                    _ => {
-                        debug!("Output is not F32x4");
-                        continue;
-                    }
-                };
+                    let property = animated_field!(Transform::translation);
 
-                Keyframes::Rotation(iter.map(Quat::from_array).collect())
-            }
-            TargetPath::Scale => {
-                let iter = match output_iter {
-                    AccessorIter::F32x3(iter) => iter,
-                    _ => {
-                        debug!("Output is not F32x3");
-                        continue;
-                    }
-                };
+                    if keyframe_timestamps.len() == 1 {
+                        if let Some(translation) = translations.first() {
+                            Some(VariableCurve::new(AnimatableCurve::new(
+                                property,
+                                ConstantCurve::new(Interval::EVERYWHERE, *translation),
+                            )))
+                        } else {
+                            debug!("No translation keyframe.");
+                            continue;
+                        }
+                    } else {
+                        match sampler_weight.interpolation {
+                            Interpolation::Linear => UnevenSampleAutoCurve::new(
+                                keyframe_timestamps.into_iter().zip(translations),
+                            )
+                            .ok()
+                            .map(|curve| VariableCurve::new(AnimatableCurve::new(property, curve))),
+                            Interpolation::Step => SteppedKeyframeCurve::new(
+                                keyframe_timestamps.into_iter().zip(translations),
+                            )
+                            .ok()
+                            .map(|curve| VariableCurve::new(AnimatableCurve::new(property, curve))),
 
-                Keyframes::Scale(iter.map(Vec3::from).collect())
-            }
-            TargetPath::MorphTargetWeights => {
-                let iter = match output_iter {
-                    AccessorIter::F32(iter) => iter,
-                    _ => {
-                        debug!("Output is not F32");
-                        continue;
+                            Interpolation::CubicSpline => {
+                                CubicKeyframeCurve::new(keyframe_timestamps, translations)
+                                    .ok()
+                                    .map(|curve| {
+                                        VariableCurve::new(AnimatableCurve::new(property, curve))
+                                    })
+                            }
+                        }
                     }
-                };
+                }
+                TargetPath::Rotation => {
+                    let rotations: Vec<Quat> = match output_iter {
+                        AccessorIter::F32x4(iter) => iter.map(Quat::from_array).collect(),
+                        _ => {
+                            debug!("Output is not F32x4");
+                            continue;
+                        }
+                    };
 
-                Keyframes::Weights(iter.collect())
-            }
+                    let property = animated_field!(Transform::rotation);
+
+                    if keyframe_timestamps.len() == 1 {
+                        if let Some(rotation) = rotations.first() {
+                            Some(VariableCurve::new(AnimatableCurve::new(
+                                property,
+                                ConstantCurve::new(Interval::EVERYWHERE, *rotation),
+                            )))
+                        } else {
+                            debug!("No rotation keyframe.");
+                            continue;
+                        }
+                    } else {
+                        match sampler_weight.interpolation {
+                            Interpolation::Linear => UnevenSampleAutoCurve::new(
+                                keyframe_timestamps.into_iter().zip(rotations),
+                            )
+                            .ok()
+                            .map(|curve| VariableCurve::new(AnimatableCurve::new(property, curve))),
+                            Interpolation::Step => SteppedKeyframeCurve::new(
+                                keyframe_timestamps.into_iter().zip(rotations),
+                            )
+                            .ok()
+                            .map(|curve| VariableCurve::new(AnimatableCurve::new(property, curve))),
+
+                            Interpolation::CubicSpline => CubicRotationCurve::new(
+                                keyframe_timestamps,
+                                rotations.into_iter().map(Vec4::from),
+                            )
+                            .ok()
+                            .map(|curve| VariableCurve::new(AnimatableCurve::new(property, curve))),
+                        }
+                    }
+                }
+                TargetPath::Scale => {
+                    let scales: Vec<Vec3> = match output_iter {
+                        AccessorIter::F32x3(iter) => iter.map(Vec3::from).collect(),
+                        _ => {
+                            debug!("Output is not F32x3");
+                            continue;
+                        }
+                    };
+
+                    let property = animated_field!(Transform::scale);
+
+                    if keyframe_timestamps.len() == 1 {
+                        if let Some(scale) = scales.first() {
+                            Some(VariableCurve::new(AnimatableCurve::new(
+                                property,
+                                ConstantCurve::new(Interval::EVERYWHERE, *scale),
+                            )))
+                        } else {
+                            debug!("No scale keyframe.");
+                            continue;
+                        }
+                    } else {
+                        match sampler_weight.interpolation {
+                            Interpolation::Linear => UnevenSampleAutoCurve::new(
+                                keyframe_timestamps.into_iter().zip(scales),
+                            )
+                            .ok()
+                            .map(|curve| VariableCurve::new(AnimatableCurve::new(property, curve))),
+                            Interpolation::Step => SteppedKeyframeCurve::new(
+                                keyframe_timestamps.into_iter().zip(scales),
+                            )
+                            .ok()
+                            .map(|curve| VariableCurve::new(AnimatableCurve::new(property, curve))),
+
+                            Interpolation::CubicSpline => {
+                                CubicKeyframeCurve::new(keyframe_timestamps, scales)
+                                    .ok()
+                                    .map(|curve| {
+                                        VariableCurve::new(AnimatableCurve::new(property, curve))
+                                    })
+                            }
+                        }
+                    }
+                }
+                TargetPath::MorphTargetWeights => {
+                    let weights: Vec<f32> = match output_iter {
+                        AccessorIter::F32(iter) => iter.collect(),
+                        _ => {
+                            debug!("Output is not F32");
+                            continue;
+                        }
+                    };
+
+                    if keyframe_timestamps.len() == 1 {
+                        Some(ConstantCurve::new(Interval::EVERYWHERE, weights))
+                            .map(WeightsCurve)
+                            .map(VariableCurve::new)
+                    } else {
+                        match sampler_weight.interpolation {
+                            Interpolation::Linear => {
+                                WideLinearKeyframeCurve::new(keyframe_timestamps, weights)
+                                    .ok()
+                                    .map(WeightsCurve)
+                                    .map(VariableCurve::new)
+                            }
+                            Interpolation::Step => {
+                                WideSteppedKeyframeCurve::new(keyframe_timestamps, weights)
+                                    .ok()
+                                    .map(WeightsCurve)
+                                    .map(VariableCurve::new)
+                            }
+
+                            Interpolation::CubicSpline => {
+                                WideCubicKeyframeCurve::new(keyframe_timestamps, weights)
+                                    .ok()
+                                    .map(WeightsCurve)
+                                    .map(VariableCurve::new)
+                            }
+                        }
+                    }
+                }
+            };
+
+        let Some(curve) = maybe_curve else {
+            warn!("Invalid keyframe data.");
+            continue;
         };
 
         let target = match channel.target(context.graph) {
@@ -141,14 +272,7 @@ pub fn import_animation(
 
         roots.insert(path.0);
 
-        clip.add_curve_to_target(
-            AnimationTargetId::from_names(path.1.iter()),
-            VariableCurve {
-                interpolation,
-                keyframe_timestamps,
-                keyframes,
-            },
-        );
+        clip.add_variable_curve_to_target(AnimationTargetId::from_names(path.1.iter()), curve);
     }
 
     let index = context

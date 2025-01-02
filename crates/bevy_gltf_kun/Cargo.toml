@@ -18,8 +18,13 @@ register_extensions = []
 
 [dependencies]
 avian3d = { workspace = true, optional = true }
-bevy = { version = "0.14.0", default-features = false, features = ["animation", "bevy_asset", "bevy_scene", "bevy_pbr"] }
+bevy = { version = "0.15.0", default-features = false, features = [
+  "animation",
+  "bevy_asset",
+  "bevy_scene",
+  "bevy_pbr",
+] }
 gltf_kun = { path = "../gltf_kun", version = "0.0.13" }
-image = "0.25.1"
+image = "0.25.5"
 serde_json.workspace = true
 thiserror.workspace = true

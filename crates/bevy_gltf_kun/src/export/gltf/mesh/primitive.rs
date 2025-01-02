@@ -67,7 +67,9 @@ pub fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::
         primitive.set_indices(&mut context.graph, Some(accessor));
     }
 
-    mesh.attributes().for_each(|(id, values)| {
+    mesh.attributes().for_each(|(attr, values)| {
+        let id = attr.id;
+
         let accessor = match vertex_to_accessor(&mut context.graph, values) {
             Ok(accessor) => accessor,
             Err(err) => {
