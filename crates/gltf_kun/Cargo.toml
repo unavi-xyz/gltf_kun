@@ -1,11 +1,11 @@
 [package]
-name = "gltf_kun"
 description = "Graph-based glTF processing library."
-keywords = ["gltf", "graph", "optimization"]
-version.workspace = true
-license.workspace = true
-repository.workspace = true
 edition.workspace = true
+keywords = ["gltf", "graph", "optimization"]
+license.workspace = true
+name = "gltf_kun"
+repository.workspace = true
+version.workspace = true
 
 [features]
 default = ["omi_physics"]
