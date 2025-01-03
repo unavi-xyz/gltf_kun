@@ -24,6 +24,9 @@ bevy = { version = "0.15.0", default-features = false, features = [
   "bevy_pbr",
   "bevy_scene",
 ] }
+bevy_internal = { version = "0.15", features = [
+  "bevy_image",
+] } # https://github.com/bevyengine/bevy/issues/16563
 gltf_kun = { path = "../gltf_kun", version = "0.1.0" }
 image = "0.25.5"
 serde_json.workspace = true

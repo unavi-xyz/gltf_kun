@@ -858,6 +858,7 @@ dependencies = [
  "anyhow",
  "avian3d",
  "bevy",
+ "bevy_internal",
  "gltf_kun",
  "image",
  "serde_json",
