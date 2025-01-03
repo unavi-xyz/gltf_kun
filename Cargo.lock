@@ -495,7 +495,7 @@ dependencies = [
  "derive_more",
  "downcast-rs",
  "either",
- "petgraph",
+ "petgraph 0.6.6",
  "ron",
  "serde",
  "smallvec",
@@ -691,7 +691,7 @@ dependencies = [
  "disqualified",
  "fixedbitset",
  "nonmax",
- "petgraph",
+ "petgraph 0.6.6",
  "serde",
  "smallvec",
 ]
@@ -764,7 +764,7 @@ dependencies = [
  "bevy_gltf_kun",
  "bevy_panorbit_camera",
  "gltf_kun",
- "petgraph",
+ "petgraph 0.7.0",
  "wasm-bindgen",
 ]
 
@@ -1129,7 +1129,7 @@ dependencies = [
  "downcast-rs",
  "erased-serde",
  "glam",
- "petgraph",
+ "petgraph 0.6.6",
  "serde",
  "smallvec",
  "smol_str",
@@ -2603,7 +2603,7 @@ dependencies = [
  "bevy_math",
  "byteorder",
  "gltf",
- "petgraph",
+ "petgraph 0.7.0",
  "serde",
  "serde_json",
  "thiserror 2.0.9",
@@ -4014,6 +4014,16 @@ dependencies = [
  "indexmap",
  "serde",
  "serde_derive",
+]
+
+[[package]]
+name = "petgraph"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2b1374ec32450264534c67d1ccb5ca09818c4db8fd87cf97478d0df2fa44c65"
+dependencies = [
+ "fixedbitset",
+ "indexmap",
 ]
 
 [[package]]

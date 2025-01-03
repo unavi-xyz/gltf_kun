@@ -79,6 +79,7 @@
         commonShell = {
           checks = self.checks.${localSystem};
           packages = with pkgs; [
+            cargo-edit
             cargo-rdme
             cargo-release
             cargo-watch
