@@ -1,14 +1,14 @@
 use bevy::prelude::*;
 use gltf_kun::graph::{
-    gltf::{self, GltfDocument},
     GraphNodeWeight,
+    gltf::{self, GltfDocument},
 };
 
 use crate::import::extensions::BevyExtensionImport;
 
 use super::{
     document::ImportContext,
-    primitive::{import_primitive, GltfPrimitive},
+    primitive::{GltfPrimitive, import_primitive},
 };
 
 #[derive(Asset, Debug, TypePath)]

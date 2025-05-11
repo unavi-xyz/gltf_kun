@@ -1,18 +1,17 @@
-use bevy::render::mesh::skinning::SkinnedMeshInverseBindposes;
-use bevy::utils::HashSet;
-use bevy::{asset::LoadContext, prelude::*, utils::HashMap};
+use bevy::platform::collections::{HashMap, HashSet};
+use bevy::{asset::LoadContext, prelude::*, render::mesh::skinning::SkinnedMeshInverseBindposes};
 use gltf_kun::graph::gltf::{Material, Skin};
-use gltf_kun::graph::{gltf::GltfDocument, Graph};
+use gltf_kun::graph::{Graph, gltf::GltfDocument};
 use thiserror::Error;
 
 use crate::import::extensions::BevyExtensionImport;
 
 use super::skin::import_skin_matrices;
 use super::{
-    animation::{import_animation, paths_recur, AnimationImportError},
-    scene::import_scene,
-    texture::{get_linear_textures, load_texture, texture_label, TextureLoadError},
     GltfKun,
+    animation::{AnimationImportError, import_animation, paths_recur},
+    scene::import_scene,
+    texture::{TextureLoadError, get_linear_textures, load_texture, texture_label},
 };
 
 #[derive(Debug, Error)]

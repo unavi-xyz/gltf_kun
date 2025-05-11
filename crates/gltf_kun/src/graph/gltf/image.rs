@@ -1,10 +1,10 @@
 use petgraph::graph::NodeIndex;
 
 use crate::graph::{
-    gltf::GltfEdge, Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight,
+    Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight, gltf::GltfEdge,
 };
 
-use super::{buffer::Buffer, GltfWeight};
+use super::{GltfWeight, buffer::Buffer};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ImageEdge {

@@ -3,16 +3,16 @@ use bevy::{
         CompressedImageFormats, ImageAddressMode, ImageFilterMode, ImageSampler,
         ImageSamplerDescriptor, ImageType,
     },
+    platform::collections::HashSet,
     prelude::*,
     render::render_asset::RenderAssetUsages,
-    utils::HashSet,
 };
 use gltf_kun::graph::{
-    gltf::{
-        texture::{MagFilter, MinFilter, TextureWeight, WrappingMode},
-        Image as ImageKun, Texture,
-    },
     GraphNodeWeight,
+    gltf::{
+        Image as ImageKun, Texture,
+        texture::{MagFilter, MinFilter, TextureWeight, WrappingMode},
+    },
 };
 use thiserror::Error;
 
@@ -67,7 +67,7 @@ pub fn load_texture(
                     );
                     ImageType::MimeType(DEFAULT_MIME)
                 } else {
-                    match uri.split('.').last() {
+                    match uri.split('.').next_back() {
                         Some(ext) => ImageType::Extension(ext),
                         None => {
                             warn!(

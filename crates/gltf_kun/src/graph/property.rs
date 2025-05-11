@@ -1,7 +1,7 @@
 use petgraph::{
+    Direction,
     stable_graph::{EdgeReference, NodeIndex},
     visit::EdgeRef,
-    Direction,
 };
 
 use crate::extensions::Extension;

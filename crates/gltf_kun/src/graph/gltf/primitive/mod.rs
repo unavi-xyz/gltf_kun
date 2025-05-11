@@ -1,8 +1,8 @@
-use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
+use petgraph::{Direction, graph::NodeIndex, visit::EdgeRef};
 
 use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 
-use super::{accessor::Accessor, material::Material, mesh::MeshEdge, GltfEdge, GltfWeight, Mesh};
+use super::{GltfEdge, GltfWeight, Mesh, accessor::Accessor, material::Material, mesh::MeshEdge};
 
 pub use gltf::json::mesh::{Mode, Semantic};
 

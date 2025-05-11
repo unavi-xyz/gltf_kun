@@ -2,12 +2,12 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 use gltf_kun::{
     extensions::{
-        omi_physics_body::{weight::BodyType, OmiPhysicsBody},
+        omi_physics_body::{OmiPhysicsBody, weight::BodyType},
         omi_physics_shape::physics_shape::{
             BoxShape, CapsuleShape, CylinderShape, PhysicsShapeWeight, SphereShape,
         },
     },
-    graph::{gltf::document::GltfDocument, ByteNode},
+    graph::{ByteNode, gltf::document::GltfDocument},
 };
 
 use crate::import::{extensions::NodeExtensionImport, gltf::document::ImportContext};

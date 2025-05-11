@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use gltf_kun::graph::{
-    gltf::{node, Primitive},
     GraphNodeWeight,
+    gltf::{Primitive, node},
 };
 
 use self::primitive::export_primitive;

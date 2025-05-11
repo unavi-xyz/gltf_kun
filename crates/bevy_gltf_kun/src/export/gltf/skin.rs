@@ -3,8 +3,8 @@ use bevy::{
     render::mesh::skinning::{SkinnedMesh, SkinnedMeshInverseBindposes},
 };
 use gltf_kun::graph::{
-    gltf::accessor::{ComponentType, Type},
     GraphNodeWeight,
+    gltf::accessor::{ComponentType, Type},
 };
 
 use super::ExportContext;

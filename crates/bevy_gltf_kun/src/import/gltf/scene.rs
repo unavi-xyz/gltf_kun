@@ -1,16 +1,16 @@
 use std::collections::HashMap;
 
-use bevy::{prelude::*, render::mesh::skinning::SkinnedMesh, utils::HashSet};
+use bevy::{platform::collections::HashSet, prelude::*, render::mesh::skinning::SkinnedMesh};
 use gltf_kun::graph::{
-    gltf::{document::GltfDocument, scene, Node},
     GraphNodeWeight,
+    gltf::{Node, document::GltfDocument, scene},
 };
 
 use crate::import::extensions::BevyExtensionImport;
 
 use super::{
     document::ImportContext,
-    node::{import_node, node_name, GltfNode},
+    node::{GltfNode, import_node, node_name},
 };
 
 #[derive(Asset, Debug, TypePath)]

@@ -2,7 +2,7 @@ use petgraph::graph::NodeIndex;
 
 use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 
-use super::{node::Node, GltfEdge, GltfWeight};
+use super::{GltfEdge, GltfWeight, node::Node};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SceneEdge {

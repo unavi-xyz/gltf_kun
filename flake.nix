@@ -65,6 +65,8 @@
             with pkgs;
             [
               binaryen
+              clang
+              mold
               pkg-config
               trunk
               wasm-bindgen-cli
@@ -80,6 +82,7 @@
           checks = self.checks.${localSystem};
           packages = with pkgs; [
             cargo-edit
+            cargo-machete
             cargo-rdme
             cargo-release
             cargo-watch

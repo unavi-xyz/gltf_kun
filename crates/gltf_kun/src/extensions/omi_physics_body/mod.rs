@@ -10,7 +10,7 @@ use crate::graph::{ByteNode, Graph, OtherEdgeHelpers};
 
 use self::weight::OmiPhysicsBodyWeight;
 
-use super::{omi_physics_shape::physics_shape::PhysicsShape, Extension};
+use super::{Extension, omi_physics_shape::physics_shape::PhysicsShape};
 
 pub mod export;
 pub mod import;

@@ -2,7 +2,7 @@ use petgraph::graph::NodeIndex;
 
 use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 
-use super::{image::Image, GltfEdge, GltfWeight};
+use super::{GltfEdge, GltfWeight, image::Image};
 
 pub use gltf::texture::{MagFilter, MinFilter, WrappingMode};
 

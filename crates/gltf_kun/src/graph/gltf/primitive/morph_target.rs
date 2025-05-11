@@ -1,10 +1,10 @@
 use gltf::Semantic;
-use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
+use petgraph::{Direction, graph::NodeIndex, visit::EdgeRef};
 use thiserror::Error;
 
 use crate::graph::{
-    gltf::{accessor::iter::AccessorIterCreateError, Accessor, GltfEdge, GltfWeight},
     Edge, Extensions, Graph, GraphNodeEdges, Weight,
+    gltf::{Accessor, GltfEdge, GltfWeight, accessor::iter::AccessorIterCreateError},
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]

@@ -1,15 +1,15 @@
 use bevy_math::{Mat4, Quat, Vec3};
 use gltf::{
-    json::{validation::Checked, Index},
     Semantic,
+    json::{Index, validation::Checked},
 };
 use thiserror::Error;
 use tracing::{debug, error, warn};
 
 use crate::{
     graph::{
-        gltf::{animation::AnimationSampler, document::GltfDocument, Accessor},
         Graph, GraphNodeWeight,
+        gltf::{Accessor, animation::AnimationSampler, document::GltfDocument},
     },
     io::resolver::{DataUriResolver, Resolver},
 };
@@ -743,7 +743,7 @@ fn guess_mime_type(uri: &str) -> Option<&'static str> {
 
 #[cfg(test)]
 mod tests {
-    use gltf::json::{self, texture::Info, validation::USize64, Index};
+    use gltf::json::{self, Index, texture::Info, validation::USize64};
     use tracing_test::traced_test;
 
     use super::*;

@@ -2,6 +2,7 @@ use std::collections::{BTreeMap, HashMap};
 
 use bevy_math::{Quat, Vec3};
 use gltf::json::{
+    Index,
     accessor::GenericComponentType,
     animation::Target,
     image::MimeType,
@@ -12,7 +13,6 @@ use gltf::json::{
     scene::UnitQuaternion,
     texture::Info,
     validation::{Checked, USize64},
-    Index,
 };
 use petgraph::graph::NodeIndex;
 use serde_json::{Number, Value};
@@ -20,8 +20,8 @@ use thiserror::Error;
 use tracing::warn;
 
 use crate::graph::{
-    gltf::{accessor::iter::AccessorElement, Buffer, GltfDocument},
     Graph, GraphNodeWeight,
+    gltf::{Buffer, GltfDocument, accessor::iter::AccessorElement},
 };
 
 use super::GltfFormat;

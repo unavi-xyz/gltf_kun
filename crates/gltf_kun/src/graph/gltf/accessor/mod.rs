@@ -5,7 +5,7 @@ use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Wei
 
 use self::iter::{AccessorElement, AccessorIter, AccessorIterCreateError};
 
-use super::{buffer::Buffer, GltfEdge, GltfWeight};
+use super::{GltfEdge, GltfWeight, buffer::Buffer};
 
 pub use gltf::json::accessor::{ComponentType, Type};
 

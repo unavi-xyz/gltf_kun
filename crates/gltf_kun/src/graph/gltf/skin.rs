@@ -1,4 +1,4 @@
-use petgraph::{graph::NodeIndex, visit::EdgeRef, Direction};
+use petgraph::{Direction, graph::NodeIndex, visit::EdgeRef};
 
 use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 

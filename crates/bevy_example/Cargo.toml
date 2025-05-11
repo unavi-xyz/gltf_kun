@@ -8,10 +8,8 @@ version.workspace = true
 
 [dependencies]
 avian3d.workspace = true
-bevy = { version = "0.15.0", features = ["jpeg"] }
-bevy_egui = "0.31.1"
+bevy = { version = "0.16.0", features = ["jpeg"] }
+bevy_egui = "0.34.1"
 bevy_gltf_kun = { path = "../bevy_gltf_kun", features = ["omi_physics"] }
-bevy_panorbit_camera = "0.21.2"
+bevy_panorbit_camera = "0.26.0"
 gltf_kun = { path = "../gltf_kun" }
-petgraph.workspace = true
-wasm-bindgen = "0.2.99"

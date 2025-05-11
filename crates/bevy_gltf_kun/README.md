@@ -12,7 +12,7 @@ Bevy [gltf_kun](https://crates.io/crates/gltf_kun) plugin.
 
 ### Usage
 
-Add \[GltfKunPlugin\] to your app:
+Add [GltfKunPlugin] to your app:
 
 ```rust
 use bevy::prelude::*;
@@ -27,7 +27,7 @@ Export scenes to glTF using [GltfExportEvent](export::gltf::GltfExportEvent).
 
 The resulting [GltfExportResult](export::gltf::GltfExportResult) will contain a flexible
 [GltfDocument](gltf_kun::graph::gltf::document::GltfDocument) that can be exported to various
-file types. See \[gltf_kun\] for more information on how to do so.
+file types. See [gltf_kun] for more information on how to do so.
 
 ```rust
 use bevy::prelude::*;

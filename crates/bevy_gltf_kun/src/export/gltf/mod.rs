@@ -2,8 +2,8 @@ use std::marker::PhantomData;
 
 use bevy::{ecs::system::RunSystemOnce, prelude::*};
 use gltf_kun::graph::{
-    gltf::{self, document::GltfDocument},
     Graph,
+    gltf::{self, document::GltfDocument},
 };
 use thiserror::Error;
 
@@ -107,7 +107,6 @@ pub fn export_gltf<E: BevyExtensionExport<GltfDocument>>(world: &mut World) {
     for event in events {
         world
             .run_system_once_with(
-                ExportContext::new(event),
                 scene::export_scenes
                     .pipe(node::export_nodes)
                     .pipe(mesh::export_meshes)
@@ -116,13 +115,14 @@ pub fn export_gltf<E: BevyExtensionExport<GltfDocument>>(world: &mut World) {
                     .pipe(skin::export_skins)
                     .pipe(E::bevy_export)
                     .pipe(create_export_result),
+                ExportContext::new(event),
             )
             .expect("export");
     }
 }
 
 pub fn create_export_result(In(ctx): In<ExportContext>, mut writer: EventWriter<GltfExportResult>) {
-    writer.send(GltfExportResult {
+    writer.write(GltfExportResult {
         graph: ctx.graph,
         result: Ok(ctx.doc),
     });

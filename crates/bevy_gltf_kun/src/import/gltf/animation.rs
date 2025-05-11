@@ -1,22 +1,21 @@
 use bevy::{
     animation::{
-        animated_field,
+        AnimationTargetId, animated_field,
         gltf_curves::{
             CubicKeyframeCurve, CubicRotationCurve, SteppedKeyframeCurve, WideCubicKeyframeCurve,
             WideLinearKeyframeCurve, WideSteppedKeyframeCurve,
         },
-        AnimationTargetId,
     },
+    platform::collections::{HashMap, HashSet},
     prelude::*,
-    utils::{HashMap, HashSet},
 };
 use gltf_kun::graph::{
+    Graph, GraphNodeWeight,
     gltf::{
+        Animation, GltfDocument, Node,
         accessor::iter::{AccessorIter, AccessorIterCreateError},
         animation::{Interpolation, TargetPath},
-        Animation, GltfDocument, Node,
     },
-    Graph, GraphNodeWeight,
 };
 use thiserror::Error;
 

@@ -1,8 +1,8 @@
 use petgraph::graph::NodeIndex;
 
 use crate::graph::{
-    gltf::{GltfEdge, Node},
     Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight,
+    gltf::{GltfEdge, Node},
 };
 
 use super::{AnimationSampler, GltfWeight};

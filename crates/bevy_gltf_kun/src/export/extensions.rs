@@ -15,8 +15,8 @@ impl BevyExtensionExport<GltfDocument> for DefaultExtensions {
 
             context = world
                 .run_system_once_with(
-                    context,
                     gltf_kun::extensions::omi_physics_body::OmiPhysicsBody::bevy_export,
+                    context,
                 )
                 .expect("omi physics");
         }

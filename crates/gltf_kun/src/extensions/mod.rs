@@ -7,7 +7,7 @@ use std::error::Error;
 use petgraph::graph::NodeIndex;
 
 use crate::{
-    graph::{gltf::document::GltfDocument, Graph, Weight},
+    graph::{Graph, Weight, gltf::document::GltfDocument},
     io::format::gltf::GltfFormat,
 };
 

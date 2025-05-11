@@ -14,12 +14,12 @@ shared-version = true
 tag-name = "v{{version}}"
 
 [workspace.dependencies]
-avian3d = "0.2.0"
-petgraph = { version = "0.7.0", default-features = false, features = [
+avian3d = "0.3.0"
+petgraph = { version = "0.8.1", default-features = false, features = [
   "stable_graph",
 ] }
-serde_json = "1.0.134"
-thiserror = "2.0.9"
+serde_json = "1.0.140"
+thiserror = "2.0.12"
 
 [profile.dev]
 opt-level = 1

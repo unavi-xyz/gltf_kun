@@ -1,7 +1,7 @@
-use bevy::{prelude::*, utils::HashMap};
+use bevy::{platform::collections::HashMap, prelude::*};
 use gltf_kun::graph::{
-    gltf::{document::GltfDocument, Node},
     Graph,
+    gltf::{Node, document::GltfDocument},
 };
 
 use self::{mesh::GltfMesh, node::GltfNode, scene::GltfScene};

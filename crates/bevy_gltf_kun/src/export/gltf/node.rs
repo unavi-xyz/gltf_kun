@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use gltf_kun::graph::{gltf::node, GraphNodeWeight};
+use gltf_kun::graph::{GraphNodeWeight, gltf::node};
 
 use crate::import::gltf::node::node_label;
 
@@ -23,7 +23,7 @@ pub fn export_nodes(
         };
 
         children.iter().for_each(|c| {
-            let (transform, name, grandchildren) = nodes.get(*c).expect("Node not found");
+            let (transform, name, grandchildren) = nodes.get(c).expect("Node not found");
 
             if transform == &Transform::default() && name.is_none() {
                 // Assume this is an empty root node, and skip it.
@@ -40,7 +40,7 @@ pub fn export_nodes(
                     scene.add_node(&mut ctx.graph, n);
                 }
             } else {
-                let n = export_node(&mut ctx, &nodes, *c);
+                let n = export_node(&mut ctx, &nodes, c);
                 scene.add_node(&mut ctx.graph, n);
             }
         });
@@ -88,7 +88,7 @@ fn export_node(
 
     if let Some(children) = children {
         children.iter().for_each(|child| {
-            let n = export_node(ctx, nodes, *child);
+            let n = export_node(ctx, nodes, child);
             node.add_child(&mut ctx.graph, &n);
         })
     }

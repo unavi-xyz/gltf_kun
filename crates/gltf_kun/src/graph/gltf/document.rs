@@ -1,6 +1,6 @@
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{gltf::GltfEdge, Edge, Extensions, Graph, GraphNodeEdges, Weight};
+use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, Weight, gltf::GltfEdge};
 
 use super::{
     Accessor, Animation, Buffer, GltfWeight, Image, Material, Mesh, Node, Scene, Skin, Texture,

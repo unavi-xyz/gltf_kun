@@ -8,16 +8,16 @@ use gltf_kun::{
 use crate::{
     export::{
         extensions::BevyExtensionExport,
-        gltf::{export_gltf, GltfExportEvent, GltfExportResult},
+        gltf::{GltfExportEvent, GltfExportResult, export_gltf},
     },
     import::{
         extensions::BevyExtensionImport,
         gltf::{
+            GltfKun,
             loader::{GlbLoader, GltfLoader},
             mesh::GltfMesh,
             node::GltfNode,
             scene::GltfScene,
-            GltfKun,
         },
     },
 };

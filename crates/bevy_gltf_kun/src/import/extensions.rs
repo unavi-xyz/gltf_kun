@@ -2,8 +2,8 @@ use bevy::prelude::*;
 use gltf_kun::{
     extensions::{DefaultExtensions, Extension},
     graph::{
-        gltf::{GltfDocument, Material, Node, Primitive, Scene},
         Extensions,
+        gltf::{GltfDocument, Material, Node, Primitive, Scene},
     },
 };
 

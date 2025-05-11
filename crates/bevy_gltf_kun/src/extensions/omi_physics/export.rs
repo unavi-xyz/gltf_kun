@@ -3,17 +3,17 @@ use bevy::{ecs::system::RunSystemOnce, prelude::*};
 use gltf_kun::{
     extensions::{
         omi_physics_body::{
-            weight::{BodyType, Motion},
             OmiPhysicsBody,
+            weight::{BodyType, Motion},
         },
         omi_physics_shape::{
+            OmiPhysicsShape,
             physics_shape::{
                 BoxShape, CapsuleShape, Height, PhysicsShapeWeight, Radius, Size, SphereShape,
             },
-            OmiPhysicsShape,
         },
     },
-    graph::{gltf::GltfDocument, ByteNode, Extensions},
+    graph::{ByteNode, Extensions, gltf::GltfDocument},
 };
 
 use crate::export::{extensions::BevyExtensionExport, gltf::ExportContext};
@@ -21,7 +21,7 @@ use crate::export::{extensions::BevyExtensionExport, gltf::ExportContext};
 impl BevyExtensionExport<GltfDocument> for OmiPhysicsBody {
     fn bevy_export(In(context): In<ExportContext>, world: &mut World) -> ExportContext {
         world
-            .run_system_once_with(context, export_physics_bodies)
+            .run_system_once_with(export_physics_bodies, context)
             .expect("export physics bodies")
     }
 }

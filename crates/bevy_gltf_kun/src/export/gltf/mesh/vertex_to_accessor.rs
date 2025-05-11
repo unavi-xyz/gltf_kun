@@ -1,10 +1,10 @@
 use bevy::render::mesh::VertexAttributeValues;
 use gltf_kun::graph::{
-    gltf::accessor::{
-        iter::{AccessorIter, AccessorIterCreateError},
-        Accessor, ComponentType, Type,
-    },
     Graph,
+    gltf::accessor::{
+        Accessor, ComponentType, Type,
+        iter::{AccessorIter, AccessorIterCreateError},
+    },
 };
 use thiserror::Error;
 

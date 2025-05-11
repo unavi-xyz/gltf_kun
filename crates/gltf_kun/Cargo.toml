@@ -13,15 +13,15 @@ omi_physics = []
 
 [dependencies]
 base64 = "0.22.1"
-bevy_math = "0.15.0"
+bevy_math = "0.16.0"
 byteorder = "1.5.0"
 gltf = { version = "1.4.1", features = ["extensions", "extras"] }
 petgraph.workspace = true
-serde = { version = "1.0.217", features = ["derive"] }
+serde = { version = "1.0.219", features = ["derive"] }
 serde_json.workspace = true
 thiserror.workspace = true
 tracing = "0.1.41"
 
 [dev-dependencies]
-tokio = { version = "1.42.0", features = ["full"] }
+tokio = { version = "1.45.0", features = ["full"] }
 tracing-test = "0.2.5"

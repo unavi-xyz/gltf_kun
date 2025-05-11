@@ -5,7 +5,7 @@ use tracing::{debug, warn};
 
 use crate::{
     extensions::{ExtensionExport, ExtensionImport},
-    graph::{gltf::document::GltfDocument, Graph},
+    graph::{Graph, gltf::document::GltfDocument},
     io::resolver::{FileResolver, Resolver},
 };
 

@@ -1,10 +1,10 @@
 use bevy::{prelude::*, render::mesh::skinning::SkinnedMeshInverseBindposes};
 use gltf_kun::graph::gltf::{
-    accessor::{
-        iter::{AccessorIter, AccessorIterCreateError},
-        ComponentType, Type,
-    },
     Skin,
+    accessor::{
+        ComponentType, Type,
+        iter::{AccessorIter, AccessorIterCreateError},
+    },
 };
 use thiserror::Error;
 
@@ -31,7 +31,7 @@ pub fn import_skin_matrices(
                 return Err(ImportSkinError::InvalidAccessorType(
                     a.component_type(),
                     a.element_type(),
-                ))
+                ));
             }
             Err(e) => return Err(ImportSkinError::AccessorIterCreate(e)),
         },

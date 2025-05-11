@@ -1,4 +1,4 @@
-use petgraph::{graph::NodeIndex, stable_graph::EdgeReference, visit::EdgeRef, Direction};
+use petgraph::{Direction, graph::NodeIndex, stable_graph::EdgeReference, visit::EdgeRef};
 
 use super::{Edge, Graph};
 

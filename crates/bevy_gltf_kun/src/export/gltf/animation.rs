@@ -1,16 +1,16 @@
 use anyhow::bail;
 use bevy::{
-    animation::{animated_field, AnimationEntityMut, AnimationTargetId},
+    animation::{AnimationEntityMut, AnimationTargetId, animated_field},
+    platform::collections::HashMap,
     prelude::*,
-    utils::HashMap,
 };
 use gltf_kun::graph::{
+    GraphNodeWeight,
     gltf::{
+        Animation, Node,
         accessor::{ComponentType, Type},
         animation::{AnimationChannel, AnimationSampler, Interpolation, TargetPath},
-        Animation, Node,
     },
-    GraphNodeWeight,
 };
 
 use crate::import::gltf::animation::paths_recur;

@@ -6,8 +6,8 @@ use bevy::{
     render::mesh::morph::MorphBuildError,
 };
 use gltf_kun::graph::{
-    gltf::{GltfDocument, Node},
     Graph, GraphNodeWeight,
+    gltf::{GltfDocument, Node},
 };
 use thiserror::Error;
 
@@ -15,7 +15,7 @@ use crate::import::extensions::BevyExtensionImport;
 
 use super::{
     document::ImportContext,
-    mesh::{import_mesh, mesh_label, GltfMesh},
+    mesh::{GltfMesh, import_mesh, mesh_label},
     primitive::primitive_label,
 };
 
@@ -37,7 +37,7 @@ pub fn import_node<E: BevyExtensionImport<GltfDocument>>(
     context: &mut ImportContext<'_, '_>,
     node_entities: &mut HashMap<Handle<GltfNode>, Entity>,
     node_primitive_entities: &mut HashMap<Handle<GltfNode>, Vec<Entity>>,
-    builder: &mut WorldChildBuilder,
+    builder: &mut ChildSpawner,
     parent_world_transform: &Transform,
     mut path: Vec<Name>,
     root_node: Option<Entity>,

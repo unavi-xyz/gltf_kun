@@ -2,7 +2,7 @@ use petgraph::graph::NodeIndex;
 
 use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 
-use super::{node::NodeEdge, primitive::Primitive, GltfEdge, GltfWeight, Node};
+use super::{GltfEdge, GltfWeight, Node, node::NodeEdge, primitive::Primitive};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum MeshEdge {

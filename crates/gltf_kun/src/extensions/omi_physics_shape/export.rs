@@ -1,10 +1,10 @@
 use crate::{
     extensions::ExtensionExport,
-    graph::{gltf::document::GltfDocument, ByteNode, Extensions, Graph},
+    graph::{ByteNode, Extensions, Graph, gltf::document::GltfDocument},
     io::format::gltf::GltfFormat,
 };
 
-use super::{json::RootExtension, OmiPhysicsShape, EXTENSION_NAME};
+use super::{EXTENSION_NAME, OmiPhysicsShape, json::RootExtension};
 
 impl ExtensionExport<GltfDocument, GltfFormat> for OmiPhysicsShape {
     fn export(

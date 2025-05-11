@@ -16,18 +16,15 @@ default = []
 omi_physics = ["dep:avian3d", "gltf_kun/omi_physics"]
 
 [dependencies]
-anyhow = "1.0.95"
+anyhow = "1.0.98"
 avian3d = { workspace = true, optional = true }
-bevy = { version = "0.15.0", default-features = false, features = [
+bevy = { version = "0.16.0", default-features = false, features = [
   "animation",
   "bevy_asset",
   "bevy_pbr",
   "bevy_scene",
 ] }
-bevy_internal = { version = "0.15", features = [
-  "bevy_image",
-] } # https://github.com/bevyengine/bevy/issues/16563
 gltf_kun = { path = "../gltf_kun", version = "0.1.0" }
-image = "0.25.5"
+image = "0.25.6"
 serde_json.workspace = true
 thiserror.workspace = true

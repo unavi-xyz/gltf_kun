@@ -2,17 +2,17 @@ use std::{fmt::Display, path::Path};
 
 use avian3d::prelude::*;
 use bevy::{
-    core::FrameCount,
+    diagnostic::FrameCount,
     gltf::Gltf,
     input::keyboard::{Key, KeyboardInput},
     pbr::CascadeShadowConfigBuilder,
     prelude::*,
 };
-use bevy_egui::{egui::ComboBox, EguiContexts, EguiPlugin};
+use bevy_egui::{EguiContexts, EguiPlugin, egui::ComboBox};
 use bevy_gltf_kun::{
-    export::gltf::{GltfExportEvent, GltfExportResult},
-    import::gltf::{scene::GltfScene, GltfKun},
     GltfKunPlugin,
+    export::gltf::{GltfExportEvent, GltfExportResult},
+    import::gltf::{GltfKun, scene::GltfScene},
 };
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use gltf_kun::{extensions::DefaultExtensions, io::format::glb::GlbExport};
@@ -49,7 +49,9 @@ pub struct ExamplePlugin;
 impl Plugin for ExamplePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
-            EguiPlugin,
+            EguiPlugin {
+                enable_multipass_for_primary_context: false,
+            },
             GltfKunPlugin::default(),
             PanOrbitCameraPlugin,
             PhysicsDebugPlugin::default(),
@@ -143,7 +145,7 @@ fn setup(mut commands: Commands, mut writer: EventWriter<LoadModel>) {
         .build(),
     ));
 
-    writer.send(LoadModel(MODELS[0].to_string()));
+    writer.write(LoadModel(MODELS[0].to_string()));
 }
 
 fn ui(
@@ -180,7 +182,7 @@ fn ui(
                     {
                         *loader = Loader(l);
                         exported.0.clear();
-                        writer.send(LoadModel(selected_model.0.clone()));
+                        writer.write(LoadModel(selected_model.0.clone()));
                     }
                 }
             });
@@ -195,7 +197,7 @@ fn ui(
                     {
                         selected_model.0 = model.to_string();
                         exported.0.clear();
-                        writer.send(LoadModel(model.to_string()));
+                        writer.write(LoadModel(model.to_string()));
                     }
                 }
             });
@@ -235,20 +237,20 @@ fn load_model(
             }
         };
 
-        writer.send(LoadScene(gltf_handle.clone()));
+        writer.write(LoadScene(gltf_handle.clone()));
     }
 
     for event in gltf_events.read() {
         if let AssetEvent::LoadedWithDependencies { .. } = event {
             info!("Gltf loaded");
-            writer.send(LoadScene(gltf_handle.clone()));
+            writer.write(LoadScene(gltf_handle.clone()));
         }
     }
 
     for event in gltf_kun_events.read() {
         if let AssetEvent::LoadedWithDependencies { .. } = event {
             info!("Gltf_kun loaded");
-            writer.send(LoadScene(gltf_handle.clone()));
+            writer.write(LoadScene(gltf_handle.clone()));
         }
     }
 }
@@ -265,7 +267,7 @@ fn load_scene(
     for event in events.read() {
         // Despawn previous scene.
         for entity in scenes.iter() {
-            commands.entity(entity).despawn_recursive();
+            commands.entity(entity).despawn();
         }
 
         let scene = match loader.0 {
@@ -366,7 +368,7 @@ fn export(
 
         info!("Exporting scene");
 
-        let handle = match scene.get_single() {
+        let handle = match scene.single() {
             Ok(handle) => handle,
             Err(e) => {
                 error!("Failed to get scene: {}", e);
@@ -374,7 +376,7 @@ fn export(
             }
         };
 
-        export.send(GltfExportEvent::new(handle.0.clone()));
+        export.write(GltfExportEvent::new(handle.0.clone()));
     }
 }
 
@@ -401,7 +403,7 @@ fn reload(
 
         info!("Reloading scene");
 
-        writer.send(LoadModel(used_path));
+        writer.write(LoadModel(used_path));
     }
 }
 
@@ -456,7 +458,7 @@ fn get_result(
             std::fs::write(full_path, glb.0).expect("Failed to write glb");
 
             // Load glb
-            writer.send(LoadModel(file_path_str));
+            writer.write(LoadModel(file_path_str));
         }
     }
 }

@@ -2,8 +2,8 @@ use bevy::{
     prelude::*,
     render::{
         mesh::{
-            morph::{MeshMorphWeights, MorphAttributes, MorphBuildError, MorphTargetImage},
             Indices, MeshVertexAttribute, VertexAttributeValues,
+            morph::{MeshMorphWeights, MorphAttributes, MorphBuildError, MorphTargetImage},
         },
         primitives::Aabb,
         render_asset::RenderAssetUsages,
@@ -11,20 +11,20 @@ use bevy::{
     },
 };
 use gltf_kun::graph::{
+    Graph, GraphNodeWeight,
     gltf::{
+        GltfDocument,
         accessor::{
+            Accessor, ComponentType, GetAccessorSliceError, Type,
             colors::ReadColors,
             indices::ReadIndices,
             iter::{AccessorElement, AccessorIter, AccessorIterCreateError, ElementIter},
             joints::ReadJoints,
             tex_coords::ReadTexCoords,
             weights::ReadWeights,
-            Accessor, ComponentType, GetAccessorSliceError, Type,
         },
         primitive::{Mode, MorphTarget, Primitive, Semantic},
-        GltfDocument,
     },
-    Graph, GraphNodeWeight,
 };
 use thiserror::Error;
 
@@ -66,7 +66,7 @@ pub enum ImportPrimitiveError {
 
 pub fn import_primitive<E: BevyExtensionImport<GltfDocument>>(
     context: &mut ImportContext,
-    parent: &mut WorldChildBuilder,
+    builder: &mut ChildSpawner,
     is_scale_inverted: bool,
     mesh: gltf_kun::graph::gltf::Mesh,
     mesh_label: &str,
@@ -123,7 +123,7 @@ pub fn import_primitive<E: BevyExtensionImport<GltfDocument>>(
 
     let primitive_handle = context.load_context.get_label_handle(&primitive_label);
 
-    let mut entity = parent.spawn((Mesh3d(primitive_handle), MeshMaterial3d(material.clone())));
+    let mut entity = builder.spawn((Mesh3d(primitive_handle), MeshMaterial3d(material.clone())));
 
     if let Some(pos) = p.attribute(context.graph, Semantic::Positions) {
         let max = match pos.calc_max(context.graph) {
@@ -151,7 +151,10 @@ pub fn import_primitive<E: BevyExtensionImport<GltfDocument>>(
         let vertex_count_after = bevy_mesh.count_vertices();
 
         if vertex_count_before != vertex_count_after {
-            debug!("Missing vertex normals in indexed geometry, computing them as flat. Vertex count increased from {} to {}", vertex_count_before, vertex_count_after);
+            debug!(
+                "Missing vertex normals in indexed geometry, computing them as flat. Vertex count increased from {} to {}",
+                vertex_count_before, vertex_count_after
+            );
         } else {
             debug!("Missing vertex normals in indexed geometry, computing them as flat.");
         }

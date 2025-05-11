@@ -1,16 +1,16 @@
 use std::{borrow::Cow, collections::HashMap, path::Path};
 
-use petgraph::{visit::EdgeRef, Direction};
+use petgraph::{Direction, visit::EdgeRef};
 use thiserror::Error;
 
 use crate::{
     extensions::{ExtensionExport, ExtensionImport},
-    graph::{gltf::document::GltfDocument, Graph},
+    graph::{Graph, gltf::document::GltfDocument},
     io::resolver::DataUriResolver,
 };
 
 use super::gltf::{
-    export::GltfExportError, import::GltfImportError, GltfExport, GltfFormat, GltfImport,
+    GltfExport, GltfFormat, GltfImport, export::GltfExportError, import::GltfImportError,
 };
 
 #[derive(Default)]

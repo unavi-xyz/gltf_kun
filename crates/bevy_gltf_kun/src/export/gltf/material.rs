@@ -6,15 +6,15 @@ use bevy::{
     render::render_resource::TextureFormat,
 };
 use gltf_kun::graph::{
+    GraphNodeWeight,
     gltf::{
+        Texture,
         accessor::iter::ElementIter,
         material::{AlphaCutoff, AlphaMode},
         texture::{MagFilter, MinFilter, WrappingMode},
-        Texture,
     },
-    GraphNodeWeight,
 };
-use image::{codecs::png::PngEncoder, ExtendedColorType, ImageEncoder};
+use image::{ExtendedColorType, ImageEncoder, codecs::png::PngEncoder};
 use thiserror::Error;
 
 use super::{CachedMaterial, ExportContext};
@@ -216,8 +216,9 @@ fn convert_image(bevy_image: &Image) -> Result<(String, Vec<u8>), ConvertImageEr
 
     match desc.format {
         TextureFormat::Rgba8Sint | TextureFormat::Rgba8Snorm => {
+            let data = bevy_image.data.clone().unwrap_or_default();
             let iter = ElementIter::<i8> {
-                slice: &bevy_image.data,
+                slice: &data,
                 normalized: true,
                 _phantom: PhantomData,
             };
@@ -231,7 +232,7 @@ fn convert_image(bevy_image: &Image) -> Result<(String, Vec<u8>), ConvertImageEr
         }
         TextureFormat::Rgba8Uint | TextureFormat::Rgba8Unorm | TextureFormat::Rgba8UnormSrgb => {
             convert_png(
-                &bevy_image.data,
+                bevy_image.data.clone().unwrap_or_default().as_slice(),
                 desc.size.width,
                 desc.size.height,
                 ExtendedColorType::Rgba8,

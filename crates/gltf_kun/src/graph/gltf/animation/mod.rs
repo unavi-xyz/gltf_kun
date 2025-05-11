@@ -1,7 +1,7 @@
 use petgraph::graph::NodeIndex;
 
 use crate::graph::{
-    gltf::GltfEdge, Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight,
+    Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight, gltf::GltfEdge,
 };
 
 use super::GltfWeight;

@@ -1,16 +1,16 @@
 use std::marker::PhantomData;
 
 use bevy::{
-    asset::{io::Reader, AssetLoadError, AssetLoader, LoadContext, ReadAssetBytesError},
+    asset::{AssetLoadError, AssetLoader, LoadContext, ReadAssetBytesError, io::Reader},
+    platform::collections::HashMap,
     prelude::*,
-    utils::HashMap,
 };
 use gltf_kun::{
     extensions::ExtensionImport,
-    graph::{gltf::GltfDocument, Graph},
+    graph::{Graph, gltf::GltfDocument},
     io::format::{
         glb::{GlbImport, GlbImportError},
-        gltf::{import::GltfImportError, GltfFormat, GltfImport},
+        gltf::{GltfFormat, GltfImport, import::GltfImportError},
     },
 };
 use thiserror::Error;
@@ -18,8 +18,8 @@ use thiserror::Error;
 use crate::import::{extensions::BevyExtensionImport, resolver::BevyAssetResolver};
 
 use super::{
-    document::{import_gltf_document, DocumentImportError, ImportContext},
     GltfKun,
+    document::{DocumentImportError, ImportContext, import_gltf_document},
 };
 
 pub struct GltfLoader<E: BevyExtensionImport<GltfDocument>> {
@@ -81,7 +81,8 @@ where
         reader: &mut dyn Reader,
         _settings: &Self::Settings,
         load_context: &mut LoadContext,
-    ) -> impl bevy::utils::ConditionalSendFuture<Output = Result<Self::Asset, Self::Error>> {
+    ) -> impl bevy::tasks::ConditionalSendFuture<Output = std::result::Result<Self::Asset, Self::Error>>
+    {
         Box::pin(async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;
@@ -138,7 +139,8 @@ where
         reader: &mut dyn Reader,
         _settings: &Self::Settings,
         load_context: &mut LoadContext,
-    ) -> impl bevy::utils::ConditionalSendFuture<Output = Result<Self::Asset, Self::Error>> {
+    ) -> impl bevy::tasks::ConditionalSendFuture<Output = std::result::Result<Self::Asset, Self::Error>>
+    {
         Box::pin(async move {
             let mut bytes = Vec::new();
             reader.read_to_end(&mut bytes).await?;

@@ -3,14 +3,14 @@ use bevy::{
     render::{mesh::Indices, render_resource::PrimitiveTopology},
 };
 use gltf_kun::graph::{
+    GraphNodeWeight,
     gltf::{
-        accessor::{self, iter::AccessorIter, ComponentType, Type},
+        accessor::{self, ComponentType, Type, iter::AccessorIter},
         primitive::{self, Semantic},
     },
-    GraphNodeWeight,
 };
 
-use super::{vertex_to_accessor::vertex_to_accessor, ExportContext};
+use super::{ExportContext, vertex_to_accessor::vertex_to_accessor};
 
 pub fn export_primitive(context: &mut ExportContext, mesh: &Mesh) -> primitive::Primitive {
     let mut primitive = primitive::Primitive::new(&mut context.graph);

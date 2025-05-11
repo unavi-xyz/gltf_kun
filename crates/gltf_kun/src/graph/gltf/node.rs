@@ -2,7 +2,7 @@ use petgraph::graph::NodeIndex;
 
 use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
 
-use super::{mesh::Mesh, GltfEdge, GltfWeight, Skin};
+use super::{GltfEdge, GltfWeight, Skin, mesh::Mesh};
 
 pub use bevy_math::{Quat, Vec3};
 

@@ -1,14 +1,14 @@
 use std::error::Error;
 
 use crate::{
-    extensions::{omi_physics_shape::OmiPhysicsShape, ExtensionExport},
-    graph::{gltf::document::GltfDocument, ByteNode, Extensions},
+    extensions::{ExtensionExport, omi_physics_shape::OmiPhysicsShape},
+    graph::{ByteNode, Extensions, gltf::document::GltfDocument},
     io::format::gltf::GltfFormat,
 };
 
 use super::{
+    EXTENSION_NAME, OmiPhysicsBody,
     json::{PhysicsBodyJson, ShapeRefJson},
-    OmiPhysicsBody, EXTENSION_NAME,
 };
 
 impl ExtensionExport<GltfDocument, GltfFormat> for OmiPhysicsBody {

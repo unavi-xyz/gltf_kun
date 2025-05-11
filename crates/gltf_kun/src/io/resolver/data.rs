@@ -1,4 +1,4 @@
-use base64::engine::{general_purpose::STANDARD, Engine};
+use base64::engine::{Engine, general_purpose::STANDARD};
 
 use super::{Resolver, ResolverError};
 
