@@ -36,8 +36,6 @@
 
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
 
-        treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
-
         commonArgs = {
           src = pkgs.lib.cleanSource ./.;
 
@@ -157,6 +155,8 @@
             wasm-bindgen-cli = pkgs.wasm-bindgen-cli;
           }
         );
+
+        treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
       in
       {
         formatter = treefmtEval.config.build.wrapper;
