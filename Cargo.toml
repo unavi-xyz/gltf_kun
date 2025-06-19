@@ -9,7 +9,6 @@ repository = "https://github.com/unavi-xyz/gltf_kun"
 version = "0.2.0"
 
 [workspace.metadata.release]
-publish = false
 shared-version = true
 tag-name = "v{{version}}"
 
