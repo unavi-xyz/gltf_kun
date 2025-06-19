@@ -21,6 +21,7 @@ avian3d = { workspace = true, optional = true }
 bevy = { version = "0.16.1", default-features = false, features = [
   "animation",
   "bevy_asset",
+  "bevy_log",
   "bevy_pbr",
   "bevy_scene",
 ] }
