@@ -18,7 +18,7 @@ omi_physics = ["dep:avian3d", "gltf_kun/omi_physics"]
 [dependencies]
 anyhow = "1.0.98"
 avian3d = { workspace = true, optional = true }
-bevy = { version = "0.16.0", default-features = false, features = [
+bevy = { version = "0.16.1", default-features = false, features = [
   "animation",
   "bevy_asset",
   "bevy_pbr",

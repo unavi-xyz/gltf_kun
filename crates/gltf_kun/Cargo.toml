@@ -13,7 +13,7 @@ omi_physics = []
 
 [dependencies]
 base64 = "0.22.1"
-bevy_math = "0.16.0"
+bevy_math = "0.16.1"
 byteorder = "1.5.0"
 gltf = { version = "1.4.1", features = ["extensions", "extras"] }
 petgraph.workspace = true
@@ -23,5 +23,5 @@ thiserror.workspace = true
 tracing = "0.1.41"
 
 [dev-dependencies]
-tokio = { version = "1.45.0", features = ["full"] }
+tokio = { version = "1.45.1", features = ["full"] }
 tracing-test = "0.2.5"
