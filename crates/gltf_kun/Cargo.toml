@@ -1,27 +1,27 @@
 [package]
-description = "Graph-based glTF processing library."
-edition.workspace = true
-keywords = ["gltf", "graph", "optimization"]
-license.workspace = true
-name = "gltf_kun"
+description          = "Graph-based glTF processing library."
+edition.workspace    = true
+keywords             = ["gltf", "graph", "optimization"]
+license.workspace    = true
+name                 = "gltf_kun"
 repository.workspace = true
-version.workspace = true
+version.workspace    = true
 
 [features]
-default = ["omi_physics"]
+default     = ["omi_physics"]
 omi_physics = []
 
 [dependencies]
-base64 = "0.22.1"
-bevy_math = "0.16.1"
-byteorder = "1.5.0"
-gltf = { version = "1.4.1", features = ["extensions", "extras"] }
-petgraph.workspace = true
-serde = { version = "1.0.219", features = ["derive"] }
+base64               = "0.22.1"
+bevy_math            = "0.16.1"
+byteorder            = "1.5.0"
+gltf                 = { features = ["extensions", "extras"], version = "1.4.1" }
+petgraph.workspace   = true
+serde                = { features = ["derive"], version = "1.0.219" }
 serde_json.workspace = true
-thiserror.workspace = true
-tracing = "0.1.41"
+thiserror.workspace  = true
+tracing              = "0.1.41"
 
 [dev-dependencies]
-tokio = { version = "1.45.1", features = ["full"] }
+tokio        = { features = ["full"], version = "1.45.1" }
 tracing-test = "0.2.5"

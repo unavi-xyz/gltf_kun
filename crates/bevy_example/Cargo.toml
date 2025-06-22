@@ -1,15 +1,15 @@
 [package]
-edition.workspace = true
-license.workspace = true
-name = "bevy_example"
-publish = false
+edition.workspace    = true
+license.workspace    = true
+name                 = "bevy_example"
+publish              = false
 repository.workspace = true
-version.workspace = true
+version.workspace    = true
 
 [dependencies]
-avian3d.workspace = true
-bevy = { version = "0.16.1", features = ["jpeg"] }
-bevy_egui = "0.34.1"
-bevy_gltf_kun = { path = "../bevy_gltf_kun", features = ["omi_physics"] }
+avian3d.workspace    = true
+bevy                 = { features = ["jpeg"], version = "0.16.1" }
+bevy_egui            = "0.34.1"
+bevy_gltf_kun        = { features = ["omi_physics"], path = "../bevy_gltf_kun" }
 bevy_panorbit_camera = "0.26.0"
-gltf_kun = { path = "../gltf_kun" }
+gltf_kun             = { path = "../gltf_kun" }

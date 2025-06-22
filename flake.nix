@@ -88,7 +88,7 @@
             rust-analyzer
           ];
 
-          LD_LIBRARY_PATH = (pkgs.lib.makeLibraryPath commonArgs.buildInputs);
+          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath commonArgs.buildInputs;
         };
 
         cargoArtifacts = craneLib.buildDepsOnly (commonArgs // { pname = "deps"; });
@@ -152,7 +152,7 @@
                 || (craneLib.filterCargoSources path type);
             };
 
-            wasm-bindgen-cli = pkgs.wasm-bindgen-cli;
+            inherit (pkgs) wasm-bindgen-cli;
           }
         );
 
@@ -184,9 +184,9 @@
         };
 
         packages = {
-          bevy_gltf_kun = bevy_gltf_kun;
-          gltf_kun = gltf_kun;
-          web = web;
+          inherit bevy_gltf_kun;
+          inherit gltf_kun;
+          inherit web;
 
           default = pkgs.symlinkJoin {
             name = "all";
