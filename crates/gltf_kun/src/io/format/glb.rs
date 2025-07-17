@@ -100,7 +100,12 @@ where
             image.set_buffer(graph, Some(buffer));
         }
 
-        let gltf = GltfExport::<E>::export(graph, doc)?;
+        let mut gltf = GltfExport::<E>::export(graph, doc)?;
+
+        // Remove the buffer URI.
+        for buf in gltf.json.buffers.iter_mut() {
+            buf.uri = None;
+        }
 
         let json_bin = gltf.json.to_vec()?;
         let bin = gltf.resources.values().next();
@@ -258,5 +263,31 @@ mod tests {
         let bytes = GlbExport::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
         let glb = gltf::Glb::from_slice(&bytes.0).unwrap();
         assert_eq!(glb.header.length, glb.to_vec().unwrap().len() as u32);
+    }
+
+    #[tokio::test]
+    async fn test_no_uri() {
+        let mut graph = Graph::default();
+        let doc = GltfDocument::new(&mut graph);
+
+        let mut image = doc.create_image(&mut graph);
+        let image_weight = image.get_mut(&mut graph);
+        image_weight.data = vec![0, 1, 2, 3];
+
+        let mut accessor = doc.create_accessor(&mut graph);
+        let accessor_weight = accessor.get_mut(&mut graph);
+        accessor_weight.data = vec![7; 256];
+
+        let bytes = GlbExport::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
+        let out = gltf::Gltf::from_slice(&bytes.0).unwrap();
+
+        let buffers = out.buffers();
+        assert_eq!(buffers.len(), 1);
+
+        for b in buffers {
+            let source = b.source();
+            println!("source={source:?}");
+            assert!(matches!(source, gltf::buffer::Source::Bin));
+        }
     }
 }
