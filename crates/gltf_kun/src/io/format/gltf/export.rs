@@ -406,7 +406,8 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                                 normals: attributes.get(&Semantic::Normals).copied(),
                                 tangents: attributes.get(&Semantic::Tangents).copied(),
                             }
-                        }).collect::<Vec<_>>();
+                        })
+                        .collect::<Vec<_>>();
 
                     gltf::json::mesh::Primitive {
                         attributes,
@@ -882,8 +883,12 @@ mod tests {
         assert_eq!(result.json.materials.len(), 1);
         assert_eq!(result.json.meshes.len(), 1);
         assert_eq!(result.json.meshes[0].primitives.len(), 1);
-        assert!(result.json.meshes[0].primitives[0].targets
-            .as_ref().is_some_and(|target_vec| target_vec.len() == 1));
+        assert!(
+            result.json.meshes[0].primitives[0]
+                .targets
+                .as_ref()
+                .is_some_and(|target_vec| target_vec.len() == 1)
+        );
         assert_eq!(result.json.nodes.len(), 1);
         assert_eq!(result.json.samplers.len(), 1);
         assert_eq!(result.json.scenes.len(), 1);
