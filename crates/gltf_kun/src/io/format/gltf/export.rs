@@ -816,6 +816,7 @@ mod tests {
 
     use crate::graph::gltf::{
         Accessor, Buffer, Image, Material, Mesh, Node, Primitive, Scene, Texture,
+        primitive::MorphTarget,
     };
 
     use super::*;
