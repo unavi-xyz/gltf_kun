@@ -849,6 +849,9 @@ mod tests {
         primitive.set_indices(&mut graph, Some(accessor));
         primitive.set_material(&mut graph, Some(material));
 
+        let morph = primitive.create_morph_target(&mut graph, 0);
+        morph.set_attribute(&mut graph, Semantic::Positions, Some(accessor));
+
         let node = doc.create_node(&mut graph);
         node.set_mesh(&mut graph, Some(mesh));
 
@@ -864,6 +867,7 @@ mod tests {
         let _ = Texture::new(&mut graph);
         let _ = Material::new(&mut graph);
         let _ = Mesh::new(&mut graph);
+        let _ = MorphTarget::new(&mut graph);
         let _ = Primitive::new(&mut graph);
         let _ = Node::new(&mut graph);
         let _ = Scene::new(&mut graph);
@@ -876,6 +880,9 @@ mod tests {
         assert_eq!(result.json.images.len(), 1);
         assert_eq!(result.json.materials.len(), 1);
         assert_eq!(result.json.meshes.len(), 1);
+        assert_eq!(result.json.meshes[0].primitives.len(), 1);
+        assert!(result.json.meshes[0].primitives[0].targets
+            .as_ref().is_some_and(|target_vec| target_vec.len() == 1));
         assert_eq!(result.json.nodes.len(), 1);
         assert_eq!(result.json.samplers.len(), 1);
         assert_eq!(result.json.scenes.len(), 1);
