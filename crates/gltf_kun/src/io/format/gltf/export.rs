@@ -10,6 +10,7 @@ use gltf::json::{
         EmissiveFactor, NormalTexture, OcclusionTexture, PbrBaseColorFactor, PbrMetallicRoughness,
         StrengthFactor,
     },
+    mesh::Semantic,
     scene::UnitQuaternion,
     texture::Info,
     validation::{Checked, USize64},
@@ -387,12 +388,36 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                         .and_then(|material| material_idxs.get(&material.0))
                         .map(|idx| Index::new(*idx as u32));
 
+                    let targets = p
+                        .morph_targets(&graph)
+                        .iter()
+                        .map(|target| {
+                            let attributes = target
+                                .attributes(&graph)
+                                .iter()
+                                .filter_map(|(k, v)| {
+                                    accessor_idxs
+                                        .get(&v.0)
+                                        .map(|idx| (k.clone(), Index::new(*idx as u32)))
+                                })
+                                .collect::<BTreeMap<_, _>>();
+                            gltf::json::mesh::MorphTarget {
+                                positions: attributes.get(&Semantic::Positions).copied(),
+                                normals: attributes.get(&Semantic::Normals).copied(),
+                                tangents: attributes.get(&Semantic::Tangents).copied(),
+                            }
+                        }).collect::<Vec<_>>();
+
                     gltf::json::mesh::Primitive {
                         attributes,
                         indices,
                         material,
                         mode: Checked::Valid(weight.mode),
-                        targets: None,
+                        targets: if targets.is_empty() {
+                            None
+                        } else {
+                            Some(targets)
+                        },
                         extensions: None,
                         extras: None,
                     }
