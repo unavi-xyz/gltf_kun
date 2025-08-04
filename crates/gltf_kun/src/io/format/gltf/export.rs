@@ -389,11 +389,11 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                         .map(|idx| Index::new(*idx as u32));
 
                     let targets = p
-                        .morph_targets(&graph)
+                        .morph_targets(graph)
                         .iter()
                         .map(|target| {
                             let attributes = target
-                                .attributes(&graph)
+                                .attributes(graph)
                                 .iter()
                                 .filter_map(|(k, v)| {
                                     accessor_idxs
