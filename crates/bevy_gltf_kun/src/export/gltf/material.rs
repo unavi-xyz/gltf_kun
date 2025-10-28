@@ -203,9 +203,9 @@ fn address_mode(value: &ImageAddressMode) -> WrappingMode {
 
 #[derive(Debug, Error)]
 pub enum ConvertImageError {
-    #[error("Failed to convert image")]
+    #[error("failed to convert image")]
     FailedToConvert,
-    #[error("Unsupported format")]
+    #[error("unsupported format")]
     UnsupportedFormat,
 }
 

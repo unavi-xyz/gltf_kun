@@ -22,9 +22,9 @@ pub struct GltfFormat {
 
 #[derive(Debug, Error)]
 pub enum WriteFileError {
-    #[error("Failed to write file: {0}")]
+    #[error("failed to write file: {0}")]
     Io(#[from] std::io::Error),
-    #[error("Failed to serialize json: {0}")]
+    #[error("failed to serialize json: {0}")]
     SerdeJson(#[from] serde_json::Error),
 }
 
@@ -69,11 +69,11 @@ where
 
 #[derive(Debug, Error)]
 pub enum ImportFileError {
-    #[error("Failed to import gltf: {0}")]
+    #[error("failed to import gltf: {0}")]
     Import(#[from] import::GltfImportError),
-    #[error("Failed to load file: {0}")]
+    #[error("failed to load file: {0}")]
     Io(#[from] std::io::Error),
-    #[error("Failed to parse json: {0}")]
+    #[error("failed to parse json: {0}")]
     SerdeJson(#[from] serde_json::Error),
 }
 

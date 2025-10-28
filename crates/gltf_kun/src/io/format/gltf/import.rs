@@ -18,11 +18,11 @@ use super::GltfFormat;
 
 #[derive(Debug, Error)]
 pub enum GltfImportError {
-    #[error("Invalid URI: {0}")]
+    #[error("invalid URI: {0}")]
     InvalidUri(String),
-    #[error("Resolver error: {0}")]
+    #[error("resolver error: {0}")]
     ResolverError(String),
-    #[error("Invalid accessor: {0}")]
+    #[error("invalid accessor: {0}")]
     InvalidAccessor(String),
     #[error(transparent)]
     ReadAccessor(#[from] ReadAccessorError),
@@ -627,7 +627,7 @@ async fn resolve_uri(uri: &str, resolver: &mut Option<impl Resolver>) -> Option<
 
 #[derive(Debug, Error)]
 pub enum ReadBufferViewError {
-    #[error("Buffer view index {0} exceeds buffer length {1}")]
+    #[error("buffer view index {0} exceeds buffer length {1}")]
     ExceedsBufferLength(usize, usize),
 }
 
@@ -650,9 +650,9 @@ fn read_buffer_view<'a>(
 
 #[derive(Debug, Error)]
 pub enum ItemSizeError {
-    #[error("Invalid component type")]
+    #[error("invalid component type")]
     InvalidComponentType,
-    #[error("Invalid element type")]
+    #[error("invalid element type")]
     InvalidElementType,
 }
 
@@ -672,7 +672,7 @@ fn accessor_item_size(accessor: &gltf::json::Accessor) -> Result<usize, ItemSize
 
 #[derive(Debug, Error)]
 pub enum ReadAccessorError {
-    #[error("Accessor index {0} exceeds buffer view length {1}")]
+    #[error("accessor index {0} exceeds buffer view length {1}")]
     ExceedsBufferViewLength(usize, usize),
     #[error(transparent)]
     ReadBufferViewError(#[from] ReadBufferViewError),

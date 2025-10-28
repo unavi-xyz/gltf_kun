@@ -10,9 +10,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum VertexToAccessorError {
-    #[error("Unsupported vertex attribute type {0:?}")]
+    #[error("unsupported vertex attribute type {0:?}")]
     UnsupportedVertexAttributeType(VertexAttributeValues),
-    #[error("Failed to create accessor iterator: {0}")]
+    #[error("failed to create accessor iterator: {0}")]
     IterCreateError(#[from] AccessorIterCreateError),
 }
 

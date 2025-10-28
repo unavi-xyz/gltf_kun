@@ -40,7 +40,7 @@ pub fn get_linear_textures(context: &ImportContext) -> HashSet<Texture> {
 
 #[derive(Debug, Error)]
 pub enum TextureLoadError {
-    #[error("Failed to create texture: {0}")]
+    #[error("failed to create texture: {0}")]
     Texture(#[from] TextureError),
 }
 

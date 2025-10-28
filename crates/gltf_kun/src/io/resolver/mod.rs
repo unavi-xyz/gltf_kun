@@ -10,9 +10,9 @@ pub use file::*;
 
 #[derive(Debug, Error)]
 pub enum ResolverError {
-    #[error("Invalid URI: {0}")]
+    #[error("invalid URI: {0}")]
     InvalidUri(String),
-    #[error("Failed to resolve URI: {0}")]
+    #[error("failed to resolve URI: {0}")]
     ResolutionError(String),
 }
 

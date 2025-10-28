@@ -18,9 +18,9 @@ pub struct GlbFormat(pub Vec<u8>);
 
 #[derive(Debug, Error)]
 pub enum ImportFileError {
-    #[error("Failed to import gltf: {0}")]
+    #[error("failed to import gltf: {0}")]
     Import(#[from] GlbImportError),
-    #[error("Failed to load file: {0}")]
+    #[error("failed to load file: {0}")]
     Io(#[from] std::io::Error),
 }
 
@@ -40,23 +40,23 @@ where
 
 #[derive(Debug, Error)]
 pub enum GlbExportError {
-    #[error("Failed to export gltf: {0}")]
+    #[error("failed to export gltf: {0}")]
     Export(#[from] GltfExportError),
-    #[error("Failed to export glb: {0}")]
+    #[error("failed to export glb: {0}")]
     Gltf(#[from] gltf::Error),
-    #[error("Glb only supports one buffer")]
+    #[error("glb only supports one buffer")]
     MultipleBuffers,
-    #[error("Failed to serialize json: {0}")]
+    #[error("failed to serialize json: {0}")]
     SerdeJson(#[from] serde_json::Error),
 }
 
 #[derive(Debug, Error)]
 pub enum GlbImportError {
-    #[error("Failed to parse glb: {0}")]
+    #[error("failed to parse glb: {0}")]
     Gltf(#[from] gltf::Error),
-    #[error("Failed to import gltf: {0}")]
+    #[error("failed to import gltf: {0}")]
     Import(#[from] GltfImportError),
-    #[error("Failed to parse json: {0}")]
+    #[error("failed to parse json: {0}")]
     SerdeJson(#[from] serde_json::Error),
 }
 

@@ -52,15 +52,15 @@ enum ConversionMode {
 
 #[derive(Debug, Error)]
 pub enum ImportPrimitiveError {
-    #[error("Failed to convert attribute: {0}")]
+    #[error("failed to convert attribute: {0}")]
     ConvertAttribute(#[from] AttributeConversionError),
-    #[error("Failed to read indices: {0}")]
+    #[error("failed to read indices: {0}")]
     ReadIndices(#[from] ReadIndicesError),
-    #[error("Unsupported primitive mode: {0:?}")]
+    #[error("unsupported primitive mode: {0:?}")]
     UnsupportedMode(Mode),
-    #[error("Invalid accessor")]
+    #[error("invalid accessor")]
     InvalidAccessor,
-    #[error("Failed to build morph target: {0}")]
+    #[error("failed to build morph target: {0}")]
     MorphBuildError(#[from] MorphBuildError),
 }
 
@@ -240,7 +240,7 @@ fn morph_targets_label(primitive_label: &str) -> String {
 
 #[derive(Debug, Error)]
 pub enum ReadIndicesError {
-    #[error("Failed to get accessor slice: {0}")]
+    #[error("failed to get accessor slice: {0}")]
     GetAccessorSliceError(#[from] GetAccessorSliceError),
 }
 
@@ -275,13 +275,13 @@ fn read_indices(context: &ImportContext, indices: Accessor) -> Result<Indices, R
 
 #[derive(Debug, Error)]
 pub enum AttributeConversionError {
-    #[error("Failed to create accessor iterator: {0}")]
+    #[error("failed to create accessor iterator: {0}")]
     AccessorIter(#[from] AccessorIterCreateError),
-    #[error("Unsupported attribute format: {0:?} {1:?}")]
+    #[error("unsupported attribute format: {0:?} {1:?}")]
     UnsupportedAttributeFormat(ComponentType, Type),
-    #[error("Unsupported semantic: {0:?}")]
+    #[error("unsupported semantic: {0:?}")]
     UnsupportedSemantic(Semantic),
-    #[error("Wrong format for attribute {0:?} (expected {1:?}, got {2:?})")]
+    #[error("wrong format for attribute {0:?} (expected {1:?}, got {2:?})")]
     WrongFormat(String, VertexFormat, VertexFormat),
 }
 

@@ -93,7 +93,7 @@ impl<'a> TryFrom<&'a mut Weight> for &'a mut AccessorWeight {
 
 #[derive(Debug, Error)]
 pub enum GetAccessorSliceError {
-    #[error("Accessor slice {0}..{1} is out of bounds for buffer view of length {2}")]
+    #[error("accessor slice {0}..{1} is out of bounds for buffer view of length {2}")]
     OutOfBounds(usize, usize, usize),
 }
 

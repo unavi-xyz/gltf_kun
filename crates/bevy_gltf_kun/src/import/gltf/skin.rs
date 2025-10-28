@@ -12,9 +12,9 @@ use super::document::ImportContext;
 
 #[derive(Debug, Error)]
 pub enum ImportSkinError {
-    #[error("Missing inverse bind matrices")]
+    #[error("missing inverse bind matrices")]
     MissingInverseBindMatrices,
-    #[error("Invalid accessor type: {0:?} {1:?}")]
+    #[error("invalid accessor type: {0:?} {1:?}")]
     InvalidAccessorType(ComponentType, Type),
     #[error(transparent)]
     AccessorIterCreate(#[from] AccessorIterCreateError),

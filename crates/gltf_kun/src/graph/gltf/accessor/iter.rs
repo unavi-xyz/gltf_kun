@@ -35,7 +35,7 @@ pub enum AccessorIter<'a> {
 
 #[derive(Debug, Error)]
 pub enum AccessorIterCreateError {
-    #[error("Unsupported accessor type {0:?} {1:?}")]
+    #[error("unsupported accessor type {0:?} {1:?}")]
     UnsupportedType(ComponentType, Type),
 }
 
