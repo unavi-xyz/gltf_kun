@@ -13,6 +13,7 @@ use gltf_kun::{
         gltf::{GltfFormat, GltfImport, import::GltfImportError},
     },
 };
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 use crate::import::{extensions::BevyExtensionImport, resolver::BevyAssetResolver};
@@ -21,6 +22,15 @@ use super::{
     GltfKun,
     document::{DocumentImportError, ImportContext, import_gltf_document},
 };
+
+/// Settings for loading GLTF/GLB files.
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct GltfLoaderSettings {
+    /// Whether to expose raw animation curves for retargeting and custom processing.
+    /// When true, creates RawGltfAnimation assets alongside the normal AnimationClip assets.
+    #[serde(default)]
+    pub expose_raw_animation_curves: bool,
+}
 
 pub struct GltfLoader<E: BevyExtensionImport<GltfDocument>> {
     pub _marker: PhantomData<E>,
@@ -73,13 +83,13 @@ where
         + 'static,
 {
     type Asset = GltfKun;
-    type Settings = ();
+    type Settings = GltfLoaderSettings;
     type Error = GltfError;
 
     fn load(
         &self,
         reader: &mut dyn Reader,
-        _settings: &Self::Settings,
+        settings: &Self::Settings,
         load_context: &mut LoadContext,
     ) -> impl bevy::tasks::ConditionalSendFuture<Output = std::result::Result<Self::Asset, Self::Error>>
     {
@@ -104,6 +114,7 @@ where
                 gltf: &mut gltf,
                 graph: &mut graph,
                 load_context,
+                expose_raw_curves: settings.expose_raw_animation_curves,
 
                 materials: HashMap::default(),
                 skin_matrices: HashMap::default(),
@@ -131,13 +142,13 @@ where
         + 'static,
 {
     type Asset = GltfKun;
-    type Settings = ();
+    type Settings = GltfLoaderSettings;
     type Error = GltfError;
 
     fn load(
         &self,
         reader: &mut dyn Reader,
-        _settings: &Self::Settings,
+        settings: &Self::Settings,
         load_context: &mut LoadContext,
     ) -> impl bevy::tasks::ConditionalSendFuture<Output = std::result::Result<Self::Asset, Self::Error>>
     {
@@ -156,6 +167,7 @@ where
                 gltf: &mut gltf,
                 graph: &mut graph,
                 load_context,
+                expose_raw_curves: settings.expose_raw_animation_curves,
 
                 materials: HashMap::default(),
                 skin_matrices: HashMap::default(),

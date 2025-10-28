@@ -9,7 +9,7 @@ use crate::import::extensions::BevyExtensionImport;
 use super::skin::import_skin_matrices;
 use super::{
     GltfKun,
-    animation::{AnimationImportError, import_animation, paths_recur},
+    animation::{import_animation, paths_recur},
     scene::import_scene,
     texture::{TextureLoadError, get_linear_textures, load_texture, texture_label},
 };
@@ -19,7 +19,7 @@ pub enum DocumentImportError {
     #[error(transparent)]
     TextureLoad(#[from] TextureLoadError),
     #[error(transparent)]
-    Animation(#[from] AnimationImportError),
+    Animation(#[from] anyhow::Error),
 }
 
 pub struct ImportContext<'a, 'b> {
@@ -27,6 +27,7 @@ pub struct ImportContext<'a, 'b> {
     pub gltf: &'a mut GltfKun,
     pub graph: &'a mut Graph,
     pub load_context: &'a mut LoadContext<'b>,
+    pub expose_raw_curves: bool,
 
     pub skin_matrices: HashMap<Skin, Handle<SkinnedMeshInverseBindposes>>,
     pub materials: HashMap<(Material, bool), Handle<StandardMaterial>>,

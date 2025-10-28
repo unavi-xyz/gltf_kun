@@ -27,5 +27,6 @@ bevy = { default-features = false, features = [
 ], version = "0.16.1" }
 gltf_kun = { path = "../gltf_kun", version = "0.2.0" }
 image = "0.25.6"
+serde = { features = ["derive"], version = "1.0" }
 serde_json.workspace = true
 thiserror.workspace = true

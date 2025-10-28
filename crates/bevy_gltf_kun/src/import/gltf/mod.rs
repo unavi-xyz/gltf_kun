@@ -4,7 +4,7 @@ use gltf_kun::graph::{
     gltf::{Node, document::GltfDocument},
 };
 
-use self::{mesh::GltfMesh, node::GltfNode, scene::GltfScene};
+use self::{animation::RawGltfAnimation, mesh::GltfMesh, node::GltfNode, scene::GltfScene};
 
 pub mod animation;
 pub mod document;
@@ -23,6 +23,7 @@ pub struct GltfKun {
     pub node_handles: HashMap<Node, Handle<GltfNode>>,
 
     pub animations: Vec<Handle<AnimationClip>>,
+    pub raw_animations: Vec<Handle<RawGltfAnimation>>,
     pub default_scene: Option<Handle<GltfScene>>,
     pub images: Vec<Handle<Image>>,
     pub materials: Vec<Handle<StandardMaterial>>,
@@ -31,6 +32,7 @@ pub struct GltfKun {
     pub scenes: Vec<Handle<GltfScene>>,
 
     pub named_animations: HashMap<String, Handle<AnimationClip>>,
+    pub named_raw_animations: HashMap<String, Handle<RawGltfAnimation>>,
     pub named_materials: HashMap<String, Handle<StandardMaterial>>,
     pub named_meshes: HashMap<String, Handle<GltfMesh>>,
     pub named_nodes: HashMap<String, Handle<GltfNode>>,
