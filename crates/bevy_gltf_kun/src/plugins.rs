@@ -14,6 +14,7 @@ use crate::{
         extensions::BevyExtensionImport,
         gltf::{
             GltfKun,
+            animation::RawGltfAnimation,
             loader::{GlbLoader, GltfLoader},
             mesh::GltfMesh,
             node::GltfNode,
@@ -29,7 +30,8 @@ impl Plugin for GltfAssetPlugin {
         app.init_asset::<GltfKun>()
             .init_asset::<GltfMesh>()
             .init_asset::<GltfNode>()
-            .init_asset::<GltfScene>();
+            .init_asset::<GltfScene>()
+            .init_asset::<RawGltfAnimation>();
     }
 }
 
