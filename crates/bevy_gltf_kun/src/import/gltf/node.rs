@@ -19,7 +19,7 @@ use super::{
     primitive::primitive_label,
 };
 
-#[derive(Asset, Debug, TypePath)]
+#[derive(Asset, Clone, Debug, TypePath)]
 pub struct GltfNode {
     pub children: Vec<Handle<GltfNode>>,
     pub mesh: Option<Handle<GltfMesh>>,
