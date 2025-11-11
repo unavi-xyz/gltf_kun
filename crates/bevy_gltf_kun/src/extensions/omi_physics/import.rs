@@ -137,7 +137,8 @@ impl NodeExtensionImport<GltfDocument> for OmiPhysicsBody {
             let inertia = Mat3::from_diagonal(motion.intertial_diagonal.into());
             let rotated_inertia = (rotation * inertia) * rotation.transpose();
 
-            let inertia = AngularInertia::from(rotated_inertia);
+            let inertia = AngularInertia::try_from_mat3(rotated_inertia)
+                .expect("invalid angular inertia matrix");
 
             entity.insert(RigidBodyMarker {
                 angular_velocity: motion.angular_velocity.into(),

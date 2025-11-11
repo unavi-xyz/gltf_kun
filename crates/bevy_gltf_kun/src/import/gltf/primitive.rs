@@ -1,14 +1,11 @@
 use bevy::{
-    prelude::*,
-    render::{
-        mesh::{
-            Indices, MeshVertexAttribute, VertexAttributeValues,
-            morph::{MeshMorphWeights, MorphAttributes, MorphBuildError, MorphTargetImage},
-        },
-        primitives::Aabb,
-        render_asset::RenderAssetUsages,
-        render_resource::{PrimitiveTopology, VertexFormat},
+    asset::RenderAssetUsages,
+    camera::primitives::Aabb,
+    mesh::{
+        Indices, MeshVertexAttribute, PrimitiveTopology, VertexAttributeValues, VertexFormat,
+        morph::{MeshMorphWeights, MorphAttributes, MorphBuildError, MorphTargetImage},
     },
+    prelude::*,
 };
 use gltf_kun::graph::{
     Graph, GraphNodeWeight,

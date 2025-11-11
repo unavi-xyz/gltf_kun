@@ -198,10 +198,8 @@ fn export_curve(
             }
         };
 
-        let ent_anim = world
-            .query::<AnimationEntityMut>()
-            .get_mut(&mut world, ent)
-            .unwrap();
+        let mut anim_query = world.query::<AnimationEntityMut>();
+        let ent_anim = anim_query.get_mut(&mut world, ent).unwrap();
 
         eval.commit(ent_anim)
             .map_err(|e| anyhow::format_err!("{:?}", e))?;

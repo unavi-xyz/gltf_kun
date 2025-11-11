@@ -50,8 +50,8 @@ impl<E: BevyExtensionExport<GltfDocument>> Default for GltfExportPlugin<E> {
 
 impl<E: BevyExtensionExport<GltfDocument>> Plugin for GltfExportPlugin<E> {
     fn build(&self, app: &mut App) {
-        app.add_event::<GltfExportEvent<E>>()
-            .add_event::<GltfExportResult>()
+        app.add_message::<GltfExportEvent<E>>()
+            .add_message::<GltfExportResult>()
             .add_systems(Update, export_gltf::<E>);
     }
 }

@@ -1,6 +1,6 @@
 use bevy::{
+    mesh::skinning::{SkinnedMesh, SkinnedMeshInverseBindposes},
     prelude::*,
-    render::mesh::skinning::{SkinnedMesh, SkinnedMeshInverseBindposes},
 };
 use gltf_kun::graph::{
     GraphNodeWeight,

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use bevy::{platform::collections::HashSet, prelude::*, render::mesh::skinning::SkinnedMesh};
+use bevy::{mesh::skinning::SkinnedMesh, platform::collections::HashSet, prelude::*};
 use gltf_kun::graph::{
     GraphNodeWeight,
     gltf::{Node, document::GltfDocument, scene},

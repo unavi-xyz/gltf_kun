@@ -16,7 +16,7 @@ pub mod node;
 pub mod scene;
 pub mod skin;
 
-#[derive(Default, Event)]
+#[derive(Default, Message)]
 pub struct GltfExportEvent<E: BevyExtensionExport<GltfDocument>> {
     pub scenes: Vec<Handle<Scene>>,
     pub default_scene: Option<Handle<Scene>>,
@@ -36,7 +36,7 @@ impl<E: BevyExtensionExport<GltfDocument>> GltfExportEvent<E> {
 #[derive(Debug, Error)]
 pub enum ExportError {}
 
-#[derive(Event)]
+#[derive(Message)]
 pub struct GltfExportResult {
     pub graph: Graph,
     pub result: Result<GltfDocument, ExportError>,
@@ -99,7 +99,7 @@ pub struct CachedScene {
 }
 
 pub fn export_gltf<E: BevyExtensionExport<GltfDocument>>(world: &mut World) {
-    let events = match world.get_resource_mut::<Events<GltfExportEvent<E>>>() {
+    let events = match world.get_resource_mut::<Messages<GltfExportEvent<E>>>() {
         Some(mut events) => events.drain().collect::<Vec<_>>(),
         None => return,
     };
@@ -121,7 +121,10 @@ pub fn export_gltf<E: BevyExtensionExport<GltfDocument>>(world: &mut World) {
     }
 }
 
-pub fn create_export_result(In(ctx): In<ExportContext>, mut writer: EventWriter<GltfExportResult>) {
+pub fn create_export_result(
+    In(ctx): In<ExportContext>,
+    mut writer: MessageWriter<GltfExportResult>,
+) {
     writer.write(GltfExportResult {
         graph: ctx.graph,
         result: Ok(ctx.doc),

@@ -1,5 +1,5 @@
 use bevy::platform::collections::{HashMap, HashSet};
-use bevy::{asset::LoadContext, prelude::*, render::mesh::skinning::SkinnedMeshInverseBindposes};
+use bevy::{asset::LoadContext, mesh::skinning::SkinnedMeshInverseBindposes, prelude::*};
 use gltf_kun::graph::gltf::{Material, Skin};
 use gltf_kun::graph::{Graph, gltf::GltfDocument};
 use thiserror::Error;

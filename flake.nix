@@ -37,51 +37,6 @@
             system,
             ...
           }:
-          let
-            commonArgs = {
-              src = lib.cleanSource ./.;
-              strictDeps = true;
-
-              buildInputs =
-                lib.optionals pkgs.stdenv.isLinux (
-                  with pkgs;
-                  [
-                    alsa-lib
-                    alsa-lib.dev
-                    libxkbcommon
-                    udev
-                    vulkan-loader
-                    wayland
-                    xorg.libX11
-                    xorg.libXcursor
-                    xorg.libXi
-                    xorg.libXrandr
-                  ]
-                )
-                ++ lib.optionals pkgs.stdenv.isDarwin (with pkgs; [ darwin.apple_sdk.frameworks.Cocoa ]);
-
-              nativeBuildInputs =
-                with pkgs;
-                [
-                  binaryen
-                  clang
-                  llvmPackages.bintools
-                  mold
-                  pkg-config
-                  trunk
-                  wasm-bindgen-cli
-                  wasm-tools
-                ]
-                ++ lib.optionals (!stdenv.isDarwin) [
-                  alsa-lib
-                  alsa-lib.dev
-                ];
-
-              CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_LINKER = "lld";
-            };
-
-            cargoArtifacts = pkgs.crane.buildDepsOnly (commonArgs // { pname = "deps"; });
-          in
           {
             _module.args.pkgs = import inputs.nixpkgs {
               inherit system;
@@ -94,9 +49,9 @@
                     toolchain = (
                       with self.fenix;
                       combine [
+                        stable.llvm-tools-preview
                         stable.toolchain
                         targets.wasm32-unknown-unknown.stable.rust-std
-                        stable.llvm-tools-preview
                       ]
                     );
                   in
@@ -106,26 +61,6 @@
                 )
 
               ];
-            };
-
-            _module.args = { inherit commonArgs cargoArtifacts; };
-
-            checks = {
-              clippy = pkgs.crane.cargoClippy (
-                commonArgs
-                // {
-                  inherit cargoArtifacts;
-                  pname = "clippy";
-                }
-              );
-
-              doc = pkgs.crane.cargoDoc (
-                commonArgs
-                // {
-                  inherit cargoArtifacts;
-                  pname = "doc";
-                }
-              );
             };
 
             packages.default = config.packages.bevy-example-web;
@@ -169,8 +104,8 @@
               LD_LIBRARY_PATH =
                 config.packages
                 |> lib.attrValues
-                |> lib.filter (x: x ? buildInputs)
-                |> lib.flip pkgs.lib.forEach (x: x.buildInputs)
+                |> lib.filter (x: x ? linkedInputs)
+                |> lib.flip pkgs.lib.forEach (x: x.linkedInputs)
                 |> lib.concatLists
                 |> lib.unique
                 |> lib.makeLibraryPath;

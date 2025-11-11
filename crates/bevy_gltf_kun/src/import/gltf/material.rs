@@ -112,11 +112,14 @@ pub fn default_material(context: &mut ImportContext) -> Handle<StandardMaterial>
     } else {
         context
             .load_context
-            .labeled_asset_scope(DEFAULT_MATERIAL_LABEL.to_string(), |_| StandardMaterial {
-                metallic: 1.0,
-                perceptual_roughness: 1.0,
-                ..default()
+            .labeled_asset_scope(DEFAULT_MATERIAL_LABEL.to_string(), |_| {
+                Ok::<_, anyhow::Error>(StandardMaterial {
+                    metallic: 1.0,
+                    perceptual_roughness: 1.0,
+                    ..default()
+                })
             })
+            .unwrap()
     }
 }
 

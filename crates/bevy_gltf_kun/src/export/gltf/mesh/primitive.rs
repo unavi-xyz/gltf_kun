@@ -1,7 +1,4 @@
-use bevy::{
-    prelude::*,
-    render::{mesh::Indices, render_resource::PrimitiveTopology},
-};
+use bevy::{mesh::Indices, prelude::*, render::render_resource::PrimitiveTopology};
 use gltf_kun::graph::{
     GraphNodeWeight,
     gltf::{

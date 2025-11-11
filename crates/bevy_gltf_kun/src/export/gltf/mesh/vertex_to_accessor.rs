@@ -1,4 +1,4 @@
-use bevy::render::mesh::VertexAttributeValues;
+use bevy::mesh::VertexAttributeValues;
 use gltf_kun::graph::{
     Graph,
     gltf::accessor::{

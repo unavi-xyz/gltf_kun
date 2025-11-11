@@ -1,4 +1,4 @@
-use bevy::{prelude::*, render::mesh::skinning::SkinnedMeshInverseBindposes};
+use bevy::{mesh::skinning::SkinnedMeshInverseBindposes, prelude::*};
 use gltf_kun::graph::gltf::{
     Skin,
     accessor::{

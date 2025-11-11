@@ -16,17 +16,17 @@ default     = []
 omi_physics = ["dep:avian3d", "gltf_kun/omi_physics"]
 
 [dependencies]
-anyhow = "1.0.98"
+anyhow = "1.0.100"
 avian3d = { optional = true, workspace = true }
-bevy = { default-features = false, features = [
+bevy = { features = [
   "animation",
   "bevy_asset",
   "bevy_log",
   "bevy_pbr",
   "bevy_scene",
-], version = "0.16.1" }
+], workspace = true }
 gltf_kun = { path = "../gltf_kun", version = "0.2.0" }
-image = "0.25.6"
+image = "0.25.8"
 serde = { features = ["derive"], version = "1.0" }
 serde_json.workspace = true
 thiserror.workspace = true

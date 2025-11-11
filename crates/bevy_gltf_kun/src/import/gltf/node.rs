@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use bevy::{
     animation::{AnimationTarget, AnimationTargetId},
+    mesh::morph::MorphBuildError,
     prelude::*,
-    render::mesh::morph::MorphBuildError,
 };
 use gltf_kun::graph::{
     Graph, GraphNodeWeight,

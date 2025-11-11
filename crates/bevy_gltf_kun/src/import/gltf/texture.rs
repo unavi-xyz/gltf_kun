@@ -1,11 +1,11 @@
 use bevy::{
+    asset::RenderAssetUsages,
     image::{
         CompressedImageFormats, ImageAddressMode, ImageFilterMode, ImageSampler,
         ImageSamplerDescriptor, ImageType,
     },
     platform::collections::HashSet,
     prelude::*,
-    render::render_asset::RenderAssetUsages,
 };
 use gltf_kun::graph::{
     GraphNodeWeight,

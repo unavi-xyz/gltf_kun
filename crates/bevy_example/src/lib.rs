@@ -5,10 +5,10 @@ use bevy::{
     diagnostic::FrameCount,
     gltf::Gltf,
     input::keyboard::{Key, KeyboardInput},
-    pbr::CascadeShadowConfigBuilder,
+    light::CascadeShadowConfigBuilder,
     prelude::*,
 };
-use bevy_egui::{EguiContexts, EguiPlugin, egui::ComboBox};
+use bevy_egui::{EguiContexts, EguiPlugin, EguiPrimaryContextPass, egui::ComboBox};
 use bevy_gltf_kun::{
     GltfKunPlugin,
     export::gltf::{GltfExportEvent, GltfExportResult},
@@ -49,22 +49,20 @@ pub struct ExamplePlugin;
 impl Plugin for ExamplePlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
-            EguiPlugin {
-                enable_multipass_for_primary_context: false,
-            },
+            EguiPlugin::default(),
             GltfKunPlugin::default(),
             PanOrbitCameraPlugin,
-            PhysicsDebugPlugin::default(),
+            PhysicsDebugPlugin,
             PhysicsPlugins::default(),
         ))
-        .add_event::<LoadModel>()
-        .add_event::<LoadScene>()
+        .add_message::<LoadModel>()
+        .add_message::<LoadScene>()
         .init_resource::<ExportedPath>()
         .init_resource::<LoadedKun>()
         .init_resource::<Loader>()
         .init_resource::<SelectedModel>()
-        .register_type::<Handle<AnimationGraph>>()
         .add_systems(Startup, setup)
+        .add_systems(EguiPrimaryContextPass, run_ui)
         .add_systems(
             Update,
             (
@@ -72,16 +70,15 @@ impl Plugin for ExamplePlugin {
                 export,
                 get_result,
                 reload,
-                ui,
             ),
         );
     }
 }
 
-#[derive(Event)]
+#[derive(Message)]
 struct LoadModel(String);
 
-#[derive(Event)]
+#[derive(Message)]
 struct LoadScene(GltfHandle);
 
 #[derive(Clone)]
@@ -124,7 +121,7 @@ struct ExportedPath(String);
 #[derive(Default, Resource)]
 struct LoadedKun(Option<Handle<GltfKun>>);
 
-fn setup(mut commands: Commands, mut writer: EventWriter<LoadModel>) {
+fn setup(mut commands: Commands, mut writer: MessageWriter<LoadModel>) {
     commands.spawn((
         PanOrbitCamera::default(),
         Transform::from_xyz(1.0, 2.0, 5.0),
@@ -148,19 +145,23 @@ fn setup(mut commands: Commands, mut writer: EventWriter<LoadModel>) {
     writer.write(LoadModel(MODELS[0].to_string()));
 }
 
-fn ui(
+fn run_ui(
     mut contexts: EguiContexts,
     mut exported: ResMut<ExportedPath>,
     mut loader: ResMut<Loader>,
     mut pan_orbit_camera: Query<&mut PanOrbitCamera>,
     mut selected_model: ResMut<SelectedModel>,
-    mut writer: EventWriter<LoadModel>,
+    mut writer: MessageWriter<LoadModel>,
 ) {
     if selected_model.0.is_empty() {
         selected_model.0 = MODELS[0].to_string();
     }
 
-    bevy_egui::egui::Window::new("Controls").show(contexts.ctx_mut(), |ui| {
+    let Ok(ctx) = contexts.ctx_mut() else {
+        return;
+    };
+
+    bevy_egui::egui::Window::new("Controls").show(ctx, |ui| {
         ui.label("Click and drag to orbit camera");
         ui.label("Scroll to zoom camera");
         #[cfg(not(target_family = "wasm"))]
@@ -203,8 +204,6 @@ fn ui(
             });
     });
 
-    let ctx = contexts.ctx_mut();
-
     for mut orbit in pan_orbit_camera.iter_mut() {
         orbit.enabled = !ctx.is_pointer_over_area();
     }
@@ -214,12 +213,12 @@ fn ui(
 fn load_model(
     asset_server: Res<AssetServer>,
     loader: Res<Loader>,
-    mut events: EventReader<LoadModel>,
-    mut gltf_events: EventReader<AssetEvent<Gltf>>,
+    mut events: MessageReader<LoadModel>,
+    mut gltf_events: MessageReader<AssetEvent<Gltf>>,
     mut gltf_handle: Local<GltfHandle>,
-    mut gltf_kun_events: EventReader<AssetEvent<GltfKun>>,
+    mut gltf_kun_events: MessageReader<AssetEvent<GltfKun>>,
     mut loaded_kun: ResMut<LoadedKun>,
-    mut writer: EventWriter<LoadScene>,
+    mut writer: MessageWriter<LoadScene>,
 ) {
     for event in events.read() {
         info!("Loading model {}", event.0);
@@ -260,7 +259,7 @@ fn load_scene(
     gltf_kun_assets: Res<Assets<GltfKun>>,
     loader: Res<Loader>,
     mut commands: Commands,
-    mut events: EventReader<LoadScene>,
+    mut events: MessageReader<LoadScene>,
     scenes: Query<Entity, With<SceneRoot>>,
     gltf_scenes: Res<Assets<GltfScene>>,
 ) {
@@ -353,8 +352,8 @@ fn play_animations(
 }
 
 fn export(
-    mut export: EventWriter<GltfExportEvent<DefaultExtensions>>,
-    mut key_events: EventReader<KeyboardInput>,
+    mut export: MessageWriter<GltfExportEvent<DefaultExtensions>>,
+    mut key_events: MessageReader<KeyboardInput>,
     scene: Query<&SceneRoot>,
 ) {
     for event in key_events.read() {
@@ -381,8 +380,8 @@ fn export(
 }
 
 fn reload(
-    mut writer: EventWriter<LoadModel>,
-    mut key_events: EventReader<KeyboardInput>,
+    mut writer: MessageWriter<LoadModel>,
+    mut key_events: MessageReader<KeyboardInput>,
     exported: Res<ExportedPath>,
     selected: Res<SelectedModel>,
 ) {
@@ -412,8 +411,8 @@ const TEMP_FOLDER: &str = "temp/bevy_gltf";
 fn get_result(
     frame: Res<FrameCount>,
     mut exported_path: ResMut<ExportedPath>,
-    mut exports: ResMut<Events<GltfExportResult>>,
-    mut writer: EventWriter<LoadModel>,
+    mut exports: ResMut<Messages<GltfExportResult>>,
+    mut writer: MessageWriter<LoadModel>,
 ) {
     for mut event in exports.drain() {
         let doc = match event.result {
