@@ -1,3 +1,5 @@
+//! Example glTF loading using test assets.
+
 use std::{fmt::Display, path::Path};
 
 use avian3d::prelude::*;
