@@ -25,7 +25,7 @@ bevy = { features = [
   "bevy_pbr",
   "bevy_scene",
 ], workspace = true }
-gltf_kun = { path = "../gltf_kun", version = "0.2.0" }
+gltf_kun = { path = "../gltf_kun", version = "0.3.0" }
 image = "0.25.8"
 serde = { features = ["derive"], version = "1.0" }
 serde_json.workspace = true

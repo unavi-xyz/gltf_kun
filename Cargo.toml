@@ -6,7 +6,7 @@ resolver = "2"
 edition    = "2024"
 license    = "MIT OR Apache-2.0"
 repository = "https://github.com/unavi-xyz/gltf_kun"
-version    = "0.2.0"
+version    = "0.3.0"
 
 [workspace.metadata.release]
 shared-version = true
