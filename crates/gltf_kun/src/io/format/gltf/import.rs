@@ -384,10 +384,10 @@ pub async fn import(
                 };
                 primitive.set_material(graph, material);
 
-                if let Some(index) = p.indices {
-                    if let Some(accessor) = accessors.get(index.value()) {
-                        primitive.set_indices(graph, Some(*accessor));
-                    }
+                if let Some(index) = p.indices
+                    && let Some(accessor) = accessors.get(index.value())
+                {
+                    primitive.set_indices(graph, Some(*accessor));
                 }
 
                 for (k, v) in p.attributes.iter() {
@@ -461,10 +461,10 @@ pub async fn import(
                 weight.weights.clone_from(weights);
             }
 
-            if let Some(index) = n.mesh {
-                if let Some(mesh) = meshes.get(index.value()) {
-                    node.set_mesh(graph, Some(*mesh));
-                }
+            if let Some(index) = n.mesh
+                && let Some(mesh) = meshes.get(index.value())
+            {
+                node.set_mesh(graph, Some(*mesh));
             }
 
             node
@@ -510,10 +510,10 @@ pub async fn import(
         .collect::<Vec<_>>();
 
     // Default scene
-    if let Some(index) = format.json.scene {
-        if let Some(scene) = scenes.get(index.value()) {
-            doc.set_default_scene(graph, Some(*scene));
-        }
+    if let Some(index) = format.json.scene
+        && let Some(scene) = scenes.get(index.value())
+    {
+        doc.set_default_scene(graph, Some(*scene));
     }
 
     // Create skins
@@ -524,16 +524,16 @@ pub async fn import(
         weight.name.clone_from(&s.name);
         weight.extras.clone_from(&s.extras);
 
-        if let Some(inverse_bind_matrices) = s.inverse_bind_matrices {
-            if let Some(accessor) = accessors.get(inverse_bind_matrices.value()) {
-                skin.set_inverse_bind_matrices(graph, Some(*accessor));
-            }
+        if let Some(inverse_bind_matrices) = s.inverse_bind_matrices
+            && let Some(accessor) = accessors.get(inverse_bind_matrices.value())
+        {
+            skin.set_inverse_bind_matrices(graph, Some(*accessor));
         }
 
-        if let Some(skeleton) = s.skeleton {
-            if let Some(node) = nodes.get(skeleton.value()) {
-                skin.set_skeleton(graph, Some(*node));
-            }
+        if let Some(skeleton) = s.skeleton
+            && let Some(node) = nodes.get(skeleton.value())
+        {
+            skin.set_skeleton(graph, Some(*node));
         }
 
         for (j, joint_idx) in s.joints.iter().enumerate() {

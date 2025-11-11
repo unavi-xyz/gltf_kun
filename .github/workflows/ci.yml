@@ -17,18 +17,13 @@ jobs:
           remove-haskell: true
       - uses: actions/checkout@v5
         with:
-          submodules: true
           ref: ${{ github.event.pull_request.head.ref }}
       - uses: DeterminateSystems/flake-checker-action@v12
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
-      - uses: Swatinem/rust-cache@v2
-      - run: nix develop -c nix run .#generate-readme
+      - run: nix flake check
+      - run: nix develop -c cargo workspaces exec cargo rdme
       - uses: EndBug/add-and-commit@v9
         with:
           message: "chore: generate README"
           default_author: github_actions
-      - run: nix develop -c cargo clippy --all-features --fix --no-deps
-      - run: nix fmt
-      - run: nix develop -c cargo doc --all-features --no-deps
-      - run: nix develop -c cargo test --all-features

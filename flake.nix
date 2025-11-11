@@ -1,205 +1,177 @@
 {
   inputs = {
-    crane.url = "github:ipetkov/crane";
-    flake-utils.url = "github:numtide/flake-utils";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-      };
+    # Nix
+    flake-parts = {
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+      url = "github:hercules-ci/flake-parts";
     };
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    systems.url = "github:nix-systems/default";
     treefmt-nix.url = "github:numtide/treefmt-nix";
+
+    # Rust
+    crane.url = "github:ipetkov/crane";
+    fenix = {
+      url = "github:nix-community/fenix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
-    {
-      crane,
-      flake-utils,
-      nixpkgs,
-      rust-overlay,
-      self,
-      treefmt-nix,
-      ...
-    }:
-    flake-utils.lib.eachDefaultSystem (
-      localSystem:
-      let
-        pkgs = import nixpkgs {
-          inherit localSystem;
-          overlays = [ (import rust-overlay) ];
-        };
+    inputs@{ flake-parts, systems, ... }:
+    flake-parts.lib.mkFlake { inherit inputs; } (
+      { ... }:
+      {
+        systems = import systems;
 
-        rustToolchain = pkgs.pkgsBuildHost.rust-bin.stable.latest.default.override {
-          targets = [ "wasm32-unknown-unknown" ];
-        };
+        imports = [
+          inputs.treefmt-nix.flakeModule
+          ./crates/bevy_example
+        ];
 
-        craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
+        perSystem =
+          {
+            config,
+            lib,
+            pkgs,
+            system,
+            ...
+          }:
+          let
+            commonArgs = {
+              src = lib.cleanSource ./.;
+              strictDeps = true;
 
-        commonArgs = {
-          src = pkgs.lib.cleanSource ./.;
+              buildInputs =
+                lib.optionals pkgs.stdenv.isLinux (
+                  with pkgs;
+                  [
+                    alsa-lib
+                    alsa-lib.dev
+                    libxkbcommon
+                    udev
+                    vulkan-loader
+                    wayland
+                    xorg.libX11
+                    xorg.libXcursor
+                    xorg.libXi
+                    xorg.libXrandr
+                  ]
+                )
+                ++ lib.optionals pkgs.stdenv.isDarwin (with pkgs; [ darwin.apple_sdk.frameworks.Cocoa ]);
 
-          strictDeps = true;
-
-          buildInputs =
-            pkgs.lib.optionals pkgs.stdenv.isLinux (
-              with pkgs;
-              [
-                alsa-lib
-                alsa-lib.dev
-                libxkbcommon
-                udev
-                vulkan-loader
-                wayland
-                xorg.libX11
-                xorg.libXcursor
-                xorg.libXi
-                xorg.libXrandr
-              ]
-            )
-            ++ pkgs.lib.optionals pkgs.stdenv.isDarwin (with pkgs; [ darwin.apple_sdk.frameworks.Cocoa ]);
-
-          nativeBuildInputs =
-            with pkgs;
-            [
-              binaryen
-              clang
-              mold
-              pkg-config
-              trunk
-              wasm-bindgen-cli
-              wasm-tools
-            ]
-            ++ lib.optionals (!stdenv.isDarwin) [
-              alsa-lib
-              alsa-lib.dev
-            ];
-        };
-
-        commonShell = {
-          checks = self.checks.${localSystem};
-          packages = with pkgs; [
-            cargo-edit
-            cargo-machete
-            cargo-nextest
-            cargo-rdme
-            cargo-release
-            cargo-watch
-            cargo-workspaces
-            rust-analyzer
-          ];
-
-          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath commonArgs.buildInputs;
-        };
-
-        cargoArtifacts = craneLib.buildDepsOnly (commonArgs // { pname = "deps"; });
-
-        cargoArtifactsWasm = craneLib.buildDepsOnly (
-          commonArgs
-          // {
-            pname = "deps-wasm";
-            doCheck = false;
-          }
-        );
-
-        cargoClippy = craneLib.cargoClippy (
-          commonArgs
-          // {
-            inherit cargoArtifacts;
-            pname = "clippy";
-          }
-        );
-
-        cargoDoc = craneLib.cargoDoc (
-          commonArgs
-          // {
-            inherit cargoArtifacts;
-            pname = "doc";
-          }
-        );
-
-        bevy_gltf_kun = craneLib.buildPackage (
-          commonArgs
-          // {
-            inherit cargoArtifacts;
-            pname = "bevy_gltf_kun";
-            cargoExtraArgs = "-p bevy_gltf_kun";
-          }
-        );
-
-        gltf_kun = craneLib.buildPackage (
-          commonArgs
-          // {
-            inherit cargoArtifacts;
-            pname = "gltf_kun";
-            cargoExtraArgs = "-p gltf_kun --all-features";
-          }
-        );
-
-        web = craneLib.buildTrunkPackage (
-          commonArgs
-          // {
-            inherit cargoArtifactsWasm;
-            pname = "bevy_example";
-            cargoExtraArgs = "-p bevy_example --target wasm32-unknown-unknown";
-            trunkExtraBuildArgs = "--public-url gltf_kun";
-
-            src = pkgs.lib.cleanSourceWith {
-              src = ./.;
-              filter =
-                path: type:
-                (pkgs.lib.hasSuffix ".html" path)
-                || (pkgs.lib.hasInfix "/assets/" path)
-                || (craneLib.filterCargoSources path type);
+              nativeBuildInputs =
+                with pkgs;
+                [
+                  binaryen
+                  clang
+                  mold
+                  pkg-config
+                  trunk
+                  wasm-bindgen-cli
+                  wasm-tools
+                ]
+                ++ lib.optionals (!stdenv.isDarwin) [
+                  alsa-lib
+                  alsa-lib.dev
+                ];
             };
 
-            inherit (pkgs) wasm-bindgen-cli;
-          }
-        );
+            cargoArtifacts = pkgs.crane.buildDepsOnly (commonArgs // { pname = "deps"; });
+          in
+          {
+            _module.args.pkgs = import inputs.nixpkgs {
+              inherit system;
+              overlays = [
+                inputs.fenix.overlays.default
 
-        treefmtEval = treefmt-nix.lib.evalModule pkgs ./treefmt.nix;
-      in
-      {
-        formatter = treefmtEval.config.build.wrapper;
+                (
+                  self: _:
+                  let
+                    toolchain = (
+                      with self.fenix;
+                      combine [
+                        stable.toolchain
+                        targets.wasm32-unknown-unknown.stable.rust-std
+                      ]
+                    );
+                  in
+                  {
+                    crane = (inputs.crane.mkLib self).overrideToolchain toolchain;
+                  }
+                )
 
-        checks = {
-          inherit
-            gltf_kun
-            bevy_gltf_kun
-            web
-            cargoClippy
-            cargoDoc
-            ;
-        };
+              ];
+            };
 
-        apps = {
-          generate-readme = flake-utils.lib.mkApp {
-            drv = pkgs.writeShellScriptBin "generate-readme" ''
-              cd crates
+            _module.args = { inherit commonArgs cargoArtifacts; };
 
-              for folder in */; do
-                (cd $folder && cargo rdme)
-              done
-            '';
+            checks = {
+              clippy = pkgs.crane.cargoClippy (
+                commonArgs
+                // {
+                  inherit cargoArtifacts;
+                  pname = "clippy";
+                }
+              );
+
+              doc = pkgs.crane.cargoDoc (
+                commonArgs
+                // {
+                  inherit cargoArtifacts;
+                  pname = "doc";
+                }
+              );
+            };
+
+            packages.default = config.packages.bevy-example-web;
+
+            treefmt.programs = {
+              actionlint.enable = true;
+              deadnix.enable = true;
+              mdformat.enable = true;
+              nixfmt = {
+                enable = true;
+                strict = true;
+              };
+              rustfmt.enable = true;
+              statix.enable = true;
+              taplo.enable = true;
+              yamlfmt.enable = true;
+            };
+
+            devShells.default = pkgs.crane.devShell {
+              packages =
+                config.packages
+                |> lib.attrValues
+                |> lib.flip pkgs.lib.forEach (x: x.buildInputs ++ x.nativeBuildInputs)
+                |> lib.concatLists
+                |> lib.unique
+                |> (
+                  basePkgs:
+                  basePkgs
+                  ++ (with pkgs; [
+                    cargo-edit
+                    cargo-machete
+                    cargo-nextest
+                    cargo-rdme
+                    cargo-release
+                    cargo-watch
+                    cargo-workspaces
+                    rust-analyzer
+                  ])
+                );
+
+              LD_LIBRARY_PATH =
+                config.packages
+                |> lib.attrValues
+                |> lib.filter (x: x ? buildInputs)
+                |> lib.flip pkgs.lib.forEach (x: x.buildInputs)
+                |> lib.concatLists
+                |> lib.unique
+                |> lib.makeLibraryPath;
+            };
           };
-        };
-
-        packages = {
-          inherit bevy_gltf_kun;
-          inherit gltf_kun;
-          inherit web;
-
-          default = pkgs.symlinkJoin {
-            name = "all";
-            paths = [
-              bevy_gltf_kun
-              gltf_kun
-              web
-            ];
-          };
-        };
-
-        devShells.default = craneLib.devShell commonShell;
       }
     );
 }

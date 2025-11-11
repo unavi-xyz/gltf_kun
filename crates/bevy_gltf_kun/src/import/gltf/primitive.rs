@@ -471,7 +471,7 @@ fn convert_tex_coord_values(
     }
 }
 
-fn morph_targets_iter(graph: &Graph, target: MorphTarget) -> MorphTargetsIter {
+fn morph_targets_iter(graph: &Graph, target: MorphTarget) -> MorphTargetsIter<'_> {
     let positions = target
         .attribute(graph, Semantic::Positions)
         .map(|a| a.iter(graph).unwrap())
