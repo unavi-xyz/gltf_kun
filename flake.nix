@@ -65,6 +65,7 @@
                 [
                   binaryen
                   clang
+                  llvmPackages.bintools
                   mold
                   pkg-config
                   trunk
@@ -75,6 +76,8 @@
                   alsa-lib
                   alsa-lib.dev
                 ];
+
+              CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_LINKER = "lld";
             };
 
             cargoArtifacts = pkgs.crane.buildDepsOnly (commonArgs // { pname = "deps"; });
@@ -93,6 +96,7 @@
                       combine [
                         stable.toolchain
                         targets.wasm32-unknown-unknown.stable.rust-std
+                        stable.llvm-tools-preview
                       ]
                     );
                   in
