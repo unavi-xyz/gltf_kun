@@ -79,6 +79,7 @@ where
 {
     fn build(&self, app: &mut App) {
         app.add_plugins(GltfAssetPlugin)
+            .init_asset::<GltfKun>()
             .register_asset_loader::<GltfLoader<E>>(GltfLoader::<E>::default())
             .register_asset_loader::<GlbLoader<E>>(GlbLoader::<E>::default());
     }
