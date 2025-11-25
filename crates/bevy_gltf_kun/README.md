@@ -12,7 +12,7 @@ Bevy [gltf_kun](https://crates.io/crates/gltf_kun) plugin.
 
 ### Usage
 
-Add [GltfKunPlugin] to your app:
+Add [`GltfKunPlugin`] to your app:
 
 ```rust
 use bevy::prelude::*;
@@ -23,11 +23,12 @@ App::new().add_plugins((DefaultPlugins, GltfKunPlugin::default()));
 
 #### Export
 
-Export scenes to glTF using [GltfExportEvent](export::gltf::GltfExportEvent).
+Export scenes to glTF using [`GltfExportEvent`](export::gltf::GltfExportEvent).
 
-The resulting [GltfExportResult](export::gltf::GltfExportResult) will contain a flexible
-[GltfDocument](gltf_kun::graph::gltf::document::GltfDocument) that can be exported to various
-file types. See [gltf_kun] for more information on how to do so.
+The resulting [`GltfExportResult`](export::gltf::GltfExportResult) will contain a flexible
+[`GltfDocument`](gltf_kun::graph::gltf::document::GltfDocument) that can be exported to various
+file types. See [`gltf_kun`] for more information on how to do so.
+
 
 ```rust
 use bevy::prelude::*;
@@ -63,7 +64,7 @@ App::new().add_systems(Update, export_scene);
 
 #### Import
 
-Import glTFs using the [GltfKun](import::gltf::GltfKun) asset.
+Import glTFs using the [`GltfKun`](import::gltf::GltfKun) asset.
 
 ```rust
 use bevy::prelude::*;
