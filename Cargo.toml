@@ -8,6 +8,23 @@ license    = "MIT OR Apache-2.0"
 repository = "https://github.com/unavi-xyz/gltf_kun"
 version    = "0.3.0"
 
+[workspace.lints.clippy]
+cast_possible_truncation = "allow"
+cast_possible_wrap       = "allow"
+cast_precision_loss      = "allow"
+cast_sign_loss           = "allow"
+missing_errors_doc       = "allow"
+missing_panics_doc       = "allow"
+must_use_candidate       = "allow"
+nursery                  = { level = "warn", priority = -1 }
+pedantic                 = { level = "warn", priority = -1 }
+unwrap_used              = "deny"
+
+# Bevy-specific patterns
+needless_pass_by_value = "allow"
+too_many_arguments     = "allow"
+type_complexity        = "allow"
+
 [workspace.metadata.release]
 shared-version = true
 tag-name       = "v{{version}}"

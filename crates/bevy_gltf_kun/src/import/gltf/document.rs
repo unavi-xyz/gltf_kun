@@ -80,7 +80,7 @@ pub fn import_gltf_document<E: BevyExtensionImport<GltfDocument>>(
     // Load scenes.
     let default_scene = context.doc.default_scene(context.graph);
 
-    for scene in context.doc.scenes(context.graph).into_iter() {
+    for scene in context.doc.scenes(context.graph) {
         let handle = import_scene::<E>(context, &animation_roots, scene);
 
         if Some(scene) == default_scene {

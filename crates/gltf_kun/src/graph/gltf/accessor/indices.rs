@@ -15,7 +15,7 @@ pub enum ReadIndices<'a> {
 
 impl<'a> ReadIndices<'a> {
     /// Reinterpret indices as u32, which can fit any possible index.
-    pub fn into_u32(self) -> CastingIter<'a, U32> {
+    pub const fn into_u32(self) -> CastingIter<'a, U32> {
         CastingIter::new(self)
     }
 }
@@ -44,12 +44,12 @@ pub trait Cast {
 }
 
 impl<'a, A> CastingIter<'a, A> {
-    pub(crate) fn new(iter: ReadIndices<'a>) -> Self {
+    pub(crate) const fn new(iter: ReadIndices<'a>) -> Self {
         CastingIter(iter, PhantomData)
     }
 
     /// Unwrap underlying `Indices` object.
-    pub fn unwrap(self) -> ReadIndices<'a> {
+    pub const fn unwrap(self) -> ReadIndices<'a> {
         self.0
     }
 }
@@ -102,10 +102,10 @@ impl Cast for U32 {
     type Output = u32;
 
     fn cast_u8(x: u8) -> Self::Output {
-        x as Self::Output
+        Self::Output::from(x)
     }
     fn cast_u16(x: u16) -> Self::Output {
-        x as Self::Output
+        Self::Output::from(x)
     }
     fn cast_u32(x: u32) -> Self::Output {
         x

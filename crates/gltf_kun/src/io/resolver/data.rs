@@ -10,16 +10,15 @@ impl Resolver for DataUriResolver {
 
         let uri = uri
             .strip_prefix("data:")
-            .ok_or_else(|| ResolverError::InvalidUri(uri.to_string()))?;
+            .ok_or_else(|| ResolverError::InvalidUri(uri.clone()))?;
 
         let (mime_type, data) = uri
             .split_once(',')
             .ok_or_else(|| ResolverError::InvalidUri(uri.to_string()))?;
 
-        let (_mime_type, base64) = match mime_type.strip_suffix(";base64") {
-            Some(mime_type) => (mime_type, true),
-            None => (mime_type, false),
-        };
+        let (_mime_type, base64) = mime_type
+            .strip_suffix(";base64")
+            .map_or((mime_type, false), |m| (m, true));
 
         let data = if base64 {
             STANDARD

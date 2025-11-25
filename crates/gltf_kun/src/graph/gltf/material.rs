@@ -57,7 +57,7 @@ impl Default for MaterialWeight {
     fn default() -> Self {
         Self {
             name: None,
-            extras: Default::default(),
+            extras: None,
 
             alpha_cutoff: AlphaCutoff::default(),
             alpha_mode: AlphaMode::default(),

@@ -21,7 +21,10 @@ pub fn import_material<E: BevyExtensionImport<GltfDocument>>(
     m: Material,
     is_scale_inverted: bool,
 ) -> Handle<StandardMaterial> {
-    let index = context.doc.material_index(context.graph, m).unwrap();
+    let index = context
+        .doc
+        .material_index(context.graph, m)
+        .expect("index should exist for material");
     let weight = m.get(context.graph);
     let label = material_label(index, is_scale_inverted);
 
@@ -40,35 +43,35 @@ pub fn import_material<E: BevyExtensionImport<GltfDocument>>(
     };
 
     let base_color_texture = texture_handle(
-        context.doc,
+        *context.doc,
         context.graph,
         context.load_context,
         m.base_color_texture(context.graph),
     );
 
     let emissive_texture = texture_handle(
-        context.doc,
+        *context.doc,
         context.graph,
         context.load_context,
         m.emissive_texture(context.graph),
     );
 
     let metallic_roughness_texture = texture_handle(
-        context.doc,
+        *context.doc,
         context.graph,
         context.load_context,
         m.metallic_roughness_texture(context.graph),
     );
 
     let normal_map_texture = texture_handle(
-        context.doc,
+        *context.doc,
         context.graph,
         context.load_context,
         m.normal_texture(context.graph),
     );
 
     let occlusion_texture = texture_handle(
-        context.doc,
+        *context.doc,
         context.graph,
         context.load_context,
         m.occlusion_texture(context.graph),
@@ -119,12 +122,12 @@ pub fn default_material(context: &mut ImportContext) -> Handle<StandardMaterial>
                     ..default()
                 })
             })
-            .unwrap()
+            .expect("default material should load successfully")
     }
 }
 
 fn texture_handle(
-    doc: &mut GltfDocument,
+    doc: GltfDocument,
     graph: &Graph,
     load_context: &mut LoadContext,
     texture: Option<Texture>,
@@ -136,13 +139,13 @@ fn texture_handle(
 }
 
 fn texture_label(index: usize) -> String {
-    format!("Texture{}", index)
+    format!("Texture{index}")
 }
 
 fn material_label(index: usize, is_scale_inverted: bool) -> String {
     if is_scale_inverted {
-        format!("Material{}(inverted)", index)
+        format!("Material{index}(inverted)")
     } else {
-        format!("Material{}", index)
+        format!("Material{index}")
     }
 }

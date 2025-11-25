@@ -5,6 +5,7 @@ use crate::import::gltf::node::node_label;
 
 use super::{CachedNode, ExportContext};
 
+#[must_use]
 pub fn export_nodes(
     In(mut ctx): In<ExportContext>,
     nodes: Query<(&Transform, Option<&Name>, Option<&Children>)>,
@@ -14,12 +15,11 @@ pub fn export_nodes(
             .scenes
             .iter()
             .find(|cached| cached.scene == *scene)
-            .unwrap()
+            .expect("scene should be found in cached scenes")
             .entity;
 
-        let children = match nodes.get(entity) {
-            Ok((_, _, Some(children))) => children,
-            _ => return,
+        let Ok((_, _, Some(children))) = nodes.get(entity) else {
+            return;
         };
 
         children.iter().for_each(|c| {
@@ -30,9 +30,8 @@ pub fn export_nodes(
                 // This is a bit of a hack, but helps keep consistency between import and export.
                 debug!("Skipping empty root node");
 
-                let grandchildren = match grandchildren {
-                    Some(children) => children,
-                    None => return,
+                let Some(grandchildren) = grandchildren else {
+                    return;
                 };
 
                 for child in grandchildren {
@@ -64,7 +63,7 @@ fn export_node(
             .to_string()
             .chars()
             .rev()
-            .take_while(|c| c.is_ascii_digit())
+            .take_while(char::is_ascii_digit)
             .collect::<String>()
             .chars()
             .rev()
@@ -90,7 +89,7 @@ fn export_node(
         children.iter().for_each(|child| {
             let n = export_node(ctx, nodes, child);
             node.add_child(&mut ctx.graph, &n);
-        })
+        });
     }
 
     ctx.nodes.push(CachedNode { node, entity });

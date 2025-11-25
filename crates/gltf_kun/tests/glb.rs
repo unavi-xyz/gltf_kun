@@ -30,7 +30,8 @@ async fn main() {
 
     // Write to file
     let path = assets.join("temp/glb/model.glb");
-    std::fs::create_dir_all(path.parent().unwrap()).expect("Failed to create directory");
+    std::fs::create_dir_all(path.parent().expect("path should have a parent directory"))
+        .expect("Failed to create directory");
     std::fs::write(&path, out.0).expect("Failed to write glb to file");
 
     // Validate using gltf-rs

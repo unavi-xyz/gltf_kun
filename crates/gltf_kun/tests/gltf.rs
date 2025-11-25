@@ -29,12 +29,13 @@ async fn main() {
 
     debug!(
         "JSON:\n{}",
-        serde_json::to_string_pretty(&out.json).unwrap()
+        serde_json::to_string_pretty(&out.json).expect("json should serialize")
     );
 
     // Write to file
     let path = assets.join("temp/gltf/model.gltf");
-    std::fs::create_dir_all(path.parent().unwrap()).expect("Failed to create directory");
+    std::fs::create_dir_all(path.parent().expect("path should have a parent directory"))
+        .expect("Failed to create directory");
     out.write_file(&path).expect("Failed to write glTF to file");
 
     // Validate using gltf-rs

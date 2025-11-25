@@ -136,7 +136,7 @@ impl Primitive {
             .filter_map(|edge_ref| {
                 let edge: &PrimitiveEdge = match edge_ref.weight().try_into() {
                     Ok(edge) => edge,
-                    Err(_) => return None,
+                    Err(()) => return None,
                 };
 
                 match edge {
@@ -163,7 +163,7 @@ impl Primitive {
             .filter(|edge_ref| {
                 let edge: &PrimitiveEdge = match edge_ref.weight().try_into() {
                     Ok(edge) => edge,
-                    Err(_) => return false,
+                    Err(()) => return false,
                 };
 
                 matches!(edge, PrimitiveEdge::MorphTarget(_))

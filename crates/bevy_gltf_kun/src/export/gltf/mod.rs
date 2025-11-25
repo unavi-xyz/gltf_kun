@@ -24,6 +24,7 @@ pub struct GltfExportEvent<E: BevyExtensionExport<GltfDocument>> {
 }
 
 impl<E: BevyExtensionExport<GltfDocument>> GltfExportEvent<E> {
+    #[must_use]
     pub fn new(scene: Handle<Scene>) -> Self {
         Self {
             scenes: vec![scene.clone()],
@@ -56,6 +57,7 @@ pub struct ExportContext {
 }
 
 impl ExportContext {
+    #[must_use]
     pub fn new<E: BevyExtensionExport<GltfDocument>>(event: GltfExportEvent<E>) -> Self {
         let mut graph = Graph::default();
         let doc = GltfDocument::new(&mut graph);

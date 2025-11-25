@@ -30,12 +30,11 @@ pub fn export_materials(
             .meshes
             .iter()
             .find(|cached| cached.mesh == mesh)
-            .unwrap();
+            .expect("value should exist");
 
         for (entity, primitive) in cached_mesh.primitives.clone() {
-            let (handle, name) = match materials.get(entity) {
-                Ok(m) => m,
-                Err(_) => continue,
+            let Ok((handle, name)) = materials.get(entity) else {
+                continue;
             };
 
             let cached_material = ctx
@@ -43,80 +42,79 @@ pub fn export_materials(
                 .iter()
                 .find(|cached| cached.bevy_material.0 == handle.0);
 
-            let material = match cached_material {
-                Some(cached) => cached.material,
-                None => {
-                    let standard_material = material_assets.get(handle).unwrap();
+            let material = if let Some(cached) = cached_material {
+                cached.material
+            } else {
+                let standard_material = material_assets
+                    .get(handle)
+                    .expect("key should exist in map");
 
-                    let mut material = ctx.doc.create_material(&mut ctx.graph);
-                    let weight = material.get_mut(&mut ctx.graph);
+                let mut material = ctx.doc.create_material(&mut ctx.graph);
+                let weight = material.get_mut(&mut ctx.graph);
 
-                    weight.name = name.map(|n| n.to_string());
-                    weight.double_sided = standard_material.double_sided;
-                    weight.metallic_factor = standard_material.metallic;
-                    weight.roughness_factor = standard_material.perceptual_roughness;
-                    weight.base_color_factor =
-                        standard_material.base_color.to_linear().to_f32_array();
-                    weight.emissive_factor = standard_material.emissive.to_f32_array_no_alpha();
+                weight.name = name.map(std::string::ToString::to_string);
+                weight.double_sided = standard_material.double_sided;
+                weight.metallic_factor = standard_material.metallic;
+                weight.roughness_factor = standard_material.perceptual_roughness;
+                weight.base_color_factor = standard_material.base_color.to_linear().to_f32_array();
+                weight.emissive_factor = standard_material.emissive.to_f32_array_no_alpha();
 
-                    let alpha_mode = match standard_material.alpha_mode {
-                        bevy::prelude::AlphaMode::Blend => AlphaMode::Blend,
-                        bevy::prelude::AlphaMode::Mask(cutoff) => {
-                            weight.alpha_cutoff = AlphaCutoff(cutoff);
-                            AlphaMode::Mask
-                        }
-                        bevy::prelude::AlphaMode::Opaque => AlphaMode::Opaque,
-                        _ => {
-                            warn!("Unsupported alpha mode: {:?}", standard_material.alpha_mode);
-                            AlphaMode::Opaque
-                        }
-                    };
-                    weight.alpha_mode = alpha_mode;
+                let alpha_mode = match standard_material.alpha_mode {
+                    bevy::prelude::AlphaMode::Blend => AlphaMode::Blend,
+                    bevy::prelude::AlphaMode::Mask(cutoff) => {
+                        weight.alpha_cutoff = AlphaCutoff(cutoff);
+                        AlphaMode::Mask
+                    }
+                    bevy::prelude::AlphaMode::Opaque => AlphaMode::Opaque,
+                    _ => {
+                        warn!("Unsupported alpha mode: {:?}", standard_material.alpha_mode);
+                        AlphaMode::Opaque
+                    }
+                };
+                weight.alpha_mode = alpha_mode;
 
-                    let base_color_texture = export_texture(
-                        &mut ctx,
-                        &standard_material.base_color_texture,
-                        &image_assets,
-                    );
-                    material.set_base_color_texture(&mut ctx.graph, base_color_texture);
+                let base_color_texture = export_texture(
+                    &mut ctx,
+                    standard_material.base_color_texture.as_ref(),
+                    &image_assets,
+                );
+                material.set_base_color_texture(&mut ctx.graph, base_color_texture);
 
-                    let emissive_texture = export_texture(
-                        &mut ctx,
-                        &standard_material.emissive_texture,
-                        &image_assets,
-                    );
-                    material.set_emissive_texture(&mut ctx.graph, emissive_texture);
+                let emissive_texture = export_texture(
+                    &mut ctx,
+                    standard_material.emissive_texture.as_ref(),
+                    &image_assets,
+                );
+                material.set_emissive_texture(&mut ctx.graph, emissive_texture);
 
-                    let metallic_roughness_texture = export_texture(
-                        &mut ctx,
-                        &standard_material.metallic_roughness_texture,
-                        &image_assets,
-                    );
-                    material
-                        .set_metallic_roughness_texture(&mut ctx.graph, metallic_roughness_texture);
+                let metallic_roughness_texture = export_texture(
+                    &mut ctx,
+                    standard_material.metallic_roughness_texture.as_ref(),
+                    &image_assets,
+                );
+                material.set_metallic_roughness_texture(&mut ctx.graph, metallic_roughness_texture);
 
-                    let normal_texture = export_texture(
-                        &mut ctx,
-                        &standard_material.normal_map_texture,
-                        &image_assets,
-                    );
-                    material.set_normal_texture(&mut ctx.graph, normal_texture);
+                let normal_texture = export_texture(
+                    &mut ctx,
+                    standard_material.normal_map_texture.as_ref(),
+                    &image_assets,
+                );
+                material.set_normal_texture(&mut ctx.graph, normal_texture);
 
-                    let occlusion_texture = export_texture(
-                        &mut ctx,
-                        &standard_material.occlusion_texture,
-                        &image_assets,
-                    );
-                    material.set_occlusion_texture(&mut ctx.graph, occlusion_texture);
+                let occlusion_texture = export_texture(
+                    &mut ctx,
+                    standard_material.occlusion_texture.as_ref(),
+                    &image_assets,
+                );
+                material.set_occlusion_texture(&mut ctx.graph, occlusion_texture);
 
-                    ctx.materials.push(CachedMaterial {
-                        bevy_material: handle.clone(),
-                        entity,
-                        material,
-                    });
+                ctx.materials.push(CachedMaterial {
+                    bevy_material: handle.clone(),
+                    entity,
+                    material,
+                });
 
-                    material
-                }
+                material
             };
 
             primitive.set_material(&mut ctx.graph, Some(material));
@@ -128,15 +126,12 @@ pub fn export_materials(
 
 fn export_texture(
     ctx: &mut ExportContext,
-    texture: &Option<Handle<Image>>,
+    image: Option<&Handle<Image>>,
     image_assets: &Res<Assets<Image>>,
 ) -> Option<Texture> {
-    let handle = match texture {
-        Some(handle) => handle,
-        None => return None,
-    };
+    let image = image?;
 
-    let bevy_image = image_assets.get(handle).unwrap();
+    let bevy_image = image_assets.get(image).expect("key should exist in map");
 
     let mut image = ctx.doc.create_image(&mut ctx.graph);
 
@@ -167,8 +162,8 @@ fn export_texture(
             info_weight.wrap_t = WrappingMode::ClampToEdge;
         }
         ImageSampler::Descriptor(desc) => {
-            info_weight.wrap_s = address_mode(&desc.address_mode_u);
-            info_weight.wrap_t = address_mode(&desc.address_mode_v);
+            info_weight.wrap_s = address_mode(desc.address_mode_u);
+            info_weight.wrap_t = address_mode(desc.address_mode_v);
 
             info_weight.mag_filter = Some(match desc.mag_filter {
                 ImageFilterMode::Linear => MagFilter::Linear,
@@ -186,12 +181,12 @@ fn export_texture(
                 },
             });
         }
-    };
+    }
 
     Some(texture)
 }
 
-fn address_mode(value: &ImageAddressMode) -> WrappingMode {
+const fn address_mode(value: ImageAddressMode) -> WrappingMode {
     match value {
         ImageAddressMode::ClampToBorder | ImageAddressMode::ClampToEdge => {
             WrappingMode::ClampToEdge

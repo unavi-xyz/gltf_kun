@@ -68,7 +68,9 @@ where
         let buffers = doc.buffers(graph);
 
         if buffers.len() > 1 {
-            let buffer = buffers.first().unwrap();
+            let buffer = buffers
+                .first()
+                .expect("buffers should have at least one element");
 
             buffers.iter().skip(1).for_each(|b| {
                 // Remove buffer from the document.
@@ -94,7 +96,9 @@ where
             let buffer = if buffers.is_empty() {
                 doc.create_buffer(graph)
             } else {
-                *buffers.first().unwrap()
+                *buffers
+                    .first()
+                    .expect("buffers should have at least one element")
             };
 
             image.set_buffer(graph, Some(buffer));
@@ -103,7 +107,7 @@ where
         let mut gltf = GltfExport::<E>::export(graph, doc)?;
 
         // Remove the buffer URI.
-        for buf in gltf.json.buffers.iter_mut() {
+        for buf in &mut gltf.json.buffers {
             buf.uri = None;
         }
 
@@ -118,7 +122,7 @@ where
                 length: 0,
             },
             json: Cow::Owned(json_bin),
-            bin: bin.map(|b| b.into()),
+            bin: bin.map(Into::into),
         };
 
         let bytes = glb.to_vec()?;
@@ -155,7 +159,7 @@ where
         let mut glb = gltf::Glb::from_slice(&format.0)?;
 
         let json = serde_json::from_slice(&glb.json)?;
-        let bin = glb.bin.take().map(|bin| bin.into_owned());
+        let bin = glb.bin.take().map(Cow::into_owned);
 
         let mut resources = HashMap::new();
 
@@ -185,10 +189,11 @@ mod tests {
         doc.create_buffer(&mut graph);
         doc.create_buffer(&mut graph);
 
-        let bytes = GlbExport::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
+        let bytes = GlbExport::<DefaultExtensions>::export(&mut graph, &doc)
+            .expect("export should succeed");
         let gltf = GlbImport::<DefaultExtensions>::import_slice(&mut graph, &bytes.0)
             .await
-            .unwrap();
+            .expect("import should succeed");
 
         assert_eq!(gltf.buffers(&graph).len(), 1);
     }
@@ -206,15 +211,22 @@ mod tests {
             image_weight.data = vec![0, 1, 2, 3];
         }
 
-        let bytes = GlbExport::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
+        let bytes = GlbExport::<DefaultExtensions>::export(&mut graph, &doc)
+            .expect("export should succeed");
         let gltf = GlbImport::<DefaultExtensions>::import_slice(&mut graph, &bytes.0)
             .await
-            .unwrap();
+            .expect("import should succeed");
 
         assert_eq!(gltf.buffers(&graph).len(), 1);
 
-        let buffer = *gltf.buffers(&graph).first().unwrap();
-        let image = *gltf.images(&graph).first().unwrap();
+        let buffer = *gltf
+            .buffers(&graph)
+            .first()
+            .expect("gltf should have at least one buffer");
+        let image = *gltf
+            .images(&graph)
+            .first()
+            .expect("gltf should have at least one image");
         assert_eq!(image.buffer(&graph), Some(buffer));
 
         let image_weight = image.get(&graph);
@@ -232,15 +244,22 @@ mod tests {
             image_weight.data = vec![0, 1, 2, 3];
         }
 
-        let bytes = GlbExport::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
+        let bytes = GlbExport::<DefaultExtensions>::export(&mut graph, &doc)
+            .expect("export should succeed");
         let gltf = GlbImport::<DefaultExtensions>::import_slice(&mut graph, &bytes.0)
             .await
-            .unwrap();
+            .expect("import should succeed");
 
         assert_eq!(gltf.buffers(&graph).len(), 1);
 
-        let buffer = *gltf.buffers(&graph).first().unwrap();
-        let image = *gltf.images(&graph).first().unwrap();
+        let buffer = *gltf
+            .buffers(&graph)
+            .first()
+            .expect("gltf should have at least one buffer");
+        let image = *gltf
+            .images(&graph)
+            .first()
+            .expect("gltf should have at least one image");
         assert_eq!(image.buffer(&graph), Some(buffer));
 
         let image_weight = image.get(&graph);
@@ -260,9 +279,15 @@ mod tests {
         let accessor_weight = accessor.get_mut(&mut graph);
         accessor_weight.data = vec![7; 256];
 
-        let bytes = GlbExport::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
-        let glb = gltf::Glb::from_slice(&bytes.0).unwrap();
-        assert_eq!(glb.header.length, glb.to_vec().unwrap().len() as u32);
+        let bytes = GlbExport::<DefaultExtensions>::export(&mut graph, &doc)
+            .expect("export should succeed");
+        let glb = gltf::Glb::from_slice(&bytes.0).expect("glb parsing should succeed");
+        assert_eq!(
+            glb.header.length,
+            glb.to_vec()
+                .expect("glb serialization should succeed")
+                .len() as u32
+        );
     }
 
     #[tokio::test]
@@ -278,8 +303,9 @@ mod tests {
         let accessor_weight = accessor.get_mut(&mut graph);
         accessor_weight.data = vec![7; 256];
 
-        let bytes = GlbExport::<DefaultExtensions>::export(&mut graph, &doc).unwrap();
-        let out = gltf::Gltf::from_slice(&bytes.0).unwrap();
+        let bytes = GlbExport::<DefaultExtensions>::export(&mut graph, &doc)
+            .expect("export should succeed");
+        let out = gltf::Gltf::from_slice(&bytes.0).expect("gltf parsing should succeed");
 
         let buffers = out.buffers();
         assert_eq!(buffers.len(), 1);

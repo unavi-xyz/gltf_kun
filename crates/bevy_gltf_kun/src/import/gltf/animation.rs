@@ -21,7 +21,7 @@ use gltf_kun::graph::{
 
 use super::{document::ImportContext, node::node_name};
 
-/// Raw animation curve data before conversion to Bevy's AnimatableCurve.
+/// Raw animation curve data before conversion to Bevy's `AnimatableCurve`.
 /// Useful for animation retargeting and custom processing.
 #[derive(Asset, Debug, TypePath)]
 pub struct RawGltfAnimation {
@@ -63,6 +63,7 @@ pub enum RawChannelData {
     },
 }
 
+#[allow(clippy::too_many_lines)]
 pub fn import_animation(
     context: &mut ImportContext,
     paths: &HashMap<Node, (Node, Vec<Name>)>,
@@ -85,7 +86,7 @@ pub fn import_animation(
             .input(context.graph)
             .context("Sampler has no input")?;
 
-        let input_iter = input.iter(context.graph)?;
+        let input_iter = input.to_iter(context.graph)?;
 
         let keyframe_timestamps: Vec<f32> = match input_iter {
             AccessorIter::F32(iter) => iter.collect(),
@@ -96,7 +97,7 @@ pub fn import_animation(
             .output(context.graph)
             .context("Sampler has no output")?;
 
-        let output_iter = output.iter(context.graph)?;
+        let output_iter = output.to_iter(context.graph)?;
 
         let (maybe_curve, raw_data) = match &channel_weight.path {
             TargetPath::Translation => {
@@ -326,8 +327,8 @@ pub fn import_animation(
     let index = context
         .doc
         .animation_index(context.graph, animation)
-        .unwrap();
-    let animation_label = format!("Animation{}", index);
+        .expect("value should exist");
+    let animation_label = format!("Animation{index}");
 
     let handle = context
         .load_context
@@ -338,7 +339,7 @@ pub fn import_animation(
         context
             .gltf
             .named_animations
-            .insert(name.to_string(), handle.clone());
+            .insert(name.clone(), handle.clone());
     }
 
     // Create raw animation asset if requested
@@ -348,7 +349,7 @@ pub fn import_animation(
             channels: raw_channels,
         };
 
-        let raw_label = format!("RawAnimation{}", index);
+        let raw_label = format!("RawAnimation{index}");
         let raw_handle = context
             .load_context
             .add_labeled_asset(raw_label, raw_animation);
@@ -359,7 +360,7 @@ pub fn import_animation(
             context
                 .gltf
                 .named_raw_animations
-                .insert(name.to_string(), raw_handle);
+                .insert(name.clone(), raw_handle);
         }
     }
 

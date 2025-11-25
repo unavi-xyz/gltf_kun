@@ -16,6 +16,7 @@ pub enum VertexToAccessorError {
     IterCreateError(#[from] AccessorIterCreateError),
 }
 
+#[allow(clippy::too_many_lines)]
 pub fn vertex_to_accessor(
     graph: &mut Graph,
     values: &VertexAttributeValues,
@@ -32,7 +33,7 @@ pub fn vertex_to_accessor(
         VertexAttributeValues::Float32x2(values) => {
             let bytes = values
                 .iter()
-                .flat_map(|v| v.map(|v| v.to_le_bytes()))
+                .flat_map(|v| v.map(f32::to_le_bytes))
                 .flatten()
                 .collect::<Vec<u8>>();
             let iter = AccessorIter::new(&bytes, ComponentType::F32, Type::Vec2, false)?;
@@ -41,7 +42,7 @@ pub fn vertex_to_accessor(
         VertexAttributeValues::Float32x3(values) => {
             let bytes = values
                 .iter()
-                .flat_map(|v| v.map(|v| v.to_le_bytes()))
+                .flat_map(|v| v.map(f32::to_le_bytes))
                 .flatten()
                 .collect::<Vec<u8>>();
             let iter = AccessorIter::new(&bytes, ComponentType::F32, Type::Vec3, false)?;
@@ -50,7 +51,7 @@ pub fn vertex_to_accessor(
         VertexAttributeValues::Float32x4(values) => {
             let bytes = values
                 .iter()
-                .flat_map(|v| v.map(|v| v.to_le_bytes()))
+                .flat_map(|v| v.map(f32::to_le_bytes))
                 .flatten()
                 .collect::<Vec<u8>>();
             let iter = AccessorIter::new(&bytes, ComponentType::F32, Type::Vec4, false)?;
@@ -67,7 +68,7 @@ pub fn vertex_to_accessor(
         VertexAttributeValues::Uint32x2(values) => {
             let bytes = values
                 .iter()
-                .flat_map(|v| v.map(|v| v.to_le_bytes()))
+                .flat_map(|v| v.map(u32::to_le_bytes))
                 .flatten()
                 .collect::<Vec<u8>>();
             let iter = AccessorIter::new(&bytes, ComponentType::U32, Type::Vec2, false)?;
@@ -76,7 +77,7 @@ pub fn vertex_to_accessor(
         VertexAttributeValues::Uint32x3(values) => {
             let bytes = values
                 .iter()
-                .flat_map(|v| v.map(|v| v.to_le_bytes()))
+                .flat_map(|v| v.map(u32::to_le_bytes))
                 .flatten()
                 .collect::<Vec<u8>>();
             let iter = AccessorIter::new(&bytes, ComponentType::U32, Type::Vec3, false)?;
@@ -85,7 +86,7 @@ pub fn vertex_to_accessor(
         VertexAttributeValues::Uint32x4(values) => {
             let bytes = values
                 .iter()
-                .flat_map(|v| v.map(|v| v.to_le_bytes()))
+                .flat_map(|v| v.map(u32::to_le_bytes))
                 .flatten()
                 .collect::<Vec<u8>>();
             let iter = AccessorIter::new(&bytes, ComponentType::U32, Type::Vec4, false)?;
@@ -94,7 +95,7 @@ pub fn vertex_to_accessor(
         VertexAttributeValues::Uint16x2(values) => {
             let bytes = values
                 .iter()
-                .flat_map(|v| v.map(|v| v.to_le_bytes()))
+                .flat_map(|v| v.map(u16::to_le_bytes))
                 .flatten()
                 .collect::<Vec<u8>>();
             let iter = AccessorIter::new(&bytes, ComponentType::U16, Type::Vec2, false)?;
@@ -103,7 +104,7 @@ pub fn vertex_to_accessor(
         VertexAttributeValues::Uint16x4(values) => {
             let bytes = values
                 .iter()
-                .flat_map(|v| v.map(|v| v.to_le_bytes()))
+                .flat_map(|v| v.map(u16::to_le_bytes))
                 .flatten()
                 .collect::<Vec<u8>>();
             let iter = AccessorIter::new(&bytes, ComponentType::U16, Type::Vec4, false)?;
@@ -112,7 +113,7 @@ pub fn vertex_to_accessor(
         VertexAttributeValues::Uint8x2(values) => {
             let bytes = values
                 .iter()
-                .flat_map(|v| v.map(|v| v.to_le_bytes()))
+                .flat_map(|v| v.map(u8::to_le_bytes))
                 .flatten()
                 .collect::<Vec<u8>>();
             let iter = AccessorIter::new(&bytes, ComponentType::U8, Type::Vec2, false)?;
@@ -121,7 +122,7 @@ pub fn vertex_to_accessor(
         VertexAttributeValues::Uint8x4(values) => {
             let bytes = values
                 .iter()
-                .flat_map(|v| v.map(|v| v.to_le_bytes()))
+                .flat_map(|v| v.map(u8::to_le_bytes))
                 .flatten()
                 .collect::<Vec<u8>>();
             let iter = AccessorIter::new(&bytes, ComponentType::U8, Type::Vec4, false)?;
@@ -130,7 +131,7 @@ pub fn vertex_to_accessor(
         VertexAttributeValues::Sint16x2(values) => {
             let bytes = values
                 .iter()
-                .flat_map(|v| v.map(|v| v.to_le_bytes()))
+                .flat_map(|v| v.map(i16::to_le_bytes))
                 .flatten()
                 .collect::<Vec<u8>>();
             let iter = AccessorIter::new(&bytes, ComponentType::I16, Type::Vec2, false)?;
@@ -139,7 +140,7 @@ pub fn vertex_to_accessor(
         VertexAttributeValues::Sint16x4(values) => {
             let bytes = values
                 .iter()
-                .flat_map(|v| v.map(|v| v.to_le_bytes()))
+                .flat_map(|v| v.map(i16::to_le_bytes))
                 .flatten()
                 .collect::<Vec<u8>>();
             let iter = AccessorIter::new(&bytes, ComponentType::I16, Type::Vec4, false)?;
@@ -148,7 +149,7 @@ pub fn vertex_to_accessor(
         VertexAttributeValues::Sint8x2(values) => {
             let bytes = values
                 .iter()
-                .flat_map(|v| v.map(|v| v.to_le_bytes()))
+                .flat_map(|v| v.map(i8::to_le_bytes))
                 .flatten()
                 .collect::<Vec<u8>>();
             let iter = AccessorIter::new(&bytes, ComponentType::I8, Type::Vec2, false)?;
@@ -157,7 +158,7 @@ pub fn vertex_to_accessor(
         VertexAttributeValues::Sint8x4(values) => {
             let bytes = values
                 .iter()
-                .flat_map(|v| v.map(|v| v.to_le_bytes()))
+                .flat_map(|v| v.map(i8::to_le_bytes))
                 .flatten()
                 .collect::<Vec<u8>>();
             let iter = AccessorIter::new(&bytes, ComponentType::I8, Type::Vec4, false)?;

@@ -92,7 +92,7 @@ impl Skin {
             .filter_map(|edge_ref| {
                 let edge: &SkinEdge = match edge_ref.weight().try_into() {
                     Ok(edge) => edge,
-                    Err(_) => return None,
+                    Err(()) => return None,
                 };
 
                 match edge {
@@ -117,7 +117,7 @@ impl Skin {
             .filter(|edge_ref| {
                 let edge: &SkinEdge = match edge_ref.weight().try_into() {
                     Ok(edge) => edge,
-                    Err(_) => return false,
+                    Err(()) => return false,
                 };
 
                 matches!(edge, SkinEdge::Joint(_))

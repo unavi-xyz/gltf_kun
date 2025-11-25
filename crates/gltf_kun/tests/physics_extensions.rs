@@ -40,7 +40,8 @@ async fn main() {
     validate_json(&json);
 
     let path = assets.join("temp/physics_extensions/model.gltf");
-    std::fs::create_dir_all(path.parent().unwrap()).expect("Failed to create directory");
+    std::fs::create_dir_all(path.parent().expect("path should have a parent directory"))
+        .expect("Failed to create directory");
     out.write_file(&path).expect("Failed to write glTF to file");
 
     // Import written file

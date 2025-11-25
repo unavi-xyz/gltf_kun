@@ -12,9 +12,8 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OmiPhysicsShape {
         doc: &GltfDocument,
         format: &mut GltfFormat,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let ext = match doc.get_extension::<Self>(graph) {
-            Some(ext) => ext,
-            None => return Ok(()),
+        let Some(ext) = doc.get_extension::<Self>(graph) else {
+            return Ok(());
         };
 
         let shapes = ext
@@ -32,7 +31,7 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OmiPhysicsShape {
         let extensions = format
             .json
             .extensions
-            .get_or_insert(gltf::json::extensions::Root::default());
+            .get_or_insert_with(gltf::json::extensions::Root::default);
 
         extensions.others.insert(
             EXTENSION_NAME.to_string(),

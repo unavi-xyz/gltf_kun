@@ -12,7 +12,7 @@ pub struct PhysicsBodyJson {
     pub trigger: Option<ShapeRefJson>,
 }
 
-#[derive(Debug, Deserialize, PartialEq, Serialize)]
+#[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct ShapeRefJson {
     pub shape: isize,
 }
@@ -31,11 +31,12 @@ mod tests {
             collider: None,
         };
 
-        let json_str = serde_json::to_string(&json).unwrap();
+        let json_str = serde_json::to_string(&json).expect("json should serialize");
         let expected = r#"{"motion":{"type":"dynamic"}}"#;
         assert_eq!(json_str, expected);
 
-        let json_2 = serde_json::from_str::<PhysicsBodyJson>(&json_str).unwrap();
+        let json_2 =
+            serde_json::from_str::<PhysicsBodyJson>(&json_str).expect("json should deserialize");
         assert_eq!(json, json_2);
     }
 }

@@ -16,19 +16,19 @@ pub enum ReadWeights<'a> {
 impl<'a> ReadWeights<'a> {
     /// Reinterpret weights as u8.  Lossy if the underlying iterator yields u16
     /// or f32.
-    pub fn into_u8(self) -> CastingIter<'a, U8> {
+    pub const fn into_u8(self) -> CastingIter<'a, U8> {
         CastingIter::new(self)
     }
 
     /// Reinterpret weights as u16.  Lossy if the underlying iterator yields
     /// f32.
-    pub fn into_u16(self) -> CastingIter<'a, U16> {
+    pub const fn into_u16(self) -> CastingIter<'a, U16> {
         CastingIter::new(self)
     }
 
     /// Reinterpret weights as f32.  Lossy if the underlying iterator yields
     /// u16.
-    pub fn into_f32(self) -> CastingIter<'a, F32> {
+    pub const fn into_f32(self) -> CastingIter<'a, F32> {
         CastingIter::new(self)
     }
 }
@@ -65,12 +65,12 @@ pub trait Cast {
 }
 
 impl<'a, A> CastingIter<'a, A> {
-    pub(crate) fn new(iter: ReadWeights<'a>) -> Self {
+    pub(crate) const fn new(iter: ReadWeights<'a>) -> Self {
         CastingIter(iter, PhantomData)
     }
 
     /// Unwrap underlying `Weights` object.
-    pub fn unwrap(self) -> ReadWeights<'a> {
+    pub const fn unwrap(self) -> ReadWeights<'a> {
         self.0
     }
 }

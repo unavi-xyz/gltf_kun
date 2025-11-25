@@ -20,7 +20,7 @@ pub trait Extension: Copy + Sized + Into<NodeIndex> + From<NodeIndex> {
     fn name() -> &'static str;
 
     fn new(graph: &mut Graph) -> Self {
-        let index = graph.add_node(Weight::Bytes(Default::default()));
+        let index = graph.add_node(Weight::Bytes(Vec::default()));
         Self::from(index)
     }
 }

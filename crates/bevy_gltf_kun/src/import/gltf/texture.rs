@@ -20,6 +20,7 @@ use super::document::ImportContext;
 
 const DEFAULT_MIME: &str = "image/png";
 
+#[must_use]
 pub fn get_linear_textures(context: &ImportContext) -> HashSet<Texture> {
     let mut textures = HashSet::default();
 
@@ -56,38 +57,40 @@ pub fn load_texture(
     let image_weight = image.get(context.graph);
     let supported_compressed_formats = CompressedImageFormats::default();
 
-    let image_type = match image_weight.mime_type.as_deref() {
-        Some(mime_type) => ImageType::MimeType(mime_type),
-        None => match &image_weight.uri {
-            Some(uri) => {
-                if !uri.contains('.') {
+    let image_type = image_weight.mime_type.as_deref().map_or_else(
+        || {
+            image_weight.uri.as_ref().map_or_else(
+                || {
                     warn!(
-                        "No extension found for image uri, defaulting to {}.",
+                        "No mime type or uri found for image, defaulting to {}.",
                         DEFAULT_MIME
                     );
                     ImageType::MimeType(DEFAULT_MIME)
-                } else {
-                    match uri.split('.').next_back() {
-                        Some(ext) => ImageType::Extension(ext),
-                        None => {
-                            warn!(
-                                "No extension found for image uri, defaulting to {}.",
-                                DEFAULT_MIME
-                            );
-                            ImageType::MimeType(DEFAULT_MIME)
-                        }
+                },
+                |uri| {
+                    if uri.contains('.') {
+                        uri.split('.').next_back().map_or_else(
+                            || {
+                                warn!(
+                                    "No extension found for image uri, defaulting to {}.",
+                                    DEFAULT_MIME
+                                );
+                                ImageType::MimeType(DEFAULT_MIME)
+                            },
+                            ImageType::Extension,
+                        )
+                    } else {
+                        warn!(
+                            "No extension found for image uri, defaulting to {}.",
+                            DEFAULT_MIME
+                        );
+                        ImageType::MimeType(DEFAULT_MIME)
                     }
-                }
-            }
-            None => {
-                warn!(
-                    "No mime type or uri found for image, defaulting to {}.",
-                    DEFAULT_MIME
-                );
-                ImageType::MimeType(DEFAULT_MIME)
-            }
+                },
+            )
         },
-    };
+        ImageType::MimeType,
+    );
 
     let texture = Image::from_buffer(
         &image_weight.data,
@@ -103,29 +106,29 @@ pub fn load_texture(
 
 fn sampler_descriptor(weight: &TextureWeight) -> ImageSamplerDescriptor {
     ImageSamplerDescriptor {
-        address_mode_u: address_mode(&weight.wrap_s),
-        address_mode_v: address_mode(&weight.wrap_t),
-        mag_filter: weight
-            .mag_filter
-            .map(|filter| match filter {
+        address_mode_u: address_mode(weight.wrap_s),
+        address_mode_v: address_mode(weight.wrap_t),
+        mag_filter: weight.mag_filter.map_or_else(
+            || ImageSamplerDescriptor::default().mag_filter,
+            |filter| match filter {
                 MagFilter::Linear => ImageFilterMode::Linear,
                 MagFilter::Nearest => ImageFilterMode::Nearest,
-            })
-            .unwrap_or(ImageSamplerDescriptor::default().mag_filter),
-        min_filter: weight
-            .min_filter
-            .map(|filter| match filter {
+            },
+        ),
+        min_filter: weight.min_filter.map_or_else(
+            || ImageSamplerDescriptor::default().min_filter,
+            |filter| match filter {
                 MinFilter::Linear
                 | MinFilter::LinearMipmapLinear
                 | MinFilter::LinearMipmapNearest => ImageFilterMode::Linear,
                 MinFilter::Nearest
                 | MinFilter::NearestMipmapLinear
                 | MinFilter::NearestMipmapNearest => ImageFilterMode::Nearest,
-            })
-            .unwrap_or(ImageSamplerDescriptor::default().min_filter),
-        mipmap_filter: weight
-            .min_filter
-            .map(|filter| match filter {
+            },
+        ),
+        mipmap_filter: weight.min_filter.map_or_else(
+            || ImageSamplerDescriptor::default().mipmap_filter,
+            |filter| match filter {
                 MinFilter::LinearMipmapLinear | MinFilter::NearestMipmapLinear => {
                     ImageFilterMode::Linear
                 }
@@ -133,13 +136,13 @@ fn sampler_descriptor(weight: &TextureWeight) -> ImageSamplerDescriptor {
                 | MinFilter::Nearest
                 | MinFilter::LinearMipmapNearest
                 | MinFilter::NearestMipmapNearest => ImageFilterMode::Nearest,
-            })
-            .unwrap_or(ImageSamplerDescriptor::default().mipmap_filter),
+            },
+        ),
         ..default()
     }
 }
 
-fn address_mode(value: &WrappingMode) -> ImageAddressMode {
+const fn address_mode(value: WrappingMode) -> ImageAddressMode {
     match value {
         WrappingMode::ClampToEdge => ImageAddressMode::ClampToEdge,
         WrappingMode::MirroredRepeat => ImageAddressMode::MirrorRepeat,
@@ -147,6 +150,7 @@ fn address_mode(value: &WrappingMode) -> ImageAddressMode {
     }
 }
 
+#[must_use]
 pub fn texture_label(index: usize) -> String {
-    format!("Texture{}", index)
+    format!("Texture{index}")
 }

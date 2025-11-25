@@ -120,7 +120,9 @@ where
             ..Default::default()
         };
 
-        let dir = std::path::Path::new(path).parent().unwrap();
+        let dir = std::path::Path::new(path)
+            .parent()
+            .expect("path should have a parent directory");
         let resolver = FileResolver::new(dir);
 
         let doc = Self::import(graph, format, Some(resolver)).await?;

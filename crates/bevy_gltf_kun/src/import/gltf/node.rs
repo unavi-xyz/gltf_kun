@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, hash::BuildHasher};
 
 use bevy::{
     animation::{AnimationTarget, AnimationTargetId},
@@ -33,17 +33,20 @@ pub enum ImportNodeError {
     MorphBuildEror(#[from] MorphBuildError),
 }
 
-pub fn import_node<E: BevyExtensionImport<GltfDocument>>(
+pub fn import_node<E: BevyExtensionImport<GltfDocument>, S: BuildHasher>(
     context: &mut ImportContext<'_, '_>,
-    node_entities: &mut HashMap<Handle<GltfNode>, Entity>,
-    node_primitive_entities: &mut HashMap<Handle<GltfNode>, Vec<Entity>>,
+    node_entities: &mut HashMap<Handle<GltfNode>, Entity, S>,
+    node_primitive_entities: &mut HashMap<Handle<GltfNode>, Vec<Entity>, S>,
     builder: &mut ChildSpawner,
     parent_world_transform: &Transform,
     mut path: Vec<Name>,
     root_node: Option<Entity>,
     n: &mut Node,
 ) -> Result<Handle<GltfNode>, ImportNodeError> {
-    let index = context.doc.node_index(context.graph, *n).unwrap();
+    let index = context
+        .doc
+        .node_index(context.graph, *n)
+        .expect("index should exist for node");
     let weight = n.get_mut(context.graph);
 
     let extras = weight.extras.take();
@@ -62,7 +65,7 @@ pub fn import_node<E: BevyExtensionImport<GltfDocument>>(
     ent.insert(Name::new(name.clone()));
 
     path.push(Name::new(name.clone()));
-    let root_node = root_node.unwrap_or(ent.id());
+    let root_node = root_node.unwrap_or_else(|| ent.id());
 
     ent.insert(AnimationTarget {
         id: AnimationTargetId::from_names(path.iter()),
@@ -79,7 +82,10 @@ pub fn import_node<E: BevyExtensionImport<GltfDocument>>(
             primitive_entities.extend(ents);
 
             if let Some(weights) = morph_weights {
-                let mesh_index = context.doc.mesh_index(context.graph, m).unwrap();
+                let mesh_index = context
+                    .doc
+                    .mesh_index(context.graph, m)
+                    .expect("index should exist for mesh");
                 let m_label = mesh_label(mesh_index);
                 let p_label = primitive_label(&m_label, 0);
                 let first_mesh = context.load_context.get_label_handle(p_label);
@@ -95,8 +101,8 @@ pub fn import_node<E: BevyExtensionImport<GltfDocument>>(
     let mut children = Vec::new();
 
     ent.with_children(|parent| {
-        for c in n.children(context.graph).iter_mut() {
-            match import_node::<E>(
+        for c in &mut n.children(context.graph) {
+            if let Ok(handle) = import_node::<E, _>(
                 context,
                 node_entities,
                 node_primitive_entities,
@@ -106,26 +112,31 @@ pub fn import_node<E: BevyExtensionImport<GltfDocument>>(
                 Some(root_node),
                 c,
             ) {
-                Ok(handle) => children.push(handle),
-                Err(e) => {
-                    warn!("Failed to import node: {}", e);
-                    continue;
-                }
+                children.push(handle);
+            } else if let Err(e) = import_node::<E, _>(
+                context,
+                node_entities,
+                node_primitive_entities,
+                parent,
+                &world_transform,
+                path.clone(),
+                Some(root_node),
+                c,
+            ) {
+                warn!("Failed to import node: {}", e);
             }
         }
     });
 
     let node = GltfNode {
         children,
-        extras,
         mesh,
         transform,
+        extras,
     };
 
     let node_label = node_label(index);
-    let handle = context
-        .load_context
-        .add_labeled_asset(node_label.clone(), node);
+    let handle = context.load_context.add_labeled_asset(node_label, node);
 
     context.gltf.named_nodes.insert(name, handle.clone());
     context.gltf.node_handles.insert(*n, handle.clone());
@@ -140,14 +151,18 @@ pub fn import_node<E: BevyExtensionImport<GltfDocument>>(
     Ok(handle)
 }
 
+#[must_use]
 pub fn node_name(doc: &GltfDocument, graph: &Graph, node: Node) -> String {
     let weight = node.get(graph);
-    weight
-        .name
-        .clone()
-        .unwrap_or_else(|| node_label(doc.node_index(graph, node).unwrap()))
+    weight.name.clone().unwrap_or_else(|| {
+        node_label(
+            doc.node_index(graph, node)
+                .expect("node should have an index"),
+        )
+    })
 }
 
+#[must_use]
 pub fn node_label(index: usize) -> String {
-    format!("Node{}", index)
+    format!("Node{index}")
 }

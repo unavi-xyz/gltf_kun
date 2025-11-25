@@ -8,7 +8,7 @@
 //!
 //! ## Usage
 //!
-//! Add [GltfKunPlugin] to your app:
+//! Add [`GltfKunPlugin`] to your app:
 //!
 //! ```no_run
 //! use bevy::prelude::*;
@@ -19,11 +19,11 @@
 //!
 //! ### Export
 //!
-//! Export scenes to glTF using [GltfExportEvent](export::gltf::GltfExportEvent).
+//! Export scenes to glTF using [`GltfExportEvent`](export::gltf::GltfExportEvent).
 //!
-//! The resulting [GltfExportResult](export::gltf::GltfExportResult) will contain a flexible
-//! [GltfDocument](gltf_kun::graph::gltf::document::GltfDocument) that can be exported to various
-//! file types. See [gltf_kun] for more information on how to do so.
+//! The resulting [`GltfExportResult`](export::gltf::GltfExportResult) will contain a flexible
+//! [`GltfDocument`](gltf_kun::graph::gltf::document::GltfDocument) that can be exported to various
+//! file types. See [`gltf_kun`] for more information on how to do so.
 //!
 //!
 //! ```
@@ -50,7 +50,7 @@
 //!
 //!     // Listen for the result.
 //!     for mut event in results.drain() {
-//!         let doc = event.result.unwrap();
+//!         let doc = event.result.expect("export should succeed");
 //!         let bytes = GlbExport::<DefaultExtensions>::export(&mut event.graph, &doc);
 //!     }
 //! }
@@ -60,7 +60,7 @@
 //!
 //! ### Import
 //!
-//! Import glTFs using the [GltfKun](import::gltf::GltfKun) asset.
+//! Import glTFs using the [`GltfKun`](import::gltf::GltfKun) asset.
 //!
 //! ```
 //! use bevy::prelude::*;
@@ -83,7 +83,7 @@
 //!         *handle = Some(asset_server.load::<GltfKun>("model.gltf"));
 //!     }
 //!
-//!     let handle = handle.as_ref().unwrap();
+//!     let handle = handle.as_ref().expect("handle should be set");
 //!
 //!     let gltf = match gltf_kun_assets.get(handle) {
 //!         Some(a) => a,
@@ -91,7 +91,7 @@
 //!     };
 //!
 //!     // Spawn the first scene.
-//!     let gltf_scene = gltf_scene_assets.get(&gltf.scenes[0]).unwrap();
+//!     let gltf_scene = gltf_scene_assets.get(&gltf.scenes[0]).expect("gltf should have at least one scene");
 //!     commands.spawn(SceneRoot(gltf_scene.scene.clone()));
 //!
 //!     *did_import = true;

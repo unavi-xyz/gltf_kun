@@ -30,6 +30,7 @@ pub enum GltfImportError {
     ReadBufferView(#[from] ReadBufferViewError),
 }
 
+#[allow(clippy::too_many_lines)]
 pub async fn import(
     graph: &mut Graph,
     format: &mut GltfFormat,
@@ -44,7 +45,7 @@ pub async fn import(
     let buffers_len = format.json.buffers.len();
     let resources_len = format.resources.len();
 
-    for buf in format.json.buffers.iter_mut() {
+    for buf in &mut format.json.buffers {
         let mut buffer = doc.create_buffer(graph);
         let weight = buffer.get_mut(graph);
 
@@ -62,9 +63,14 @@ pub async fn import(
                 .iter_mut()
                 .find(|_| true)
                 .map(|(k, _)| k.clone())
-                .unwrap();
+                .expect("value should exist");
 
-            data = Some(format.resources.remove(&key).unwrap());
+            data = Some(
+                format
+                    .resources
+                    .remove(&key)
+                    .expect("resource should exist"),
+            );
         } else if let Some(uri) = weight.uri.as_ref() {
             data = resolve_uri(uri, &mut resolver).await;
         }
@@ -74,21 +80,59 @@ pub async fn import(
     }
 
     // Create accessors
-    let accessors =
-        format
-            .json
-            .accessors
-            .iter_mut()
-            .map(|a| -> Result<Accessor, GltfImportError> {
-                let mut accessor = doc.create_accessor(graph);
+    let accessors = format
+        .json
+        .accessors
+        .iter_mut()
+        .map(|a| -> Result<Accessor, GltfImportError> {
+            let mut accessor = doc.create_accessor(graph);
 
-                let weight = accessor.get_mut(graph);
+            let weight = accessor.get_mut(graph);
 
-                weight.name.clone_from(&a.name);
-                weight.extras.clone_from(&a.extras);
+            weight.name.clone_from(&a.name);
+            weight.extras.clone_from(&a.extras);
 
-                weight.normalized = a.normalized;
-                weight.component_type = match a.component_type {
+            weight.normalized = a.normalized;
+            weight.component_type = match a.component_type {
+                Checked::Valid(component_type) => component_type.0,
+                Checked::Invalid => {
+                    return Err(GltfImportError::InvalidAccessor(
+                        "Invalid component type".to_string(),
+                    ));
+                }
+            };
+            weight.element_type = match a.type_ {
+                Checked::Valid(ty) => ty,
+                Checked::Invalid => {
+                    return Err(GltfImportError::InvalidAccessor("Invalid type".to_string()));
+                }
+            };
+
+            let buffer_view_idx = a.buffer_view.map(|v| v.value());
+
+            if let Some(sparse) = &a.sparse {
+                let item_size = accessor_item_size(a)
+                    .map_err(|e| GltfImportError::InvalidAccessor(e.to_string()))?;
+
+                let mut base = if let Some(idx) = buffer_view_idx {
+                    let view = &format.json.buffer_views[idx];
+                    let buffer_idx = view.buffer.value();
+
+                    let data = buffer_data.get(buffer_idx).ok_or_else(|| {
+                        GltfImportError::InvalidAccessor("No buffer data".to_string())
+                    })?;
+
+                    let slice = read_buffer_view(view, data)?;
+
+                    slice.to_vec()
+                } else {
+                    let array_len = item_size * a.count.0 as usize;
+                    vec![0; array_len]
+                };
+
+                let indices_view_idx = sparse.indices.buffer_view.value();
+                let indices_offset = sparse.indices.byte_offset.0;
+                let indices_component_type = match sparse.indices.component_type {
                     Checked::Valid(component_type) => component_type.0,
                     Checked::Invalid => {
                         return Err(GltfImportError::InvalidAccessor(
@@ -96,127 +140,81 @@ pub async fn import(
                         ));
                     }
                 };
-                weight.element_type = match a.type_ {
-                    Checked::Valid(ty) => ty,
-                    Checked::Invalid => {
-                        return Err(GltfImportError::InvalidAccessor("Invalid type".to_string()));
-                    }
-                };
 
-                let buffer_view_idx = a.buffer_view.map(|v| v.value());
+                let indices_view = &format.json.buffer_views[indices_view_idx];
+                let indices_buffer_idx = indices_view.buffer.value();
 
-                if let Some(sparse) = &a.sparse {
-                    let item_size = accessor_item_size(a)
-                        .map_err(|e| GltfImportError::InvalidAccessor(e.to_string()))?;
+                let indices_data = buffer_data.get(indices_buffer_idx).ok_or_else(|| {
+                    GltfImportError::InvalidAccessor("No buffer data".to_string())
+                })?;
 
-                    let mut base = match buffer_view_idx {
-                        Some(idx) => {
-                            let view = &format.json.buffer_views[idx];
-                            let buffer_idx = view.buffer.value();
+                let indices = read_buffer_view(indices_view, indices_data)?;
+                let indices = &indices[indices_offset as usize..];
 
-                            let data = buffer_data.get(buffer_idx).ok_or(
-                                GltfImportError::InvalidAccessor("No buffer data".to_string()),
-                            )?;
+                let values_view_idx = sparse.values.buffer_view.value();
+                let values_offset = sparse.values.byte_offset.0;
 
-                            let slice = read_buffer_view(view, data)?;
+                let values_view = &format.json.buffer_views[values_view_idx];
+                let values_buffer_idx = values_view.buffer.value();
 
-                            slice.to_vec()
+                let values_data = buffer_data.get(values_buffer_idx).ok_or_else(|| {
+                    GltfImportError::InvalidAccessor("No buffer data".to_string())
+                })?;
+
+                let values = read_buffer_view(values_view, values_data)?;
+                let values = &values[values_offset as usize..];
+
+                for (i, index) in indices
+                    .chunks_exact(indices_component_type.size())
+                    .enumerate()
+                {
+                    let index = match indices_component_type {
+                        gltf::json::accessor::ComponentType::U8 => index[0] as usize,
+                        gltf::json::accessor::ComponentType::U16 => {
+                            u16::from_le_bytes([index[0], index[1]]) as usize
                         }
-                        None => {
-                            let array_len = item_size * a.count.0 as usize;
-                            vec![0; array_len]
+                        gltf::json::accessor::ComponentType::U32 => {
+                            u32::from_le_bytes([index[0], index[1], index[2], index[3]]) as usize
                         }
-                    };
-
-                    let indices_view_idx = sparse.indices.buffer_view.value();
-                    let indices_offset = sparse.indices.byte_offset.0;
-                    let indices_component_type = match sparse.indices.component_type {
-                        Checked::Valid(component_type) => component_type.0,
-                        Checked::Invalid => {
+                        _ => {
                             return Err(GltfImportError::InvalidAccessor(
                                 "Invalid component type".to_string(),
                             ));
                         }
                     };
 
-                    let indices_view = &format.json.buffer_views[indices_view_idx];
-                    let indices_buffer_idx = indices_view.buffer.value();
+                    let value = &values[i * item_size..(i + 1) * item_size];
 
-                    let indices_data = buffer_data.get(indices_buffer_idx).ok_or(
-                        GltfImportError::InvalidAccessor("No buffer data".to_string()),
-                    )?;
-
-                    let indices = read_buffer_view(indices_view, indices_data)?;
-                    let indices = &indices[indices_offset as usize..];
-
-                    let values_view_idx = sparse.values.buffer_view.value();
-                    let values_offset = sparse.values.byte_offset.0;
-
-                    let values_view = &format.json.buffer_views[values_view_idx];
-                    let values_buffer_idx = values_view.buffer.value();
-
-                    let values_data = buffer_data.get(values_buffer_idx).ok_or(
-                        GltfImportError::InvalidAccessor("No buffer data".to_string()),
-                    )?;
-
-                    let values = read_buffer_view(values_view, values_data)?;
-                    let values = &values[values_offset as usize..];
-
-                    for (i, index) in indices
-                        .chunks_exact(indices_component_type.size())
-                        .enumerate()
-                    {
-                        let index = match indices_component_type {
-                            gltf::json::accessor::ComponentType::U8 => index[0] as usize,
-                            gltf::json::accessor::ComponentType::U16 => {
-                                u16::from_le_bytes([index[0], index[1]]) as usize
-                            }
-                            gltf::json::accessor::ComponentType::U32 => {
-                                u32::from_le_bytes([index[0], index[1], index[2], index[3]])
-                                    as usize
-                            }
-                            _ => {
-                                return Err(GltfImportError::InvalidAccessor(
-                                    "Invalid component type".to_string(),
-                                ));
-                            }
-                        };
-
-                        let value = &values[i * item_size..(i + 1) * item_size];
-
-                        base.splice(
-                            index * item_size..(index + 1) * item_size,
-                            value.iter().cloned(),
-                        );
-                    }
-
-                    weight.data = base;
-                } else {
-                    let buffer_view_idx = buffer_view_idx.ok_or(
-                        GltfImportError::InvalidAccessor("No buffer view".to_string()),
-                    )?;
-
-                    let buffer_view = &format.json.buffer_views[buffer_view_idx];
-                    let buffer_idx = buffer_view.buffer.value();
-
-                    let data =
-                        buffer_data
-                            .get(buffer_idx)
-                            .ok_or(GltfImportError::InvalidAccessor(
-                                "No buffer data".to_string(),
-                            ))?;
-
-                    weight.data = read_accessor(a, buffer_view, data)?;
+                    base.splice(
+                        index * item_size..(index + 1) * item_size,
+                        value.iter().copied(),
+                    );
                 }
 
-                Ok(accessor)
-            })
-            .collect::<Result<Vec<_>, _>>()?;
+                weight.data = base;
+            } else {
+                let buffer_view_idx = buffer_view_idx.ok_or_else(|| {
+                    GltfImportError::InvalidAccessor("No buffer view".to_string())
+                })?;
+
+                let buffer_view = &format.json.buffer_views[buffer_view_idx];
+                let buffer_idx = buffer_view.buffer.value();
+
+                let data = buffer_data.get(buffer_idx).ok_or_else(|| {
+                    GltfImportError::InvalidAccessor("No buffer data".to_string())
+                })?;
+
+                weight.data = read_accessor(a, buffer_view, data)?;
+            }
+
+            Ok(accessor)
+        })
+        .collect::<Result<Vec<_>, _>>()?;
 
     // Create images
     let mut images = Vec::new();
 
-    for img in format.json.images.iter_mut() {
+    for img in &mut format.json.images {
         let mut image = doc.create_image(graph);
 
         let weight = image.get_mut(graph);
@@ -228,7 +226,7 @@ pub async fn import(
             weight.uri.clone_from(&img.uri);
 
             if weight.mime_type.is_none() {
-                weight.mime_type = guess_mime_type(uri).map(|s| s.to_string())
+                weight.mime_type = guess_mime_type(uri).map(ToString::to_string);
             }
 
             if let Some(data) = resolve_uri(uri, &mut resolver).await {
@@ -238,12 +236,11 @@ pub async fn import(
             let view = &format.json.buffer_views[index.value()];
 
             let buffer_idx = view.buffer.value();
-            let buf_data = match buffer_data.get(buffer_idx) {
-                Some(data) => data.as_slice(),
-                None => {
-                    warn!("Buffer has no data");
-                    &[]
-                }
+            let buf_data = if let Some(data) = buffer_data.get(buffer_idx) {
+                data.as_slice()
+            } else {
+                warn!("Buffer has no data");
+                &[]
             };
 
             weight.data = read_buffer_view(view, buf_data)?.to_vec();
@@ -276,8 +273,8 @@ pub async fn import(
                 let sampler = sampler.value();
                 let sampler = &format.json.samplers[sampler];
 
-                weight.mag_filter = sampler.mag_filter.map(|f| f.unwrap());
-                weight.min_filter = sampler.min_filter.map(|f| f.unwrap());
+                weight.mag_filter = sampler.mag_filter.map(Checked::unwrap);
+                weight.min_filter = sampler.min_filter.map(Checked::unwrap);
                 weight.wrap_s = sampler.wrap_s.unwrap();
                 weight.wrap_t = sampler.wrap_t.unwrap();
             }
@@ -368,7 +365,7 @@ pub async fn import(
                 weight.weights.clone_from(weights);
             }
 
-            for p in m.primitives.iter() {
+            for p in &m.primitives {
                 let mut primitive = mesh.create_primitive(graph);
                 let p_weight = primitive.get_mut(graph);
 
@@ -378,10 +375,9 @@ pub async fn import(
                     Checked::Invalid => gltf::mesh::Mode::Triangles,
                 };
 
-                let material = match p.material {
-                    Some(index) => materials.get(index.value()).copied(),
-                    None => None,
-                };
+                let material = p
+                    .material
+                    .and_then(|index| materials.get(index.value()).copied());
                 primitive.set_material(graph, material);
 
                 if let Some(index) = p.indices
@@ -390,7 +386,7 @@ pub async fn import(
                     primitive.set_indices(graph, Some(*accessor));
                 }
 
-                for (k, v) in p.attributes.iter() {
+                for (k, v) in &p.attributes {
                     if let Some(accessor) = accessors.get(v.value()) {
                         let semantic = match k {
                             Checked::Valid(semantic) => semantic,
@@ -444,10 +440,9 @@ pub async fn import(
 
             weight.rotation = n
                 .rotation
-                .map(|r| Quat::from_slice(&r.0))
-                .unwrap_or(Quat::IDENTITY);
-            weight.translation = n.translation.map(|t| t.into()).unwrap_or_default();
-            weight.scale = n.scale.map(|s| s.into()).unwrap_or(Vec3::ONE);
+                .map_or(Quat::IDENTITY, |r| Quat::from_slice(&r.0));
+            weight.translation = n.translation.map(Into::into).unwrap_or_default();
+            weight.scale = n.scale.map_or(Vec3::ONE, Into::into);
 
             if let Some(matrix) = n.matrix {
                 let matrix = Mat4::from_cols_slice(&matrix);
@@ -481,10 +476,10 @@ pub async fn import(
         .for_each(|(i, children)| {
             let node = &nodes[i];
 
-            children.iter().for_each(|idx| {
+            for idx in children {
                 let child = &nodes[idx.value()];
                 node.add_child(graph, child);
-            });
+            }
         });
 
     // Create scenes
@@ -537,7 +532,9 @@ pub async fn import(
         }
 
         for (j, joint_idx) in s.joints.iter().enumerate() {
-            let joint_node = nodes.get(joint_idx.value()).unwrap();
+            let joint_node = nodes
+                .get(joint_idx.value())
+                .expect("joint node should exist");
             skin.add_joint(graph, joint_node, j);
         }
 
@@ -550,7 +547,7 @@ pub async fn import(
     }
 
     // Create animtions
-    for a in format.json.animations.iter_mut() {
+    for a in &mut format.json.animations {
         let mut animation = doc.create_animation(graph);
 
         let weight = animation.get_mut(graph);
@@ -606,11 +603,8 @@ async fn resolve_uri(uri: &str, resolver: &mut Option<impl Resolver>) -> Option<
         return Some(data);
     }
 
-    let resolver = match resolver {
-        Some(r) => r,
-        None => {
-            return None;
-        }
+    let Some(resolver) = resolver else {
+        return None;
     };
 
     match resolver.resolve(uri).await {
@@ -724,17 +718,20 @@ fn read_accessor(
 }
 
 fn guess_mime_type(uri: &str) -> Option<&'static str> {
-    if uri.ends_with(".png") {
+    let path = std::path::Path::new(uri);
+    let ext = path.extension()?.to_str()?;
+
+    if ext.eq_ignore_ascii_case("png") {
         Some("image/png")
-    } else if uri.ends_with(".jpg") || uri.ends_with(".jpeg") {
+    } else if ext.eq_ignore_ascii_case("jpg") || ext.eq_ignore_ascii_case("jpeg") {
         Some("image/jpeg")
-    } else if uri.ends_with(".gif") {
+    } else if ext.eq_ignore_ascii_case("gif") {
         Some("image/gif")
-    } else if uri.ends_with(".bmp") {
+    } else if ext.eq_ignore_ascii_case("bmp") {
         Some("image/bmp")
-    } else if uri.ends_with(".tiff") {
+    } else if ext.eq_ignore_ascii_case("tiff") {
         Some("image/tiff")
-    } else if uri.ends_with(".webp") {
+    } else if ext.eq_ignore_ascii_case("webp") {
         Some("image/webp")
     } else {
         None
@@ -869,7 +866,7 @@ mod tests {
 
         let doc = import(&mut graph, &mut format, None::<DataUriResolver>)
             .await
-            .unwrap();
+            .expect("value should exist");
 
         assert_eq!(doc.scenes(&graph).len(), 1);
         assert_eq!(doc.default_scene(&graph), Some(doc.scenes(&graph)[0]));

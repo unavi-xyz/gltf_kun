@@ -7,9 +7,8 @@ name                 = "bevy_gltf_kun"
 repository.workspace = true
 version.workspace    = true
 
-[lints.clippy]
-too_many_arguments = "allow"
-type_complexity    = "allow"
+[lints]
+workspace = true
 
 [features]
 default     = []

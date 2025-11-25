@@ -22,6 +22,7 @@ pub struct GltfScene {
 
 const MAX_JOINTS: usize = 256;
 
+#[allow(clippy::too_many_lines)]
 pub fn import_scene<E: BevyExtensionImport<GltfDocument>>(
     context: &mut ImportContext,
     animation_roots: &HashSet<Node>,
@@ -37,7 +38,7 @@ pub fn import_scene<E: BevyExtensionImport<GltfDocument>>(
         .spawn((Transform::default(), Visibility::default()))
         .with_children(|parent| {
             for mut node in s.nodes(context.graph) {
-                match import_node::<E>(
+                match import_node::<E, _>(
                     context,
                     &mut node_entities,
                     &mut node_primitive_entities,
@@ -60,20 +61,31 @@ pub fn import_scene<E: BevyExtensionImport<GltfDocument>>(
     for node in context.doc.nodes(context.graph) {
         if animation_roots.contains(&node) {
             let name = node_name(context.doc, context.graph, node);
-            let handle = context.gltf.named_nodes.get(&name).unwrap();
-            let entity = node_entities.get(handle).unwrap();
+            let handle = context
+                .gltf
+                .named_nodes
+                .get(&name)
+                .expect("key should exist in map");
+            let entity = node_entities.get(handle).expect("key should exist in map");
             world.entity_mut(*entity).insert(AnimationPlayer::default());
         }
 
         if let Some(skin) = node.skin(context.graph) {
-            let inverse_bindposes = context.skin_matrices.get(&skin).unwrap();
+            let inverse_bindposes = context
+                .skin_matrices
+                .get(&skin)
+                .expect("key should exist in map");
 
             let joints = skin
                 .joints(context.graph)
                 .iter()
                 .map(|joint| {
-                    let handle = context.gltf.node_handles.get(joint).unwrap();
-                    *node_entities.get(handle).unwrap()
+                    let handle = context
+                        .gltf
+                        .node_handles
+                        .get(joint)
+                        .expect("key should exist in map");
+                    *node_entities.get(handle).expect("key should exist in map")
                 })
                 .collect::<Vec<_>>();
 
@@ -85,8 +97,14 @@ pub fn import_scene<E: BevyExtensionImport<GltfDocument>>(
                 );
             }
 
-            let handle = context.gltf.node_handles.get(&node).unwrap();
-            let primitive_ents = node_primitive_entities.get(handle).unwrap();
+            let handle = context
+                .gltf
+                .node_handles
+                .get(&node)
+                .expect("key should exist in map");
+            let primitive_ents = node_primitive_entities
+                .get(handle)
+                .expect("key should exist in map");
 
             for entity in primitive_ents {
                 world.entity_mut(*entity).insert(SkinnedMesh {
@@ -102,7 +120,10 @@ pub fn import_scene<E: BevyExtensionImport<GltfDocument>>(
 
     let scene = Scene { world };
 
-    let index = context.doc.scene_index(context.graph, s).unwrap();
+    let index = context
+        .doc
+        .scene_index(context.graph, s)
+        .expect("index should exist for scene");
     let weight = s.get(context.graph);
     let scene_label = scene_label(index);
 
@@ -113,7 +134,7 @@ pub fn import_scene<E: BevyExtensionImport<GltfDocument>>(
     let gltf_scene = GltfScene {
         extras: weight.extras.clone(),
         nodes: root_nodes,
-        scene: handle.clone(),
+        scene: handle,
     };
 
     let gltf_scene_handle = context
@@ -124,16 +145,16 @@ pub fn import_scene<E: BevyExtensionImport<GltfDocument>>(
         context
             .gltf
             .named_scenes
-            .insert(scene_label.clone(), gltf_scene_handle.clone());
+            .insert(scene_label, gltf_scene_handle.clone());
     }
 
     gltf_scene_handle
 }
 
 fn scene_label(index: usize) -> String {
-    format!("Scene{}", index)
+    format!("Scene{index}")
 }
 
 fn gltf_scene_label(index: usize) -> String {
-    format!("GltfScene{}", index)
+    format!("GltfScene{index}")
 }

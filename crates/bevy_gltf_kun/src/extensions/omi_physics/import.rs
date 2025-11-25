@@ -27,8 +27,8 @@ impl Default for ColliderMarker {
     }
 }
 
-pub fn insert_colliders(mut commands: Commands, mut query: Query<(Entity, &ColliderMarker)>) {
-    for (entity, marker) in query.iter_mut() {
+pub fn insert_colliders(mut commands: Commands, query: Query<(Entity, &ColliderMarker)>) {
+    for (entity, marker) in query {
         let collider = match marker {
             ColliderMarker::Cuboid(size) => Collider::cuboid(size[0], size[1], size[2]),
             ColliderMarker::Sphere(radius) => Collider::sphere(*radius),
@@ -43,8 +43,8 @@ pub fn insert_colliders(mut commands: Commands, mut query: Query<(Entity, &Colli
     }
 }
 
-pub fn insert_rigid_bodies(mut commands: Commands, mut query: Query<(Entity, &RigidBodyMarker)>) {
-    for (entity, marker) in query.iter_mut() {
+pub fn insert_rigid_bodies(mut commands: Commands, query: Query<(Entity, &RigidBodyMarker)>) {
+    for (entity, marker) in query {
         let rigid_body = match marker.typ {
             RigidBodyType::Static => RigidBody::Static,
             RigidBodyType::Dynamic => RigidBody::Dynamic,

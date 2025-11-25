@@ -100,17 +100,17 @@ impl GraphNodeEdges for Node {}
 impl Extensions for Node {}
 
 impl Node {
-    pub fn children(&self, graph: &Graph) -> Vec<Node> {
+    pub fn children(&self, graph: &Graph) -> Vec<Self> {
         self.edge_targets(graph, &NodeEdge::Child)
     }
-    pub fn add_child(&self, graph: &mut Graph, child: &Node) {
+    pub fn add_child(&self, graph: &mut Graph, child: &Self) {
         self.add_edge_target(graph, NodeEdge::Child, *child);
     }
-    pub fn remove_child(&self, graph: &mut Graph, child: &Node) {
+    pub fn remove_child(&self, graph: &mut Graph, child: &Self) {
         self.remove_edge_target(graph, NodeEdge::Child, *child);
     }
 
-    pub fn parents(&self, graph: &Graph) -> Vec<Node> {
+    pub fn parents(&self, graph: &Graph) -> Vec<Self> {
         self.edge_sources(graph, &NodeEdge::Child)
     }
 

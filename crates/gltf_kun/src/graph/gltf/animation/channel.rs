@@ -40,7 +40,7 @@ pub struct AnimationChannelWeight {
 impl Default for AnimationChannelWeight {
     fn default() -> Self {
         Self {
-            extras: Default::default(),
+            extras: None,
             path: TargetPath::Translation,
         }
     }

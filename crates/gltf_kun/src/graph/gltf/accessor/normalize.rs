@@ -2,8 +2,8 @@ pub trait Normalize<T> {
     fn normalize(self) -> T;
 }
 
-impl Normalize<i8> for i8 {
-    fn normalize(self) -> i8 {
+impl Normalize<Self> for i8 {
+    fn normalize(self) -> Self {
         self
     }
 }
@@ -16,7 +16,7 @@ impl Normalize<u8> for i8 {
 
 impl Normalize<i16> for i8 {
     fn normalize(self) -> i16 {
-        self as i16 * 0x100
+        i16::from(self) * 0x100
     }
 }
 
@@ -28,7 +28,7 @@ impl Normalize<u16> for i8 {
 
 impl Normalize<f32> for i8 {
     fn normalize(self) -> f32 {
-        (self as f32 * 127.0_f32.recip()).max(-1.0)
+        (f32::from(self) * 127.0_f32.recip()).max(-1.0)
     }
 }
 
@@ -38,27 +38,27 @@ impl Normalize<i8> for u8 {
     }
 }
 
-impl Normalize<u8> for u8 {
-    fn normalize(self) -> u8 {
+impl Normalize<Self> for u8 {
+    fn normalize(self) -> Self {
         self
     }
 }
 
 impl Normalize<i16> for u8 {
     fn normalize(self) -> i16 {
-        self as i16 * 0x80
+        i16::from(self) * 0x80
     }
 }
 
 impl Normalize<u16> for u8 {
     fn normalize(self) -> u16 {
-        self as u16 * 0x100
+        u16::from(self) * 0x100
     }
 }
 
 impl Normalize<f32> for u8 {
     fn normalize(self) -> f32 {
-        self as f32 * 255.0_f32.recip()
+        f32::from(self) * 255.0_f32.recip()
     }
 }
 
@@ -74,8 +74,8 @@ impl Normalize<u8> for i16 {
     }
 }
 
-impl Normalize<i16> for i16 {
-    fn normalize(self) -> i16 {
+impl Normalize<Self> for i16 {
+    fn normalize(self) -> Self {
         self
     }
 }
@@ -88,7 +88,7 @@ impl Normalize<u16> for i16 {
 
 impl Normalize<f32> for i16 {
     fn normalize(self) -> f32 {
-        (self as f32 * 32767.0_f32.recip()).max(-1.0)
+        (f32::from(self) * 32767.0_f32.recip()).max(-1.0)
     }
 }
 
@@ -110,15 +110,15 @@ impl Normalize<i16> for u16 {
     }
 }
 
-impl Normalize<u16> for u16 {
-    fn normalize(self) -> u16 {
+impl Normalize<Self> for u16 {
+    fn normalize(self) -> Self {
         self
     }
 }
 
 impl Normalize<f32> for u16 {
     fn normalize(self) -> f32 {
-        self as f32 * 65535.0_f32.recip()
+        f32::from(self) * 65535.0_f32.recip()
     }
 }
 
@@ -146,8 +146,8 @@ impl Normalize<u16> for f32 {
     }
 }
 
-impl Normalize<f32> for f32 {
-    fn normalize(self) -> f32 {
+impl Normalize<Self> for f32 {
+    fn normalize(self) -> Self {
         self
     }
 }

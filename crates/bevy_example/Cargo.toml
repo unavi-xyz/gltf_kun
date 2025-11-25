@@ -6,6 +6,9 @@ publish              = false
 repository.workspace = true
 version.workspace    = true
 
+[lints]
+workspace = true
+
 [dependencies]
 avian3d.workspace    = true
 bevy                 = { features = ["default", "jpeg"], workspace = true }

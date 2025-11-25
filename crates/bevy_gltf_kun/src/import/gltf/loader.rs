@@ -27,7 +27,7 @@ use super::{
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct GltfLoaderSettings {
     /// Whether to expose raw animation curves for retargeting and custom processing.
-    /// When true, creates RawGltfAnimation assets alongside the normal AnimationClip assets.
+    /// When true, creates `RawGltfAnimation` assets alongside the normal `AnimationClip` assets.
     pub expose_raw_animation_curves: bool,
 }
 

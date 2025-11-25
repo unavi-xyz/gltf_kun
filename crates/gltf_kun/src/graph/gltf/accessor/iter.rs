@@ -40,7 +40,8 @@ pub enum AccessorIterCreateError {
 }
 
 impl<'a> AccessorIter<'a> {
-    pub fn new(
+    #[allow(clippy::too_many_lines)]
+    pub const fn new(
         slice: &'a [u8],
         component_type: ComponentType,
         element_type: Type,
@@ -179,7 +180,7 @@ impl<'a> AccessorIter<'a> {
         }
     }
 
-    pub fn component_type(&self) -> ComponentType {
+    pub const fn component_type(&self) -> ComponentType {
         match self {
             AccessorIter::F32(_)
             | AccessorIter::F32x2(_)
@@ -209,7 +210,7 @@ impl<'a> AccessorIter<'a> {
         }
     }
 
-    pub fn element_type(&self) -> Type {
+    pub const fn element_type(&self) -> Type {
         match self {
             AccessorIter::F32(_)
             | AccessorIter::U32(_)
@@ -239,7 +240,7 @@ impl<'a> AccessorIter<'a> {
         }
     }
 
-    pub fn normalized(&self) -> bool {
+    pub const fn normalized(&self) -> bool {
         match self {
             AccessorIter::F32(iter) => iter.normalized,
             AccessorIter::F32x2(iter) => iter.normalized,
@@ -269,7 +270,7 @@ impl<'a> AccessorIter<'a> {
         }
     }
 
-    pub fn slice(&self) -> &[u8] {
+    pub const fn slice(&self) -> &[u8] {
         match self {
             AccessorIter::F32(iter) => iter.slice,
             AccessorIter::F32x2(iter) => iter.slice,
@@ -420,127 +421,127 @@ pub enum AccessorElement {
 
 impl From<f32> for AccessorElement {
     fn from(value: f32) -> Self {
-        AccessorElement::F32(value)
+        Self::F32(value)
     }
 }
 impl From<[f32; 2]> for AccessorElement {
     fn from(value: [f32; 2]) -> Self {
-        AccessorElement::F32x2(value)
+        Self::F32x2(value)
     }
 }
 impl From<[f32; 3]> for AccessorElement {
     fn from(value: [f32; 3]) -> Self {
-        AccessorElement::F32x3(value)
+        Self::F32x3(value)
     }
 }
 impl From<[f32; 4]> for AccessorElement {
     fn from(value: [f32; 4]) -> Self {
-        AccessorElement::F32x4(value)
+        Self::F32x4(value)
     }
 }
 impl From<[f32; 16]> for AccessorElement {
     fn from(value: [f32; 16]) -> Self {
-        AccessorElement::F32x16(value)
+        Self::F32x16(value)
     }
 }
 impl From<u32> for AccessorElement {
     fn from(value: u32) -> Self {
-        AccessorElement::U32(value)
+        Self::U32(value)
     }
 }
 impl From<[u32; 2]> for AccessorElement {
     fn from(value: [u32; 2]) -> Self {
-        AccessorElement::U32x2(value)
+        Self::U32x2(value)
     }
 }
 impl From<[u32; 3]> for AccessorElement {
     fn from(value: [u32; 3]) -> Self {
-        AccessorElement::U32x3(value)
+        Self::U32x3(value)
     }
 }
 impl From<[u32; 4]> for AccessorElement {
     fn from(value: [u32; 4]) -> Self {
-        AccessorElement::U32x4(value)
+        Self::U32x4(value)
     }
 }
 impl From<u16> for AccessorElement {
     fn from(value: u16) -> Self {
-        AccessorElement::U16(value)
+        Self::U16(value)
     }
 }
 impl From<[u16; 2]> for AccessorElement {
     fn from(value: [u16; 2]) -> Self {
-        AccessorElement::U16x2(value)
+        Self::U16x2(value)
     }
 }
 impl From<[u16; 3]> for AccessorElement {
     fn from(value: [u16; 3]) -> Self {
-        AccessorElement::U16x3(value)
+        Self::U16x3(value)
     }
 }
 impl From<[u16; 4]> for AccessorElement {
     fn from(value: [u16; 4]) -> Self {
-        AccessorElement::U16x4(value)
+        Self::U16x4(value)
     }
 }
 impl From<u8> for AccessorElement {
     fn from(value: u8) -> Self {
-        AccessorElement::U8(value)
+        Self::U8(value)
     }
 }
 impl From<[u8; 2]> for AccessorElement {
     fn from(value: [u8; 2]) -> Self {
-        AccessorElement::U8x2(value)
+        Self::U8x2(value)
     }
 }
 impl From<[u8; 3]> for AccessorElement {
     fn from(value: [u8; 3]) -> Self {
-        AccessorElement::U8x3(value)
+        Self::U8x3(value)
     }
 }
 impl From<[u8; 4]> for AccessorElement {
     fn from(value: [u8; 4]) -> Self {
-        AccessorElement::U8x4(value)
+        Self::U8x4(value)
     }
 }
 impl From<i16> for AccessorElement {
     fn from(value: i16) -> Self {
-        AccessorElement::I16(value)
+        Self::I16(value)
     }
 }
 impl From<[i16; 2]> for AccessorElement {
     fn from(value: [i16; 2]) -> Self {
-        AccessorElement::I16x2(value)
+        Self::I16x2(value)
     }
 }
 impl From<[i16; 3]> for AccessorElement {
     fn from(value: [i16; 3]) -> Self {
-        AccessorElement::I16x3(value)
+        Self::I16x3(value)
     }
 }
 impl From<[i16; 4]> for AccessorElement {
     fn from(value: [i16; 4]) -> Self {
-        AccessorElement::I16x4(value)
+        Self::I16x4(value)
     }
 }
 impl From<i8> for AccessorElement {
     fn from(value: i8) -> Self {
-        AccessorElement::I8(value)
+        Self::I8(value)
     }
 }
 impl From<[i8; 2]> for AccessorElement {
     fn from(value: [i8; 2]) -> Self {
-        AccessorElement::I8x2(value)
+        Self::I8x2(value)
     }
 }
 impl From<[i8; 3]> for AccessorElement {
     fn from(value: [i8; 3]) -> Self {
-        AccessorElement::I8x3(value)
+        Self::I8x3(value)
     }
 }
 impl From<[i8; 4]> for AccessorElement {
     fn from(value: [i8; 4]) -> Self {
-        AccessorElement::I8x4(value)
+        Self::I8x4(value)
     }
 }
 
@@ -599,7 +600,9 @@ pub trait Element {
     fn from_slice(slice: &[u8]) -> Self;
     fn zero() -> Self;
 
+    #[must_use]
     fn gl_max(&self, other: &Self) -> Self;
+    #[must_use]
     fn gl_min(&self, other: &Self) -> Self;
 }
 
@@ -716,7 +719,7 @@ impl Element for i8 {
         Type::Scalar
     }
     fn from_slice(slice: &[u8]) -> Self {
-        slice[0] as i8
+        slice[0] as Self
     }
     fn zero() -> Self {
         0

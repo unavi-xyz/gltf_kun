@@ -111,13 +111,13 @@ impl PhysicsShape {
 }
 
 fn is_default_size(size: &Size) -> bool {
-    size.0 == [1.0, 1.0, 1.0]
+    *size == Size::default()
 }
 
 fn is_default_radius(radius: &Radius) -> bool {
-    radius.0 == 0.5
+    *radius == Radius::default()
 }
 
 fn is_default_height(height: &Height) -> bool {
-    height.0 == 2.0
+    *height == Height::default()
 }

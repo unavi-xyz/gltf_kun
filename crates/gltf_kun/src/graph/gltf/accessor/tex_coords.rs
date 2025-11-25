@@ -16,19 +16,19 @@ pub enum ReadTexCoords<'a> {
 impl<'a> ReadTexCoords<'a> {
     /// Reinterpret texture coordinates as u8.  Lossy if the underlying iterator
     /// yields u16 or f32.
-    pub fn into_u8(self) -> CastingIter<'a, U8> {
+    pub const fn into_u8(self) -> CastingIter<'a, U8> {
         CastingIter::new(self)
     }
 
     /// Reinterpret texture coordinates as u16.  Lossy if the underlying
     /// iterator yields f32.
-    pub fn into_u16(self) -> CastingIter<'a, U16> {
+    pub const fn into_u16(self) -> CastingIter<'a, U16> {
         CastingIter::new(self)
     }
 
     /// Reinterpret texture coordinates as f32.  Lossy if the underlying
     /// iterator yields u16.
-    pub fn into_f32(self) -> CastingIter<'a, F32> {
+    pub const fn into_f32(self) -> CastingIter<'a, F32> {
         CastingIter::new(self)
     }
 }
@@ -65,12 +65,12 @@ pub trait Cast {
 }
 
 impl<'a, A> CastingIter<'a, A> {
-    pub(crate) fn new(iter: ReadTexCoords<'a>) -> Self {
+    pub(crate) const fn new(iter: ReadTexCoords<'a>) -> Self {
         CastingIter(iter, PhantomData)
     }
 
     /// Unwrap underlying `TexCoords` object.
-    pub fn unwrap(self) -> ReadTexCoords<'a> {
+    pub const fn unwrap(self) -> ReadTexCoords<'a> {
         self.0
     }
 }

@@ -31,11 +31,13 @@ pub fn export_skins(
             });
 
         let inverse_bindposes_handle = &mesh.inverse_bindposes;
-        let inverse_bindposes = inverse_bindposes.get(inverse_bindposes_handle).unwrap();
+        let inverse_bindposes = inverse_bindposes
+            .get(inverse_bindposes_handle)
+            .expect("key should exist in map");
         let data = inverse_bindposes.iter().fold(Vec::new(), |mut data, m| {
             let array = m.to_cols_array();
             let bytes = array
-                .map(|f| f.to_le_bytes())
+                .map(f32::to_le_bytes)
                 .to_vec()
                 .iter()
                 .flatten()
@@ -61,16 +63,15 @@ pub fn export_skins(
         // Find which node this skinned mesh is attached to.
         // `entity` is a gltf primitive.
         for cached_node in &ctx.nodes {
-            let mesh = match cached_node.node.mesh(&ctx.graph) {
-                Some(mesh) => mesh,
-                None => continue,
+            let Some(mesh) = cached_node.node.mesh(&ctx.graph) else {
+                continue;
             };
 
             let cached_mesh = ctx
                 .meshes
                 .iter()
                 .find(|cached| cached.mesh == mesh)
-                .unwrap();
+                .expect("value should exist");
 
             for (ent, _) in &cached_mesh.primitives {
                 if *ent == entity {

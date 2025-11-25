@@ -61,6 +61,7 @@ pub enum ImportPrimitiveError {
     MorphBuildError(#[from] MorphBuildError),
 }
 
+#[allow(clippy::too_many_lines)]
 pub fn import_primitive<E: BevyExtensionImport<GltfDocument>>(
     context: &mut ImportContext,
     builder: &mut ChildSpawner,
@@ -86,7 +87,7 @@ pub fn import_primitive<E: BevyExtensionImport<GltfDocument>>(
     let mut bevy_mesh = Mesh::new(topology, RenderAssetUsages::default());
 
     for (semantic, accessor) in p.attributes(context.graph) {
-        let (attribute, values) = convert_attribute(context, &semantic, &accessor)?;
+        let (attribute, values) = convert_attribute(context, &semantic, accessor)?;
 
         if values.is_empty() {
             warn!("Empty attribute: {}", semantic.to_string());
@@ -97,9 +98,9 @@ pub fn import_primitive<E: BevyExtensionImport<GltfDocument>>(
     }
 
     if let Some(accessor) = p.indices(context.graph) {
-        let indices = read_indices(context, accessor)?;
+        let indices = read_indices(context, accessor);
         bevy_mesh.insert_indices(indices);
-    };
+    }
 
     let material = match p.material(context.graph) {
         Some(m) => {
@@ -123,14 +124,12 @@ pub fn import_primitive<E: BevyExtensionImport<GltfDocument>>(
     let mut entity = builder.spawn((Mesh3d(primitive_handle), MeshMaterial3d(material.clone())));
 
     if let Some(pos) = p.attribute(context.graph, Semantic::Positions) {
-        let max = match pos.calc_max(context.graph) {
-            Some(AccessorElement::F32x3(m)) => m,
-            _ => return Err(ImportPrimitiveError::InvalidAccessor),
+        let Some(AccessorElement::F32x3(max)) = pos.calc_max(context.graph) else {
+            return Err(ImportPrimitiveError::InvalidAccessor);
         };
 
-        let min = match pos.calc_min(context.graph) {
-            Some(AccessorElement::F32x3(m)) => m,
-            _ => return Err(ImportPrimitiveError::InvalidAccessor),
+        let Some(AccessorElement::F32x3(min)) = pos.calc_min(context.graph) else {
+            return Err(ImportPrimitiveError::InvalidAccessor);
         };
 
         entity.insert(Aabb::from_min_max(min.into(), max.into()));
@@ -147,13 +146,13 @@ pub fn import_primitive<E: BevyExtensionImport<GltfDocument>>(
         bevy_mesh.compute_flat_normals();
         let vertex_count_after = bevy_mesh.count_vertices();
 
-        if vertex_count_before != vertex_count_after {
+        if vertex_count_before == vertex_count_after {
+            debug!("Missing vertex normals in indexed geometry, computing them as flat.");
+        } else {
             debug!(
                 "Missing vertex normals in indexed geometry, computing them as flat. Vertex count increased from {} to {}",
                 vertex_count_before, vertex_count_after
             );
-        } else {
-            debug!("Missing vertex normals in indexed geometry, computing them as flat.");
         }
     }
 
@@ -189,7 +188,7 @@ pub fn import_primitive<E: BevyExtensionImport<GltfDocument>>(
 
         morph_weights = Some(weights.clone());
 
-        entity.insert(MeshMorphWeights::new(weights).unwrap());
+        entity.insert(MeshMorphWeights::new(weights).expect("weights should be valid"));
 
         let targets_iter = morph_targets
             .iter()
@@ -214,7 +213,7 @@ pub fn import_primitive<E: BevyExtensionImport<GltfDocument>>(
 
     let mesh = context
         .load_context
-        .add_labeled_asset(primitive_label.clone(), bevy_mesh);
+        .add_labeled_asset(primitive_label, bevy_mesh);
 
     let weight = p.get_mut(context.graph);
 
@@ -227,12 +226,13 @@ pub fn import_primitive<E: BevyExtensionImport<GltfDocument>>(
     Ok((entity.id(), primitive, morph_weights))
 }
 
+#[must_use]
 pub fn primitive_label(mesh_label: &str, primitive_index: usize) -> String {
-    format!("{}/Primitive{}", mesh_label, primitive_index)
+    format!("{mesh_label}/Primitive{primitive_index}")
 }
 
 fn morph_targets_label(primitive_label: &str) -> String {
-    format!("{}/MorphTargets", primitive_label)
+    format!("{primitive_label}/MorphTargets")
 }
 
 #[derive(Debug, Error)]
@@ -241,7 +241,7 @@ pub enum ReadIndicesError {
     GetAccessorSliceError(#[from] GetAccessorSliceError),
 }
 
-fn read_indices(context: &ImportContext, indices: Accessor) -> Result<Indices, ReadIndicesError> {
+fn read_indices(context: &ImportContext, indices: Accessor) -> Indices {
     let weight = indices.get(context.graph);
 
     let read = match weight.component_type {
@@ -263,11 +263,11 @@ fn read_indices(context: &ImportContext, indices: Accessor) -> Result<Indices, R
         _ => unreachable!(),
     };
 
-    Ok(match read {
-        ReadIndices::U8(is) => Indices::U16(is.map(|x| x as u16).collect()),
+    match read {
+        ReadIndices::U8(is) => Indices::U16(is.map(u16::from).collect()),
         ReadIndices::U16(is) => Indices::U16(is.collect()),
         ReadIndices::U32(is) => Indices::U32(is.collect()),
-    })
+    }
 }
 
 #[derive(Debug, Error)]
@@ -285,7 +285,7 @@ pub enum AttributeConversionError {
 fn convert_attribute(
     context: &ImportContext,
     semantic: &Semantic,
-    accessor: &Accessor,
+    accessor: Accessor,
 ) -> Result<(MeshVertexAttribute, VertexAttributeValues), AttributeConversionError> {
     let (attribute, conversion) = match semantic {
         Semantic::Colors(0) => (Mesh::ATTRIBUTE_COLOR, ConversionMode::Rgba),
@@ -303,7 +303,7 @@ fn convert_attribute(
         }
     };
 
-    let iter = accessor.iter(context.graph)?;
+    let iter = accessor.to_iter(context.graph)?;
 
     let values = match conversion {
         ConversionMode::Any => convert_any_values(iter)?,
@@ -471,7 +471,7 @@ fn convert_tex_coord_values(
 fn morph_targets_iter(graph: &Graph, target: MorphTarget) -> MorphTargetsIter<'_> {
     let positions = target
         .attribute(graph, Semantic::Positions)
-        .map(|a| a.iter(graph).unwrap())
+        .map(|a| a.to_iter(graph).expect("accessor should have valid data"))
         .map(|i| match i {
             AccessorIter::F32x3(i) => i,
             _ => panic!("Invalid accessor type"),
@@ -479,7 +479,7 @@ fn morph_targets_iter(graph: &Graph, target: MorphTarget) -> MorphTargetsIter<'_
 
     let normals = target
         .attribute(graph, Semantic::Normals)
-        .map(|a| a.iter(graph).unwrap())
+        .map(|a| a.to_iter(graph).expect("accessor should have valid data"))
         .map(|i| match i {
             AccessorIter::F32x3(i) => i,
             _ => panic!("Invalid accessor type"),
@@ -487,7 +487,7 @@ fn morph_targets_iter(graph: &Graph, target: MorphTarget) -> MorphTargetsIter<'_
 
     let tangents = target
         .attribute(graph, Semantic::Tangents)
-        .map(|a| a.iter(graph).unwrap())
+        .map(|a| a.to_iter(graph).expect("accessor should have valid data"))
         .map(|i| match i {
             AccessorIter::F32x3(i) => i,
             _ => panic!("Invalid accessor type"),
@@ -510,27 +510,36 @@ impl Iterator for MorphTargetsIter<'_> {
     type Item = MorphAttributes;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let position = self.positions.as_mut().and_then(|p| p.next());
-        let normal = self.normals.as_mut().and_then(|n| n.next());
-        let tangent = self.tangents.as_mut().and_then(|t| t.next());
+        let position = self.positions.as_mut().and_then(std::iter::Iterator::next);
+        let normal = self.normals.as_mut().and_then(std::iter::Iterator::next);
+        let tangent = self.tangents.as_mut().and_then(std::iter::Iterator::next);
 
         if position.is_none() && normal.is_none() && tangent.is_none() {
             return None;
         }
 
         Some(MorphAttributes {
-            position: position.map(|p| p.into()).unwrap_or(Vec3::ZERO),
-            normal: normal.map(|n| n.into()).unwrap_or(Vec3::ZERO),
-            tangent: tangent.map(|t| t.into()).unwrap_or(Vec3::ZERO),
+            position: position.map_or(Vec3::ZERO, std::convert::Into::into),
+            normal: normal.map_or(Vec3::ZERO, std::convert::Into::into),
+            tangent: tangent.map_or(Vec3::ZERO, std::convert::Into::into),
         })
     }
 }
 
 impl ExactSizeIterator for MorphTargetsIter<'_> {
     fn len(&self) -> usize {
-        let positions = self.positions.as_ref().map(|p| p.count()).unwrap_or(0);
-        let normals = self.normals.as_ref().map(|n| n.count()).unwrap_or(0);
-        let tangents = self.tangents.as_ref().map(|t| t.count()).unwrap_or(0);
+        let positions = self
+            .positions
+            .as_ref()
+            .map_or(0, gltf_kun::graph::gltf::accessor::iter::ElementIter::count);
+        let normals = self
+            .normals
+            .as_ref()
+            .map_or(0, gltf_kun::graph::gltf::accessor::iter::ElementIter::count);
+        let tangents = self
+            .tangents
+            .as_ref()
+            .map_or(0, gltf_kun::graph::gltf::accessor::iter::ElementIter::count);
 
         positions.max(normals).max(tangents)
     }

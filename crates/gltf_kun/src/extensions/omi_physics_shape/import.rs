@@ -12,22 +12,19 @@ impl ExtensionImport<GltfDocument, GltfFormat> for OmiPhysicsShape {
         format: &mut GltfFormat,
         doc: &GltfDocument,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        let extensions = match &format.json.extensions {
-            Some(extensions) => extensions,
-            None => return Ok(()),
+        let Some(extensions) = &format.json.extensions else {
+            return Ok(());
         };
 
-        let value = match extensions.others.get(EXTENSION_NAME) {
-            Some(extension) => extension,
-            None => return Ok(()),
+        let Some(value) = extensions.others.get(EXTENSION_NAME) else {
+            return Ok(());
         };
 
         let root_extension = serde_json::from_value::<RootExtension>(value.clone())?;
 
-        let ext = match doc.get_extension::<Self>(graph) {
-            Some(ext) => ext,
-            None => doc.create_extension::<Self>(graph),
-        };
+        let ext = doc
+            .get_extension::<Self>(graph)
+            .unwrap_or_else(|| doc.create_extension::<Self>(graph));
 
         root_extension.shapes.iter().for_each(|shape| {
             ext.create_shape(graph, &shape.weight);

@@ -57,14 +57,14 @@ mod tests {
 
         let json = {
             let weight = PhysicsShapeWeight::Box(shape.clone());
-            serde_json::to_string(&Shape::from(weight)).unwrap()
+            serde_json::to_string(&Shape::from(weight)).expect("shape should serialize to json")
         };
 
         let expected = r#"{"type":"box","box":{"size":[1.0,2.0,3.0]}}"#;
         assert_eq!(json, expected);
 
         let shape_2 = {
-            let s = serde_json::from_str::<Shape>(&json).unwrap();
+            let s = serde_json::from_str::<Shape>(&json).expect("json should deserialize");
             match s.weight {
                 PhysicsShapeWeight::Box(s) => s,
                 _ => panic!("Wrong shape type"),
@@ -82,14 +82,14 @@ mod tests {
 
         let json = {
             let weight = PhysicsShapeWeight::Sphere(shape.clone());
-            serde_json::to_string(&Shape::from(weight)).unwrap()
+            serde_json::to_string(&Shape::from(weight)).expect("shape should serialize to json")
         };
 
         let expected = r#"{"type":"sphere","sphere":{"radius":1.0}}"#;
         assert_eq!(json, expected);
 
         let shape_2 = {
-            let s = serde_json::from_str::<Shape>(&json).unwrap();
+            let s = serde_json::from_str::<Shape>(&json).expect("json should deserialize");
             match s.weight {
                 PhysicsShapeWeight::Sphere(s) => s,
                 _ => panic!("Wrong shape type"),
@@ -108,14 +108,14 @@ mod tests {
 
         let json = {
             let weight = PhysicsShapeWeight::Capsule(shape.clone());
-            serde_json::to_string(&Shape::from(weight)).unwrap()
+            serde_json::to_string(&Shape::from(weight)).expect("shape should serialize to json")
         };
 
         let expected = r#"{"type":"capsule","capsule":{"radius":1.0,"height":2.5}}"#;
         assert_eq!(json, expected);
 
         let shape_2 = {
-            let s = serde_json::from_str::<Shape>(&json).unwrap();
+            let s = serde_json::from_str::<Shape>(&json).expect("json should deserialize");
             match s.weight {
                 PhysicsShapeWeight::Capsule(s) => s,
                 _ => panic!("Wrong shape type"),
@@ -134,14 +134,14 @@ mod tests {
 
         let json = {
             let weight = PhysicsShapeWeight::Cylinder(shape.clone());
-            serde_json::to_string(&Shape::from(weight)).unwrap()
+            serde_json::to_string(&Shape::from(weight)).expect("shape should serialize to json")
         };
 
         let expected = r#"{"type":"cylinder","cylinder":{"radius":1.0,"height":2.5}}"#;
         assert_eq!(json, expected);
 
         let shape_2 = {
-            let s = serde_json::from_str::<Shape>(&json).unwrap();
+            let s = serde_json::from_str::<Shape>(&json).expect("json should deserialize");
             match s.weight {
                 PhysicsShapeWeight::Cylinder(s) => s,
                 _ => panic!("Wrong shape type"),
@@ -158,7 +158,7 @@ mod tests {
             weight: PhysicsShapeWeight::Box(BoxShape::default()),
         };
 
-        let json = serde_json::to_string(&shape).unwrap();
+        let json = serde_json::to_string(&shape).expect("json should serialize");
         let expected = r#"{"type":"box","box":{}}"#;
         assert_eq!(json, expected);
     }
@@ -170,7 +170,7 @@ mod tests {
             weight: PhysicsShapeWeight::Sphere(SphereShape::default()),
         };
 
-        let json = serde_json::to_string(&shape).unwrap();
+        let json = serde_json::to_string(&shape).expect("json should serialize");
         let expected = r#"{"type":"sphere","sphere":{}}"#;
         assert_eq!(json, expected);
     }
@@ -182,7 +182,7 @@ mod tests {
             weight: PhysicsShapeWeight::Capsule(CapsuleShape::default()),
         };
 
-        let json = serde_json::to_string(&shape).unwrap();
+        let json = serde_json::to_string(&shape).expect("json should serialize");
         let expected = r#"{"type":"capsule","capsule":{}}"#;
         assert_eq!(json, expected);
     }
@@ -194,7 +194,7 @@ mod tests {
             weight: PhysicsShapeWeight::Cylinder(CylinderShape::default()),
         };
 
-        let json = serde_json::to_string(&shape).unwrap();
+        let json = serde_json::to_string(&shape).expect("json should serialize");
         let expected = r#"{"type":"cylinder","cylinder":{}}"#;
         assert_eq!(json, expected);
     }

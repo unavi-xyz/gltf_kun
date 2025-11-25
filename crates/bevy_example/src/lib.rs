@@ -91,7 +91,7 @@ enum GltfHandle {
 
 impl Default for GltfHandle {
     fn default() -> Self {
-        GltfHandle::GltfKun(Default::default())
+        Self::GltfKun(Handle::default())
     }
 }
 
@@ -111,8 +111,8 @@ enum GltfLoader {
 impl Display for GltfLoader {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            GltfLoader::BevyGltf => write!(f, "bevy_gltf"),
-            GltfLoader::GltfKun => write!(f, "gltf_kun"),
+            Self::BevyGltf => write!(f, "bevy_gltf"),
+            Self::GltfKun => write!(f, "gltf_kun"),
         }
     }
 }
@@ -198,15 +198,15 @@ fn run_ui(
                         .selectable_label(selected_model.0.as_str() == *model, *model)
                         .clicked()
                     {
-                        selected_model.0 = model.to_string();
+                        selected_model.0 = (*model).to_string();
                         exported.0.clear();
-                        writer.write(LoadModel(model.to_string()));
+                        writer.write(LoadModel((*model).to_string()));
                     }
                 }
             });
     });
 
-    for mut orbit in pan_orbit_camera.iter_mut() {
+    for mut orbit in &mut pan_orbit_camera {
         orbit.enabled = !ctx.is_pointer_over_area();
     }
 }
@@ -273,44 +273,37 @@ fn load_scene(
 
         let scene = match loader.0 {
             GltfLoader::BevyGltf => {
-                let handle = match &event.0 {
-                    GltfHandle::Bevy(handle) => handle,
-                    _ => panic!("Invalid handle"),
+                let GltfHandle::Bevy(handle) = &event.0 else {
+                    panic!("Invalid handle")
                 };
 
-                let gltf = match gltf_assets.get(handle) {
-                    Some(gltf) => gltf,
-                    None => {
-                        error!("Failed to get gltf asset");
-                        return;
-                    }
+                let Some(gltf) = gltf_assets.get(handle) else {
+                    error!("Failed to get gltf asset");
+                    return;
                 };
 
-                gltf.default_scene.clone().unwrap_or(gltf.scenes[0].clone())
+                gltf.default_scene
+                    .clone()
+                    .unwrap_or_else(|| gltf.scenes[0].clone())
             }
             GltfLoader::GltfKun => {
-                let handle = match &event.0 {
-                    GltfHandle::GltfKun(handle) => handle,
-                    _ => panic!("Invalid handle"),
+                let GltfHandle::GltfKun(handle) = &event.0 else {
+                    panic!("Invalid handle");
                 };
 
-                let gltf = match gltf_kun_assets.get(handle) {
-                    Some(gltf) => gltf,
-                    None => {
-                        warn!("Failed to get gltf_kun asset");
-                        return;
-                    }
+                let Some(gltf) = gltf_kun_assets.get(handle) else {
+                    warn!("Failed to get gltf_kun asset");
+                    return;
                 };
 
-                let gltf_scene_handle =
-                    gltf.default_scene.clone().unwrap_or(gltf.scenes[0].clone());
+                let gltf_scene_handle = gltf
+                    .default_scene
+                    .clone()
+                    .unwrap_or_else(|| gltf.scenes[0].clone());
 
-                let gltf_scene = match gltf_scenes.get(&gltf_scene_handle) {
-                    Some(scene) => scene,
-                    None => {
-                        error!("Failed to get gltf scene");
-                        return;
-                    }
+                let Some(gltf_scene) = gltf_scenes.get(&gltf_scene_handle) else {
+                    error!("Failed to get gltf scene");
+                    return;
                 };
 
                 gltf_scene.scene.clone()
@@ -328,18 +321,18 @@ fn play_animations(
     mut animation_graphs: ResMut<Assets<AnimationGraph>>,
     mut players: Query<(Entity, &mut AnimationPlayer), Without<AnimationGraphHandle>>,
 ) {
-    for (entity, mut player) in players.iter_mut() {
+    for (entity, mut player) in &mut players {
         let mut graph = AnimationGraph::default();
         let mut animation_nodes = Vec::new();
 
         for (_, gltf) in gltf_assets.iter() {
-            for clip in gltf.animations.iter() {
+            for clip in &gltf.animations {
                 animation_nodes.push(graph.add_clip(clip.clone(), 1.0, graph.root));
             }
         }
 
         for (_, gltf) in gltf_kun_assets.iter() {
-            for clip in gltf.animations.iter() {
+            for clip in &gltf.animations {
                 animation_nodes.push(graph.add_clip(clip.clone(), 1.0, graph.root));
             }
         }
@@ -419,12 +412,12 @@ fn get_result(
     for mut event in exports.drain() {
         let doc = match event.result {
             Ok(doc) => doc,
-            Err(e) => panic!("Failed to export from Bevy: {}", e),
+            Err(e) => panic!("Failed to export from Bevy: {e}"),
         };
 
         let glb = match GlbExport::<DefaultExtensions>::export(&mut event.graph, &doc) {
             Ok(glb) => glb,
-            Err(e) => panic!("Failed to export to glb: {}", e),
+            Err(e) => panic!("Failed to export to glb: {e}"),
         };
 
         #[cfg(target_family = "wasm")]
@@ -447,7 +440,10 @@ fn get_result(
 
             // Write glb to temp dir
             let file_path = Path::new(TEMP_FOLDER).join(temp_file(frame.0));
-            let file_path_str = file_path.to_str().unwrap().to_string();
+            let file_path_str = file_path
+                .to_str()
+                .expect("file path should be valid UTF-8")
+                .to_string();
             exported_path.0.clone_from(&file_path_str);
 
             info!("Writing glb to {}", file_path.display());
@@ -465,5 +461,5 @@ fn get_result(
 }
 
 fn temp_file(frame: u32) -> String {
-    format!("model_{}.glb", frame)
+    format!("model_{frame}.glb")
 }

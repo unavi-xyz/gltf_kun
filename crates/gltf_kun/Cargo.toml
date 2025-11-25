@@ -7,6 +7,9 @@ name                 = "gltf_kun"
 repository.workspace = true
 version.workspace    = true
 
+[lints]
+workspace = true
+
 [features]
 default     = ["omi_physics"]
 omi_physics = []

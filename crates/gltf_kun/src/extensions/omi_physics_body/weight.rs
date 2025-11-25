@@ -78,12 +78,12 @@ impl Motion {
     pub fn new(typ: BodyType) -> Self {
         Self {
             typ,
-            angular_velocity: Default::default(),
-            center_of_mass: Default::default(),
-            inertia_orientation: Default::default(),
-            intertial_diagonal: Default::default(),
-            linear_velocity: Default::default(),
-            mass: Default::default(),
+            angular_velocity: <[f32; 3]>::default(),
+            center_of_mass: <[f32; 3]>::default(),
+            inertia_orientation: Quat::default(),
+            intertial_diagonal: <[f32; 3]>::default(),
+            linear_velocity: <[f32; 3]>::default(),
+            mass: Mass::default(),
         }
     }
 }
@@ -113,14 +113,16 @@ pub enum BodyType {
     Kinematic,
 }
 
+#[allow(clippy::trivially_copy_pass_by_ref)]
 fn is_default_mass(mass: &Mass) -> bool {
-    mass.0 == 1.0
+    *mass == Mass::default()
 }
 
 fn is_default_quat(quat: &Quat) -> bool {
-    quat.0 == [0.0, 0.0, 0.0, 1.0]
+    *quat == Quat::default()
 }
 
+#[allow(clippy::trivially_copy_pass_by_ref)]
 fn float_is_zero(num: &f32) -> bool {
     *num == 0.0
 }

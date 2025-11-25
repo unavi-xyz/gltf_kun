@@ -34,7 +34,7 @@ impl ExtensionExport<GltfDocument, GltfFormat> for OmiPhysicsBody {
 
                 let extensions = node
                     .extensions
-                    .get_or_insert(gltf::json::extensions::scene::Node::default());
+                    .get_or_insert_with(gltf::json::extensions::scene::Node::default);
 
                 let collider = ext
                     .collider(graph)

@@ -50,7 +50,7 @@ impl BevyExtensionImport<GltfDocument> for DefaultExtensions {
         {
             gltf_kun::extensions::omi_physics_body::OmiPhysicsBody::try_import_node(
                 context, entity, node,
-            )
+            );
         }
     }
 

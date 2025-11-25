@@ -29,7 +29,6 @@ The resulting [GltfExportResult](export::gltf::GltfExportResult) will contain a 
 [GltfDocument](gltf_kun::graph::gltf::document::GltfDocument) that can be exported to various
 file types. See [gltf_kun] for more information on how to do so.
 
-
 ```rust
 use bevy::prelude::*;
 use bevy_gltf_kun::{
@@ -54,7 +53,7 @@ fn export_scene(
 
     // Listen for the result.
     for mut event in results.drain() {
-        let doc = event.result.unwrap();
+        let doc = event.result.expect("export should succeed");
         let bytes = GlbExport::<DefaultExtensions>::export(&mut event.graph, &doc);
     }
 }
@@ -87,7 +86,7 @@ fn import_gltf(
         *handle = Some(asset_server.load::<GltfKun>("model.gltf"));
     }
 
-    let handle = handle.as_ref().unwrap();
+    let handle = handle.as_ref().expect("handle should be set");
 
     let gltf = match gltf_kun_assets.get(handle) {
         Some(a) => a,
@@ -95,7 +94,7 @@ fn import_gltf(
     };
 
     // Spawn the first scene.
-    let gltf_scene = gltf_scene_assets.get(&gltf.scenes[0]).unwrap();
+    let gltf_scene = gltf_scene_assets.get(&gltf.scenes[0]).expect("gltf should have at least one scene");
     commands.spawn(SceneRoot(gltf_scene.scene.clone()));
 
     *did_import = true;

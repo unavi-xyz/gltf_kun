@@ -17,7 +17,7 @@ pub enum ReadJoints<'a> {
 
 impl<'a> ReadJoints<'a> {
     /// Reinterpret joints as u16, which can fit any possible joint.
-    pub fn into_u16(self) -> CastingIter<'a, U16> {
+    pub const fn into_u16(self) -> CastingIter<'a, U16> {
         CastingIter::new(self)
     }
 }
@@ -43,12 +43,12 @@ pub trait Cast {
 }
 
 impl<'a, A> CastingIter<'a, A> {
-    pub(crate) fn new(iter: ReadJoints<'a>) -> Self {
+    pub(crate) const fn new(iter: ReadJoints<'a>) -> Self {
         CastingIter(iter, PhantomData)
     }
 
     /// Unwrap underlying `Joints` object.
-    pub fn unwrap(self) -> ReadJoints<'a> {
+    pub const fn unwrap(self) -> ReadJoints<'a> {
         self.0
     }
 }
@@ -97,7 +97,12 @@ impl Cast for U16 {
     type Output = [u16; 4];
 
     fn cast_u8(x: [u8; 4]) -> Self::Output {
-        [x[0] as u16, x[1] as u16, x[2] as u16, x[3] as u16]
+        [
+            u16::from(x[0]),
+            u16::from(x[1]),
+            u16::from(x[2]),
+            u16::from(x[3]),
+        ]
     }
 
     fn cast_u16(x: [u16; 4]) -> Self::Output {

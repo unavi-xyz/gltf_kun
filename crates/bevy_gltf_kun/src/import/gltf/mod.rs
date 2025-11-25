@@ -41,7 +41,7 @@ pub struct GltfKun {
 
 impl GltfKun {
     pub fn new(graph: &mut Graph, doc: &mut GltfDocument) -> Self {
-        GltfKun {
+        Self {
             images: vec![Handle::default(); doc.images(graph).len()],
             materials: vec![Handle::default(); doc.materials(graph).len()],
             meshes: vec![Handle::default(); doc.meshes(graph).len()],

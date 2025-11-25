@@ -3,6 +3,7 @@ use gltf_kun::graph::GraphNodeWeight;
 
 use super::{CachedScene, ExportContext};
 
+#[must_use]
 pub fn export_scenes(
     In(mut ctx): In<ExportContext>,
     names: Query<&Name>,

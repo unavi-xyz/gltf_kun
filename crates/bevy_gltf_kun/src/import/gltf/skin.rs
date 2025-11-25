@@ -25,7 +25,7 @@ pub fn import_skin_matrices(
     skin: Skin,
 ) -> Result<Handle<SkinnedMeshInverseBindposes>, ImportSkinError> {
     let iter = match skin.inverse_bind_matrices(context.graph) {
-        Some(accessor) => match accessor.iter(context.graph) {
+        Some(accessor) => match accessor.to_iter(context.graph) {
             Ok(AccessorIter::F32x16(iter)) => iter,
             Ok(a) => {
                 return Err(ImportSkinError::InvalidAccessorType(
@@ -40,7 +40,10 @@ pub fn import_skin_matrices(
 
     let matrices = iter.map(|m| Mat4::from_cols_array(&m)).collect::<Vec<_>>();
 
-    let index = context.doc.skin_index(context.graph, skin).unwrap();
+    let index = context
+        .doc
+        .skin_index(context.graph, skin)
+        .expect("index should exist for skin");
 
     Ok(context.load_context.add_labeled_asset(
         skin_label(index),
@@ -49,5 +52,5 @@ pub fn import_skin_matrices(
 }
 
 fn skin_label(index: usize) -> String {
-    format!("Skin{}", index)
+    format!("Skin{index}")
 }

@@ -88,26 +88,32 @@ pub fn export_physics_bodies(
 
             let shape_weight = match collider_shape.shape_type() {
                 ShapeType::Cuboid => {
-                    let cuboid = collider_shape.as_cuboid().unwrap();
+                    let cuboid = collider_shape
+                        .as_cuboid()
+                        .expect("shape should be a cuboid");
                     PhysicsShapeWeight::Box(BoxShape {
                         size: Size(cuboid.half_extents.map(|x| x * 2.0).into()),
                     })
                 }
                 ShapeType::Ball => {
-                    let ball = collider_shape.as_ball().unwrap();
+                    let ball = collider_shape.as_ball().expect("shape should be a ball");
                     PhysicsShapeWeight::Sphere(SphereShape {
                         radius: Radius(ball.radius),
                     })
                 }
                 ShapeType::Capsule => {
-                    let capsule = collider_shape.as_capsule().unwrap();
+                    let capsule = collider_shape
+                        .as_capsule()
+                        .expect("shape should be a capsule");
                     PhysicsShapeWeight::Capsule(CapsuleShape {
                         radius: Radius(capsule.radius),
                         height: Height(capsule.half_height() * 2.0),
                     })
                 }
                 ShapeType::Cylinder => {
-                    let cylinder = collider_shape.as_cylinder().unwrap();
+                    let cylinder = collider_shape
+                        .as_cylinder()
+                        .expect("shape should be a cylinder");
                     PhysicsShapeWeight::Capsule(CapsuleShape {
                         radius: Radius(cylinder.radius),
                         height: Height(cylinder.half_height * 2.0),
@@ -124,7 +130,7 @@ pub fn export_physics_bodies(
 
             let collider_shape = shapes_ext.create_shape(&mut context.graph, &shape_weight);
             ext.set_collider(&mut context.graph, Some(collider_shape));
-        };
+        }
     }
 
     context

@@ -44,12 +44,9 @@ impl ExtensionImport<GltfDocument, GltfFormat> for OmiPhysicsBody {
                     return;
                 }
 
-                let omi_physics_shapes = match doc.get_extension::<OmiPhysicsShape>(graph) {
-                    Some(ext) => ext,
-                    None => {
-                        warn!("OMI_physics_shape extension not found");
-                        return;
-                    }
+                let Some(omi_physics_shapes) = doc.get_extension::<OmiPhysicsShape>(graph) else {
+                    warn!("OMI_physics_shape extension not found");
+                    return;
                 };
 
                 if let Some(shape_ref) = json.collider

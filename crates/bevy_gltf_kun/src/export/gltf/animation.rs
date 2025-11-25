@@ -33,17 +33,16 @@ pub fn export_animations(
     // Find clips that have an EntityPath matching one of our nodes.
     for (_, clip) in clips.iter() {
         for node in &nodes {
-            let parts = match animation_paths.get(node) {
-                Some((_, path)) => path.clone(),
-                None => {
-                    warn!("No path found for node {:?}", node);
-                    continue;
-                }
+            let parts = if let Some((_, path)) = animation_paths.get(node) {
+                path.clone()
+            } else {
+                warn!("No path found for node {:?}", node);
+                continue;
             };
 
-            let curves = match clip.curves_for_target(AnimationTargetId::from_names(parts.iter())) {
-                Some(curves) => curves,
-                None => continue,
+            let Some(curves) = clip.curves_for_target(AnimationTargetId::from_names(parts.iter()))
+            else {
+                continue;
             };
 
             if curves.is_empty() {
@@ -53,10 +52,10 @@ pub fn export_animations(
 
             let a = ctx.doc.create_animation(&mut ctx.graph);
 
-            for curve in curves.iter() {
+            for curve in curves {
                 if let Err(e) = export_curve(&mut ctx, a, curve, *node) {
                     warn!("Failed to export animation curve: {:?}", e);
-                };
+                }
             }
         }
     }
@@ -65,7 +64,9 @@ pub fn export_animations(
 }
 
 const SAMPLE_RATE: f32 = 0.05;
+const F32_ERR_MARGIN: f32 = 1e-12;
 
+#[allow(clippy::too_many_lines)]
 fn export_curve(
     ctx: &mut ExportContext,
     animation: Animation,
@@ -163,48 +164,54 @@ fn export_curve(
         curve
             .0
             .apply(eval.as_mut(), t, 1.0, idx)
-            .map_err(|e| anyhow::format_err!("{:?}", e))?;
+            .map_err(|e| anyhow::format_err!("{e:?}"))?;
 
         match path {
             TargetPath::Translation => {
-                let tr = world.entity(ent).get::<Transform>().unwrap();
+                let tr = world
+                    .entity(ent)
+                    .get::<Transform>()
+                    .expect("entity should have transform component");
                 keyframes.extend(
                     tr.translation
                         .to_array()
                         .into_iter()
-                        .flat_map(|f| f.to_le_bytes()),
+                        .flat_map(f32::to_le_bytes),
                 );
             }
             TargetPath::Rotation => {
-                let tr = world.entity(ent).get::<Transform>().unwrap();
+                let tr = world
+                    .entity(ent)
+                    .get::<Transform>()
+                    .expect("entity should have transform component");
                 keyframes.extend(
                     tr.rotation
                         .to_array()
                         .into_iter()
-                        .flat_map(|f| f.to_le_bytes()),
+                        .flat_map(f32::to_le_bytes),
                 );
             }
             TargetPath::Scale => {
-                let tr = world.entity(ent).get::<Transform>().unwrap();
-                keyframes.extend(
-                    tr.scale
-                        .to_array()
-                        .into_iter()
-                        .flat_map(|f| f.to_le_bytes()),
-                );
+                let tr = world
+                    .entity(ent)
+                    .get::<Transform>()
+                    .expect("entity should have transform component");
+                keyframes.extend(tr.scale.to_array().into_iter().flat_map(f32::to_le_bytes));
             }
             TargetPath::MorphTargetWeights => {
                 todo!();
             }
-        };
+        }
 
         let mut anim_query = world.query::<AnimationEntityMut>();
-        let ent_anim = anim_query.get_mut(&mut world, ent).unwrap();
+        let ent_anim = anim_query
+            .get_mut(&mut world, ent)
+            .expect("key should exist in map");
 
         eval.commit(ent_anim)
-            .map_err(|e| anyhow::format_err!("{:?}", e))?;
+            .map_err(|e| anyhow::format_err!("{e:?}"))?;
 
-        if t == interval.end() {
+        if (t - interval.end()).abs() < F32_ERR_MARGIN {
             break;
         }
 
@@ -220,7 +227,7 @@ fn export_curve(
     input_weight.component_type = ComponentType::F32;
     input_weight.data = keyframe_timestamps
         .into_iter()
-        .flat_map(|f| f.to_le_bytes())
+        .flat_map(f32::to_le_bytes)
         .collect();
 
     let output_weight = output.get_mut(&mut ctx.graph);

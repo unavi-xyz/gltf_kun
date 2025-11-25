@@ -23,7 +23,10 @@ pub fn import_mesh<E: BevyExtensionImport<GltfDocument>>(
     mut m: gltf::mesh::Mesh,
     is_scale_inverted: bool,
 ) -> (Vec<Entity>, Handle<GltfMesh>, Option<Vec<f32>>) {
-    let index = context.doc.mesh_index(context.graph, m).unwrap();
+    let index = context
+        .doc
+        .mesh_index(context.graph, m)
+        .expect("index should exist for mesh");
     let mesh_label = mesh_label(index);
 
     let mut primitive_entities = Vec::new();
@@ -33,16 +36,16 @@ pub fn import_mesh<E: BevyExtensionImport<GltfDocument>>(
 
     entity.with_children(|parent| {
         for (i, p) in m.primitives(context.graph).iter_mut().enumerate() {
-            match import_primitive::<E>(context, parent, is_scale_inverted, m, &mesh_label, i, p) {
-                Ok((ent, handle, weights)) => {
-                    morph_weights = weights;
-                    primitive_entities.push(ent);
-                    primitives.push(handle)
-                }
-                Err(e) => {
-                    warn!("Failed to import primitive: {}", e);
-                    continue;
-                }
+            if let Ok((ent, handle, weights)) =
+                import_primitive::<E>(context, parent, is_scale_inverted, m, &mesh_label, i, p)
+            {
+                morph_weights = weights;
+                primitive_entities.push(ent);
+                primitives.push(handle);
+            } else if let Err(e) =
+                import_primitive::<E>(context, parent, is_scale_inverted, m, &mesh_label, i, p)
+            {
+                warn!("Failed to import primitive: {}", e);
             }
         }
     });
@@ -68,6 +71,7 @@ pub fn import_mesh<E: BevyExtensionImport<GltfDocument>>(
     (primitive_entities, handle, morph_weights)
 }
 
+#[must_use]
 pub fn mesh_label(index: usize) -> String {
-    format!("Mesh{}", index)
+    format!("Mesh{index}")
 }

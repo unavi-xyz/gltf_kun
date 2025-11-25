@@ -29,7 +29,7 @@ pub enum PhysicsBodyEdge {
 
 impl Display for PhysicsBodyEdge {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let res = serde_json::to_string(self).unwrap();
+        let res = serde_json::to_string(self).expect("json should serialize");
         f.write_str(&res)?;
         Ok(())
     }

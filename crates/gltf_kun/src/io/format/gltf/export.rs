@@ -29,6 +29,7 @@ use super::GltfFormat;
 #[derive(Debug, Error)]
 pub enum GltfExportError {}
 
+#[allow(clippy::too_many_lines)]
 pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfExportError> {
     let mut json = gltf::json::root::Root::default();
     let mut resources = HashMap::new();
@@ -60,21 +61,18 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
             let name = weight.name.clone();
             let extras = weight.extras.clone();
 
-            let uri = match weight.uri.clone() {
-                Some(uri) => uri,
-                None => {
-                    let mut idx = 0;
-                    loop {
-                        let uri = format!("buffer_{}.bin", idx);
+            let uri = weight.uri.clone().unwrap_or_else(|| {
+                let mut idx = 0;
+                loop {
+                    let uri = format!("buffer_{idx}.bin");
 
-                        if !uris.values().any(|v| v == &uri) {
-                            break uri;
-                        }
-
-                        idx += 1;
+                    if !uris.values().any(|v| v == &uri) {
+                        break uri;
                     }
+
+                    idx += 1;
                 }
-            };
+            });
 
             resources.insert(uri.clone(), Vec::new());
 
@@ -106,7 +104,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
             let buffer = a.buffer(graph).unwrap_or_else(|| {
                 warn!("Accessor {} has no buffer. Using first buffer.", i);
                 let buffers = doc.buffers(graph);
-                let buffer = buffers.first().unwrap();
+                let buffer = buffers.first().expect("should have at least one element");
                 a.set_buffer(graph, Some(*buffer));
                 *buffer
             });
@@ -114,7 +112,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
             let weight = a.get(graph);
 
             let buffer_view = create_buffer_view(
-                &buffer,
+                buffer,
                 &buffer_idxs,
                 &mut json.buffers,
                 &uris,
@@ -165,8 +163,8 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
             };
 
             if let Some(buffer) = image.buffer(graph) {
-               let buffer_view = create_buffer_view(
-                    &buffer,
+                let buffer_view = create_buffer_view(
+                    buffer,
                     &buffer_idxs,
                     &mut json.buffers,
                     &uris,
@@ -180,8 +178,8 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                 json_img.buffer_view = Some(Index::new(buffer_view_idx as u32));
             } else {
                 let uri = weight.uri.unwrap_or_else(|| {
-                    let file_ext = match &mime_type {
-                        Some(MimeType(mime_type)) => match mime_type.as_str() {
+                    let file_ext = if let Some(MimeType(mime_type)) = &mime_type {
+                        match mime_type.as_str() {
                             "image/jpeg" => ".jpg",
                             "image/png" => ".png",
                             "image/webp" => ".webp",
@@ -190,18 +188,20 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                                 warn!("No known file extension for mime type: {}", mime_type);
                                 ""
                             }
-                        },
-                        None => {
-                            warn!("No mime type for image {}. Exporting image without a file extension.", i);
-                            ""
                         }
+                    } else {
+                        warn!(
+                            "No mime type for image {}. Exporting image without a file extension.",
+                            i
+                        );
+                        ""
                     };
 
                     let mut idx = 0;
 
                     loop {
-                        let without_ext = format!("image_{}", idx);
-                        let uri = format!("{}{}", without_ext, file_ext);
+                        let without_ext = format!("image_{idx}");
+                        let uri = format!("{without_ext}{file_ext}");
 
                         if !uris.values().any(|v| v.starts_with(&without_ext)) {
                             break uri;
@@ -230,7 +230,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                 .image(graph)
                 .and_then(|image| image_idxs.get(&image.0))
                 .map(|idx| Index::new(*idx as u32))
-                .unwrap();
+                .expect("value should exist");
 
             let sampler_idx = json.samplers.len();
             json.samplers.push(gltf::json::texture::Sampler {
@@ -272,7 +272,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                     doc.textures(graph)
                         .iter()
                         .position(|tex| tex.0 == t.0)
-                        .unwrap() as u32,
+                        .expect("value should exist in collection") as u32,
                 ),
                 tex_coord: weight.base_color_tex_coord as u32,
             });
@@ -285,7 +285,8 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                         doc.textures(graph)
                             .iter()
                             .position(|tex| tex.0 == t.0)
-                            .unwrap() as u32,
+                            .expect("value should exist in collection")
+                            as u32,
                     ),
                     tex_coord: weight.metallic_roughness_tex_coord as u32,
                 });
@@ -297,7 +298,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                     doc.textures(graph)
                         .iter()
                         .position(|tex| tex.0 == t.0)
-                        .unwrap() as u32,
+                        .expect("value should exist in collection") as u32,
                 ),
                 tex_coord: weight.normal_tex_coord as u32,
                 scale: weight.normal_scale,
@@ -310,7 +311,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                     doc.textures(graph)
                         .iter()
                         .position(|tex| tex.0 == t.0)
-                        .unwrap() as u32,
+                        .expect("value should exist in collection") as u32,
                 ),
                 tex_coord: weight.occlusion_tex_coord as u32,
                 strength: StrengthFactor(weight.occlusion_strength),
@@ -323,7 +324,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                     doc.textures(graph)
                         .iter()
                         .position(|tex| tex.0 == t.0)
-                        .unwrap() as u32,
+                        .expect("value should exist in collection") as u32,
                 ),
                 tex_coord: weight.emissive_tex_coord as u32,
             });
@@ -344,7 +345,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                     base_color_factor: PbrBaseColorFactor(weight.base_color_factor),
                     base_color_texture,
                     extensions: None,
-                    extras: Default::default(),
+                    extras: None,
                     metallic_factor: StrengthFactor(weight.metallic_factor),
                     metallic_roughness_texture,
                     roughness_factor: StrengthFactor(weight.roughness_factor),
@@ -474,12 +475,12 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
             .map(|idx| Index::new(*idx as u32))
             .collect::<Vec<_>>();
 
-        let idx = node_idxs.get(&node.0).unwrap();
-        let node = json.nodes.get_mut(*idx).unwrap();
+        let idx = node_idxs.get(&node.0).expect("key should exist in map");
+        let node = json.nodes.get_mut(*idx).expect("key should exist in map");
 
         if !children_idxs.is_empty() {
             node.children = Some(children_idxs);
-        };
+        }
     });
 
     // Create scenes
@@ -555,10 +556,13 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 
     doc.nodes(graph).iter().for_each(|node| {
         if let Some(skin) = node.skin(graph) {
-            let skin_idx = skin_idxs.get(&skin.0).unwrap();
-            let node_idx = node_idxs.get(&node.0).unwrap();
+            let skin_idx = skin_idxs.get(&skin.0).expect("key should exist in map");
+            let node_idx = node_idxs.get(&node.0).expect("key should exist in map");
 
-            let node = json.nodes.get_mut(*node_idx).unwrap();
+            let node = json
+                .nodes
+                .get_mut(*node_idx)
+                .expect("key should exist in map");
             node.skin = Some(Index::new(*skin_idx as u32));
         }
     });
@@ -574,12 +578,9 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                     .channels(graph)
                     .iter()
                     .filter_map(|c| {
-                        let sampler = match c.sampler(graph) {
-                            Some(sampler) => sampler,
-                            None => {
-                                warn!("No sampler found for animation channel.");
-                                return None;
-                            }
+                        let Some(sampler) = c.sampler(graph) else {
+                            warn!("No sampler found for animation channel.");
+                            return None;
                         };
 
                         let sampler_index = samplers
@@ -591,15 +592,12 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                                 idx
                             });
 
-                        let node = match c.target(graph) {
-                            Some(node) => node,
-                            None => {
-                                warn!("No target found for animation channel.");
-                                return None;
-                            }
+                        let Some(node) = c.target(graph) else {
+                            warn!("No target found for animation channel.");
+                            return None;
                         };
 
-                        let node_idx = node_idxs.get(&node.0).unwrap();
+                        let node_idx = node_idxs.get(&node.0).expect("key should exist in map");
 
                         let weight = c.get(graph);
 
@@ -610,7 +608,7 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                             sampler: Index::new(sampler_index as u32),
                             target: Target {
                                 extensions: None,
-                                extras: Default::default(),
+                                extras: None,
 
                                 node: Index::new(*node_idx as u32),
                                 path: Checked::Valid(weight.path),
@@ -622,24 +620,22 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                 let samplers = samplers
                     .iter()
                     .filter_map(|s| {
-                        let input = match s.input(graph) {
-                            Some(input) => input,
-                            None => {
-                                warn!("No input found for animation sampler.");
-                                return None;
-                            }
+                        let Some(input) = s.input(graph) else {
+                            warn!("No input found for animation sampler.");
+                            return None;
                         };
 
-                        let output = match s.output(graph) {
-                            Some(output) => output,
-                            None => {
-                                warn!("No output found for animation sampler.");
-                                return None;
-                            }
+                        let Some(output) = s.output(graph) else {
+                            warn!("No output found for animation sampler.");
+                            return None;
                         };
 
-                        let input_idx = accessor_idxs.get(&input.0).unwrap();
-                        let output_idx = accessor_idxs.get(&output.0).unwrap();
+                        let input_idx = accessor_idxs
+                            .get(&input.0)
+                            .expect("key should exist in map");
+                        let output_idx = accessor_idxs
+                            .get(&output.0)
+                            .expect("key should exist in map");
 
                         let weight = s.get(graph);
 
@@ -671,17 +667,21 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 }
 
 fn create_buffer_view(
-    buffer: &Buffer,
+    buffer: Buffer,
     buffer_idxs: &BTreeMap<NodeIndex, usize>,
     buffers: &mut [gltf::json::buffer::Buffer],
     uris: &BTreeMap<NodeIndex, String>,
     resources: &mut HashMap<String, Vec<u8>>,
     data: &[u8],
 ) -> gltf::json::buffer::View {
-    let buffer_idx = buffer_idxs.get(&buffer.0).unwrap();
-    let buffer_json = buffers.get_mut(*buffer_idx).unwrap();
-    let buffer_uri = uris.get(&buffer.0).unwrap();
-    let buffer_resource = resources.get_mut(buffer_uri).unwrap();
+    let buffer_idx = buffer_idxs.get(&buffer.0).expect("key should exist in map");
+    let buffer_json = buffers
+        .get_mut(*buffer_idx)
+        .expect("key should exist in map");
+    let buffer_uri = uris.get(&buffer.0).expect("key should exist in map");
+    let buffer_resource = resources
+        .get_mut(buffer_uri)
+        .expect("key should exist in map");
 
     let byte_length = data.len();
 
@@ -706,80 +706,98 @@ fn create_buffer_view(
 impl From<AccessorElement> for Value {
     fn from(value: AccessorElement) -> Self {
         match value {
-            AccessorElement::F32(value) => Number::from_f64(value as f64).unwrap().into(),
-            AccessorElement::F32x2(value) => Value::Array(
+            AccessorElement::F32(value) => Number::from_f64(f64::from(value))
+                .expect("f64 should convert to json number")
+                .into(),
+            AccessorElement::F32x2(value) => Self::Array(
                 value
                     .iter()
-                    .map(|v| Number::from_f64(*v as f64).unwrap().into())
+                    .map(|v| {
+                        Number::from_f64(f64::from(*v))
+                            .expect("f64 should convert to json number")
+                            .into()
+                    })
                     .collect(),
             ),
-            AccessorElement::F32x3(value) => Value::Array(
+            AccessorElement::F32x3(value) => Self::Array(
                 value
                     .iter()
-                    .map(|v| Number::from_f64(*v as f64).unwrap().into())
+                    .map(|v| {
+                        Number::from_f64(f64::from(*v))
+                            .expect("f64 should convert to json number")
+                            .into()
+                    })
                     .collect(),
             ),
-            AccessorElement::F32x4(value) => Value::Array(
+            AccessorElement::F32x4(value) => Self::Array(
                 value
                     .iter()
-                    .map(|v| Number::from_f64(*v as f64).unwrap().into())
+                    .map(|v| {
+                        Number::from_f64(f64::from(*v))
+                            .expect("f64 should convert to json number")
+                            .into()
+                    })
                     .collect(),
             ),
-            AccessorElement::F32x16(value) => Value::Array(
+            AccessorElement::F32x16(value) => Self::Array(
                 value
                     .iter()
-                    .map(|v| Number::from_f64(*v as f64).unwrap().into())
+                    .map(|v| {
+                        Number::from_f64(f64::from(*v))
+                            .expect("f64 should convert to json number")
+                            .into()
+                    })
                     .collect(),
             ),
-            AccessorElement::U32(value) => Value::Number(value.into()),
+            AccessorElement::U32(value) => Self::Number(value.into()),
             AccessorElement::U32x2(value) => {
-                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+                Self::Array(value.iter().map(|v| Self::Number((*v).into())).collect())
             }
             AccessorElement::U32x3(value) => {
-                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+                Self::Array(value.iter().map(|v| Self::Number((*v).into())).collect())
             }
             AccessorElement::U32x4(value) => {
-                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+                Self::Array(value.iter().map(|v| Self::Number((*v).into())).collect())
             }
-            AccessorElement::U16(value) => Value::Number(value.into()),
+            AccessorElement::U16(value) => Self::Number(value.into()),
             AccessorElement::U16x2(value) => {
-                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+                Self::Array(value.iter().map(|v| Self::Number((*v).into())).collect())
             }
             AccessorElement::U16x3(value) => {
-                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+                Self::Array(value.iter().map(|v| Self::Number((*v).into())).collect())
             }
             AccessorElement::U16x4(value) => {
-                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+                Self::Array(value.iter().map(|v| Self::Number((*v).into())).collect())
             }
-            AccessorElement::U8(value) => Value::Number(value.into()),
+            AccessorElement::U8(value) => Self::Number(value.into()),
             AccessorElement::U8x2(value) => {
-                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+                Self::Array(value.iter().map(|v| Self::Number((*v).into())).collect())
             }
             AccessorElement::U8x3(value) => {
-                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+                Self::Array(value.iter().map(|v| Self::Number((*v).into())).collect())
             }
             AccessorElement::U8x4(value) => {
-                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+                Self::Array(value.iter().map(|v| Self::Number((*v).into())).collect())
             }
-            AccessorElement::I16(value) => Value::Number(value.into()),
+            AccessorElement::I16(value) => Self::Number(value.into()),
             AccessorElement::I16x2(value) => {
-                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+                Self::Array(value.iter().map(|v| Self::Number((*v).into())).collect())
             }
             AccessorElement::I16x3(value) => {
-                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+                Self::Array(value.iter().map(|v| Self::Number((*v).into())).collect())
             }
             AccessorElement::I16x4(value) => {
-                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+                Self::Array(value.iter().map(|v| Self::Number((*v).into())).collect())
             }
-            AccessorElement::I8(value) => Value::Number(value.into()),
+            AccessorElement::I8(value) => Self::Number(value.into()),
             AccessorElement::I8x2(value) => {
-                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+                Self::Array(value.iter().map(|v| Self::Number((*v).into())).collect())
             }
             AccessorElement::I8x3(value) => {
-                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+                Self::Array(value.iter().map(|v| Self::Number((*v).into())).collect())
             }
             AccessorElement::I8x4(value) => {
-                Value::Array(value.iter().map(|v| Value::Number((*v).into())).collect())
+                Self::Array(value.iter().map(|v| Self::Number((*v).into())).collect())
             }
         }
     }
@@ -843,7 +861,7 @@ mod tests {
         let _ = Node::new(&mut graph);
         let _ = Scene::new(&mut graph);
 
-        let result = export(&mut graph, &doc).unwrap();
+        let result = export(&mut graph, &doc).expect("export should succeed");
 
         assert_eq!(result.json.accessors.len(), 1);
         assert_eq!(result.json.buffer_views.len(), 2);

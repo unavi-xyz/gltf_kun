@@ -11,6 +11,7 @@ use super::{CachedMesh, ExportContext};
 mod primitive;
 mod vertex_to_accessor;
 
+#[must_use]
 pub fn export_meshes(
     In(mut context): In<ExportContext>,
     mesh_assets: Res<Assets<Mesh>>,
@@ -19,7 +20,7 @@ pub fn export_meshes(
     context.doc.scenes(&context.graph).iter().for_each(|scene| {
         scene.nodes(&context.graph).iter().for_each(|node| {
             export_node_mesh(&mut context, &mesh_assets, &meshes, *node);
-        })
+        });
     });
 
     context
@@ -35,7 +36,7 @@ fn export_node_mesh(
         .nodes
         .iter()
         .find(|cached| cached.node == node)
-        .unwrap();
+        .expect("value should exist");
 
     let entity = cached.entity;
 
@@ -70,7 +71,7 @@ fn export_node_mesh(
             .nodes
             .iter()
             .find(|cached| cached.node == *child)
-            .unwrap();
+            .expect("value should exist");
 
         if !meshes.contains(cached.entity) {
             return true;
@@ -111,14 +112,14 @@ fn export_node_mesh(
         let primitives = primitive_ents
             .iter()
             .map(|ent| -> (Entity, Primitive) {
-                let (handle, name) = meshes.get(*ent).unwrap();
+                let (handle, name) = meshes.get(*ent).expect("key should exist in map");
 
                 let weight = mesh.get_mut(&mut context.graph);
                 if weight.name.is_none() {
-                    weight.name = name.map(|name| name.to_string());
+                    weight.name = name.map(std::string::ToString::to_string);
                 }
 
-                let bevy_mesh = mesh_assets.get(handle).unwrap();
+                let bevy_mesh = mesh_assets.get(handle).expect("key should exist in map");
 
                 let primitive = export_primitive(context, bevy_mesh);
                 mesh.add_primitive(&mut context.graph, &primitive);
@@ -128,16 +129,16 @@ fn export_node_mesh(
             .collect::<Vec<_>>();
 
         context.meshes.push(CachedMesh {
-            bevy_meshes,
             mesh,
             primitives,
+            bevy_meshes,
         });
 
         node.set_mesh(&mut context.graph, Some(mesh));
     }
 
     // Continue down the tree
-    children.iter().for_each(|child| {
-        export_node_mesh(context, mesh_assets, meshes, *child);
-    });
+    for child in children {
+        export_node_mesh(context, mesh_assets, meshes, child);
+    }
 }
