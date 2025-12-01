@@ -15,7 +15,7 @@ jobs:
           remove-docker-images: true
           remove-dotnet: true
           remove-haskell: true
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ github.event.pull_request.head.ref }}
       - uses: DeterminateSystems/flake-checker-action@v12
