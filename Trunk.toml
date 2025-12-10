@@ -1,0 +1,3 @@
+[build]
+public_url = "/bevy_example/"
+target     = "index.html"
