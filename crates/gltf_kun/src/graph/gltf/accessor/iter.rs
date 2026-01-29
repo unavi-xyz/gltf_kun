@@ -574,19 +574,13 @@ impl<T: Element + Copy> ElementIter<'_, T> {
     }
 
     pub fn gl_max(&self) -> T {
-        let mut max = T::zero();
-        for element in *self {
-            max = max.gl_max(&element);
-        }
-        max
+        self.reduce(|e1, e2| e1.gl_max(&e2))
+            .unwrap_or_else(|| T::zero())
     }
 
     pub fn gl_min(&self) -> T {
-        let mut min = T::zero();
-        for element in *self {
-            min = min.gl_min(&element);
-        }
-        min
+        self.reduce(|e1, e2| e1.gl_min(&e2))
+            .unwrap_or_else(|| T::zero())
     }
 }
 
