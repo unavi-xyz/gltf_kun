@@ -100,6 +100,14 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
             let count = a.count(graph);
             let max = a.calc_max(graph);
             let min = a.calc_min(graph);
+            let [max_value, min_value] = [max, min].map(|m| {
+                let m_v: Value = m.into();
+                if m_v.is_array() {
+                    m_v
+                } else {
+                    Value::Array(vec![m_v])
+                }
+            });
 
             let buffer = a.buffer(graph).unwrap_or_else(|| {
                 warn!("Accessor {} has no buffer. Using first buffer.", i);
@@ -132,8 +140,8 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
                 byte_offset: None,
                 component_type: Checked::Valid(GenericComponentType(weight.component_type)),
                 count: count.into(),
-                max: Some(max.into()),
-                min: Some(min.into()),
+                max: Some(max_value),
+                min: Some(min_value),
                 normalized: weight.normalized,
                 sparse: None,
                 type_: Checked::Valid(weight.element_type),
