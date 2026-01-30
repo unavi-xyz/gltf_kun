@@ -21,7 +21,7 @@ use super::{
 
 #[derive(Asset, Clone, Debug, TypePath)]
 pub struct GltfNode {
-    pub children: Vec<Handle<GltfNode>>,
+    pub children: Vec<Handle<Self>>,
     pub mesh: Option<Handle<GltfMesh>>,
     pub transform: Transform,
     pub extras: Option<Box<serde_json::value::RawValue>>,

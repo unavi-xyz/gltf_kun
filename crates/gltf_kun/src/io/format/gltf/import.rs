@@ -4,7 +4,7 @@ use gltf::{
     json::{Index, validation::Checked},
 };
 use thiserror::Error;
-use tracing::{debug, error, warn};
+use tracing::{debug, warn};
 
 use crate::{
     graph::{
