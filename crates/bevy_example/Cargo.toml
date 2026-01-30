@@ -16,3 +16,4 @@ bevy_egui            = "0.38.0"
 bevy_gltf_kun        = { features = ["omi_physics"], path = "../bevy_gltf_kun" }
 bevy_panorbit_camera = "0.33.0"
 gltf_kun             = { path = "../gltf_kun" }
+wasm-bindgen         = "=0.2.108"

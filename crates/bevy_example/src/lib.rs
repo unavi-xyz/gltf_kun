@@ -439,7 +439,7 @@ fn get_result(
             std::fs::create_dir_all(temp_dir).expect("Failed to create temp directory");
 
             // Write glb to temp dir
-            let file_path = Path::new(TEMP_FOLDER).join(temp_file(frame.0));
+            let file_path = Path::new(TEMP_FOLDER).join(format!("model_{}.glb", frame.0));
             let file_path_str = file_path
                 .to_str()
                 .expect("file path should be valid UTF-8")
@@ -458,8 +458,4 @@ fn get_result(
             writer.write(LoadModel(file_path_str));
         }
     }
-}
-
-fn temp_file(frame: u32) -> String {
-    format!("model_{frame}.glb")
 }
