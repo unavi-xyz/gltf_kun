@@ -23,7 +23,7 @@ jobs:
         with:
           extra-conf: extra-experimental-features = pipe-operators
       - uses: DeterminateSystems/magic-nix-cache-action@main
-      - run: nix build .#bevy-example-web
+      - run: nix build .#bevy-example-web -L
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
