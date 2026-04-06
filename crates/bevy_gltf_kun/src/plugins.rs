@@ -57,11 +57,17 @@ impl<E: BevyExtensionExport<GltfDocument>> Plugin for GltfExportPlugin<E> {
 }
 
 /// Adds the ability to import glTF files.
-pub struct GltfImportPlugin<E: BevyExtensionImport<GltfDocument> + Send + Sync> {
+pub struct GltfImportPlugin<E>
+where
+    E: BevyExtensionImport<GltfDocument> + TypePath + Send + Sync,
+{
     _marker: PhantomData<E>,
 }
 
-impl<E: BevyExtensionImport<GltfDocument> + Send + Sync> Default for GltfImportPlugin<E> {
+impl<E> Default for GltfImportPlugin<E>
+where
+    E: BevyExtensionImport<GltfDocument> + TypePath + Send + Sync,
+{
     fn default() -> Self {
         Self {
             _marker: PhantomData,
@@ -73,6 +79,7 @@ impl<E> Plugin for GltfImportPlugin<E>
 where
     E: BevyExtensionImport<GltfDocument>
         + ExtensionImport<GltfDocument, GltfFormat>
+        + TypePath
         + Send
         + Sync
         + 'static,

@@ -249,6 +249,11 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::too_many_lines,
+        clippy::many_single_char_names,
+        clippy::similar_names
+    )]
     fn test_property_methods() {
         let graph = &mut Graph::default();
         let doc = GltfDocument::new(graph);

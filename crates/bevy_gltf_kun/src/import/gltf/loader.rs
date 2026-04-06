@@ -31,15 +31,17 @@ pub struct GltfLoaderSettings {
     pub expose_raw_animation_curves: bool,
 }
 
+#[derive(TypePath)]
 pub struct GltfLoader<E: BevyExtensionImport<GltfDocument>> {
     pub _marker: PhantomData<E>,
 }
 
+#[derive(TypePath)]
 pub struct GlbLoader<E: BevyExtensionImport<GltfDocument>> {
     pub _marker: PhantomData<E>,
 }
 
-impl<E: BevyExtensionImport<GltfDocument>> Default for GltfLoader<E> {
+impl<E: BevyExtensionImport<GltfDocument> + TypePath> Default for GltfLoader<E> {
     fn default() -> Self {
         Self {
             _marker: PhantomData,
@@ -47,7 +49,7 @@ impl<E: BevyExtensionImport<GltfDocument>> Default for GltfLoader<E> {
     }
 }
 
-impl<E: BevyExtensionImport<GltfDocument>> Default for GlbLoader<E> {
+impl<E: BevyExtensionImport<GltfDocument> + TypePath> Default for GlbLoader<E> {
     fn default() -> Self {
         Self {
             _marker: PhantomData,
@@ -77,6 +79,7 @@ impl<E> AssetLoader for GltfLoader<E>
 where
     E: ExtensionImport<GltfDocument, GltfFormat>
         + BevyExtensionImport<GltfDocument>
+        + TypePath
         + Send
         + Sync
         + 'static,
@@ -136,6 +139,7 @@ impl<E> AssetLoader for GlbLoader<E>
 where
     E: ExtensionImport<GltfDocument, GltfFormat>
         + BevyExtensionImport<GltfDocument>
+        + TypePath
         + Send
         + Sync
         + 'static,

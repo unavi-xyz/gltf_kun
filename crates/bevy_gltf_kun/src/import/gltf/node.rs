@@ -1,7 +1,7 @@
 use std::{collections::HashMap, hash::BuildHasher};
 
 use bevy::{
-    animation::{AnimationTarget, AnimationTargetId},
+    animation::{AnimatedBy, AnimationTargetId},
     mesh::morph::MorphBuildError,
     prelude::*,
 };
@@ -67,10 +67,10 @@ pub fn import_node<E: BevyExtensionImport<GltfDocument>, S: BuildHasher>(
     path.push(Name::new(name.clone()));
     let root_node = root_node.unwrap_or_else(|| ent.id());
 
-    ent.insert(AnimationTarget {
-        id: AnimationTargetId::from_names(path.iter()),
-        player: root_node,
-    });
+    ent.insert((
+        AnimationTargetId::from_names(path.iter()),
+        AnimatedBy(root_node),
+    ));
 
     let mut primitive_entities = Vec::new();
 

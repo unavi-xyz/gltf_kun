@@ -12,6 +12,7 @@ impl Resolver for BevyAssetResolver<'_, '_> {
             .path()
             .parent()
             .ok_or_else(|| ResolverError::InvalidUri(uri.to_string()))?
+            .path()
             .join(uri);
 
         self.load_context

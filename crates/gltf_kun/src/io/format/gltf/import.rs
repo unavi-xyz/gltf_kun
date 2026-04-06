@@ -740,6 +740,8 @@ fn guess_mime_type(uri: &str) -> Option<&'static str> {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeMap;
+
     use gltf::json::{self, Index, texture::Info, validation::USize64};
     use tracing_test::traced_test;
 
@@ -747,6 +749,7 @@ mod tests {
 
     #[tokio::test]
     #[traced_test]
+    #[expect(clippy::too_many_lines)]
     async fn test_import() {
         let mut json = json::Root::default();
 
@@ -820,7 +823,7 @@ mod tests {
         json.meshes.push(json::mesh::Mesh {
             name: Some("MyMesh".to_string()),
             primitives: vec![json::mesh::Primitive {
-                attributes: Default::default(),
+                attributes: BTreeMap::default(),
                 extensions: None,
                 extras: None,
                 indices: None,

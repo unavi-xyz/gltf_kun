@@ -11,20 +11,23 @@ version.workspace    = true
 workspace = true
 
 [features]
+bevy        = ["dep:bevy"]
 default     = ["omi_physics"]
 omi_physics = []
 
 [dependencies]
 base64               = "0.22.1"
-bevy_math            = "0.17.2"
+bevy_math            = "0.18.1"
 byteorder            = "1.5.0"
 gltf                 = { features = ["extensions", "extras"], version = "1.4.1" }
 petgraph.workspace   = true
 serde                = { features = ["derive"], version = "1.0.228" }
 serde_json.workspace = true
 thiserror.workspace  = true
-tracing              = "0.1.41"
+tracing              = "0.1.44"
+
+bevy = { optional = true, workspace = true }
 
 [dev-dependencies]
-tokio        = { features = ["full"], version = "1.48.0" }
-tracing-test = "0.2.5"
+tokio        = { features = ["full"], version = "1.51.0" }
+tracing-test = "0.2.6"

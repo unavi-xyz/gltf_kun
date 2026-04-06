@@ -35,6 +35,7 @@ pub trait ExtensionImport<D, F> {
     fn import(graph: &mut Graph, format: &mut F, doc: &D) -> Result<(), Box<dyn Error>>;
 }
 
+#[cfg_attr(feature = "bevy", derive(bevy::prelude::TypePath))]
 pub struct DefaultExtensions;
 
 impl ExtensionExport<GltfDocument, GltfFormat> for DefaultExtensions {

@@ -30,7 +30,7 @@ async fn main() {
         .await
         .expect("Failed to import glTF");
 
-    validate_doc(&graph, &doc);
+    validate_doc(&graph, doc);
 
     // Export to file
     let out =
@@ -50,10 +50,10 @@ async fn main() {
         .await
         .expect("Failed to import glTF");
 
-    validate_doc(&graph, &doc);
+    validate_doc(&graph, doc);
 }
 
-fn validate_doc(graph: &Graph, doc: &GltfDocument) {
+fn validate_doc(graph: &Graph, doc: GltfDocument) {
     let shape_ext = doc
         .get_extension::<OmiPhysicsShape>(graph)
         .expect("OMI_physics_shape extension not found");

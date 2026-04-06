@@ -45,7 +45,7 @@ async fn main() {
         .expect("Failed to import glb");
     let out =
         GlbExport::<DefaultExtensions>::export(&mut graph, &doc).expect("Failed to export glb");
-    let bytes2 = out.0.clone();
+    let bytes2 = out.0;
 
     assert_eq!(bytes.len(), bytes2.len()); // Gives a better error message
     assert_eq!(bytes, bytes2);

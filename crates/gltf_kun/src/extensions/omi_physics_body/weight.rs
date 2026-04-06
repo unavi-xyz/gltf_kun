@@ -135,15 +135,21 @@ fn slice_is_zero(slice: &[f32]) -> bool {
 mod tests {
     use super::*;
 
+    const EPSILON: f32 = 1e-5;
+
     #[test]
     fn default_mass() {
-        assert!(Mass::default().0 == 1.0);
+        assert!((Mass::default().0 - 1.0).abs() < EPSILON);
         assert!(is_default_mass(&Mass::default()));
     }
 
     #[test]
     fn default_quat() {
-        assert!(Quat::default().0 == [0.0, 0.0, 0.0, 1.0]);
-        assert!(is_default_quat(&Quat::default()));
+        let q = Quat::default();
+        assert!(q.0[0].abs() < EPSILON);
+        assert!(q.0[1].abs() < EPSILON);
+        assert!(q.0[2].abs() < EPSILON);
+        assert!((q.0[3].abs() - 1.0) < EPSILON);
+        assert!(is_default_quat(&q));
     }
 }
