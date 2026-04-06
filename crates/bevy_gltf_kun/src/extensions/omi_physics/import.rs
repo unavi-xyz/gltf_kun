@@ -15,10 +15,10 @@ use crate::import::{extensions::NodeExtensionImport, gltf::document::ImportConte
 #[derive(Component, Reflect)]
 #[reflect(Component)]
 pub enum ColliderMarker {
-    Cuboid([f32; 3]),
-    Sphere(f32),
     Capsule(f32, f32),
+    Cuboid([f32; 3]),
     Cylinder(f32, f32),
+    Sphere(f32),
 }
 
 impl Default for ColliderMarker {
@@ -27,38 +27,20 @@ impl Default for ColliderMarker {
     }
 }
 
-pub fn insert_colliders(mut commands: Commands, query: Query<(Entity, &ColliderMarker)>) {
-    for (entity, marker) in query {
+pub fn insert_colliders(mut commands: Commands, to_insert: Query<(Entity, &ColliderMarker)>) {
+    for (entity, marker) in to_insert {
         let collider = match marker {
-            ColliderMarker::Cuboid(size) => Collider::cuboid(size[0], size[1], size[2]),
-            ColliderMarker::Sphere(radius) => Collider::sphere(*radius),
             ColliderMarker::Capsule(radius, height) => Collider::capsule(*radius, *height),
+            ColliderMarker::Cuboid(size) => Collider::cuboid(size[0], size[1], size[2]),
             ColliderMarker::Cylinder(radius, height) => Collider::cylinder(*radius, *height),
+            ColliderMarker::Sphere(radius) => Collider::sphere(*radius),
         };
 
         commands
             .entity(entity)
-            .remove::<ColliderMarker>()
-            .insert(collider);
-    }
-}
-
-pub fn insert_rigid_bodies(mut commands: Commands, query: Query<(Entity, &RigidBodyMarker)>) {
-    for (entity, marker) in query {
-        let rigid_body = match marker.typ {
-            RigidBodyType::Static => RigidBody::Static,
-            RigidBodyType::Dynamic => RigidBody::Dynamic,
-            RigidBodyType::Kinematic => RigidBody::Kinematic,
-        };
-
-        commands.entity(entity).remove::<RigidBodyMarker>().insert((
-            rigid_body,
-            LinearVelocity(marker.linear_velocity),
-            AngularVelocity(marker.angular_velocity),
-            Mass(marker.mass),
-            CenterOfMass(marker.center_of_mass),
-            marker.inertia,
-        ));
+            // Must be `try_`, sometimes entity is dead, not sure why.
+            .try_remove::<ColliderMarker>()
+            .try_insert(collider);
     }
 }
 
@@ -91,6 +73,25 @@ pub enum RigidBodyType {
     Static,
     Dynamic,
     Kinematic,
+}
+
+pub fn insert_rigid_bodies(mut commands: Commands, to_insert: Query<(Entity, &RigidBodyMarker)>) {
+    for (entity, marker) in to_insert {
+        let rigid_body = match marker.typ {
+            RigidBodyType::Static => RigidBody::Static,
+            RigidBodyType::Dynamic => RigidBody::Dynamic,
+            RigidBodyType::Kinematic => RigidBody::Kinematic,
+        };
+
+        commands.entity(entity).remove::<RigidBodyMarker>().insert((
+            rigid_body,
+            AngularVelocity(marker.angular_velocity),
+            CenterOfMass(marker.center_of_mass),
+            LinearVelocity(marker.linear_velocity),
+            Mass(marker.mass),
+            marker.inertia,
+        ));
+    }
 }
 
 impl NodeExtensionImport<GltfDocument> for OmiPhysicsBody {
@@ -137,8 +138,10 @@ impl NodeExtensionImport<GltfDocument> for OmiPhysicsBody {
             let inertia = Mat3::from_diagonal(motion.intertial_diagonal.into());
             let rotated_inertia = (rotation * inertia) * rotation.transpose();
 
-            let inertia = AngularInertia::try_from_mat3(rotated_inertia)
-                .expect("invalid angular inertia matrix");
+            let Ok(inertia) = AngularInertia::try_from_mat3(rotated_inertia) else {
+                error!("invalid angular inertia matrix");
+                return;
+            };
 
             entity.insert(RigidBodyMarker {
                 angular_velocity: motion.angular_velocity.into(),

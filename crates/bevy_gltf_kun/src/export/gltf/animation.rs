@@ -140,7 +140,9 @@ fn export_curve(
 
     let mut world = World::default();
 
-    let ent = world.spawn(Transform::default()).id();
+    let ent = world
+        .spawn((Transform::default(), Visibility::default()))
+        .id();
     let mut graph = AnimationGraph::default();
     let idx = graph.add_blend(1.0, graph.root);
 

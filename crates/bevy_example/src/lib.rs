@@ -310,7 +310,7 @@ fn load_scene(
             }
         };
 
-        commands.spawn(SceneRoot(scene));
+        commands.spawn((SceneRoot(scene), Visibility::default()));
     }
 }
 
