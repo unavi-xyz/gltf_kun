@@ -2,41 +2,65 @@ use bevy::{
     asset::RenderAssetUsages,
     camera::primitives::Aabb,
     mesh::{
-        Indices, MeshVertexAttribute, PrimitiveTopology, VertexAttributeValues, VertexFormat,
-        morph::{MeshMorphWeights, MorphAttributes, MorphBuildError, MorphTargetImage},
+        Indices,
+        MeshVertexAttribute,
+        PrimitiveTopology,
+        VertexAttributeValues,
+        VertexFormat,
+        morph::{
+            MeshMorphWeights,
+            MorphAttributes,
+            MorphBuildError,
+        },
     },
     prelude::*,
 };
 use gltf_kun::graph::{
-    Graph, GraphNodeWeight,
+    Graph,
+    GraphNodeWeight,
     gltf::{
         GltfDocument,
         accessor::{
-            Accessor, ComponentType, GetAccessorSliceError, Type,
+            Accessor,
+            ComponentType,
+            GetAccessorSliceError,
+            Type,
             colors::ReadColors,
             indices::ReadIndices,
-            iter::{AccessorElement, AccessorIter, AccessorIterCreateError, ElementIter},
+            iter::{
+                AccessorElement,
+                AccessorIter,
+                AccessorIterCreateError,
+                ElementIter,
+            },
             joints::ReadJoints,
             tex_coords::ReadTexCoords,
             weights::ReadWeights,
         },
-        primitive::{Mode, MorphTarget, Primitive, Semantic},
+        primitive::{
+            Mode,
+            MorphTarget,
+            Primitive,
+            Semantic,
+        },
     },
 };
 use thiserror::Error;
 
-use crate::import::extensions::BevyExtensionImport;
-
 use super::{
     document::ImportContext,
-    material::{default_material, import_material},
+    material::{
+        default_material,
+        import_material,
+    },
 };
+use crate::import::extensions::BevyExtensionImport;
 
 #[derive(Debug)]
 pub struct GltfPrimitive {
-    pub extras: Option<Box<serde_json::value::RawValue>>,
+    pub extras:   Option<Box<serde_json::value::RawValue>>,
     pub material: Handle<StandardMaterial>,
-    pub mesh: Handle<Mesh>,
+    pub mesh:     Handle<Mesh>,
 }
 
 enum ConversionMode {
@@ -187,26 +211,21 @@ pub fn import_primitive<E: BevyExtensionImport<GltfDocument>>(
         };
 
         morph_weights = Some(weights.clone());
-
-        entity.insert(MeshMorphWeights::new(weights).expect("weights should be valid"));
+        entity.insert(MeshMorphWeights::Value { weights });
 
         let targets_iter = morph_targets
             .iter()
             .map(|target| morph_targets_iter(context.graph, *target));
 
-        let morph_target_image = MorphTargetImage::new(
-            targets_iter,
-            bevy_mesh.count_vertices(),
-            RenderAssetUsages::default(),
-        )?;
+        let mut morph_attributes = Vec::new();
 
-        let morph_targets_label = morph_targets_label(&primitive_label);
+        for t in targets_iter {
+            for a in t {
+                morph_attributes.push(a);
+            }
+        }
 
-        let handle = context
-            .load_context
-            .add_labeled_asset(morph_targets_label, morph_target_image.0);
-
-        bevy_mesh.set_morph_targets(handle);
+        bevy_mesh.set_morph_targets(morph_attributes);
     }
 
     E::import_primitive(context, &mut entity, *p);
@@ -231,10 +250,6 @@ pub fn primitive_label(mesh_label: &str, primitive_index: usize) -> String {
     format!("{mesh_label}/Primitive{primitive_index}")
 }
 
-fn morph_targets_label(primitive_label: &str) -> String {
-    format!("{primitive_label}/MorphTargets")
-}
-
 #[derive(Debug, Error)]
 pub enum ReadIndicesError {
     #[error("failed to get accessor slice: {0}")]
@@ -246,19 +261,19 @@ fn read_indices(context: &ImportContext, indices: Accessor) -> Indices {
 
     let read = match weight.component_type {
         ComponentType::U8 => ReadIndices::U8(ElementIter::<u8> {
-            slice: &weight.data,
+            slice:      &weight.data,
             normalized: weight.normalized,
-            _phantom: default(),
+            _phantom:   default(),
         }),
         ComponentType::U16 => ReadIndices::U16(ElementIter::<u16> {
-            slice: &weight.data,
+            slice:      &weight.data,
             normalized: weight.normalized,
-            _phantom: default(),
+            _phantom:   default(),
         }),
         ComponentType::U32 => ReadIndices::U32(ElementIter::<u32> {
-            slice: &weight.data,
+            slice:      &weight.data,
             normalized: weight.normalized,
-            _phantom: default(),
+            _phantom:   default(),
         }),
         _ => unreachable!(),
     };
@@ -453,7 +468,8 @@ fn convert_joint_weight_values(
     }
 }
 
-/// Materializes texture coordinate values, converting compatible formats to Float32x2
+/// Materializes texture coordinate values, converting compatible formats to
+/// Float32x2
 fn convert_tex_coord_values(
     iter: AccessorIter,
 ) -> Result<VertexAttributeValues, AttributeConversionError> {
@@ -502,8 +518,8 @@ fn morph_targets_iter(graph: &Graph, target: MorphTarget) -> MorphTargetsIter<'_
 
 struct MorphTargetsIter<'a> {
     positions: Option<ElementIter<'a, [f32; 3]>>,
-    normals: Option<ElementIter<'a, [f32; 3]>>,
-    tangents: Option<ElementIter<'a, [f32; 3]>>,
+    normals:   Option<ElementIter<'a, [f32; 3]>>,
+    tangents:  Option<ElementIter<'a, [f32; 3]>>,
 }
 
 impl Iterator for MorphTargetsIter<'_> {
@@ -522,6 +538,7 @@ impl Iterator for MorphTargetsIter<'_> {
             position: position.map_or(Vec3::ZERO, std::convert::Into::into),
             normal: normal.map_or(Vec3::ZERO, std::convert::Into::into),
             tangent: tangent.map_or(Vec3::ZERO, std::convert::Into::into),
+            ..Default::default()
         })
     }
 }

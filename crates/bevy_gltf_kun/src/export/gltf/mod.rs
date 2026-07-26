@@ -1,9 +1,15 @@
 use std::marker::PhantomData;
 
-use bevy::{ecs::system::RunSystemOnce, prelude::*};
+use bevy::{
+    ecs::system::RunSystemOnce,
+    prelude::*,
+};
 use gltf_kun::graph::{
     Graph,
-    gltf::{self, document::GltfDocument},
+    gltf::{
+        self,
+        document::GltfDocument,
+    },
 };
 use thiserror::Error;
 
@@ -18,18 +24,18 @@ pub mod skin;
 
 #[derive(Default, Message)]
 pub struct GltfExportEvent<E: BevyExtensionExport<GltfDocument>> {
-    pub scenes: Vec<Handle<Scene>>,
-    pub default_scene: Option<Handle<Scene>>,
-    _marker: PhantomData<E>,
+    pub scenes:        Vec<Handle<WorldAsset>>,
+    pub default_scene: Option<Handle<WorldAsset>>,
+    _marker:           PhantomData<E>,
 }
 
 impl<E: BevyExtensionExport<GltfDocument>> GltfExportEvent<E> {
     #[must_use]
-    pub fn new(scene: Handle<Scene>) -> Self {
+    pub fn new(scene: Handle<WorldAsset>) -> Self {
         Self {
-            scenes: vec![scene.clone()],
+            scenes:        vec![scene.clone()],
             default_scene: Some(scene),
-            _marker: PhantomData,
+            _marker:       PhantomData,
         }
     }
 }
@@ -39,21 +45,21 @@ pub enum ExportError {}
 
 #[derive(Message)]
 pub struct GltfExportResult {
-    pub graph: Graph,
+    pub graph:  Graph,
     pub result: Result<GltfDocument, ExportError>,
 }
 
 pub struct ExportContext {
-    pub doc: GltfDocument,
+    pub doc:   GltfDocument,
     pub graph: Graph,
 
-    pub target_scenes: Vec<Handle<Scene>>,
-    pub target_default_scene: Option<Handle<Scene>>,
+    pub target_scenes:        Vec<Handle<WorldAsset>>,
+    pub target_default_scene: Option<Handle<WorldAsset>>,
 
     pub materials: Vec<CachedMaterial>,
-    pub meshes: Vec<CachedMesh>,
-    pub nodes: Vec<CachedNode>,
-    pub scenes: Vec<CachedScene>,
+    pub meshes:    Vec<CachedMesh>,
+    pub nodes:     Vec<CachedNode>,
+    pub scenes:    Vec<CachedScene>,
 }
 
 impl ExportContext {
@@ -78,25 +84,25 @@ impl ExportContext {
 }
 
 pub struct CachedMaterial {
-    pub material: gltf::Material,
-    pub entity: Entity,
+    pub material:      gltf::Material,
+    pub entity:        Entity,
     pub bevy_material: MeshMaterial3d<StandardMaterial>,
 }
 
 pub struct CachedMesh {
-    pub mesh: gltf::Mesh,
-    pub primitives: Vec<(Entity, gltf::Primitive)>,
+    pub mesh:        gltf::Mesh,
+    pub primitives:  Vec<(Entity, gltf::Primitive)>,
     pub bevy_meshes: Vec<Mesh3d>,
 }
 
 pub struct CachedNode {
-    pub node: gltf::Node,
+    pub node:   gltf::Node,
     pub entity: Entity,
 }
 
 pub struct CachedScene {
-    pub scene: gltf::scene::Scene,
-    pub handle: Handle<Scene>,
+    pub scene:  gltf::scene::Scene,
+    pub handle: Handle<WorldAsset>,
     pub entity: Entity,
 }
 
@@ -128,7 +134,7 @@ pub fn create_export_result(
     mut writer: MessageWriter<GltfExportResult>,
 ) {
     writer.write(GltfExportResult {
-        graph: ctx.graph,
+        graph:  ctx.graph,
         result: Ok(ctx.doc),
     });
 }

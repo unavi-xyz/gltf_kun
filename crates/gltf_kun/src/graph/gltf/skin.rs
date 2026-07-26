@@ -1,8 +1,23 @@
-use petgraph::{Direction, graph::NodeIndex, visit::EdgeRef};
+use petgraph::{
+    Direction,
+    graph::NodeIndex,
+    visit::EdgeRef,
+};
 
-use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
-
-use super::{Accessor, GltfEdge, GltfWeight, Node};
+use super::{
+    Accessor,
+    GltfEdge,
+    GltfWeight,
+    Node,
+};
+use crate::graph::{
+    Edge,
+    Extensions,
+    Graph,
+    GraphNodeEdges,
+    GraphNodeWeight,
+    Weight,
+};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SkinEdge {
@@ -30,7 +45,7 @@ impl From<SkinEdge> for Edge {
 #[derive(Clone, Debug, Default)]
 pub struct SkinWeight {
     pub extras: gltf::json::Extras,
-    pub name: Option<String>,
+    pub name:   Option<String>,
 }
 
 impl From<SkinWeight> for Weight {
@@ -142,9 +157,8 @@ impl Skin {
 
 #[cfg(test)]
 mod tests {
-    use crate::graph::gltf::GltfDocument;
-
     use super::*;
+    use crate::graph::gltf::GltfDocument;
 
     #[test]
     fn inverse_bind_matrices() {

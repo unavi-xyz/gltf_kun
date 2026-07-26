@@ -1,10 +1,16 @@
 use bevy::{
-    mesh::skinning::{SkinnedMesh, SkinnedMeshInverseBindposes},
+    mesh::skinning::{
+        SkinnedMesh,
+        SkinnedMeshInverseBindposes,
+    },
     prelude::*,
 };
 use gltf_kun::graph::{
     GraphNodeWeight,
-    gltf::accessor::{ComponentType, Type},
+    gltf::accessor::{
+        ComponentType,
+        Type,
+    },
 };
 
 use super::ExportContext;

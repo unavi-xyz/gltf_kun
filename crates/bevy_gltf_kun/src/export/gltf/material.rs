@@ -1,7 +1,11 @@
 use std::marker::PhantomData;
 
 use bevy::{
-    image::{ImageAddressMode, ImageFilterMode, ImageSampler},
+    image::{
+        ImageAddressMode,
+        ImageFilterMode,
+        ImageSampler,
+    },
     prelude::*,
     render::render_resource::TextureFormat,
 };
@@ -10,14 +14,28 @@ use gltf_kun::graph::{
     gltf::{
         Texture,
         accessor::iter::ElementIter,
-        material::{AlphaCutoff, AlphaMode},
-        texture::{MagFilter, MinFilter, WrappingMode},
+        material::{
+            AlphaCutoff,
+            AlphaMode,
+        },
+        texture::{
+            MagFilter,
+            MinFilter,
+            WrappingMode,
+        },
     },
 };
-use image::{ExtendedColorType, ImageEncoder, codecs::png::PngEncoder};
+use image::{
+    ExtendedColorType,
+    ImageEncoder,
+    codecs::png::PngEncoder,
+};
 use thiserror::Error;
 
-use super::{CachedMaterial, ExportContext};
+use super::{
+    CachedMaterial,
+    ExportContext,
+};
 
 pub fn export_materials(
     In(mut ctx): In<ExportContext>,
@@ -213,9 +231,9 @@ fn convert_image(bevy_image: &Image) -> Result<(String, Vec<u8>), ConvertImageEr
         TextureFormat::Rgba8Sint | TextureFormat::Rgba8Snorm => {
             let data = bevy_image.data.clone().unwrap_or_default();
             let iter = ElementIter::<i8> {
-                slice: &data,
+                slice:      &data,
                 normalized: true,
-                _phantom: PhantomData,
+                _phantom:   PhantomData,
             };
             let data = iter.map(|v| (v + 127) as u8).collect::<Vec<_>>();
             convert_png(

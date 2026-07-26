@@ -2,15 +2,28 @@ use avian3d::prelude::*;
 use bevy::prelude::*;
 use gltf_kun::{
     extensions::{
-        omi_physics_body::{OmiPhysicsBody, weight::BodyType},
+        omi_physics_body::{
+            OmiPhysicsBody,
+            weight::BodyType,
+        },
         omi_physics_shape::physics_shape::{
-            BoxShape, CapsuleShape, CylinderShape, PhysicsShapeWeight, SphereShape,
+            BoxShape,
+            CapsuleShape,
+            CylinderShape,
+            PhysicsShapeWeight,
+            SphereShape,
         },
     },
-    graph::{ByteNode, gltf::document::GltfDocument},
+    graph::{
+        ByteNode,
+        gltf::document::GltfDocument,
+    },
 };
 
-use crate::import::{extensions::NodeExtensionImport, gltf::document::ImportContext};
+use crate::import::{
+    extensions::NodeExtensionImport,
+    gltf::document::ImportContext,
+};
 
 #[derive(Component, Reflect)]
 #[reflect(Component)]
@@ -48,22 +61,22 @@ pub fn insert_colliders(mut commands: Commands, to_insert: Query<(Entity, &Colli
 #[reflect(Component)]
 pub struct RigidBodyMarker {
     angular_velocity: Vec3,
-    center_of_mass: Vec3,
-    inertia: AngularInertia,
-    linear_velocity: Vec3,
-    mass: f32,
-    typ: RigidBodyType,
+    center_of_mass:   Vec3,
+    inertia:          AngularInertia,
+    linear_velocity:  Vec3,
+    mass:             f32,
+    typ:              RigidBodyType,
 }
 
 impl Default for RigidBodyMarker {
     fn default() -> Self {
         Self {
             angular_velocity: Vec3::ZERO,
-            center_of_mass: Vec3::ZERO,
-            inertia: AngularInertia::ZERO,
-            linear_velocity: Vec3::ZERO,
-            mass: 1.0,
-            typ: RigidBodyType::Dynamic,
+            center_of_mass:   Vec3::ZERO,
+            inertia:          AngularInertia::ZERO,
+            linear_velocity:  Vec3::ZERO,
+            mass:             1.0,
+            typ:              RigidBodyType::Dynamic,
         }
     }
 }

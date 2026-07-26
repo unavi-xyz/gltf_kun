@@ -1,13 +1,28 @@
+pub use gltf::json::accessor::{
+    ComponentType,
+    Type,
+};
 use petgraph::graph::NodeIndex;
 use thiserror::Error;
 
-use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
-
-use self::iter::{AccessorElement, AccessorIter, AccessorIterCreateError};
-
-use super::{GltfEdge, GltfWeight, buffer::Buffer};
-
-pub use gltf::json::accessor::{ComponentType, Type};
+use self::iter::{
+    AccessorElement,
+    AccessorIter,
+    AccessorIterCreateError,
+};
+use super::{
+    GltfEdge,
+    GltfWeight,
+    buffer::Buffer,
+};
+use crate::graph::{
+    Edge,
+    Extensions,
+    Graph,
+    GraphNodeEdges,
+    GraphNodeWeight,
+    Weight,
+};
 
 pub mod colors;
 pub mod indices;
@@ -40,12 +55,12 @@ impl From<AccessorEdge> for Edge {
 
 #[derive(Clone, Debug)]
 pub struct AccessorWeight {
-    pub name: Option<String>,
+    pub name:   Option<String>,
     pub extras: gltf::json::Extras,
 
     pub component_type: ComponentType,
-    pub element_type: Type,
-    pub normalized: bool,
+    pub element_type:   Type,
+    pub normalized:     bool,
 
     pub data: Vec<u8>,
 }
@@ -53,12 +68,12 @@ pub struct AccessorWeight {
 impl Default for AccessorWeight {
     fn default() -> Self {
         Self {
-            name: None,
+            name:   None,
             extras: None,
 
             component_type: ComponentType::F32,
-            element_type: Type::Scalar,
-            normalized: false,
+            element_type:   Type::Scalar,
+            normalized:     false,
 
             data: Vec::new(),
         }

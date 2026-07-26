@@ -1,11 +1,19 @@
+pub use gltf::animation::Interpolation;
 use petgraph::graph::NodeIndex;
 
 use crate::graph::{
-    Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight,
-    gltf::{Accessor, GltfEdge, GltfWeight},
+    Edge,
+    Extensions,
+    Graph,
+    GraphNodeEdges,
+    GraphNodeWeight,
+    Weight,
+    gltf::{
+        Accessor,
+        GltfEdge,
+        GltfWeight,
+    },
 };
-
-pub use gltf::animation::Interpolation;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum AnimationSamplerEdge {
@@ -31,7 +39,7 @@ impl From<AnimationSamplerEdge> for Edge {
 
 #[derive(Clone, Debug, Default)]
 pub struct AnimationSamplerWeight {
-    pub extras: gltf::json::Extras,
+    pub extras:        gltf::json::Extras,
     pub interpolation: Interpolation,
 }
 

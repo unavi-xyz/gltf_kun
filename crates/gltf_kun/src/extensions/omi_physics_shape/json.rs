@@ -1,4 +1,7 @@
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 
 use super::physics_shape::PhysicsShapeWeight;
 
@@ -10,7 +13,7 @@ pub struct RootExtension {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Shape {
     #[serde(rename = "type", skip_deserializing)]
-    pub typ: String,
+    pub typ:    String,
     #[serde(
         alias = "box",
         alias = "sphere",
@@ -43,11 +46,16 @@ impl From<PhysicsShapeWeight> for Shape {
 
 #[cfg(test)]
 mod tests {
-    use crate::extensions::omi_physics_shape::physics_shape::{
-        BoxShape, CapsuleShape, CylinderShape, Height, Radius, Size, SphereShape,
-    };
-
     use super::*;
+    use crate::extensions::omi_physics_shape::physics_shape::{
+        BoxShape,
+        CapsuleShape,
+        CylinderShape,
+        Height,
+        Radius,
+        Size,
+        SphereShape,
+    };
 
     #[test]
     fn box_serde() {
@@ -154,7 +162,7 @@ mod tests {
     #[test]
     fn default_box_serde() {
         let shape = Shape {
-            typ: "box".to_string(),
+            typ:    "box".to_string(),
             weight: PhysicsShapeWeight::Box(BoxShape::default()),
         };
 
@@ -166,7 +174,7 @@ mod tests {
     #[test]
     fn default_sphere_serde() {
         let shape = Shape {
-            typ: "sphere".to_string(),
+            typ:    "sphere".to_string(),
             weight: PhysicsShapeWeight::Sphere(SphereShape::default()),
         };
 
@@ -178,7 +186,7 @@ mod tests {
     #[test]
     fn default_capsule_serde() {
         let shape = Shape {
-            typ: "capsule".to_string(),
+            typ:    "capsule".to_string(),
             weight: PhysicsShapeWeight::Capsule(CapsuleShape::default()),
         };
 
@@ -190,7 +198,7 @@ mod tests {
     #[test]
     fn default_cylinder_serde() {
         let shape = Shape {
-            typ: "cylinder".to_string(),
+            typ:    "cylinder".to_string(),
             weight: PhysicsShapeWeight::Cylinder(CylinderShape::default()),
         };
 

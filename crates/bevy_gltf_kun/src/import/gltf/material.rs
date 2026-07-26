@@ -1,17 +1,25 @@
 use bevy::{
-    asset::{LoadContext, LoadedAsset},
+    asset::{
+        LoadContext,
+        LoadedAsset,
+    },
     prelude::*,
     render::render_resource::Face,
 };
 use gltf_kun::graph::{
-    Graph, GraphNodeWeight,
-    gltf::{GltfDocument, Material, Texture, material::AlphaMode},
+    Graph,
+    GraphNodeWeight,
+    gltf::{
+        GltfDocument,
+        Material,
+        Texture,
+        material::AlphaMode,
+    },
 };
 use thiserror::Error;
 
-use crate::import::extensions::BevyExtensionImport;
-
 use super::document::ImportContext;
+use crate::import::extensions::BevyExtensionImport;
 
 #[derive(Debug, Error)]
 pub enum MaterialImportError {}

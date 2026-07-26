@@ -1,13 +1,16 @@
 use bevy::prelude::*;
 use gltf_kun::graph::GraphNodeWeight;
 
-use super::{CachedScene, ExportContext};
+use super::{
+    CachedScene,
+    ExportContext,
+};
 
 #[must_use]
 pub fn export_scenes(
     In(mut ctx): In<ExportContext>,
     names: Query<&Name>,
-    scenes: Query<(Entity, &SceneRoot)>,
+    scenes: Query<(Entity, &WorldAssetRoot)>,
 ) -> ExportContext {
     for (entity, handle) in scenes.iter() {
         if !ctx.target_scenes.contains(handle) {

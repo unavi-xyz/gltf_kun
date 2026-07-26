@@ -1,4 +1,7 @@
-use bevy::{asset::AssetMetaCheck, prelude::*};
+use bevy::{
+    asset::AssetMetaCheck,
+    prelude::*,
+};
 use bevy_example::ExamplePlugin;
 
 fn main() {

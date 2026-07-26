@@ -1,6 +1,14 @@
-use petgraph::{Direction, graph::NodeIndex, stable_graph::EdgeReference, visit::EdgeRef};
+use petgraph::{
+    Direction,
+    graph::NodeIndex,
+    stable_graph::EdgeReference,
+    visit::EdgeRef,
+};
 
-use super::{Edge, Graph};
+use super::{
+    Edge,
+    Graph,
+};
 
 /// Helpers for using "Other" edges.
 pub trait OtherEdgeHelpers: Copy + From<NodeIndex> + Into<NodeIndex> {

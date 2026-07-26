@@ -1,9 +1,25 @@
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, Weight, gltf::GltfEdge};
-
 use super::{
-    Accessor, Animation, Buffer, GltfWeight, Image, Material, Mesh, Node, Scene, Skin, Texture,
+    Accessor,
+    Animation,
+    Buffer,
+    GltfWeight,
+    Image,
+    Material,
+    Mesh,
+    Node,
+    Scene,
+    Skin,
+    Texture,
+};
+use crate::graph::{
+    Edge,
+    Extensions,
+    Graph,
+    GraphNodeEdges,
+    Weight,
+    gltf::GltfEdge,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -231,9 +247,8 @@ impl GltfDocument {
 
 #[cfg(test)]
 mod tests {
-    use crate::graph::GraphNodeWeight;
-
     use super::*;
+    use crate::graph::GraphNodeWeight;
 
     #[test]
     fn default_scene() {

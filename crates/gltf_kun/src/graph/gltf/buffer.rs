@@ -1,12 +1,15 @@
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{Extensions, GraphNodeWeight, Weight};
-
 use super::GltfWeight;
+use crate::graph::{
+    Extensions,
+    GraphNodeWeight,
+    Weight,
+};
 
 #[derive(Clone, Debug, Default)]
 pub struct BufferWeight {
-    pub name: Option<String>,
+    pub name:   Option<String>,
     pub extras: gltf::json::Extras,
 
     pub uri: Option<String>,

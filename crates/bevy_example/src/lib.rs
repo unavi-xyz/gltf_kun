@@ -1,23 +1,46 @@
 //! Example glTF loading using test assets.
 
-use std::{fmt::Display, path::Path};
+use std::{
+    fmt::Display,
+    path::Path,
+};
 
 use avian3d::prelude::*;
 use bevy::{
     diagnostic::FrameCount,
     gltf::Gltf,
-    input::keyboard::{Key, KeyboardInput},
+    input::keyboard::{
+        Key,
+        KeyboardInput,
+    },
     light::CascadeShadowConfigBuilder,
     prelude::*,
 };
-use bevy_egui::{EguiContexts, EguiPlugin, EguiPrimaryContextPass, egui::ComboBox};
+use bevy_egui::{
+    EguiContexts,
+    EguiPlugin,
+    EguiPrimaryContextPass,
+    egui::ComboBox,
+};
 use bevy_gltf_kun::{
     GltfKunPlugin,
-    export::gltf::{GltfExportEvent, GltfExportResult},
-    import::gltf::{GltfKun, scene::GltfScene},
+    export::gltf::{
+        GltfExportEvent,
+        GltfExportResult,
+    },
+    import::gltf::{
+        GltfKun,
+        scene::GltfScene,
+    },
 };
-use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
-use gltf_kun::{extensions::DefaultExtensions, io::format::glb::GlbExport};
+use bevy_panorbit_camera::{
+    PanOrbitCamera,
+    PanOrbitCameraPlugin,
+};
+use gltf_kun::{
+    extensions::DefaultExtensions,
+    io::format::glb::GlbExport,
+};
 
 const ASSETS_DIR: &str = "assets";
 const CARGO_MANIFEST_DIR: &str = env!("CARGO_MANIFEST_DIR");
@@ -131,7 +154,7 @@ fn setup(mut commands: Commands, mut writer: MessageWriter<LoadModel>) {
 
     commands.spawn((
         DirectionalLight {
-            shadows_enabled: true,
+            shadow_maps_enabled: true,
             ..default()
         },
         Transform::from_xyz(4.0, 8.0, 3.0),
@@ -207,7 +230,7 @@ fn run_ui(
     });
 
     for mut orbit in &mut pan_orbit_camera {
-        orbit.enabled = !ctx.is_pointer_over_area();
+        orbit.enabled = !ctx.is_pointer_over_egui();
     }
 }
 
@@ -262,7 +285,7 @@ fn load_scene(
     loader: Res<Loader>,
     mut commands: Commands,
     mut events: MessageReader<LoadScene>,
-    scenes: Query<Entity, With<SceneRoot>>,
+    scenes: Query<Entity, With<WorldAssetRoot>>,
     gltf_scenes: Res<Assets<GltfScene>>,
 ) {
     for event in events.read() {
@@ -310,7 +333,7 @@ fn load_scene(
             }
         };
 
-        commands.spawn((SceneRoot(scene), Visibility::default()));
+        commands.spawn((WorldAssetRoot(scene), Visibility::default()));
     }
 }
 
@@ -349,7 +372,7 @@ fn play_animations(
 fn export(
     mut export: MessageWriter<GltfExportEvent<DefaultExtensions>>,
     mut key_events: MessageReader<KeyboardInput>,
-    scene: Query<&SceneRoot>,
+    scene: Query<&WorldAssetRoot>,
 ) {
     for event in key_events.read() {
         if !event.state.is_pressed() {
@@ -422,7 +445,8 @@ fn get_result(
 
         #[cfg(target_family = "wasm")]
         {
-            // TODO: Exporting in wasm, not sure how to load exported glb into Bevy
+            // TODO: Exporting in wasm, not sure how to load exported glb into
+            // Bevy
         }
 
         #[cfg(not(target_family = "wasm"))]

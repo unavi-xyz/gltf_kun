@@ -2,13 +2,24 @@ use std::error::Error;
 
 use tracing::warn;
 
+use super::{
+    EXTENSION_NAME,
+    OmiPhysicsBody,
+    OmiPhysicsBodyWeight,
+    json::PhysicsBodyJson,
+};
 use crate::{
-    extensions::{ExtensionImport, omi_physics_shape::OmiPhysicsShape},
-    graph::{ByteNode, Extensions, gltf::document::GltfDocument},
+    extensions::{
+        ExtensionImport,
+        omi_physics_shape::OmiPhysicsShape,
+    },
+    graph::{
+        ByteNode,
+        Extensions,
+        gltf::document::GltfDocument,
+    },
     io::format::gltf::GltfFormat,
 };
-
-use super::{EXTENSION_NAME, OmiPhysicsBody, OmiPhysicsBodyWeight, json::PhysicsBodyJson};
 
 impl ExtensionImport<GltfDocument, GltfFormat> for OmiPhysicsBody {
     fn import(

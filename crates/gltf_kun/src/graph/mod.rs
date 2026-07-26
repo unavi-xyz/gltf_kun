@@ -13,14 +13,23 @@ mod other_edge;
 mod property;
 
 pub use byte_node::ByteNode;
-pub use graph_node::{GraphNodeEdges, GraphNodeWeight};
+pub use graph_node::{
+    GraphNodeEdges,
+    GraphNodeWeight,
+};
 pub use other_edge::OtherEdgeHelpers;
 pub use petgraph::stable_graph::NodeIndex;
 pub use property::Extensions;
 
 use self::{
-    gltf::{GltfEdge, GltfWeight},
-    glxf::{GlxfEdge, GlxfWeight},
+    gltf::{
+        GltfEdge,
+        GltfWeight,
+    },
+    glxf::{
+        GlxfEdge,
+        GlxfWeight,
+    },
 };
 
 #[derive(Clone, Debug)]

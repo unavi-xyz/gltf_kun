@@ -1,10 +1,23 @@
 use gltf::Semantic;
-use petgraph::{Direction, graph::NodeIndex, visit::EdgeRef};
+use petgraph::{
+    Direction,
+    graph::NodeIndex,
+    visit::EdgeRef,
+};
 use thiserror::Error;
 
 use crate::graph::{
-    Edge, Extensions, Graph, GraphNodeEdges, Weight,
-    gltf::{Accessor, GltfEdge, GltfWeight, accessor::iter::AccessorIterCreateError},
+    Edge,
+    Extensions,
+    Graph,
+    GraphNodeEdges,
+    Weight,
+    gltf::{
+        Accessor,
+        GltfEdge,
+        GltfWeight,
+        accessor::iter::AccessorIterCreateError,
+    },
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]

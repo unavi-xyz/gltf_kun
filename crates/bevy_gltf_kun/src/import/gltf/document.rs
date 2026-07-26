@@ -1,18 +1,38 @@
-use bevy::platform::collections::{HashMap, HashSet};
-use bevy::{asset::LoadContext, mesh::skinning::SkinnedMeshInverseBindposes, prelude::*};
-use gltf_kun::graph::gltf::{Material, Skin};
-use gltf_kun::graph::{Graph, gltf::GltfDocument};
+use bevy::{
+    asset::LoadContext,
+    mesh::skinning::SkinnedMeshInverseBindposes,
+    platform::collections::{
+        HashMap,
+        HashSet,
+    },
+    prelude::*,
+};
+use gltf_kun::graph::{
+    Graph,
+    gltf::{
+        GltfDocument,
+        Material,
+        Skin,
+    },
+};
 use thiserror::Error;
 
-use crate::import::extensions::BevyExtensionImport;
-
-use super::skin::import_skin_matrices;
 use super::{
     GltfKun,
-    animation::{import_animation, paths_recur},
+    animation::{
+        import_animation,
+        paths_recur,
+    },
     scene::import_scene,
-    texture::{TextureLoadError, get_linear_textures, load_texture, texture_label},
+    skin::import_skin_matrices,
+    texture::{
+        TextureLoadError,
+        get_linear_textures,
+        load_texture,
+        texture_label,
+    },
 };
+use crate::import::extensions::BevyExtensionImport;
 
 #[derive(Debug, Error)]
 pub enum DocumentImportError {
@@ -23,14 +43,14 @@ pub enum DocumentImportError {
 }
 
 pub struct ImportContext<'a, 'b> {
-    pub doc: &'a mut GltfDocument,
-    pub gltf: &'a mut GltfKun,
-    pub graph: &'a mut Graph,
-    pub load_context: &'a mut LoadContext<'b>,
+    pub doc:               &'a mut GltfDocument,
+    pub gltf:              &'a mut GltfKun,
+    pub graph:             &'a mut Graph,
+    pub load_context:      &'a mut LoadContext<'b>,
     pub expose_raw_curves: bool,
 
     pub skin_matrices: HashMap<Skin, Handle<SkinnedMeshInverseBindposes>>,
-    pub materials: HashMap<(Material, bool), Handle<StandardMaterial>>,
+    pub materials:     HashMap<(Material, bool), Handle<StandardMaterial>>,
 }
 
 pub fn import_gltf_document<E: BevyExtensionImport<GltfDocument>>(

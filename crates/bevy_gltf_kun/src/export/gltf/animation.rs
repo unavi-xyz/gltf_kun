@@ -1,21 +1,33 @@
 use anyhow::bail;
 use bevy::{
-    animation::{AnimationEntityMut, AnimationTargetId, animated_field},
+    animation::{
+        AnimationEntityMut,
+        AnimationTargetId,
+        animated_field,
+    },
     platform::collections::HashMap,
     prelude::*,
 };
 use gltf_kun::graph::{
     GraphNodeWeight,
     gltf::{
-        Animation, Node,
-        accessor::{ComponentType, Type},
-        animation::{AnimationChannel, AnimationSampler, Interpolation, TargetPath},
+        Animation,
+        Node,
+        accessor::{
+            ComponentType,
+            Type,
+        },
+        animation::{
+            AnimationChannel,
+            AnimationSampler,
+            Interpolation,
+            TargetPath,
+        },
     },
 };
 
-use crate::import::gltf::animation::paths_recur;
-
 use super::ExportContext;
+use crate::import::gltf::animation::paths_recur;
 
 pub fn export_animations(
     In(mut ctx): In<ExportContext>,
@@ -64,7 +76,7 @@ pub fn export_animations(
 }
 
 const SAMPLE_RATE: f32 = 0.05;
-const F32_ERR_MARGIN: f32 = 1e-12;
+const F32_ERR_MARGIN: f32 = 1.0e-12;
 
 #[allow(clippy::too_many_lines)]
 fn export_curve(

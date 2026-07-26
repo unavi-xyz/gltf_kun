@@ -2,20 +2,29 @@ use std::marker::PhantomData;
 
 use bevy::prelude::*;
 use gltf_kun::{
-    extensions::ExtensionImport, graph::gltf::GltfDocument, io::format::gltf::GltfFormat,
+    extensions::ExtensionImport,
+    graph::gltf::GltfDocument,
+    io::format::gltf::GltfFormat,
 };
 
 use crate::{
     export::{
         extensions::BevyExtensionExport,
-        gltf::{GltfExportEvent, GltfExportResult, export_gltf},
+        gltf::{
+            GltfExportEvent,
+            GltfExportResult,
+            export_gltf,
+        },
     },
     import::{
         extensions::BevyExtensionImport,
         gltf::{
             GltfKun,
             animation::RawGltfAnimation,
-            loader::{GlbLoader, GltfLoader},
+            loader::{
+                GlbLoader,
+                GltfLoader,
+            },
             mesh::GltfMesh,
             node::GltfNode,
             scene::GltfScene,

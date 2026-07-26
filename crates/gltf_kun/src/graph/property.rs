@@ -1,12 +1,17 @@
 use petgraph::{
     Direction,
-    stable_graph::{EdgeReference, NodeIndex},
+    stable_graph::{
+        EdgeReference,
+        NodeIndex,
+    },
     visit::EdgeRef,
 };
 
+use super::{
+    Edge,
+    Graph,
+};
 use crate::extensions::Extension;
-
-use super::{Edge, Graph};
 
 /// An object that can have extensions.
 pub trait Extensions: Copy + Into<NodeIndex> {

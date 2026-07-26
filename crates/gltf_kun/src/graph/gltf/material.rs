@@ -1,10 +1,22 @@
+pub use gltf::json::material::{
+    AlphaCutoff,
+    AlphaMode,
+};
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
-
-use super::{GltfEdge, GltfWeight, Texture};
-
-pub use gltf::json::material::{AlphaCutoff, AlphaMode};
+use super::{
+    GltfEdge,
+    GltfWeight,
+    Texture,
+};
+use crate::graph::{
+    Edge,
+    Extensions,
+    Graph,
+    GraphNodeEdges,
+    GraphNodeWeight,
+    Weight,
+};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum MaterialEdge {
@@ -33,47 +45,47 @@ impl From<MaterialEdge> for Edge {
 
 #[derive(Clone, Debug)]
 pub struct MaterialWeight {
-    pub name: Option<String>,
+    pub name:   Option<String>,
     pub extras: gltf::json::Extras,
 
-    pub alpha_cutoff: AlphaCutoff,
-    pub alpha_mode: AlphaMode,
-    pub base_color_factor: [f32; 4],
-    pub double_sided: bool,
-    pub emissive_factor: [f32; 3],
-    pub metallic_factor: f32,
-    pub normal_scale: f32,
+    pub alpha_cutoff:       AlphaCutoff,
+    pub alpha_mode:         AlphaMode,
+    pub base_color_factor:  [f32; 4],
+    pub double_sided:       bool,
+    pub emissive_factor:    [f32; 3],
+    pub metallic_factor:    f32,
+    pub normal_scale:       f32,
     pub occlusion_strength: f32,
-    pub roughness_factor: f32,
+    pub roughness_factor:   f32,
 
-    pub base_color_tex_coord: usize,
-    pub emissive_tex_coord: usize,
+    pub base_color_tex_coord:         usize,
+    pub emissive_tex_coord:           usize,
     pub metallic_roughness_tex_coord: usize,
-    pub normal_tex_coord: usize,
-    pub occlusion_tex_coord: usize,
+    pub normal_tex_coord:             usize,
+    pub occlusion_tex_coord:          usize,
 }
 
 impl Default for MaterialWeight {
     fn default() -> Self {
         Self {
-            name: None,
+            name:   None,
             extras: None,
 
-            alpha_cutoff: AlphaCutoff::default(),
-            alpha_mode: AlphaMode::default(),
-            base_color_factor: [1.0, 1.0, 1.0, 1.0],
-            double_sided: false,
-            emissive_factor: [0.0, 0.0, 0.0],
-            metallic_factor: 1.0,
-            normal_scale: 1.0,
+            alpha_cutoff:       AlphaCutoff::default(),
+            alpha_mode:         AlphaMode::default(),
+            base_color_factor:  [1.0, 1.0, 1.0, 1.0],
+            double_sided:       false,
+            emissive_factor:    [0.0, 0.0, 0.0],
+            metallic_factor:    1.0,
+            normal_scale:       1.0,
             occlusion_strength: 1.0,
-            roughness_factor: 1.0,
+            roughness_factor:   1.0,
 
-            base_color_tex_coord: 0,
-            emissive_tex_coord: 0,
+            base_color_tex_coord:         0,
+            emissive_tex_coord:           0,
             metallic_roughness_tex_coord: 0,
-            normal_tex_coord: 0,
-            occlusion_tex_coord: 0,
+            normal_tex_coord:             0,
+            occlusion_tex_coord:          0,
         }
     }
 }

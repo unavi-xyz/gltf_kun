@@ -2,11 +2,15 @@
 
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{Graph, OtherEdgeHelpers};
-
-use self::physics_shape::{PhysicsShape, PhysicsShapeWeight};
-
+use self::physics_shape::{
+    PhysicsShape,
+    PhysicsShapeWeight,
+};
 use super::Extension;
+use crate::graph::{
+    Graph,
+    OtherEdgeHelpers,
+};
 
 pub mod export;
 pub mod import;

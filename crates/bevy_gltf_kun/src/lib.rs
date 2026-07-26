@@ -19,18 +19,24 @@
 //!
 //! ### Export
 //!
-//! Export scenes to glTF using [`GltfExportEvent`](export::gltf::GltfExportEvent).
+//! Export scenes to glTF using
+//! [`GltfExportEvent`](export::gltf::GltfExportEvent).
 //!
-//! The resulting [`GltfExportResult`](export::gltf::GltfExportResult) will contain a flexible
-//! [`GltfDocument`](gltf_kun::graph::gltf::document::GltfDocument) that can be exported to various
-//! file types. See [`gltf_kun`] for more information on how to do so.
+//! The resulting [`GltfExportResult`](export::gltf::GltfExportResult) will
+//! contain a flexible
+//! [`GltfDocument`](gltf_kun::graph::gltf::document::GltfDocument) that can be
+//! exported to various file types. See [`gltf_kun`] for more information on how
+//! to do so.
 //!
 //!
 //! ```
 //! use bevy::prelude::*;
 //! use bevy_gltf_kun::{
+//!     export::gltf::{
+//!         GltfExportEvent,
+//!         GltfExportResult,
+//!     },
 //!     extensions::DefaultExtensions,
-//!     export::gltf::{GltfExportEvent, GltfExportResult}
 //! };
 //! use gltf_kun::io::format::glb::GlbExport;
 //!
@@ -64,7 +70,10 @@
 //!
 //! ```
 //! use bevy::prelude::*;
-//! use bevy_gltf_kun::import::gltf::{GltfKun, scene::GltfScene};
+//! use bevy_gltf_kun::import::gltf::{
+//!     GltfKun,
+//!     scene::GltfScene,
+//! };
 //!
 //! fn import_gltf(
 //!     asset_server: Res<AssetServer>,
@@ -91,7 +100,9 @@
 //!     };
 //!
 //!     // Spawn the first scene.
-//!     let gltf_scene = gltf_scene_assets.get(&gltf.scenes[0]).expect("gltf should have at least one scene");
+//!     let gltf_scene = gltf_scene_assets
+//!         .get(&gltf.scenes[0])
+//!         .expect("gltf should have at least one scene");
 //!     commands.spawn(SceneRoot(gltf_scene.scene.clone()));
 //!
 //!     *did_import = true;
@@ -103,7 +114,10 @@
 use bevy::prelude::*;
 use extensions::ExtensionsPlugin;
 use gltf_kun::extensions::DefaultExtensions;
-use plugins::{GltfExportPlugin, GltfImportPlugin};
+use plugins::{
+    GltfExportPlugin,
+    GltfImportPlugin,
+};
 
 pub mod export;
 pub mod extensions;

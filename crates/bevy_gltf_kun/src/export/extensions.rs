@@ -1,5 +1,8 @@
 use bevy::prelude::*;
-use gltf_kun::{extensions::DefaultExtensions, graph::gltf::GltfDocument};
+use gltf_kun::{
+    extensions::DefaultExtensions,
+    graph::gltf::GltfDocument,
+};
 
 use super::gltf::ExportContext;
 

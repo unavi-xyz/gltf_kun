@@ -1,10 +1,29 @@
-use petgraph::{Direction, graph::NodeIndex, visit::EdgeRef};
+pub use gltf::json::mesh::{
+    Mode,
+    Semantic,
+};
+use petgraph::{
+    Direction,
+    graph::NodeIndex,
+    visit::EdgeRef,
+};
 
-use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
-
-use super::{GltfEdge, GltfWeight, Mesh, accessor::Accessor, material::Material, mesh::MeshEdge};
-
-pub use gltf::json::mesh::{Mode, Semantic};
+use super::{
+    GltfEdge,
+    GltfWeight,
+    Mesh,
+    accessor::Accessor,
+    material::Material,
+    mesh::MeshEdge,
+};
+use crate::graph::{
+    Edge,
+    Extensions,
+    Graph,
+    GraphNodeEdges,
+    GraphNodeWeight,
+    Weight,
+};
 
 mod morph_target;
 
@@ -37,14 +56,14 @@ impl From<PrimitiveEdge> for Edge {
 #[derive(Clone, Debug)]
 pub struct PrimitiveWeight {
     pub extras: gltf::json::Extras,
-    pub mode: Mode,
+    pub mode:   Mode,
 }
 
 impl Default for PrimitiveWeight {
     fn default() -> Self {
         Self {
             extras: None,
-            mode: Mode::Triangles,
+            mode:   Mode::Triangles,
         }
     }
 }

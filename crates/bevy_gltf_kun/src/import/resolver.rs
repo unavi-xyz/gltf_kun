@@ -1,5 +1,8 @@
 use bevy::asset::LoadContext;
-use gltf_kun::io::resolver::{Resolver, ResolverError};
+use gltf_kun::io::resolver::{
+    Resolver,
+    ResolverError,
+};
 
 pub struct BevyAssetResolver<'a, 'b> {
     pub load_context: &'a mut LoadContext<'b>,

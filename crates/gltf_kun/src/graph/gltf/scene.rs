@@ -1,8 +1,18 @@
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
-
-use super::{GltfEdge, GltfWeight, node::Node};
+use super::{
+    GltfEdge,
+    GltfWeight,
+    node::Node,
+};
+use crate::graph::{
+    Edge,
+    Extensions,
+    Graph,
+    GraphNodeEdges,
+    GraphNodeWeight,
+    Weight,
+};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SceneEdge {
@@ -27,7 +37,7 @@ impl From<SceneEdge> for Edge {
 
 #[derive(Clone, Debug, Default)]
 pub struct SceneWeight {
-    pub name: Option<String>,
+    pub name:   Option<String>,
     pub extras: gltf::json::Extras,
 }
 

@@ -1,16 +1,32 @@
-use std::{borrow::Cow, collections::HashMap, path::Path};
-
-use petgraph::{Direction, visit::EdgeRef};
-use thiserror::Error;
-
-use crate::{
-    extensions::{ExtensionExport, ExtensionImport},
-    graph::{Graph, gltf::document::GltfDocument},
-    io::resolver::DataUriResolver,
+use std::{
+    borrow::Cow,
+    collections::HashMap,
+    path::Path,
 };
 
+use petgraph::{
+    Direction,
+    visit::EdgeRef,
+};
+use thiserror::Error;
+
 use super::gltf::{
-    GltfExport, GltfFormat, GltfImport, export::GltfExportError, import::GltfImportError,
+    GltfExport,
+    GltfFormat,
+    GltfImport,
+    export::GltfExportError,
+    import::GltfImportError,
+};
+use crate::{
+    extensions::{
+        ExtensionExport,
+        ExtensionImport,
+    },
+    graph::{
+        Graph,
+        gltf::document::GltfDocument,
+    },
+    io::resolver::DataUriResolver,
 };
 
 #[derive(Default)]
@@ -116,13 +132,13 @@ where
 
         let glb = gltf::Glb {
             header: gltf::binary::Header {
-                magic: *b"glTF",
+                magic:   *b"glTF",
                 version: 2,
                 // Set automatically when serialized.
-                length: 0,
+                length:  0,
             },
-            json: Cow::Owned(json_bin),
-            bin: bin.map(Into::into),
+            json:   Cow::Owned(json_bin),
+            bin:    bin.map(Into::into),
         };
 
         let bytes = glb.to_vec()?;
@@ -176,9 +192,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use crate::{extensions::DefaultExtensions, graph::GraphNodeWeight};
-
     use super::*;
+    use crate::{
+        extensions::DefaultExtensions,
+        graph::GraphNodeWeight,
+    };
 
     #[tokio::test]
     async fn test_multiple_buffers() {

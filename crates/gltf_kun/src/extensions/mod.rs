@@ -7,14 +7,16 @@ use std::error::Error;
 use petgraph::graph::NodeIndex;
 
 use crate::{
-    graph::{Graph, Weight, gltf::document::GltfDocument},
+    graph::{
+        Graph,
+        Weight,
+        gltf::document::GltfDocument,
+    },
     io::format::gltf::GltfFormat,
 };
 
-#[cfg(feature = "omi_physics")]
-pub mod omi_physics_body;
-#[cfg(feature = "omi_physics")]
-pub mod omi_physics_shape;
+#[cfg(feature = "omi_physics")] pub mod omi_physics_body;
+#[cfg(feature = "omi_physics")] pub mod omi_physics_shape;
 
 pub trait Extension: Copy + Sized + Into<NodeIndex> + From<NodeIndex> {
     fn name() -> &'static str;

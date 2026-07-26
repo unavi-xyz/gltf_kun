@@ -1,10 +1,17 @@
-use base64::engine::{Engine, general_purpose::STANDARD};
+use base64::engine::{
+    Engine,
+    general_purpose::STANDARD,
+};
 
-use super::{Resolver, ResolverError};
+use super::{
+    Resolver,
+    ResolverError,
+};
 
 pub struct DataUriResolver;
 
 impl Resolver for DataUriResolver {
+    #[expect(clippy::unused_async_trait_impl)]
     async fn resolve(&mut self, uri: &str) -> Result<Vec<u8>, ResolverError> {
         let uri = uri.to_string();
 

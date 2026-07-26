@@ -1,33 +1,59 @@
 use std::marker::PhantomData;
 
 use bevy::{
-    asset::{AssetLoadError, AssetLoader, LoadContext, ReadAssetBytesError, io::Reader},
+    asset::{
+        AssetLoadError,
+        AssetLoader,
+        LoadContext,
+        ReadAssetBytesError,
+        io::Reader,
+    },
     platform::collections::HashMap,
     prelude::*,
 };
 use gltf_kun::{
     extensions::ExtensionImport,
-    graph::{Graph, gltf::GltfDocument},
+    graph::{
+        Graph,
+        gltf::GltfDocument,
+    },
     io::format::{
-        glb::{GlbImport, GlbImportError},
-        gltf::{GltfFormat, GltfImport, import::GltfImportError},
+        glb::{
+            GlbImport,
+            GlbImportError,
+        },
+        gltf::{
+            GltfFormat,
+            GltfImport,
+            import::GltfImportError,
+        },
     },
 };
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 use thiserror::Error;
-
-use crate::import::{extensions::BevyExtensionImport, resolver::BevyAssetResolver};
 
 use super::{
     GltfKun,
-    document::{DocumentImportError, ImportContext, import_gltf_document},
+    document::{
+        DocumentImportError,
+        ImportContext,
+        import_gltf_document,
+    },
+};
+use crate::import::{
+    extensions::BevyExtensionImport,
+    resolver::BevyAssetResolver,
 };
 
 /// Settings for loading GLTF/GLB files.
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct GltfLoaderSettings {
-    /// Whether to expose raw animation curves for retargeting and custom processing.
-    /// When true, creates `RawGltfAnimation` assets alongside the normal `AnimationClip` assets.
+    /// Whether to expose raw animation curves for retargeting and custom
+    /// processing. When true, creates `RawGltfAnimation` assets alongside
+    /// the normal `AnimationClip` assets.
     pub expose_raw_animation_curves: bool,
 }
 
@@ -102,7 +128,7 @@ where
             let mut graph = Graph::default();
 
             let format = GltfFormat {
-                json: serde_json::from_slice(&bytes)?,
+                json:      serde_json::from_slice(&bytes)?,
                 resources: std::collections::HashMap::new(),
             };
             let resolver = BevyAssetResolver { load_context };

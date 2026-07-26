@@ -1,9 +1,14 @@
 use bevy::prelude::*;
-use gltf_kun::graph::{GraphNodeWeight, gltf::node};
+use gltf_kun::graph::{
+    GraphNodeWeight,
+    gltf::node,
+};
 
+use super::{
+    CachedNode,
+    ExportContext,
+};
 use crate::import::gltf::node::node_label;
-
-use super::{CachedNode, ExportContext};
 
 #[must_use]
 pub fn export_nodes(
@@ -27,7 +32,8 @@ pub fn export_nodes(
 
             if transform == &Transform::default() && name.is_none() {
                 // Assume this is an empty root node, and skip it.
-                // This is a bit of a hack, but helps keep consistency between import and export.
+                // This is a bit of a hack, but helps keep consistency between import and
+                // export.
                 debug!("Skipping empty root node");
 
                 let Some(grandchildren) = grandchildren else {
@@ -74,8 +80,8 @@ fn export_node(
         let generated_name = node_label(end_num);
 
         // If the name is a generated node name, don't export it.
-        // This may catch false positives, but particularly around animations it can lead to
-        // conflicting names upon re-import.
+        // This may catch false positives, but particularly around animations it can
+        // lead to conflicting names upon re-import.
         if name.to_string() != generated_name {
             weight.name = Some(name.to_string());
         }

@@ -1,13 +1,22 @@
+pub use gltf::animation::Property as TargetPath;
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{
-    Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight,
-    gltf::{GltfEdge, Node},
+use super::{
+    AnimationSampler,
+    GltfWeight,
 };
-
-use super::{AnimationSampler, GltfWeight};
-
-pub use gltf::animation::Property as TargetPath;
+use crate::graph::{
+    Edge,
+    Extensions,
+    Graph,
+    GraphNodeEdges,
+    GraphNodeWeight,
+    Weight,
+    gltf::{
+        GltfEdge,
+        Node,
+    },
+};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum AnimationChannelEdge {
@@ -34,14 +43,14 @@ impl From<AnimationChannelEdge> for Edge {
 #[derive(Clone, Debug)]
 pub struct AnimationChannelWeight {
     pub extras: gltf::json::Extras,
-    pub path: TargetPath,
+    pub path:   TargetPath,
 }
 
 impl Default for AnimationChannelWeight {
     fn default() -> Self {
         Self {
             extras: None,
-            path: TargetPath::Translation,
+            path:   TargetPath::Translation,
         }
     }
 }

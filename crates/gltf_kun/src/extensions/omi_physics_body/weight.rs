@@ -1,4 +1,7 @@
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 pub struct OmiPhysicsBodyWeight {
@@ -9,38 +12,38 @@ pub struct OmiPhysicsBodyWeight {
 pub struct Motion {
     /// The type of the physics body.
     #[serde(rename = "type")]
-    pub typ: BodyType,
+    pub typ:                 BodyType,
     /// The mass of the physics body in kilograms.
     #[serde(default, skip_serializing_if = "is_default_mass")]
-    pub mass: Mass,
+    pub mass:                Mass,
     /// The initial linear velocity of the body in meters per second.
     #[serde(
         default,
         rename = "linearVelocity",
         skip_serializing_if = "slice_is_zero"
     )]
-    pub linear_velocity: [f32; 3],
+    pub linear_velocity:     [f32; 3],
     /// The initial angular velocity of the body in radians per second.
     #[serde(
         default,
         rename = "angularVelocity",
         skip_serializing_if = "slice_is_zero"
     )]
-    pub angular_velocity: [f32; 3],
+    pub angular_velocity:    [f32; 3],
     /// The center of mass offset from the origin in meters.
     #[serde(
         default,
         rename = "centerOfMass",
         skip_serializing_if = "slice_is_zero"
     )]
-    pub center_of_mass: [f32; 3],
+    pub center_of_mass:      [f32; 3],
     /// The inertia around principle axes in kilogram meter squared (kg⋅m²).
     #[serde(
         default,
         rename = "inertialDiagonal",
         skip_serializing_if = "slice_is_zero"
     )]
-    pub intertial_diagonal: [f32; 3],
+    pub intertial_diagonal:  [f32; 3],
     /// The inertia orientation as a Quaternion.
     #[serde(
         default,
@@ -135,7 +138,7 @@ fn slice_is_zero(slice: &[f32]) -> bool {
 mod tests {
     use super::*;
 
-    const EPSILON: f32 = 1e-5;
+    const EPSILON: f32 = 1.0e-5;
 
     #[test]
     fn default_mass() {

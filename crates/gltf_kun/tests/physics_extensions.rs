@@ -2,15 +2,31 @@ use std::path::Path;
 
 use gltf_kun::{
     extensions::{
-        DefaultExtensions, Extension,
-        omi_physics_body::{OmiPhysicsBody, weight::BodyType},
+        DefaultExtensions,
+        Extension,
+        omi_physics_body::{
+            OmiPhysicsBody,
+            weight::BodyType,
+        },
         omi_physics_shape::{
             OmiPhysicsShape,
-            physics_shape::{BoxShape, PhysicsShapeWeight, Size},
+            physics_shape::{
+                BoxShape,
+                PhysicsShapeWeight,
+                Size,
+            },
         },
     },
-    graph::{ByteNode, Extensions, Graph, gltf::document::GltfDocument},
-    io::format::gltf::{GltfExport, GltfImport},
+    graph::{
+        ByteNode,
+        Extensions,
+        Graph,
+        gltf::document::GltfDocument,
+    },
+    io::format::gltf::{
+        GltfExport,
+        GltfImport,
+    },
 };
 use tracing_test::traced_test;
 

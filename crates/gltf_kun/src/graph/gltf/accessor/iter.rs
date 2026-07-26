@@ -1,7 +1,13 @@
 use std::marker::PhantomData;
 
-use byteorder::{ByteOrder, LE};
-use gltf::json::accessor::{ComponentType, Type};
+use byteorder::{
+    ByteOrder,
+    LE,
+};
+use gltf::json::accessor::{
+    ComponentType,
+    Type,
+};
 use thiserror::Error;
 
 #[derive(Copy, Clone, Debug)]
@@ -548,8 +554,8 @@ impl From<[i8; 4]> for AccessorElement {
 #[derive(Copy, Clone, Debug)]
 pub struct ElementIter<'a, T: Element> {
     pub normalized: bool,
-    pub slice: &'a [u8],
-    pub _phantom: PhantomData<T>,
+    pub slice:      &'a [u8],
+    pub _phantom:   PhantomData<T>,
 }
 
 impl<T: Element> Iterator for ElementIter<'_, T> {

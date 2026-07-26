@@ -2,8 +2,13 @@ use bevy::mesh::VertexAttributeValues;
 use gltf_kun::graph::{
     Graph,
     gltf::accessor::{
-        Accessor, ComponentType, Type,
-        iter::{AccessorIter, AccessorIterCreateError},
+        Accessor,
+        ComponentType,
+        Type,
+        iter::{
+            AccessorIter,
+            AccessorIterCreateError,
+        },
     },
 };
 use thiserror::Error;

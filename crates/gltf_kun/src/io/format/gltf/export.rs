@@ -1,30 +1,50 @@
-use std::collections::{BTreeMap, HashMap};
+use std::collections::{
+    BTreeMap,
+    HashMap,
+};
 
-use bevy_math::{Quat, Vec3};
+use bevy_math::{
+    Quat,
+    Vec3,
+};
 use gltf::json::{
     Index,
     accessor::GenericComponentType,
     animation::Target,
     image::MimeType,
     material::{
-        EmissiveFactor, NormalTexture, OcclusionTexture, PbrBaseColorFactor, PbrMetallicRoughness,
+        EmissiveFactor,
+        NormalTexture,
+        OcclusionTexture,
+        PbrBaseColorFactor,
+        PbrMetallicRoughness,
         StrengthFactor,
     },
     scene::UnitQuaternion,
     texture::Info,
-    validation::{Checked, USize64},
+    validation::{
+        Checked,
+        USize64,
+    },
 };
 use petgraph::graph::NodeIndex;
-use serde_json::{Number, Value};
+use serde_json::{
+    Number,
+    Value,
+};
 use thiserror::Error;
 use tracing::warn;
 
-use crate::graph::{
-    Graph, GraphNodeWeight,
-    gltf::{Buffer, GltfDocument, accessor::iter::AccessorElement},
-};
-
 use super::GltfFormat;
+use crate::graph::{
+    Graph,
+    GraphNodeWeight,
+    gltf::{
+        Buffer,
+        GltfDocument,
+        accessor::iter::AccessorElement,
+    },
+};
 
 #[derive(Debug, Error)]
 pub enum GltfExportError {}
@@ -133,18 +153,18 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 
             gltf::json::accessor::Accessor {
                 extensions: None,
-                extras: weight.extras.clone(),
-                name: weight.name.clone(),
+                extras:     weight.extras.clone(),
+                name:       weight.name.clone(),
 
-                buffer_view: Some(Index::new(buffer_view_idx as u32)),
-                byte_offset: None,
+                buffer_view:    Some(Index::new(buffer_view_idx as u32)),
+                byte_offset:    None,
                 component_type: Checked::Valid(GenericComponentType(weight.component_type)),
-                count: count.into(),
-                max: Some(max_value),
-                min: Some(min_value),
-                normalized: weight.normalized,
-                sparse: None,
-                type_: Checked::Valid(weight.element_type),
+                count:          count.into(),
+                max:            Some(max_value),
+                min:            Some(min_value),
+                normalized:     weight.normalized,
+                sparse:         None,
+                type_:          Checked::Valid(weight.element_type),
             }
         })
         .collect::<Vec<_>>();
@@ -162,12 +182,12 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 
             let mut json_img = gltf::json::image::Image {
                 extensions: None,
-                extras: weight.extras,
-                name: weight.name,
+                extras:     weight.extras,
+                name:       weight.name,
 
-                uri: None,
+                uri:         None,
                 buffer_view: None,
-                mime_type: mime_type.clone(),
+                mime_type:   mime_type.clone(),
             };
 
             if let Some(buffer) = image.buffer(graph) {
@@ -243,22 +263,22 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
             let sampler_idx = json.samplers.len();
             json.samplers.push(gltf::json::texture::Sampler {
                 extensions: None,
-                extras: weight.extras.clone(),
-                name: weight.name.clone(),
+                extras:     weight.extras.clone(),
+                name:       weight.name.clone(),
 
                 mag_filter: weight.mag_filter.map(Checked::Valid),
                 min_filter: weight.min_filter.map(Checked::Valid),
-                wrap_s: Checked::Valid(weight.wrap_s),
-                wrap_t: Checked::Valid(weight.wrap_t),
+                wrap_s:     Checked::Valid(weight.wrap_s),
+                wrap_t:     Checked::Valid(weight.wrap_t),
             });
 
             gltf::json::texture::Texture {
                 extensions: None,
-                extras: weight.extras.clone(),
-                name: weight.name.clone(),
+                extras:     weight.extras.clone(),
+                name:       weight.name.clone(),
 
                 sampler: Some(Index::new(sampler_idx as u32)),
-                source: image,
+                source:  image,
             }
         })
         .collect::<Vec<_>>();
@@ -275,66 +295,66 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 
             let base_color_texture = material.base_color_texture(graph).map(|t| Info {
                 extensions: None,
-                extras: None,
-                index: Index::new(
+                extras:     None,
+                index:      Index::new(
                     doc.textures(graph)
                         .iter()
                         .position(|tex| tex.0 == t.0)
                         .expect("value should exist in collection") as u32,
                 ),
-                tex_coord: weight.base_color_tex_coord as u32,
+                tex_coord:  weight.base_color_tex_coord as u32,
             });
 
             let metallic_roughness_texture =
                 material.metallic_roughness_texture(graph).map(|t| Info {
                     extensions: None,
-                    extras: None,
-                    index: Index::new(
+                    extras:     None,
+                    index:      Index::new(
                         doc.textures(graph)
                             .iter()
                             .position(|tex| tex.0 == t.0)
                             .expect("value should exist in collection")
                             as u32,
                     ),
-                    tex_coord: weight.metallic_roughness_tex_coord as u32,
+                    tex_coord:  weight.metallic_roughness_tex_coord as u32,
                 });
 
             let normal_texture = material.normal_texture(graph).map(|t| NormalTexture {
                 extensions: None,
-                extras: None,
-                index: Index::new(
+                extras:     None,
+                index:      Index::new(
                     doc.textures(graph)
                         .iter()
                         .position(|tex| tex.0 == t.0)
                         .expect("value should exist in collection") as u32,
                 ),
-                tex_coord: weight.normal_tex_coord as u32,
-                scale: weight.normal_scale,
+                tex_coord:  weight.normal_tex_coord as u32,
+                scale:      weight.normal_scale,
             });
 
             let occlusion_texture = material.occlusion_texture(graph).map(|t| OcclusionTexture {
                 extensions: None,
-                extras: None,
-                index: Index::new(
+                extras:     None,
+                index:      Index::new(
                     doc.textures(graph)
                         .iter()
                         .position(|tex| tex.0 == t.0)
                         .expect("value should exist in collection") as u32,
                 ),
-                tex_coord: weight.occlusion_tex_coord as u32,
-                strength: StrengthFactor(weight.occlusion_strength),
+                tex_coord:  weight.occlusion_tex_coord as u32,
+                strength:   StrengthFactor(weight.occlusion_strength),
             });
 
             let emissive_texture = material.emissive_texture(graph).map(|t| Info {
                 extensions: None,
-                extras: None,
-                index: Index::new(
+                extras:     None,
+                index:      Index::new(
                     doc.textures(graph)
                         .iter()
                         .position(|tex| tex.0 == t.0)
                         .expect("value should exist in collection") as u32,
                 ),
-                tex_coord: weight.emissive_tex_coord as u32,
+                tex_coord:  weight.emissive_tex_coord as u32,
             });
 
             gltf::json::material::Material {
@@ -611,12 +631,12 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 
                         Some(gltf::json::animation::Channel {
                             extensions: None,
-                            extras: weight.extras.clone(),
+                            extras:     weight.extras.clone(),
 
                             sampler: Index::new(sampler_index as u32),
-                            target: Target {
+                            target:  Target {
                                 extensions: None,
-                                extras: None,
+                                extras:     None,
 
                                 node: Index::new(*node_idx as u32),
                                 path: Checked::Valid(weight.path),
@@ -649,11 +669,11 @@ pub fn export(graph: &mut Graph, doc: &GltfDocument) -> Result<GltfFormat, GltfE
 
                         Some(gltf::json::animation::Sampler {
                             extensions: None,
-                            extras: weight.extras.clone(),
+                            extras:     weight.extras.clone(),
 
-                            input: Index::new(*input_idx as u32),
+                            input:         Index::new(*input_idx as u32),
                             interpolation: Checked::Valid(weight.interpolation),
-                            output: Index::new(*output_idx as u32),
+                            output:        Index::new(*output_idx as u32),
                         })
                     })
                     .collect::<Vec<_>>();
@@ -695,14 +715,14 @@ fn create_buffer_view(
 
     let buffer_view = gltf::json::buffer::View {
         extensions: None,
-        extras: None,
-        name: None,
+        extras:     None,
+        name:       None,
 
-        buffer: Index::new(*buffer_idx as u32),
+        buffer:      Index::new(*buffer_idx as u32),
         byte_length: byte_length.into(),
         byte_offset: Some(buffer_json.byte_length),
         byte_stride: None,
-        target: None,
+        target:      None,
     };
 
     buffer_json.byte_length = USize64(buffer_json.byte_length.0 + byte_length as u64);
@@ -815,11 +835,18 @@ impl From<AccessorElement> for Value {
 mod tests {
     use tracing_test::traced_test;
 
-    use crate::graph::gltf::{
-        Accessor, Buffer, Image, Material, Mesh, Node, Primitive, Scene, Texture,
-    };
-
     use super::*;
+    use crate::graph::gltf::{
+        Accessor,
+        Buffer,
+        Image,
+        Material,
+        Mesh,
+        Node,
+        Primitive,
+        Scene,
+        Texture,
+    };
 
     #[traced_test]
     #[test]

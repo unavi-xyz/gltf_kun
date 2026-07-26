@@ -1,22 +1,41 @@
-use std::{collections::HashMap, fs::File, io::BufWriter, path::Path};
-
-use thiserror::Error;
-use tracing::{debug, warn};
-
-use crate::{
-    extensions::{ExtensionExport, ExtensionImport},
-    graph::{Graph, gltf::document::GltfDocument},
-    io::resolver::{FileResolver, Resolver},
+use std::{
+    collections::HashMap,
+    fs::File,
+    io::BufWriter,
+    path::Path,
 };
 
-use self::{export::GltfExportError, import::GltfImportError};
+use thiserror::Error;
+use tracing::{
+    debug,
+    warn,
+};
+
+use self::{
+    export::GltfExportError,
+    import::GltfImportError,
+};
+use crate::{
+    extensions::{
+        ExtensionExport,
+        ExtensionImport,
+    },
+    graph::{
+        Graph,
+        gltf::document::GltfDocument,
+    },
+    io::resolver::{
+        FileResolver,
+        Resolver,
+    },
+};
 
 pub mod export;
 pub mod import;
 
 #[derive(Debug, Default)]
 pub struct GltfFormat {
-    pub json: gltf::json::Root,
+    pub json:      gltf::json::Root,
     pub resources: HashMap<String, Vec<u8>>,
 }
 

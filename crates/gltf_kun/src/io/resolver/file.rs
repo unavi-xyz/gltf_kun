@@ -1,6 +1,13 @@
-use std::{fs::File, io::Read, path::PathBuf};
+use std::{
+    fs::File,
+    io::Read,
+    path::PathBuf,
+};
 
-use super::{Resolver, ResolverError};
+use super::{
+    Resolver,
+    ResolverError,
+};
 
 pub struct FileResolver {
     root: PathBuf,
@@ -13,6 +20,7 @@ impl FileResolver {
 }
 
 impl Resolver for FileResolver {
+    #[expect(clippy::unused_async_trait_impl)]
     async fn resolve(&mut self, uri: &str) -> Result<Vec<u8>, ResolverError> {
         let path = self.root.join(uri);
 

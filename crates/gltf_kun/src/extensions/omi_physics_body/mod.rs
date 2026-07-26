@@ -4,13 +4,21 @@
 use std::fmt::Display;
 
 use petgraph::graph::NodeIndex;
-use serde::{Deserialize, Serialize};
-
-use crate::graph::{ByteNode, Graph, OtherEdgeHelpers};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 
 use self::weight::OmiPhysicsBodyWeight;
-
-use super::{Extension, omi_physics_shape::physics_shape::PhysicsShape};
+use super::{
+    Extension,
+    omi_physics_shape::physics_shape::PhysicsShape,
+};
+use crate::graph::{
+    ByteNode,
+    Graph,
+    OtherEdgeHelpers,
+};
 
 pub mod export;
 pub mod import;

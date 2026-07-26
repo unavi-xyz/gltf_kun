@@ -1,10 +1,17 @@
 use petgraph::{
     Direction,
-    stable_graph::{EdgeReference, NodeIndex},
+    stable_graph::{
+        EdgeReference,
+        NodeIndex,
+    },
     visit::EdgeRef,
 };
 
-use super::{Edge, Graph, Weight};
+use super::{
+    Edge,
+    Graph,
+    Weight,
+};
 
 /// A node in the graph with a weight.
 pub trait GraphNodeWeight<W>: Copy + Into<NodeIndex> + From<NodeIndex>

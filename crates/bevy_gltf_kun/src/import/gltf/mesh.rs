@@ -1,20 +1,25 @@
 use bevy::prelude::*;
 use gltf_kun::graph::{
     GraphNodeWeight,
-    gltf::{self, GltfDocument},
+    gltf::{
+        self,
+        GltfDocument,
+    },
 };
-
-use crate::import::extensions::BevyExtensionImport;
 
 use super::{
     document::ImportContext,
-    primitive::{GltfPrimitive, import_primitive},
+    primitive::{
+        GltfPrimitive,
+        import_primitive,
+    },
 };
+use crate::import::extensions::BevyExtensionImport;
 
 #[derive(Asset, Debug, TypePath)]
 pub struct GltfMesh {
     pub primitives: Vec<GltfPrimitive>,
-    pub extras: Option<Box<serde_json::value::RawValue>>,
+    pub extras:     Option<Box<serde_json::value::RawValue>>,
 }
 
 pub fn import_mesh<E: BevyExtensionImport<GltfDocument>>(

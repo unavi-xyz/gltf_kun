@@ -1,9 +1,7 @@
 use bevy::prelude::*;
-
 pub use gltf_kun::extensions::DefaultExtensions;
 
-#[cfg(feature = "omi_physics")]
-pub mod omi_physics;
+#[cfg(feature = "omi_physics")] pub mod omi_physics;
 
 /// Adds support for extensions.
 pub struct ExtensionsPlugin;

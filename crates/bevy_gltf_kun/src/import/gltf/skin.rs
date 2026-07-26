@@ -1,9 +1,16 @@
-use bevy::{mesh::skinning::SkinnedMeshInverseBindposes, prelude::*};
+use bevy::{
+    mesh::skinning::SkinnedMeshInverseBindposes,
+    prelude::*,
+};
 use gltf_kun::graph::gltf::{
     Skin,
     accessor::{
-        ComponentType, Type,
-        iter::{AccessorIter, AccessorIterCreateError},
+        ComponentType,
+        Type,
+        iter::{
+            AccessorIter,
+            AccessorIterCreateError,
+        },
     },
 };
 use thiserror::Error;

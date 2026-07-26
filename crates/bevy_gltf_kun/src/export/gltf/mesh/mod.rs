@@ -1,12 +1,17 @@
 use bevy::prelude::*;
 use gltf_kun::graph::{
     GraphNodeWeight,
-    gltf::{Primitive, node},
+    gltf::{
+        Primitive,
+        node,
+    },
 };
 
 use self::primitive::export_primitive;
-
-use super::{CachedMesh, ExportContext};
+use super::{
+    CachedMesh,
+    ExportContext,
+};
 
 mod primitive;
 mod vertex_to_accessor;

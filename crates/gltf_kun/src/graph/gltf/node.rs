@@ -1,10 +1,23 @@
+pub use bevy_math::{
+    Quat,
+    Vec3,
+};
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
-
-use super::{GltfEdge, GltfWeight, Skin, mesh::Mesh};
-
-pub use bevy_math::{Quat, Vec3};
+use super::{
+    GltfEdge,
+    GltfWeight,
+    Skin,
+    mesh::Mesh,
+};
+use crate::graph::{
+    Edge,
+    Extensions,
+    Graph,
+    GraphNodeEdges,
+    GraphNodeWeight,
+    Weight,
+};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum NodeEdge {
@@ -31,25 +44,25 @@ impl From<NodeEdge> for Edge {
 
 #[derive(Clone, Debug)]
 pub struct NodeWeight {
-    pub name: Option<String>,
+    pub name:   Option<String>,
     pub extras: gltf::json::Extras,
 
-    pub rotation: Quat,
-    pub scale: Vec3,
+    pub rotation:    Quat,
+    pub scale:       Vec3,
     pub translation: Vec3,
-    pub weights: Vec<f32>,
+    pub weights:     Vec<f32>,
 }
 
 impl Default for NodeWeight {
     fn default() -> Self {
         Self {
-            name: None,
+            name:   None,
             extras: None,
 
-            rotation: Quat::IDENTITY,
-            scale: Vec3::ONE,
+            rotation:    Quat::IDENTITY,
+            scale:       Vec3::ONE,
             translation: Vec3::ZERO,
-            weights: Vec::new(),
+            weights:     Vec::new(),
         }
     }
 }

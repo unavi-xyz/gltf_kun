@@ -1,20 +1,37 @@
-use bevy_math::{Mat4, Quat, Vec3};
+use bevy_math::{
+    Mat4,
+    Quat,
+    Vec3,
+};
 use gltf::{
     Semantic,
-    json::{Index, validation::Checked},
+    json::{
+        Index,
+        validation::Checked,
+    },
 };
 use thiserror::Error;
-use tracing::{debug, warn};
-
-use crate::{
-    graph::{
-        Graph, GraphNodeWeight,
-        gltf::{Accessor, animation::AnimationSampler, document::GltfDocument},
-    },
-    io::resolver::{DataUriResolver, Resolver},
+use tracing::{
+    debug,
+    warn,
 };
 
 use super::GltfFormat;
+use crate::{
+    graph::{
+        Graph,
+        GraphNodeWeight,
+        gltf::{
+            Accessor,
+            animation::AnimationSampler,
+            document::GltfDocument,
+        },
+    },
+    io::resolver::{
+        DataUriResolver,
+        Resolver,
+    },
+};
 
 #[derive(Debug, Error)]
 pub enum GltfImportError {
@@ -742,7 +759,12 @@ fn guess_mime_type(uri: &str) -> Option<&'static str> {
 mod tests {
     use std::collections::BTreeMap;
 
-    use gltf::json::{self, Index, texture::Info, validation::USize64};
+    use gltf::json::{
+        self,
+        Index,
+        texture::Info,
+        validation::USize64,
+    };
     use tracing_test::traced_test;
 
     use super::*;
@@ -754,66 +776,66 @@ mod tests {
         let mut json = json::Root::default();
 
         json.buffers.push(json::buffer::Buffer {
-            name: Some("MyBuffer".to_string()),
+            name:        Some("MyBuffer".to_string()),
             byte_length: USize64(0),
-            uri: None,
-            extensions: None,
-            extras: None,
+            uri:         None,
+            extensions:  None,
+            extras:      None,
         });
 
         json.buffer_views.push(json::buffer::View {
-            name: Some("MyBufferView".to_string()),
-            buffer: Index::new(0),
+            name:        Some("MyBufferView".to_string()),
+            buffer:      Index::new(0),
             byte_length: USize64(0),
             byte_offset: None,
             byte_stride: None,
-            target: None,
-            extensions: None,
-            extras: None,
+            target:      None,
+            extensions:  None,
+            extras:      None,
         });
 
         json.accessors.push(json::accessor::Accessor {
-            name: Some("MyAccessor".to_string()),
-            buffer_view: Some(Index::new(0)),
-            byte_offset: None,
+            name:           Some("MyAccessor".to_string()),
+            buffer_view:    Some(Index::new(0)),
+            byte_offset:    None,
             component_type: Checked::Valid(json::accessor::GenericComponentType(
                 json::accessor::ComponentType::U8,
             )),
-            count: USize64(0),
-            extensions: None,
-            extras: None,
-            max: None,
-            min: None,
-            normalized: false,
-            sparse: None,
-            type_: Checked::Valid(json::accessor::Type::Scalar),
+            count:          USize64(0),
+            extensions:     None,
+            extras:         None,
+            max:            None,
+            min:            None,
+            normalized:     false,
+            sparse:         None,
+            type_:          Checked::Valid(json::accessor::Type::Scalar),
         });
 
         json.images.push(json::image::Image {
-            name: Some("MyImage".to_string()),
-            uri: None,
+            name:        Some("MyImage".to_string()),
+            uri:         None,
             buffer_view: Some(Index::new(0)),
-            mime_type: None,
-            extensions: None,
-            extras: None,
+            mime_type:   None,
+            extensions:  None,
+            extras:      None,
         });
 
         json.textures.push(json::texture::Texture {
-            name: Some("MyTexture".to_string()),
+            name:       Some("MyTexture".to_string()),
             extensions: None,
-            extras: None,
-            sampler: None,
-            source: Index::new(0),
+            extras:     None,
+            sampler:    None,
+            source:     Index::new(0),
         });
 
         json.materials.push(json::material::Material {
             name: Some("MyMaterial".to_string()),
             pbr_metallic_roughness: json::material::PbrMetallicRoughness {
                 base_color_texture: Some(Info {
-                    index: Index::new(0),
-                    tex_coord: 0,
+                    index:      Index::new(0),
+                    tex_coord:  0,
                     extensions: None,
-                    extras: None,
+                    extras:     None,
                 }),
                 ..Default::default()
             },
@@ -821,40 +843,40 @@ mod tests {
         });
 
         json.meshes.push(json::mesh::Mesh {
-            name: Some("MyMesh".to_string()),
+            name:       Some("MyMesh".to_string()),
             primitives: vec![json::mesh::Primitive {
                 attributes: BTreeMap::default(),
                 extensions: None,
-                extras: None,
-                indices: None,
-                material: Some(Index::new(0)),
-                mode: Checked::Valid(json::mesh::Mode::Triangles),
-                targets: None,
+                extras:     None,
+                indices:    None,
+                material:   Some(Index::new(0)),
+                mode:       Checked::Valid(json::mesh::Mode::Triangles),
+                targets:    None,
             }],
-            weights: None,
+            weights:    None,
             extensions: None,
-            extras: None,
+            extras:     None,
         });
 
         json.nodes.push(json::scene::Node {
-            name: Some("MyNode".to_string()),
-            mesh: Some(Index::new(0)),
-            camera: None,
-            children: None,
-            skin: None,
-            matrix: None,
-            rotation: None,
-            scale: None,
+            name:        Some("MyNode".to_string()),
+            mesh:        Some(Index::new(0)),
+            camera:      None,
+            children:    None,
+            skin:        None,
+            matrix:      None,
+            rotation:    None,
+            scale:       None,
             translation: None,
-            weights: None,
-            extensions: None,
-            extras: None,
+            weights:     None,
+            extensions:  None,
+            extras:      None,
         });
 
         json.scenes.push(json::scene::Scene {
-            name: Some("MyScene".to_string()),
-            nodes: vec![Index::new(0)],
-            extras: None,
+            name:       Some("MyScene".to_string()),
+            nodes:      vec![Index::new(0)],
+            extras:     None,
             extensions: None,
         });
 

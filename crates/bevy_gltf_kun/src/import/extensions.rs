@@ -1,9 +1,18 @@
 use bevy::prelude::*;
 use gltf_kun::{
-    extensions::{DefaultExtensions, Extension},
+    extensions::{
+        DefaultExtensions,
+        Extension,
+    },
     graph::{
         Extensions,
-        gltf::{GltfDocument, Material, Node, Primitive, Scene},
+        gltf::{
+            GltfDocument,
+            Material,
+            Node,
+            Primitive,
+            Scene,
+        },
     },
 };
 
@@ -17,7 +26,8 @@ pub trait NodeExtensionImport<D>: Extension {
     }
 
     /// Hook for nodes with this extension.
-    /// Called while the tree is being traversed, so the node's children may not have been imported yet.
+    /// Called while the tree is being traversed, so the node's children may not
+    /// have been imported yet.
     fn import_node(context: &mut ImportContext, entity: &mut EntityWorldMut, ext: Self);
 }
 

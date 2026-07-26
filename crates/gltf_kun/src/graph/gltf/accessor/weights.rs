@@ -1,6 +1,9 @@
 use std::marker::PhantomData;
 
-use super::{iter::ElementIter, normalize::Normalize};
+use super::{
+    iter::ElementIter,
+    normalize::Normalize,
+};
 
 /// Weights.
 #[derive(Clone, Debug)]

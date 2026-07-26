@@ -1,10 +1,15 @@
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{
-    Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight, gltf::GltfEdge,
-};
-
 use super::GltfWeight;
+use crate::graph::{
+    Edge,
+    Extensions,
+    Graph,
+    GraphNodeEdges,
+    GraphNodeWeight,
+    Weight,
+    gltf::GltfEdge,
+};
 
 mod channel;
 mod sampler;
@@ -35,7 +40,7 @@ impl From<AnimationEdge> for Edge {
 
 #[derive(Clone, Debug, Default)]
 pub struct AnimationWeight {
-    pub name: Option<String>,
+    pub name:   Option<String>,
     pub extras: gltf::json::Extras,
 }
 

@@ -1,7 +1,14 @@
 use petgraph::graph::NodeIndex;
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 
-use crate::graph::{ByteNode, Graph, Weight};
+use crate::graph::{
+    ByteNode,
+    Graph,
+    Weight,
+};
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum PhysicsShapeWeight {

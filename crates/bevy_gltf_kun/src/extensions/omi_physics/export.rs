@@ -1,22 +1,44 @@
-use avian3d::{parry::shape::ShapeType, prelude::*};
-use bevy::{ecs::system::RunSystemOnce, prelude::*};
+use avian3d::{
+    parry::shape::ShapeType,
+    prelude::*,
+};
+use bevy::{
+    ecs::system::RunSystemOnce,
+    prelude::*,
+};
 use gltf_kun::{
     extensions::{
         omi_physics_body::{
             OmiPhysicsBody,
-            weight::{BodyType, Motion},
+            weight::{
+                BodyType,
+                Motion,
+            },
         },
         omi_physics_shape::{
             OmiPhysicsShape,
             physics_shape::{
-                BoxShape, CapsuleShape, Height, PhysicsShapeWeight, Radius, Size, SphereShape,
+                BoxShape,
+                CapsuleShape,
+                Height,
+                PhysicsShapeWeight,
+                Radius,
+                Size,
+                SphereShape,
             },
         },
     },
-    graph::{ByteNode, Extensions, gltf::GltfDocument},
+    graph::{
+        ByteNode,
+        Extensions,
+        gltf::GltfDocument,
+    },
 };
 
-use crate::export::{extensions::BevyExtensionExport, gltf::ExportContext};
+use crate::export::{
+    extensions::BevyExtensionExport,
+    gltf::ExportContext,
+};
 
 impl BevyExtensionExport<GltfDocument> for OmiPhysicsBody {
     fn bevy_export(In(context): In<ExportContext>, world: &mut World) -> ExportContext {

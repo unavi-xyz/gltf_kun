@@ -1,10 +1,23 @@
+pub use gltf::texture::{
+    MagFilter,
+    MinFilter,
+    WrappingMode,
+};
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
-
-use super::{GltfEdge, GltfWeight, image::Image};
-
-pub use gltf::texture::{MagFilter, MinFilter, WrappingMode};
+use super::{
+    GltfEdge,
+    GltfWeight,
+    image::Image,
+};
+use crate::graph::{
+    Edge,
+    Extensions,
+    Graph,
+    GraphNodeEdges,
+    GraphNodeWeight,
+    Weight,
+};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum TextureEdge {
@@ -29,13 +42,13 @@ impl From<TextureEdge> for Edge {
 
 #[derive(Clone, Debug, Default)]
 pub struct TextureWeight {
-    pub name: Option<String>,
+    pub name:   Option<String>,
     pub extras: gltf::json::Extras,
 
     pub mag_filter: Option<MagFilter>,
     pub min_filter: Option<MinFilter>,
-    pub wrap_s: WrappingMode,
-    pub wrap_t: WrappingMode,
+    pub wrap_s:     WrappingMode,
+    pub wrap_t:     WrappingMode,
 }
 
 impl From<TextureWeight> for Weight {

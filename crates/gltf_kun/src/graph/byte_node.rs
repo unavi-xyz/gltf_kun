@@ -1,6 +1,9 @@
 use petgraph::graph::NodeIndex;
 
-use super::{Graph, Weight};
+use super::{
+    Graph,
+    Weight,
+};
 
 /// A serialized node in the graph.
 /// Useful for storing arbitrary data in the graph.

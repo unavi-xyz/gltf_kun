@@ -1,23 +1,34 @@
 use std::collections::HashMap;
 
-use bevy::{mesh::skinning::SkinnedMesh, platform::collections::HashSet, prelude::*};
+use bevy::{
+    mesh::skinning::SkinnedMesh,
+    platform::collections::HashSet,
+    prelude::*,
+};
 use gltf_kun::graph::{
     GraphNodeWeight,
-    gltf::{Node, document::GltfDocument, scene},
+    gltf::{
+        Node,
+        document::GltfDocument,
+        scene,
+    },
 };
-
-use crate::import::extensions::BevyExtensionImport;
 
 use super::{
     document::ImportContext,
-    node::{GltfNode, import_node, node_name},
+    node::{
+        GltfNode,
+        import_node,
+        node_name,
+    },
 };
+use crate::import::extensions::BevyExtensionImport;
 
 #[derive(Asset, Debug, TypePath)]
 pub struct GltfScene {
     pub extras: Option<Box<serde_json::value::RawValue>>,
-    pub nodes: Vec<Handle<GltfNode>>,
-    pub scene: Handle<Scene>,
+    pub nodes:  Vec<Handle<GltfNode>>,
+    pub scene:  Handle<WorldAsset>,
 }
 
 const MAX_JOINTS: usize = 256;
@@ -109,7 +120,7 @@ pub fn import_scene<E: BevyExtensionImport<GltfDocument>>(
             for entity in primitive_ents {
                 world.entity_mut(*entity).insert(SkinnedMesh {
                     inverse_bindposes: inverse_bindposes.clone(),
-                    joints: joints.clone(),
+                    joints:            joints.clone(),
                 });
             }
         }
@@ -118,7 +129,7 @@ pub fn import_scene<E: BevyExtensionImport<GltfDocument>>(
     // Load extensions.
     E::import_scene(context, s, &mut world);
 
-    let scene = Scene { world };
+    let scene = WorldAsset { world };
 
     let index = context
         .doc
@@ -133,8 +144,8 @@ pub fn import_scene<E: BevyExtensionImport<GltfDocument>>(
 
     let gltf_scene = GltfScene {
         extras: weight.extras.clone(),
-        nodes: root_nodes,
-        scene: handle,
+        nodes:  root_nodes,
+        scene:  handle,
     };
 
     let gltf_scene_handle = context

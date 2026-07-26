@@ -1,8 +1,12 @@
 use bevy::{
     asset::RenderAssetUsages,
     image::{
-        CompressedImageFormats, ImageAddressMode, ImageFilterMode, ImageSampler,
-        ImageSamplerDescriptor, ImageType,
+        CompressedImageFormats,
+        ImageAddressMode,
+        ImageFilterMode,
+        ImageSampler,
+        ImageSamplerDescriptor,
+        ImageType,
     },
     platform::collections::HashSet,
     prelude::*,
@@ -10,8 +14,14 @@ use bevy::{
 use gltf_kun::graph::{
     GraphNodeWeight,
     gltf::{
-        Image as ImageKun, Texture,
-        texture::{MagFilter, MinFilter, TextureWeight, WrappingMode},
+        Image as ImageKun,
+        Texture,
+        texture::{
+            MagFilter,
+            MinFilter,
+            TextureWeight,
+            WrappingMode,
+        },
     },
 };
 use thiserror::Error;

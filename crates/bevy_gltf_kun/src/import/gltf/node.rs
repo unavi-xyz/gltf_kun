@@ -1,30 +1,43 @@
-use std::{collections::HashMap, hash::BuildHasher};
+use std::{
+    collections::HashMap,
+    hash::BuildHasher,
+};
 
 use bevy::{
-    animation::{AnimatedBy, AnimationTargetId},
+    animation::{
+        AnimatedBy,
+        AnimationTargetId,
+    },
     mesh::morph::MorphBuildError,
     prelude::*,
 };
 use gltf_kun::graph::{
-    Graph, GraphNodeWeight,
-    gltf::{GltfDocument, Node},
+    Graph,
+    GraphNodeWeight,
+    gltf::{
+        GltfDocument,
+        Node,
+    },
 };
 use thiserror::Error;
 
-use crate::import::extensions::BevyExtensionImport;
-
 use super::{
     document::ImportContext,
-    mesh::{GltfMesh, import_mesh, mesh_label},
+    mesh::{
+        GltfMesh,
+        import_mesh,
+        mesh_label,
+    },
     primitive::primitive_label,
 };
+use crate::import::extensions::BevyExtensionImport;
 
 #[derive(Asset, Clone, Debug, TypePath)]
 pub struct GltfNode {
-    pub children: Vec<Handle<Self>>,
-    pub mesh: Option<Handle<GltfMesh>>,
+    pub children:  Vec<Handle<Self>>,
+    pub mesh:      Option<Handle<GltfMesh>>,
     pub transform: Transform,
-    pub extras: Option<Box<serde_json::value::RawValue>>,
+    pub extras:    Option<Box<serde_json::value::RawValue>>,
 }
 
 #[derive(Debug, Error)]
@@ -52,8 +65,8 @@ pub fn import_node<E: BevyExtensionImport<GltfDocument>, S: BuildHasher>(
     let extras = weight.extras.take();
     let transform = Transform {
         translation: Vec3::from_array(weight.translation.to_array()),
-        rotation: Quat::from_array(weight.rotation.to_array()),
-        scale: Vec3::from_array(weight.scale.to_array()),
+        rotation:    Quat::from_array(weight.rotation.to_array()),
+        scale:       Vec3::from_array(weight.scale.to_array()),
     };
 
     let world_transform = *parent_world_transform * transform;

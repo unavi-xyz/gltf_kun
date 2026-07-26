@@ -1,4 +1,7 @@
-use serde::{Deserialize, Serialize};
+use serde::{
+    Deserialize,
+    Serialize,
+};
 
 use super::weight::Motion;
 
@@ -7,9 +10,9 @@ pub struct PhysicsBodyJson {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub collider: Option<ShapeRefJson>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub motion: Option<Motion>,
+    pub motion:   Option<Motion>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub trigger: Option<ShapeRefJson>,
+    pub trigger:  Option<ShapeRefJson>,
 }
 
 #[derive(Debug, Deserialize, Eq, PartialEq, Serialize)]
@@ -19,15 +22,17 @@ pub struct ShapeRefJson {
 
 #[cfg(test)]
 mod tests {
-    use crate::extensions::omi_physics_body::weight::{BodyType, Motion};
-
     use super::*;
+    use crate::extensions::omi_physics_body::weight::{
+        BodyType,
+        Motion,
+    };
 
     #[test]
     fn motion_serde() {
         let json = PhysicsBodyJson {
-            motion: Some(Motion::new(BodyType::Dynamic)),
-            trigger: None,
+            motion:   Some(Motion::new(BodyType::Dynamic)),
+            trigger:  None,
             collider: None,
         };
 

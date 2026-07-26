@@ -4,7 +4,11 @@
 //! ## Usage
 //!
 //! ```
-//! use gltf_kun::graph::{Graph, GraphNodeWeight, gltf::document::GltfDocument};
+//! use gltf_kun::graph::{
+//!     Graph,
+//!     GraphNodeWeight,
+//!     gltf::document::GltfDocument,
+//! };
 //!
 //! let mut graph = Graph::default();
 //!
@@ -30,7 +34,10 @@
 //!     println!("Scene name: {:?}", weight.name);
 //! });
 //!
-//! use gltf_kun::{extensions::DefaultExtensions, io::format::glb::GlbExport};
+//! use gltf_kun::{
+//!     extensions::DefaultExtensions,
+//!     io::format::glb::GlbExport,
+//! };
 //!
 //! // Export the document to a GLB byte array.
 //! let glb = GlbExport::<DefaultExtensions>::export(&mut graph, &doc).ok();

@@ -1,8 +1,20 @@
 use petgraph::graph::NodeIndex;
 
-use crate::graph::{Edge, Extensions, Graph, GraphNodeEdges, GraphNodeWeight, Weight};
-
-use super::{GltfEdge, GltfWeight, Node, node::NodeEdge, primitive::Primitive};
+use super::{
+    GltfEdge,
+    GltfWeight,
+    Node,
+    node::NodeEdge,
+    primitive::Primitive,
+};
+use crate::graph::{
+    Edge,
+    Extensions,
+    Graph,
+    GraphNodeEdges,
+    GraphNodeWeight,
+    Weight,
+};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum MeshEdge {
@@ -27,7 +39,7 @@ impl From<MeshEdge> for Edge {
 
 #[derive(Clone, Debug, Default)]
 pub struct MeshWeight {
-    pub name: Option<String>,
+    pub name:   Option<String>,
     pub extras: gltf::json::Extras,
 
     pub weights: Vec<f32>,

@@ -1,6 +1,9 @@
 use std::marker::PhantomData;
 
-use super::{iter::ElementIter, normalize::Normalize};
+use super::{
+    iter::ElementIter,
+    normalize::Normalize,
+};
 
 /// UV texture co-ordinates.
 #[derive(Clone, Debug)]

@@ -3,7 +3,10 @@ use std::path::Path;
 use gltf_kun::{
     extensions::DefaultExtensions,
     graph::Graph,
-    io::format::glb::{GlbExport, GlbImport},
+    io::format::glb::{
+        GlbExport,
+        GlbImport,
+    },
 };
 use tracing_test::traced_test;
 

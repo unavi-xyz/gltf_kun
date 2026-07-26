@@ -1,31 +1,52 @@
-use anyhow::{Context, Result, bail};
+use anyhow::{
+    Context,
+    Result,
+    bail,
+};
 use bevy::{
     animation::{
-        AnimationTargetId, animated_field,
+        AnimationTargetId,
+        animated_field,
         gltf_curves::{
-            CubicKeyframeCurve, CubicRotationCurve, SteppedKeyframeCurve, WideCubicKeyframeCurve,
-            WideLinearKeyframeCurve, WideSteppedKeyframeCurve,
+            CubicKeyframeCurve,
+            CubicRotationCurve,
+            SteppedKeyframeCurve,
+            WideCubicKeyframeCurve,
+            WideLinearKeyframeCurve,
+            WideSteppedKeyframeCurve,
         },
     },
-    platform::collections::{HashMap, HashSet},
+    platform::collections::{
+        HashMap,
+        HashSet,
+    },
     prelude::*,
 };
 use gltf_kun::graph::{
-    Graph, GraphNodeWeight,
+    Graph,
+    GraphNodeWeight,
     gltf::{
-        Animation, GltfDocument, Node,
+        Animation,
+        GltfDocument,
+        Node,
         accessor::iter::AccessorIter,
-        animation::{Interpolation, TargetPath},
+        animation::{
+            Interpolation,
+            TargetPath,
+        },
     },
 };
 
-use super::{document::ImportContext, node::node_name};
+use super::{
+    document::ImportContext,
+    node::node_name,
+};
 
 /// Raw animation curve data before conversion to Bevy's `AnimatableCurve`.
 /// Useful for animation retargeting and custom processing.
 #[derive(Asset, Debug, TypePath)]
 pub struct RawGltfAnimation {
-    pub name: Option<String>,
+    pub name:     Option<String>,
     pub channels: Vec<RawAnimationChannel>,
 }
 
@@ -33,11 +54,11 @@ pub struct RawGltfAnimation {
 #[derive(Debug, Clone)]
 pub struct RawAnimationChannel {
     /// Path from root to the target node
-    pub target_path: Vec<Name>,
+    pub target_path:   Vec<Name>,
     /// Root node of the animation
-    pub target_root: Node,
+    pub target_root:   Node,
     /// The animated property and its curve data
-    pub data: RawChannelData,
+    pub data:          RawChannelData,
     /// Interpolation method
     pub interpolation: Interpolation,
 }
@@ -47,19 +68,19 @@ pub struct RawAnimationChannel {
 pub enum RawChannelData {
     Translation {
         timestamps: Vec<f32>,
-        values: Vec<Vec3>,
+        values:     Vec<Vec3>,
     },
     Rotation {
         timestamps: Vec<f32>,
-        values: Vec<Quat>,
+        values:     Vec<Quat>,
     },
     Scale {
         timestamps: Vec<f32>,
-        values: Vec<Vec3>,
+        values:     Vec<Vec3>,
     },
     MorphTargetWeights {
         timestamps: Vec<f32>,
-        values: Vec<f32>,
+        values:     Vec<f32>,
     },
 }
 
@@ -108,7 +129,7 @@ pub fn import_animation(
 
                 let raw_data = RawChannelData::Translation {
                     timestamps: keyframe_timestamps.clone(),
-                    values: translations.clone(),
+                    values:     translations.clone(),
                 };
 
                 let property = animated_field!(Transform::translation);
@@ -160,7 +181,7 @@ pub fn import_animation(
 
                 let raw_data = RawChannelData::Rotation {
                     timestamps: keyframe_timestamps.clone(),
-                    values: rotations.clone(),
+                    values:     rotations.clone(),
                 };
 
                 let property = animated_field!(Transform::rotation);
@@ -212,7 +233,7 @@ pub fn import_animation(
 
                 let raw_data = RawChannelData::Scale {
                     timestamps: keyframe_timestamps.clone(),
-                    values: scales.clone(),
+                    values:     scales.clone(),
                 };
 
                 let property = animated_field!(Transform::scale);
@@ -259,7 +280,7 @@ pub fn import_animation(
 
                 let raw_data = RawChannelData::MorphTargetWeights {
                     timestamps: keyframe_timestamps.clone(),
-                    values: weights.clone(),
+                    values:     weights.clone(),
                 };
 
                 let curve = if keyframe_timestamps.len() == 1 {
@@ -316,9 +337,9 @@ pub fn import_animation(
         // Store raw channel data if requested
         if context.expose_raw_curves {
             raw_channels.push(RawAnimationChannel {
-                target_path: path.1.clone(),
-                target_root: path.0,
-                data: raw_data,
+                target_path:   path.1.clone(),
+                target_root:   path.0,
+                data:          raw_data,
                 interpolation: sampler_weight.interpolation,
             });
         }
@@ -345,7 +366,7 @@ pub fn import_animation(
     // Create raw animation asset if requested
     if context.expose_raw_curves {
         let raw_animation = RawGltfAnimation {
-            name: weight.name.clone(),
+            name:     weight.name.clone(),
             channels: raw_channels,
         };
 
